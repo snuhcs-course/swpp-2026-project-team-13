@@ -1,1 +1,16 @@
 .idea/
+.gradle/
+.kotlin/
+**/build/
+local.properties
+*.iml
+.cxx/
+.externalNativeBuild/
+captures/
+private-context/
+*.jks
+*.keystore
+keystore.properties
+secrets.properties
+.env
+.env.*
