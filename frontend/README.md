@@ -1,39 +1,39 @@
-# SwiftUI iPad 앱
+# SwiftUI iPad App
 
-Mac의 Xcode 16 이상에서 `IPadApp/IPadApp.xcodeproj`를 엽니다.
-`IPadApp` scheme, iPad 시뮬레이터를 선택하고 Run을 누릅니다. 대상은 iPadOS 17 이상입니다.
-첫 화면과 Django 서버 연결 확인 버튼만 구현되어 있습니다.
+Open `IPadApp/IPadApp.xcodeproj` in Xcode 16 or later on a Mac.
+Select the `IPadApp` scheme and an iPad simulator, then click Run. The deployment target is iPadOS 17 or later.
+Only the initial screen and a Django server connection button are implemented.
 
-## 서버 주소
+## Server URL
 
-- Debug: `IPadApp/Config/Debug.xcconfig`의 `http://localhost:8000`
-- 개인 Debug 설정: `Local.xcconfig.example`을 같은 폴더의 `Local.xcconfig`로 복사 후 수정
-- Release: `Release.xcconfig`에 실제 HTTPS API 주소 설정 필요. 현재 비어 있으며 요청 시 안내 메시지를 표시
+- Debug: `http://localhost:8000`, configured in `IPadApp/Config/Debug.xcconfig`
+- Personal Debug settings: copy `Local.xcconfig.example` to `Local.xcconfig` in the same directory and edit it
+- Release: set a real HTTPS API URL in `Release.xcconfig`. It is currently empty, so requests display a configuration message
 
-xcconfig에서는 `//`가 주석이므로 URL을 `http:/$()/localhost:8000`처럼 씁니다.
-빌드된 앱에서는 `http://localhost:8000`으로 치환됩니다.
+Because `//` starts a comment in xcconfig files, write URLs as `http:/$()/localhost:8000`.
+This expands to `http://localhost:8000` in the built app.
 
-실제 iPad에서 테스트하려면:
+To test on a physical iPad:
 
-1. iPad와 Mac을 같은 네트워크에 연결합니다.
-2. 개인 `Config/Local.xcconfig`의 주소를 Mac의 LAN IP로 바꿉니다.
-3. 백엔드의 `DJANGO_ALLOWED_HOSTS`에 같은 IP를 추가하고 `runserver 0.0.0.0:8000`으로 실행합니다.
-4. Xcode의 Signing & Capabilities에서 본인의 Team을 선택하고 필요하면 bundle identifier를 고유하게 바꿉니다.
-5. 앱을 다시 빌드해 실행합니다. 로컬 네트워크 접근을 허용하고 Mac 방화벽에서 개발 서버 연결을 허용합니다.
+1. Connect the iPad and Mac to the same network.
+2. Set the server URL in your personal `IPadApp/Config/Local.xcconfig` to the Mac's LAN IP address.
+3. Add that IP to the backend's `DJANGO_ALLOWED_HOSTS` and start Django with `runserver 0.0.0.0:8000`.
+4. Select your Team in Xcode's Signing & Capabilities settings and choose a unique bundle identifier if necessary.
+5. Rebuild and run the app. Allow local network access and allow connections to the development server through the Mac's firewall.
 
-시뮬레이터는 개발자 Team이나 개인 서명 설정 없이 실행할 수 있습니다.
-로컬 HTTP를 위해 `NSAllowsLocalNetworking`을 설정했습니다. 배포 서버는 HTTPS를 사용합니다.
+The simulator does not require a developer Team or personal signing configuration.
+`NSAllowsLocalNetworking` is enabled for local HTTP connections. Use HTTPS for the production server.
 
-## 파일 역할
+## Files
 
-| 파일 | 역할 |
+| File | Purpose |
 | --- | --- |
-| `IPadAppApp.swift` | 앱 진입점 |
-| `ContentView.swift` | 시작 화면과 비동기 연결 상태 |
-| `APIClient.swift` | URLSession 요청, HTTP 오류 처리, JSON 디코딩 |
-| `Info.plist` | API 주소 주입과 로컬 네트워크 사용 안내 |
-| `Assets.xcassets` | 강조 색과 앱 아이콘 자리 |
+| `IPadAppApp.swift` | App entry point |
+| `ContentView.swift` | Initial screen and asynchronous connection status |
+| `APIClient.swift` | URLSession requests, HTTP error handling, and JSON decoding |
+| `Info.plist` | API URL injection and local network usage description |
+| `Assets.xcassets` | Accent color and app icon placeholder |
 
-`IPadApp`과 `org.snuhcs.team13.ipadapp`은 초기 이름입니다.
-앱 이름·아이콘·배포 서명·운영 API 주소는 추후 설정합니다.
-필기 입력, 필기 인식, 로그인, 로컬 저장은 아직 없습니다.
+`IPadApp` and `org.snuhcs.team13.ipadapp` are initial names.
+Configure the final app name, icon, distribution signing, and production API URL later.
+Handwriting input, handwriting recognition, authentication, and local storage are not implemented yet.

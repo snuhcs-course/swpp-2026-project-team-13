@@ -1,10 +1,10 @@
-# Django 백엔드
+# Django Backend
 
-Python 3.14 기준의 API 기본 틀입니다. 제품 기능과 제품용 인증은 미구현입니다.
+An initial API server targeting Python 3.14. Product features and product authentication are not implemented yet.
 
-## 실행
+## Run
 
-macOS / Linux (`backend/`에서):
+macOS / Linux (from `backend/`):
 
 ```sh
 python3 -m venv .venv
@@ -25,30 +25,30 @@ Copy-Item .env.example .env
 .venv\Scripts\python.exe manage.py runserver
 ```
 
-`GET http://localhost:8000/api/health/` → `{"status":"ok"}`.
-관리자 화면은 `/admin/`이며 사용하려면 `python manage.py createsuperuser`로 계정을 만듭니다.
+`GET http://localhost:8000/api/health/` returns `{"status":"ok"}`.
+The admin interface is available at `/admin/`. Create an account with `python manage.py createsuperuser` to use it.
 
-## 설정
+## Configuration
 
-`config/settings.py`는 `backend/.env`를 읽습니다. 기존 프로세스 환경변수가 우선합니다.
+`config/settings.py` loads `backend/.env`. Existing process environment variables take precedence.
 
-| 변수 | 역할 |
+| Variable | Purpose |
 | --- | --- |
-| `DJANGO_DEBUG` | 예제는 `true`, 미설정 시 `false` |
-| `DJANGO_SECRET_KEY` | 필수. 예제 값은 로컬 개발 전용 |
-| `DJANGO_ALLOWED_HOSTS` | 쉼표로 구분한 호스트/IP. 스킴·포트 제외 |
+| `DJANGO_DEBUG` | `true` in the example; defaults to `false` when unset |
+| `DJANGO_SECRET_KEY` | Required. The example value is for local development only |
+| `DJANGO_ALLOWED_HOSTS` | Comma-separated hostnames or IP addresses, without a scheme or port |
 
-실제 iPad에서 접속하려면 Mac과 같은 네트워크를 사용하고 호스트 목록에 Mac의 LAN IP를 추가합니다.
-예: `DJANGO_ALLOWED_HOSTS=localhost,127.0.0.1,[::1],192.168.1.10`.
-이후 `python manage.py runserver 0.0.0.0:8000`으로 실행합니다.
-이 설정은 로컬 개발용이며 운영 웹 서버 설정은 포함하지 않습니다.
+To connect from a physical iPad, use the same network as the Mac and add the Mac's LAN IP to the allowed hosts.
+For example: `DJANGO_ALLOWED_HOSTS=localhost,127.0.0.1,[::1],192.168.1.10`.
+Then run `python manage.py runserver 0.0.0.0:8000`.
+This setup is for local development; production web server configuration is not included.
 
-## 구조와 검사
+## Structure and Checks
 
-- `config/`: Django 설정, URL, WSGI/ASGI 진입점
-- `api/`: health API. 향후 제품 기능은 별도 Django app으로 나누어도 됩니다.
-- `requirements.txt`: 직접·간접 의존성의 정확한 버전
-- `db.sqlite3`: migrate로 생성되는 로컬 DB, Git 제외
+- `config/`: Django settings, URLs, and WSGI/ASGI entry points
+- `api/`: Health API. Future product features can use separate Django apps
+- `requirements.txt`: Pinned direct and transitive dependencies
+- `db.sqlite3`: Local database created by migrations and excluded from Git
 
 ```sh
 python manage.py check
@@ -56,5 +56,5 @@ python manage.py test api
 python manage.py makemigrations --check --dry-run
 ```
 
-health API는 공개이며 향후 API의 기본 권한은 인증 필수입니다.
-운영 DB는 도메인 모델과 실데이터를 만들기 전에 결정합니다.
+The health API is public. The default permission for future APIs requires authentication.
+Choose the production database before introducing domain models and real data.
