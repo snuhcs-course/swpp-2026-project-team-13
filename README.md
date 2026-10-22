@@ -1,75 +1,86 @@
-# DiaryWiki
+# Team 13 — iPad App / Django Backend
 
-DiaryWiki is the SWPP 2026 Fall Team 13 Android project. The planned product turns diary entries into wiki-style content.
+An initial project for two developers working separately on the frontend and backend.
+The product name is undecided. Authentication, handwriting recognition, and domain data models are not implemented yet.
 
-## Current status
-
-The P9 project foundation is implemented with Kotlin and Jetpack Compose. The app currently displays **Hello Android!**.
-
-Diary entry editing, local data storage, wiki generation, and snapshot features are not implemented yet. This foundation validates the build environment and app launch; it is not the complete Iteration 1 end-to-end demo.
-
-## Development environment
-
-| Item | Version |
-| --- | --- |
-| Android Studio | Quail 3 recommended by Tutorial 00 |
-| Android SDK / compileSdk / targetSdk | API 36 |
-| Minimum Android version | API 26 (Android 8.0) |
-| Gradle daemon JDK | 21 |
-| Java source / target compatibility | 11 |
-| Gradle Wrapper | 9.5.0 |
-| Android Gradle Plugin | 9.3.3 |
-| Kotlin Compose compiler plugin | 2.2.10 |
-| Compose BOM | 2026.02.01 |
-| AndroidX Core KTX | 1.17.0 |
-
-The application ID and namespace are `com.team13.diarywiki`. Dependency versions are declared in `gradle/libs.versions.toml`. Core KTX 1.17.0 is selected for the course's API 36 baseline; the original 1.19.0 dependency required API 37.
-
-JDK 21 runs Gradle, while Java source and target compatibility remain at 11. These are separate settings. The shared `gradle/gradle-daemon-jvm.properties` requires JDK 21; each developer must install it locally.
-
-## Open and run
-
-1. Clone this repository and open its **root folder** in Android Studio, not just the `app/` directory.
-2. In SDK Manager, install Android SDK Platform 36 and the SDK tools requested by Android Studio. Install JDK 21 if it is not already available.
-3. Confirm that Android Studio recognizes your local SDK location. Machine-specific SDK settings belong in the ignored `local.properties` file.
-4. Run **File > Sync Project with Gradle Files** and wait for completion. The first sync requires internet access to download build tools and dependencies. If JDK 21 is not detected, select your installed JDK 21 in the IDE's Gradle JVM settings.
-5. In Device Manager, create or reuse an emulator (for example, Medium Phone with an API 36 system image). A physical Android device running API 26 or newer with USB debugging enabled can also be used.
-6. Select the `app` run configuration and the device, then click **Run**. The expected screen shows **Hello Android!**.
-
-No API keys or backend services are needed for the current app.
-
-## Build and checks
-
-Run commands from the repository root using the included Gradle Wrapper. For terminal builds, set `JAVA_HOME` to your local JDK 21 installation.
-
-Windows PowerShell:
-
-```powershell
-.\gradlew.bat clean :app:assembleDebug :app:testDebugUnitTest :app:lintDebug --no-build-cache
+```text
+SwiftUI iPad app ← HTTP / JSON → Django REST API → SQLite (local development)
 ```
 
-macOS / Linux:
+| Path | Contents | Owner |
+| --- | --- | --- |
+| `frontend/` | SwiftUI Xcode project and server connection screen | Frontend |
+| `backend/` | Django, Django REST Framework, and health API | Backend |
+| `docs/api.md` | Agreed request and response formats | Both |
+| `.github/workflows/ci.yml` | Backend checks and tests, iPad app build | Both |
+
+## Quick Start
+
+Backend (macOS / Linux, starting from the repository root):
 
 ```sh
-sh ./gradlew clean :app:assembleDebug :app:testDebugUnitTest :app:lintDebug --no-build-cache
+cd backend
+python3 -m venv .venv
+source .venv/bin/activate
+python -m pip install -r requirements.txt
+cp .env.example .env
+python manage.py migrate
+python manage.py runserver
 ```
 
-The debug APK is generated at `app/build/outputs/apk/debug/app-debug.apk`. The Lint HTML report is at `app/build/reports/lint-results-debug.html`.
+`curl http://localhost:8000/api/health/` returns `{"status":"ok"}`.
 
-Verified on Windows: clean debug build with JDK 21 and SDK 36, the template unit test, and Lint. Lint reports no errors; remaining warnings include version-update suggestions and unused template resources. Android Studio sync and the Hello Android screen on a Medium Phone emulator were also confirmed. Physical-device and instrumented tests have not been run. The template unit test does not validate diary or wiki functionality.
+Frontend:
 
-## Project structure
+1. Open `frontend/IPadApp/IPadApp.xcodeproj` in Xcode on a Mac.
+2. Select the `IPadApp` scheme and an iPad simulator, then click Run.
+3. With the Django server running, tap the server connection button to check connectivity.
 
-| Path | Purpose |
-| --- | --- |
-| `app/src/main/java/com/team13/diarywiki/MainActivity.kt` | Activity entry point and initial Compose screen |
-| `app/src/main/java/com/team13/diarywiki/ui/theme/` | Compose colors, typography, and theme |
-| `app/src/main/AndroidManifest.xml` | Application and launcher Activity declarations |
-| `app/src/main/res/` | App strings, icons, and Android resources |
-| `app/src/test/`, `app/src/androidTest/` | Local and device-based test sources |
-| `app/build.gradle.kts` | SDK levels, app identity, and app dependencies |
-| `gradle/`, `build.gradle.kts`, `settings.gradle.kts` | Shared build versions and project configuration |
+The app can launch without the server; connection checks will display an error message.
+A physical iPad requires the Mac's LAN IP address instead of `localhost`.
+See the [frontend guide](frontend/README.md), [backend guide](backend/README.md), and [API contract](docs/api.md) for details.
 
-The current UI flow is `MainActivity -> DiaryWikiTheme -> Greeting -> Text`. There is no repository, persistent data flow, or AI integration yet.
+## Development Environment
 
-Keep IDE settings, local SDK paths, build outputs, and signing keys out of Git. See [Iteration 1 guidance](docs/iteration-1.md) for deliverables. Update this README with implemented features, limitations, and a demo video link as the prototype develops.
+- Frontend: Mac, Xcode 16 or later with a compatible macOS version, iPadOS 17 or later
+- Swift language mode: 5.0; UI: SwiftUI; no external Swift packages
+- Backend: Python 3.14, Django 5.2 LTS, Django REST Framework
+- Direct and transitive Python dependencies are pinned in `backend/requirements.txt`
+- Local database: SQLite. Choose the production database before introducing domain models and real data
+
+## Validation
+
+Backend (after preparing `backend/.env`):
+
+```sh
+cd backend
+source .venv/bin/activate
+python manage.py check
+python manage.py test api
+```
+
+iPad app (on a Mac, from the repository root):
+
+```sh
+xcodebuild -project frontend/IPadApp/IPadApp.xcodeproj \
+  -scheme IPadApp -configuration Debug \
+  -destination 'generic/platform=iOS Simulator' \
+  -derivedDataPath build/DerivedData CODE_SIGNING_ALLOWED=NO build
+```
+
+Frontend automation currently checks the build; there are no UI tests.
+The health API checks whether the server process responds, not database availability or product functionality.
+
+## Collaboration
+
+- Keep `main` runnable and open pull requests from working branches.
+- Example branches: `feat/ipad-editor`, `feat/notes-api`.
+- Update `docs/api.md` whenever an API changes.
+- Do not commit `.env` files, databases, virtual environments, personal Xcode settings, certificates, or keys.
+- Commit Django migration files and the shared Xcode project and scheme.
+- Add Docker and production deployment configuration when needed.
+
+## Previous Project
+
+The previous Android code and documentation have been removed from the current project.
+Git history is preserved. The state before this replacement is available at commit `465dde2`.
