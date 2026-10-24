@@ -87,3 +87,15 @@ Swift의 실제 MIDI 이벤트 시점·강약·서버 v3 fixture·기존 v2 fixt
 ## iPad Safari에서 Windows LAN 접속
 
 사용자가 iPad Safari로 Windows 서버의 /api/health/에 접속해 ok 응답을 확인했다고 보고했습니다. 같은 LAN의 기기→Docker API 연결을 확인했습니다. 앱 개발 토큰 인증·필기 제출·기기 오디오는 앱 설치 후 확인해야 합니다.
+
+
+## 첫 GitHub Actions 프론트 검사에서 확인한 테스트 오류
+
+사용자가 공유한 macOS CI 로그에서 SORICore와 테스트 모듈의 컴파일은 성공했고, XCTest 33개 중 32개가 통과했습니다.
+ThreeQuestionTests.testBadTripletDurationIsRejected 한 테스트에서 단언 2개가 실패했습니다.
+1번 MXL의 셋잇단음표는 16분음표 셋잇단음표(duration=80)인데, 테스트가 존재하지 않는 duration=160을 치환하려 해 정상 XML이 그대로 유지된 것이 원인이었습니다.
+
+테스트를 세 문제 각각의 실제 파싱 결과에서 셋잇단음표 길이를 찾고, 그 길이를 1 tick 늘린 XML을 만들어 거부되는지 확인하도록 수정했습니다.
+사용하지 않는 q 경고도 해당 값을 실제 자산 파싱에 사용하면서 해결했습니다.
+악보·앱 파서는 이 수정에서 변경하지 않았습니다. Windows에서 입력 변조가 실제로 일어나는지는 대조했지만, 수정 후 Swift 테스트 통과 여부는 다시 실행한 GitHub Actions 결과로 확인해야 합니다.
+Core 검사 실패로 이후 iPad 앱 빌드 단계는 아직 확인되지 않았습니다.

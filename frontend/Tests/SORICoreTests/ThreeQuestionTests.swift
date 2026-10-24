@@ -28,11 +28,15 @@ final class ThreeQuestionTests: XCTestCase {
         }
     }
     func testBadTripletDurationIsRejected() throws {
-        let q = try catalog()[0]
-        let data = try Data(contentsOf:resources.appendingPathComponent("excerpt-1-main.mxl"))
-        let xml = String(decoding:try MXLContainer.entries(data)["score.xml"]!,as:UTF8.self)
-        let broken = xml.replacingOccurrences(of:"<duration>160</duration>",with:"<duration>161</duration>")
-        XCTAssertNotEqual(broken,xml)
-        XCTAssertThrowsError(try MusicXMLParser.parseXML(Data(broken.utf8),measures:8,tempo:96))
+        for (index,q) in try catalog().enumerated() {
+            let data = try Data(contentsOf:resources.appendingPathComponent("excerpt-\(index+1)-main.mxl"))
+            let score = try MusicXMLParser.parseMXL(data,asset:q.scoreAssets.main,tempo:96)
+            let triplet = try XCTUnwrap(score.symbols.first { $0.tupletActual == 3 && $0.tupletNormal == 2 })
+            let xml = String(decoding:try XCTUnwrap(MXLContainer.entries(data)["score.xml"]),as:UTF8.self)
+            let duration = "<duration>\(triplet.duration)</duration>"
+            let range = try XCTUnwrap(xml.range(of:duration),"문제 \(index+1)에 실제 셋잇단음표 길이가 있어야 합니다.")
+            let broken = xml.replacingCharacters(in:range,with:"<duration>\(triplet.duration+1)</duration>")
+            XCTAssertThrowsError(try MusicXMLParser.parseXML(Data(broken.utf8),measures:8,tempo:96),"문제 \(index+1)의 잘못된 셋잇단음표 길이를 거부해야 합니다.")
+        }
     }
 }
