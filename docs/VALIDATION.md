@@ -8,12 +8,12 @@
 | 모든 마디 길이·음표 길이와 3종 PNG/MXL 해시·앱 번들 bytes | 통과, scripts/test_content.py의 3개 검증 |
 | Python 3.14 문법 검사 | 통과 |
 | Docker Compose 구성 파싱 | 통과 |
-| 실제 PostgreSQL에서 기존 API·복구 검증 | 9개 통과, 실제 PostgreSQL / Python 3.14의 사용자 PowerShell 로그 확인 |
+| 실제 PostgreSQL에서 기존 API·복구 검증 | 10개 통과, 실제 PostgreSQL / Python 3.14의 사용자 PowerShell 로그 확인 |
 | 실제 클라이언트의 binary Accept 헤더 | MXL·PNG 요청 및 JSON 오류 응답까지 통과; 발견한 406 수정 후 9개 전체 재검증 통과 |
 | 실제 HTTP 다운로드·업로드·조회 | 통과; 실제 HTTP 및 이미지 왕복 포함 전체 18개 점검 완료 |
 | 실제 OpenRouter 호출·피드백 | 통과; 실제 OpenRouter 호출로 빈 답안의 completed·0점·한국어 피드백 확인 |
-| Swift Package 검증·Xcode 빌드 | GitHub macOS CI 실행, 앱 빌드의 좌표 타입 오류 수정 후 재검증 대기 |
-| 개인 iPad 설치·필기·소리·실제 서버 연결 | Mac 빌드 후 기기 확인 필요 |
+| Swift Package 검증·Xcode 시뮬레이터 빌드 | c3e5b7b 수정 후 GitHub frontend 검사 통과를 사용자에게 보고받음 |
+| 개인 iPad 설치·필기·소리·실제 서버 연결 | GitHub 실기기 빌드와 Windows Sideloadly 설치 후 확인 필요 |
 
 서버 검증 로그: backend/.local/backend-checks.log. 실제 HTTP·선택적 AI 점검 기록: backend/.local/live-checks.json. 이 파일들은 비공개이며 전달 ZIP에서 제외합니다.
 
@@ -107,3 +107,14 @@ Core 검사 실패로 이후 iPad 앱 빌드 단계는 아직 확인되지 않�
 NativeScoreRenderer의 줄기 끝 위치·마디 좌표·선 두께·텍스트 좌표와 계산을 SwiftUI/CoreGraphics에서 사용하는 CGFloat로 통일했습니다.
 Windows에는 Xcode가 없어 이 수정 후 앱 빌드 성공 여부는 GitHub macOS CI의 재실행으로 확인해야 합니다.
 이 변경은 좌표의 수치 타입에 관한 수정입니다. 악보 데이터와 재생·채점 로직은 변경하지 않았습니다.
+
+
+## Windows에서 개인 iPad 설치 경로 추가
+
+사용자가 가장 간편한 원격 설치 경로로 진행하도록 승인하여, push CI의 frontend 검사·시뮬레이터 빌드 뒤에 실기기용 unsigned Debug IPA 생성·업로드를 추가했습니다. 빌드에 Apple 로그인·서명 인증서가 필요하지 않으며 실제 설치 서명은 사용자의 Windows Sideloadly에서 수행합니다.
+
+실기기 빌드는 iphoneos/arm64를 사용하고 설치용 앱에 한해 ENABLE_DEBUG_DYLIB=NO로 일반 실행 파일 레이아웃을 사용합니다. 패키징 단계는 시뮬레이터 출력 거부, iPad 대상·Debug HTTP 설정·필수 악보/오디오 원본 bytes·IPA 무결성을 확인합니다. Artifacts 이름은 SORI-iPad-install, 보관 기간은 14일입니다.
+
+Windows의 패키징 검사 결과와 GitHub 실기기 빌드·실제 설치 여부는 구분합니다. 실제 iPad 오디오·필기·인증 제출 확인은 아직 남아 있습니다. iPad-hosted 통합 테스트를 실행한 것으로 간주하지 않습니다.
+
+Windows 오프라인 패키징 검사 통과: Payload/IPadApp.app 구조, 원본 파일 bytes, 실행 권한, SHA-256, 설치 안내 동봉을 확인했습니다. 시뮬레이터 출력과 손상된 오디오를 패키징 전에 거부하는 것도 확인했습니다. 이 검사는 가짜 실행 파일을 쓴 패키징 전용 fixture이며 실제 사용 가능한 IPA를 생성한 결과가 아닙니다. GitHub iphoneos 빌드와 실제 설치 검증은 아직 대기 상태입니다.

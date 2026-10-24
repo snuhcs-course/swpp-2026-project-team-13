@@ -1,5 +1,7 @@
 # Mac 담당자에게 전달
 
+현재 개인 iPad 설치는 [GitHub 빌드 → Windows Sideloadly](WINDOWS-IPAD.md) 경로를 사용합니다. 아래 Xcode 직접 설치는 Mac과 iPad를 연결할 수 있을 때의 대안입니다.
+
 이 작업본은 기존 SwiftUI/PencilKit 앱과 Django API 계약을 함께 수정한 소스입니다. 새 문제 3개를 앱 번들에도 넣었으므로 서버 없이 데모의 문제 표시·청음·필기를 먼저 확인할 수 있습니다. 데모 결과는 실제 채점이 아닙니다.
 
 ## 전달 파일

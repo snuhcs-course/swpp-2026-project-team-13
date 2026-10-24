@@ -4,7 +4,8 @@
 
 ## 먼저 확인할 문서
 
-- 개인 iPad 설치와 Windows 서버 실행: [docs/IPAD-SETUP.md](docs/IPAD-SETUP.md)
+- Windows에서 iPad 앱 설치: [docs/WINDOWS-IPAD.md](docs/WINDOWS-IPAD.md)
+- Windows 서버 실행과 연결: [docs/IPAD-SETUP.md](docs/IPAD-SETUP.md)
 - 친구의 Mac에서 빌드 확인: [docs/MAC-HANDOFF.md](docs/MAC-HANDOFF.md)
 - API 계약: [docs/sori-api/API-CONTRACT.md](docs/sori-api/API-CONTRACT.md)
 - 실제 검증 상태: [docs/VALIDATION.md](docs/VALIDATION.md)
@@ -17,7 +18,7 @@
                                                    ↓
                                            OpenRouter AI 평가
 
-서버는 PostgreSQL과 API·워커를 Docker Compose로 실행합니다. 앱은 Mac의 Xcode에서 빌드·서명해 개인 iPad에 설치합니다. OpenRouter 키는 서버에만 설정하고, 앱에는 사용자별 개발 Bearer 토큰만 넣습니다.
+서버는 PostgreSQL과 API·워커를 Docker Compose로 실행합니다. 앱은 GitHub의 macOS CI에서 실기기용 IPA를 만들고 Windows의 Sideloadly로 서명·설치합니다. 친구의 Mac에서 Xcode로 직접 설치하는 경로도 사용할 수 있습니다. OpenRouter 키는 서버에만 설정하고, 앱에는 사용자별 개발 Bearer 토큰만 넣습니다.
 
 ## Windows 시작
 

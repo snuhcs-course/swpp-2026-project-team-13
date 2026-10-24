@@ -1,14 +1,16 @@
 # SORI iPad frontend
 
-Native SwiftUI / PencilKit app for the SORI v0.3.0 personal-practice contract. iPadOS 17+, Xcode 16+; no external Swift packages or network-loaded rendering code.
+Native SwiftUI / PencilKit app for the SORI v0.4.0 personal-practice contract. iPadOS 17+, Xcode 16+; no external Swift packages or network-loaded rendering code.
 
 ## Run
 
 Open `IPadApp/IPadApp.xcodeproj`, select the shared `IPadApp` scheme and an iPad simulator, and Run. The default **local demo** works without a server. The app includes the exact API fixtures, staff template, MXL examples, a native notation renderer, and a fixed synthesized piano SoundFont. Demo results are explicitly marked as examples and do not analyze handwriting.
 
-Use **연결 설정** to switch to the backend. Enter an absolute base URL ending `/api/v1/` and a backend-issued Bearer token. The token is stored in this device's Keychain, never UserDefaults or source control. Release requires HTTPS. Debug permits HTTP for local development; the app's transport security configuration allows local networking only. For a physical iPad use the Mac's LAN address; `localhost` on an iPad means the iPad itself. A blank token field reuses the Keychain token for that server.
+Use **연결 설정** to switch to the backend. Enter an absolute base URL ending `/api/v1/` and a backend-issued Bearer token. The token is stored in this device's Keychain, never UserDefaults or source control. Release requires HTTPS. Debug permits HTTP for local development. For a physical iPad use the backend PC's LAN address; `localhost` on an iPad means the iPad itself. A blank token field reuses the Keychain token for that server.
 
 The Django backend implements the versioned SORI operations with PostgreSQL and an OpenRouter worker. Follow ../docs/IPAD-SETUP.md to start the server and issue development tokens. Local demo is deliberately separate from live API errors.
+
+For Windows installation without a Mac, follow [the Sideloadly guide](../docs/WINDOWS-IPAD.md). Successful push CI runs publish the unsigned device Debug IPA as **SORI-iPad-install**; signing takes place on the user’s Windows PC.
 
 ## Screens and contract behavior
 

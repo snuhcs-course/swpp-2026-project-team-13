@@ -19,7 +19,7 @@ struct SettingsView: View {
                     TextField("https://server/api/v1/",text:$address).textInputAutocapitalization(.never).autocorrectionDisabled().keyboardType(.URL).textFieldStyle(.roundedBorder).accessibilityIdentifier("api-base-url")
                     Text("개발용 Bearer 토큰").font(.subheadline.bold())
                     SecureField("새 토큰 입력 · 비워두면 저장된 토큰 사용",text:$token).textInputAutocapitalization(.never).autocorrectionDisabled().textFieldStyle(.roundedBorder)
-                    Text("토큰은 이 기기의 Keychain에 저장됩니다. 실제 iPad에서 로컬 서버에 접속할 때는 Mac의 LAN IP 주소를 사용해 주세요.").font(.caption).foregroundStyle(.secondary)
+                    Text("토큰은 이 기기의 Keychain에 저장됩니다. 실제 iPad에서 로컬 서버에 접속할 때는 서버를 실행하는 PC의 LAN IP 주소를 사용해 주세요.").font(.caption).foregroundStyle(.secondary)
                 }
                 Button { Task {
                     model.demo=useDemo; model.server=address.trimmingCharacters(in:.whitespacesAndNewlines); model.demoOutcome=outcome

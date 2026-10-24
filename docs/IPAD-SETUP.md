@@ -1,6 +1,6 @@
 # 개인 iPad에서 확인하기
 
-현재 목표는 Windows에서 서버를 실행하고, 친구의 Mac에서 앱을 빌드·서명해 개인 iPad에 설치하는 것입니다. Xcode에서 빌드한 실제 앱은 Windows 서버와 같은 Wi-Fi/LAN에서 연결합니다.
+Windows에서 서버를 실행하고, GitHub에서 받은 실기기용 IPA를 Windows의 Sideloadly로 서명·설치합니다. [Windows 설치 안내](WINDOWS-IPAD.md)를 따릅니다. 설치한 앱은 Windows 서버와 같은 Wi-Fi/LAN에서 연결합니다.
 
 ## 1. Windows 서버 준비
 
@@ -28,19 +28,17 @@ API·제출·복구 검증을 실행합니다. 이 검증은 AI mock을 사용�
 
 결과는 backend/.local/live-checks.json에 저장됩니다.
 
-## 2. 친구의 Mac에서 설치
+## 2. Windows에서 설치
 
-[MAC-HANDOFF.md](MAC-HANDOFF.md)의 절차를 따릅니다. frontend/IPadApp/IPadApp.xcodeproj를 Xcode에서 열고 Debug 구성을 사용합니다. Signing & Capabilities에서 친구의 개발 Team과 사용 가능한 Bundle Identifier를 설정합니다. 개인 인증서·Team 설정은 저장소에 커밋하지 않습니다.
+[WINDOWS-IPAD.md](WINDOWS-IPAD.md)의 순서대로 GitHub CI의 SORI-iPad-install을 다운로드하고, 압축 해제한 SORI-iPad-unsigned.ipa를 Sideloadly에 넣어 개인 iPad에 설치합니다. 무료 Apple 계정을 사용할 수 있으며 서명은 7일마다 갱신해야 합니다.
 
-iPad를 Mac에 케이블로 연결하고 기기 신뢰·개발자 모드 등 Xcode가 요구하는 설정을 완료한 뒤, 실행 대상을 실제 iPad로 선택하고 Run 합니다. Xcode·iPadOS 버전과 서명 상태에 따라 추가 안내가 나올 수 있습니다.
-
-앱 설치에 대한 공식 안내: https://developer.apple.com/documentation/xcode/running-your-app-on-simulated-or-physical-devices
+친구의 Mac에서 직접 설치하려면 [MAC-HANDOFF.md](MAC-HANDOFF.md)의 Xcode 경로를 사용할 수 있습니다.
 
 ## 3. iPad에서 서버 연결
 
 앱은 먼저 로컬 데모로 실행됩니다. 데모에는 실제 세 문제의 악보·소리가 있지만 채점 결과는 예시입니다.
 
-1. Windows PC와 iPad를 같은 Wi-Fi/LAN에 연결합니다. Mac은 앱 설치 후 계속 켜둘 필요가 없습니다.
+1. Windows PC와 iPad를 같은 Wi-Fi/LAN에 연결합니다. 앱 설치 후에는 서버가 실행되는 Windows PC를 켜둡니다.
 2. 앱의 연결 설정에서 로컬 데모를 끕니다.
 3. 서버 주소에 http://<Windows PC의 LAN IPv4>:8000/api/v1/을 입력합니다.
 4. 개발 토큰에 backend/.local/connection.txt의 토큰만 입력하고 연결합니다. OpenRouter 키를 입력하지 않습니다.
@@ -68,6 +66,6 @@ Windows 방화벽에서 연결을 묻는 경우 개인 네트워크의 서버 �
 - 400 Bad Request: DJANGO_ALLOWED_HOSTS의 실제 PC IP를 확인합니다.
 - 401: 앱의 개발 토큰을 확인합니다. OpenRouter 키와 다릅니다.
 - failed / ENGINE_UNAVAILABLE: 서버의 키·모델·외부 연결을 확인합니다.
-- 서명·빌드 실패: Mac의 Xcode 오류를 먼저 확인합니다. Windows에서 iOS 바이너리를 빌드한 것으로 간주하지 않습니다.
+- 빌드 실패: GitHub CI의 frontend 로그를 확인합니다. 설치·서명 실패는 Sideloadly의 오류 메시지를 확인합니다.
 
     docker compose --env-file backend/.env logs --tail=100 api worker
