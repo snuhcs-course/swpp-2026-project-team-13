@@ -74,7 +74,7 @@ jobs:
       - name: Verify device architecture and package IPA
         if: github.event_name == 'push'
         run: |
-          xcrun lipo -verify_arch arm64 build/Device/Build/Products/Debug-iphoneos/IPadApp.app/IPadApp
+          xcrun lipo "build/Device/Build/Products/Debug-iphoneos/IPadApp.app/IPadApp" -verify_arch arm64
           python3 scripts/package-ipad.py --app build/Device/Build/Products/Debug-iphoneos/IPadApp.app
       - name: Upload iPad installation package
         if: github.event_name == 'push'
