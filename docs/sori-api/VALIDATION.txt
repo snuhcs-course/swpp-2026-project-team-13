@@ -1,0 +1,24 @@
+SORI API contract v0.2.0 — local verification
+OpenAPI JSON parsed: PASS (3.0.3; 13 operations; 27 named schemas)
+Internal $ref resolution: PASS (144 references)
+Path parameter coverage and unique operationId: PASS
+Example schema checks: PASS (18 fixtures; required/type/enum/format/range/extra-field checks)
+Invalid example rejection checks: PASS (5 cases)
+Grading status/nullability/formula/annotation bounds: PASS
+Attempt snapshot/submitted answer/recommended-time-overrun example: PASS
+Eleven playback steps and sequence: PASS
+No network audio/MIDI file schema; local_midi plan v2: PASS
+Both MXL ZIP structures, rootfile, MusicXML version, part, measures, tempo: PASS
+Both MXL bytes match size/SHA-256 in API fixtures: PASS
+Independent MusicXML parsing matches expected rational note/rest events: PASS
+Tie merging and 1-4 / 5-6 segment clipping; leading rests in 7-8: PASS
+Template: PASS (2660x1692, opaque RGB, SHA-256 matches layout and question fixture)
+Visual inspection: blank two-system/eight-measure Figma template inspected.
+
+Scope: local standard-library checker covers the schema keywords used in these fixtures.
+This is not a complete third-party OpenAPI meta-schema validation or a server integration test.
+No API server, iPad renderer/player, SoundFont, recognizer model, or automatic grading implementation was run.
+MusicXML checks are structural/profile/event checks, not a full MusicXML XSD validator.
+Example answer byte size/hash and grading numbers are illustrative. .example origins are placeholders.
+Two small original MXL fixtures and expected events are real local assets; SoundFont is not bundled.
+Template PNG is a real export from the supplied Figma sheet, flattened to white RGB.

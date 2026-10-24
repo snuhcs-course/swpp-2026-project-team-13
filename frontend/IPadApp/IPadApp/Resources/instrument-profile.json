@@ -1,0 +1,19 @@
+{
+  "id": "sori-piano-v1",
+  "version": 1,
+  "sha256": "b93410bed9be8ff026d8e20b737feae61051b8437e1f0da1ec9bd92e43ec8c48",
+  "size_bytes": 9796628,
+  "resource": "sori-piano-v1.sf2",
+  "license": "CC0-1.0",
+  "provenance": "Original mathematical additive synthesis; no third-party samples. Piano-like synthesized timbre, not a recorded acoustic piano.",
+  "program": 0,
+  "bank_msb": 121,
+  "bank_lsb": 0,
+  "gain_db": -6,
+  "sample_rate_hz": 22050,
+  "midi_range": [
+    48,
+    84
+  ],
+  "tuning_hz": 440
+}

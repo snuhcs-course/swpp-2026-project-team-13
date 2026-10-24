@@ -1,0 +1,23 @@
+{
+  "attempt_id": "33333333-3333-4333-8333-333333333333",
+  "answer_id": "44444444-4444-4444-8444-444444444444",
+  "job_id": "66666666-6666-4666-8666-666666666666",
+  "grading_mode": "demo",
+  "grading_version": "pitch-rhythm-v1",
+  "status": "failed",
+  "stage": "recognizing",
+  "score": null,
+  "pitch_accuracy": null,
+  "rhythm_accuracy": null,
+  "feedback": null,
+  "annotations": [],
+  "failure": {
+    "code": "RECOGNITION_TIMEOUT",
+    "message": "인식 처리 시간이 초과되었습니다.",
+    "retryable": true
+  },
+  "poll_after_ms": 0,
+  "created_at": "2026-10-23T06:05:21Z",
+  "updated_at": "2026-10-23T06:05:30Z",
+  "server_time": "2026-10-23T06:05:30Z"
+}

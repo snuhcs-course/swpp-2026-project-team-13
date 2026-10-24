@@ -1,0 +1,3954 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "SORI iPad Exam API",
+    "version": "0.2.0",
+    "description": "Personal-practice MVP: server delivers MXL; iPad renders notation and synthesizes piano locally; iPad uploads answer PNG for asynchronous server recognition/grading. API-CONTRACT.md and MXL-ARCHITECTURE.md define business invariants. Example hosts are placeholders; two original MXL fixtures are supplied. No network MIDI or audio files. Authentication enrollment is outside this exam API."
+  },
+  "servers": [
+    {
+      "url": "https://api.sori.example/api/v1",
+      "description": "Placeholder; replace with team staging origin."
+    }
+  ],
+  "security": [
+    {
+      "BearerAuth": []
+    }
+  ],
+  "tags": [
+    {
+      "name": "Profile"
+    },
+    {
+      "name": "Questions"
+    },
+    {
+      "name": "Attempts"
+    },
+    {
+      "name": "Answers"
+    },
+    {
+      "name": "Grading"
+    }
+  ],
+  "paths": {
+    "/me/": {
+      "get": {
+        "operationId": "getMe",
+        "tags": [
+          "Profile"
+        ],
+        "summary": "Get current profile",
+        "description": "",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "headers": {
+              "X-Request-ID": {
+                "description": "Server-generated request correlation ID.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Cache-Control": {
+                "description": "API and private answer images: private, no-store.",
+                "schema": {
+                  "type": "string",
+                  "example": "private, no-store"
+                }
+              },
+              "Date": {
+                "description": "Current HTTP response time in RFC 9110 HTTP-date format.",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserProfile"
+                },
+                "example": {
+                  "id": "11111111-1111-4111-8111-111111111111",
+                  "display_name": "연습 사용자",
+                  "learning_goal": "college_entrance"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Error400"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error401"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error429"
+          },
+          "503": {
+            "$ref": "#/components/responses/Error503"
+          },
+          "default": {
+            "$ref": "#/components/responses/UnexpectedError"
+          }
+        }
+      },
+      "patch": {
+        "operationId": "updateMe",
+        "tags": [
+          "Profile"
+        ],
+        "summary": "Update learning goal",
+        "description": "",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "headers": {
+              "X-Request-ID": {
+                "description": "Server-generated request correlation ID.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Cache-Control": {
+                "description": "API and private answer images: private, no-store.",
+                "schema": {
+                  "type": "string",
+                  "example": "private, no-store"
+                }
+              },
+              "Date": {
+                "description": "Current HTTP response time in RFC 9110 HTTP-date format.",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserProfile"
+                },
+                "example": {
+                  "id": "11111111-1111-4111-8111-111111111111",
+                  "display_name": "연습 사용자",
+                  "learning_goal": "college_entrance"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Error400"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error401"
+          },
+          "415": {
+            "$ref": "#/components/responses/Error415"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error429"
+          },
+          "503": {
+            "$ref": "#/components/responses/Error503"
+          },
+          "default": {
+            "$ref": "#/components/responses/UnexpectedError"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UserProfilePatch"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/questions/": {
+      "get": {
+        "operationId": "listQuestions",
+        "tags": [
+          "Questions"
+        ],
+        "summary": "List available practice questions",
+        "description": "",
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "default": 1
+            }
+          },
+          {
+            "name": "page_size",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 50,
+              "default": 20
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "headers": {
+              "X-Request-ID": {
+                "description": "Server-generated request correlation ID.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Cache-Control": {
+                "description": "API and private answer images: private, no-store.",
+                "schema": {
+                  "type": "string",
+                  "example": "private, no-store"
+                }
+              },
+              "Date": {
+                "description": "Current HTTP response time in RFC 9110 HTTP-date format.",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/QuestionPage"
+                },
+                "example": {
+                  "count": 1,
+                  "next": null,
+                  "previous": null,
+                  "results": [
+                    {
+                      "id": "22222222-2222-4222-8222-222222222222",
+                      "version": 1,
+                      "title": "Melodic Dictation · Practice 01",
+                      "source": "practice",
+                      "key_signature": {
+                        "tonic": "C",
+                        "mode": "major",
+                        "fifths": 0
+                      },
+                      "time_signature": {
+                        "numerator": 4,
+                        "denominator": 4
+                      },
+                      "measure_count": 8,
+                      "recommended_duration_seconds": 300
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Error400"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error401"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error429"
+          },
+          "503": {
+            "$ref": "#/components/responses/Error503"
+          },
+          "default": {
+            "$ref": "#/components/responses/UnexpectedError"
+          }
+        }
+      }
+    },
+    "/questions/{question_id}/": {
+      "get": {
+        "operationId": "getQuestion",
+        "tags": [
+          "Questions"
+        ],
+        "summary": "Get pre-exam instructions and sheet template",
+        "description": "",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/question_id"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "headers": {
+              "X-Request-ID": {
+                "description": "Server-generated request correlation ID.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Cache-Control": {
+                "description": "API and private answer images: private, no-store.",
+                "schema": {
+                  "type": "string",
+                  "example": "private, no-store"
+                }
+              },
+              "Date": {
+                "description": "Current HTTP response time in RFC 9110 HTTP-date format.",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Question"
+                },
+                "example": {
+                  "id": "22222222-2222-4222-8222-222222222222",
+                  "version": 1,
+                  "title": "Melodic Dictation · Practice 01",
+                  "source": "practice",
+                  "key_signature": {
+                    "tonic": "C",
+                    "mode": "major",
+                    "fifths": 0
+                  },
+                  "time_signature": {
+                    "numerator": 4,
+                    "denominator": 4
+                  },
+                  "measure_count": 8,
+                  "recommended_duration_seconds": 300,
+                  "description": "멜로디를 듣고 빈 오선에 적어보세요.",
+                  "time_policy": "advisory",
+                  "clef": "treble",
+                  "sheet_layout": {
+                    "id": "staff-8bars-v1",
+                    "logical_width": 1330,
+                    "logical_height": 846,
+                    "export_scale": 2,
+                    "pixel_width": 2660,
+                    "pixel_height": 1692,
+                    "template_png_url": "https://assets.sori.example/sheets/staff-8bars-v1.png",
+                    "template_sha256": "0fa8e695dcb6a36b8ba78ab73345518f737546fa819529ca1d93a935a6ae30c4",
+                    "systems": [
+                      {
+                        "index": 1,
+                        "first_measure": 1,
+                        "last_measure": 4,
+                        "staff_line_y": [
+                          164,
+                          176,
+                          188,
+                          200,
+                          212
+                        ],
+                        "barline_x": [
+                          54,
+                          450,
+                          725,
+                          1000,
+                          1276
+                        ]
+                      },
+                      {
+                        "index": 2,
+                        "first_measure": 5,
+                        "last_measure": 8,
+                        "staff_line_y": [
+                          499,
+                          511,
+                          523,
+                          535,
+                          547
+                        ],
+                        "barline_x": [
+                          54,
+                          397,
+                          690,
+                          983,
+                          1276
+                        ]
+                      }
+                    ]
+                  },
+                  "content_policy": "client_readable_practice",
+                  "score_visibility": "after_submission",
+                  "score_assets": {
+                    "main": {
+                      "url": "https://api.sori.example/api/v1/questions/22222222-2222-4222-8222-222222222222/versions/1/scores/main/",
+                      "content_type": "application/vnd.recordare.musicxml",
+                      "sha256": "f5ea2a6e2bbde0fe359bd566ce544ceb662faaa8122b243c79478255ea890f10",
+                      "size_bytes": 1364,
+                      "musicxml_version": "4.0",
+                      "profile": "sori-monophonic-v1",
+                      "part_id": "P1",
+                      "measure_count": 8
+                    },
+                    "scale": {
+                      "url": "https://api.sori.example/api/v1/questions/22222222-2222-4222-8222-222222222222/versions/1/scores/scale/",
+                      "content_type": "application/vnd.recordare.musicxml",
+                      "sha256": "af6f34ee8cbe1f2884a7340a08864b635fc8bae0c77437f9dafdd29896dd1d14",
+                      "size_bytes": 1100,
+                      "musicxml_version": "4.0",
+                      "profile": "sori-monophonic-v1",
+                      "part_id": "P1",
+                      "measure_count": 2
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Error400"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error401"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error404"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error429"
+          },
+          "503": {
+            "$ref": "#/components/responses/Error503"
+          },
+          "default": {
+            "$ref": "#/components/responses/UnexpectedError"
+          }
+        }
+      }
+    },
+    "/attempts/": {
+      "post": {
+        "operationId": "createAttempt",
+        "tags": [
+          "Attempts"
+        ],
+        "summary": "Create a ready attempt and pin content versions",
+        "description": "Question version must be the current available version; otherwise QUESTION_VERSION_MISMATCH. The returned score hashes, layout and local playback plan are immutable. No timer starts here.",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/IdempotencyKey"
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Success",
+            "headers": {
+              "X-Request-ID": {
+                "description": "Server-generated request correlation ID.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Cache-Control": {
+                "description": "API and private answer images: private, no-store.",
+                "schema": {
+                  "type": "string",
+                  "example": "private, no-store"
+                }
+              },
+              "Date": {
+                "description": "Current HTTP response time in RFC 9110 HTTP-date format.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Location": {
+                "description": "URI of the created resource, or the result resource for 202.",
+                "schema": {
+                  "type": "string",
+                  "format": "uri"
+                }
+              },
+              "Idempotency-Replayed": {
+                "description": "true when returning a previously committed response.",
+                "schema": {
+                  "type": "boolean"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Attempt"
+                },
+                "example": {
+                  "id": "33333333-3333-4333-8333-333333333333",
+                  "status": "ready",
+                  "grading_mode": "demo",
+                  "created_at": "2026-10-23T06:00:00Z",
+                  "started_at": null,
+                  "recommended_end_at": null,
+                  "submitted_at": null,
+                  "submitted_answer_id": null,
+                  "latest_answer": null,
+                  "question": {
+                    "id": "22222222-2222-4222-8222-222222222222",
+                    "version": 1,
+                    "title": "Melodic Dictation · Practice 01",
+                    "source": "practice",
+                    "key_signature": {
+                      "tonic": "C",
+                      "mode": "major",
+                      "fifths": 0
+                    },
+                    "time_signature": {
+                      "numerator": 4,
+                      "denominator": 4
+                    },
+                    "measure_count": 8,
+                    "recommended_duration_seconds": 300,
+                    "description": "멜로디를 듣고 빈 오선에 적어보세요.",
+                    "time_policy": "advisory",
+                    "clef": "treble",
+                    "sheet_layout": {
+                      "id": "staff-8bars-v1",
+                      "logical_width": 1330,
+                      "logical_height": 846,
+                      "export_scale": 2,
+                      "pixel_width": 2660,
+                      "pixel_height": 1692,
+                      "template_png_url": "https://assets.sori.example/sheets/staff-8bars-v1.png",
+                      "template_sha256": "0fa8e695dcb6a36b8ba78ab73345518f737546fa819529ca1d93a935a6ae30c4",
+                      "systems": [
+                        {
+                          "index": 1,
+                          "first_measure": 1,
+                          "last_measure": 4,
+                          "staff_line_y": [
+                            164,
+                            176,
+                            188,
+                            200,
+                            212
+                          ],
+                          "barline_x": [
+                            54,
+                            450,
+                            725,
+                            1000,
+                            1276
+                          ]
+                        },
+                        {
+                          "index": 2,
+                          "first_measure": 5,
+                          "last_measure": 8,
+                          "staff_line_y": [
+                            499,
+                            511,
+                            523,
+                            535,
+                            547
+                          ],
+                          "barline_x": [
+                            54,
+                            397,
+                            690,
+                            983,
+                            1276
+                          ]
+                        }
+                      ]
+                    },
+                    "content_policy": "client_readable_practice",
+                    "score_visibility": "after_submission",
+                    "score_assets": {
+                      "main": {
+                        "url": "https://api.sori.example/api/v1/questions/22222222-2222-4222-8222-222222222222/versions/1/scores/main/",
+                        "content_type": "application/vnd.recordare.musicxml",
+                        "sha256": "f5ea2a6e2bbde0fe359bd566ce544ceb662faaa8122b243c79478255ea890f10",
+                        "size_bytes": 1364,
+                        "musicxml_version": "4.0",
+                        "profile": "sori-monophonic-v1",
+                        "part_id": "P1",
+                        "measure_count": 8
+                      },
+                      "scale": {
+                        "url": "https://api.sori.example/api/v1/questions/22222222-2222-4222-8222-222222222222/versions/1/scores/scale/",
+                        "content_type": "application/vnd.recordare.musicxml",
+                        "sha256": "af6f34ee8cbe1f2884a7340a08864b635fc8bae0c77437f9dafdd29896dd1d14",
+                        "size_bytes": 1100,
+                        "musicxml_version": "4.0",
+                        "profile": "sori-monophonic-v1",
+                        "part_id": "P1",
+                        "measure_count": 2
+                      }
+                    }
+                  },
+                  "playback_plan": {
+                    "version": 2,
+                    "engine": "local_midi",
+                    "tempo_bpm": 96,
+                    "instrument_profile_id": "sori-piano-v1",
+                    "tuning_hz": 440,
+                    "transpose_semitones": 0,
+                    "velocity": 80,
+                    "gate_ratio": 1.0,
+                    "release_tail_ms": 300,
+                    "scale": {
+                      "score_kind": "scale",
+                      "from_measure": 1,
+                      "to_measure": 2
+                    },
+                    "pause_after_scale_ms": 3000,
+                    "allow_manual_pause": true,
+                    "allow_manual_replay": false,
+                    "interruption_policy": "restart_current_segment",
+                    "steps": [
+                      {
+                        "order": 1,
+                        "from_measure": 1,
+                        "to_measure": 8,
+                        "score_kind": "main",
+                        "pause_after_ms": 5000
+                      },
+                      {
+                        "order": 2,
+                        "from_measure": 1,
+                        "to_measure": 2,
+                        "score_kind": "main",
+                        "pause_after_ms": 5000
+                      },
+                      {
+                        "order": 3,
+                        "from_measure": 1,
+                        "to_measure": 2,
+                        "score_kind": "main",
+                        "pause_after_ms": 5000
+                      },
+                      {
+                        "order": 4,
+                        "from_measure": 1,
+                        "to_measure": 4,
+                        "score_kind": "main",
+                        "pause_after_ms": 5000
+                      },
+                      {
+                        "order": 5,
+                        "from_measure": 3,
+                        "to_measure": 4,
+                        "score_kind": "main",
+                        "pause_after_ms": 5000
+                      },
+                      {
+                        "order": 6,
+                        "from_measure": 3,
+                        "to_measure": 6,
+                        "score_kind": "main",
+                        "pause_after_ms": 5000
+                      },
+                      {
+                        "order": 7,
+                        "from_measure": 5,
+                        "to_measure": 6,
+                        "score_kind": "main",
+                        "pause_after_ms": 5000
+                      },
+                      {
+                        "order": 8,
+                        "from_measure": 5,
+                        "to_measure": 8,
+                        "score_kind": "main",
+                        "pause_after_ms": 5000
+                      },
+                      {
+                        "order": 9,
+                        "from_measure": 7,
+                        "to_measure": 8,
+                        "score_kind": "main",
+                        "pause_after_ms": 5000
+                      },
+                      {
+                        "order": 10,
+                        "from_measure": 7,
+                        "to_measure": 8,
+                        "score_kind": "main",
+                        "pause_after_ms": 5000
+                      },
+                      {
+                        "order": 11,
+                        "from_measure": 1,
+                        "to_measure": 8,
+                        "score_kind": "main",
+                        "pause_after_ms": 0
+                      }
+                    ]
+                  },
+                  "server_time": "2026-10-23T06:00:00Z"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Error400"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error401"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error409"
+          },
+          "415": {
+            "$ref": "#/components/responses/Error415"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error429"
+          },
+          "503": {
+            "$ref": "#/components/responses/Error503"
+          },
+          "default": {
+            "$ref": "#/components/responses/UnexpectedError"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AttemptCreate"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/attempts/{attempt_id}/": {
+      "get": {
+        "operationId": "getAttempt",
+        "tags": [
+          "Attempts"
+        ],
+        "summary": "Restore attempt state",
+        "description": "",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/attempt_id"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "headers": {
+              "X-Request-ID": {
+                "description": "Server-generated request correlation ID.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Cache-Control": {
+                "description": "API and private answer images: private, no-store.",
+                "schema": {
+                  "type": "string",
+                  "example": "private, no-store"
+                }
+              },
+              "Date": {
+                "description": "Current HTTP response time in RFC 9110 HTTP-date format.",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Attempt"
+                },
+                "example": {
+                  "id": "33333333-3333-4333-8333-333333333333",
+                  "status": "in_progress",
+                  "grading_mode": "demo",
+                  "created_at": "2026-10-23T06:00:00Z",
+                  "started_at": "2026-10-23T06:00:10Z",
+                  "recommended_end_at": "2026-10-23T06:05:10Z",
+                  "submitted_at": null,
+                  "submitted_answer_id": null,
+                  "latest_answer": {
+                    "id": "44444444-4444-4444-8444-444444444444",
+                    "attempt_id": "33333333-3333-4333-8333-333333333333",
+                    "client_answer_id": "55555555-5555-4555-8555-555555555555",
+                    "revision": 1,
+                    "answer_format_version": 1,
+                    "sheet_layout_id": "staff-8bars-v1",
+                    "image_width": 2660,
+                    "image_height": 1692,
+                    "content_type": "image/png",
+                    "size_bytes": 120000,
+                    "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                    "created_at": "2026-10-23T06:05:20Z",
+                    "image_url": "https://api.sori.example/api/v1/attempts/33333333-3333-4333-8333-333333333333/answers/44444444-4444-4444-8444-444444444444/image/"
+                  },
+                  "question": {
+                    "id": "22222222-2222-4222-8222-222222222222",
+                    "version": 1,
+                    "title": "Melodic Dictation · Practice 01",
+                    "source": "practice",
+                    "key_signature": {
+                      "tonic": "C",
+                      "mode": "major",
+                      "fifths": 0
+                    },
+                    "time_signature": {
+                      "numerator": 4,
+                      "denominator": 4
+                    },
+                    "measure_count": 8,
+                    "recommended_duration_seconds": 300,
+                    "description": "멜로디를 듣고 빈 오선에 적어보세요.",
+                    "time_policy": "advisory",
+                    "clef": "treble",
+                    "sheet_layout": {
+                      "id": "staff-8bars-v1",
+                      "logical_width": 1330,
+                      "logical_height": 846,
+                      "export_scale": 2,
+                      "pixel_width": 2660,
+                      "pixel_height": 1692,
+                      "template_png_url": "https://assets.sori.example/sheets/staff-8bars-v1.png",
+                      "template_sha256": "0fa8e695dcb6a36b8ba78ab73345518f737546fa819529ca1d93a935a6ae30c4",
+                      "systems": [
+                        {
+                          "index": 1,
+                          "first_measure": 1,
+                          "last_measure": 4,
+                          "staff_line_y": [
+                            164,
+                            176,
+                            188,
+                            200,
+                            212
+                          ],
+                          "barline_x": [
+                            54,
+                            450,
+                            725,
+                            1000,
+                            1276
+                          ]
+                        },
+                        {
+                          "index": 2,
+                          "first_measure": 5,
+                          "last_measure": 8,
+                          "staff_line_y": [
+                            499,
+                            511,
+                            523,
+                            535,
+                            547
+                          ],
+                          "barline_x": [
+                            54,
+                            397,
+                            690,
+                            983,
+                            1276
+                          ]
+                        }
+                      ]
+                    },
+                    "content_policy": "client_readable_practice",
+                    "score_visibility": "after_submission",
+                    "score_assets": {
+                      "main": {
+                        "url": "https://api.sori.example/api/v1/questions/22222222-2222-4222-8222-222222222222/versions/1/scores/main/",
+                        "content_type": "application/vnd.recordare.musicxml",
+                        "sha256": "f5ea2a6e2bbde0fe359bd566ce544ceb662faaa8122b243c79478255ea890f10",
+                        "size_bytes": 1364,
+                        "musicxml_version": "4.0",
+                        "profile": "sori-monophonic-v1",
+                        "part_id": "P1",
+                        "measure_count": 8
+                      },
+                      "scale": {
+                        "url": "https://api.sori.example/api/v1/questions/22222222-2222-4222-8222-222222222222/versions/1/scores/scale/",
+                        "content_type": "application/vnd.recordare.musicxml",
+                        "sha256": "af6f34ee8cbe1f2884a7340a08864b635fc8bae0c77437f9dafdd29896dd1d14",
+                        "size_bytes": 1100,
+                        "musicxml_version": "4.0",
+                        "profile": "sori-monophonic-v1",
+                        "part_id": "P1",
+                        "measure_count": 2
+                      }
+                    }
+                  },
+                  "playback_plan": {
+                    "version": 2,
+                    "engine": "local_midi",
+                    "tempo_bpm": 96,
+                    "instrument_profile_id": "sori-piano-v1",
+                    "tuning_hz": 440,
+                    "transpose_semitones": 0,
+                    "velocity": 80,
+                    "gate_ratio": 1.0,
+                    "release_tail_ms": 300,
+                    "scale": {
+                      "score_kind": "scale",
+                      "from_measure": 1,
+                      "to_measure": 2
+                    },
+                    "pause_after_scale_ms": 3000,
+                    "allow_manual_pause": true,
+                    "allow_manual_replay": false,
+                    "interruption_policy": "restart_current_segment",
+                    "steps": [
+                      {
+                        "order": 1,
+                        "from_measure": 1,
+                        "to_measure": 8,
+                        "score_kind": "main",
+                        "pause_after_ms": 5000
+                      },
+                      {
+                        "order": 2,
+                        "from_measure": 1,
+                        "to_measure": 2,
+                        "score_kind": "main",
+                        "pause_after_ms": 5000
+                      },
+                      {
+                        "order": 3,
+                        "from_measure": 1,
+                        "to_measure": 2,
+                        "score_kind": "main",
+                        "pause_after_ms": 5000
+                      },
+                      {
+                        "order": 4,
+                        "from_measure": 1,
+                        "to_measure": 4,
+                        "score_kind": "main",
+                        "pause_after_ms": 5000
+                      },
+                      {
+                        "order": 5,
+                        "from_measure": 3,
+                        "to_measure": 4,
+                        "score_kind": "main",
+                        "pause_after_ms": 5000
+                      },
+                      {
+                        "order": 6,
+                        "from_measure": 3,
+                        "to_measure": 6,
+                        "score_kind": "main",
+                        "pause_after_ms": 5000
+                      },
+                      {
+                        "order": 7,
+                        "from_measure": 5,
+                        "to_measure": 6,
+                        "score_kind": "main",
+                        "pause_after_ms": 5000
+                      },
+                      {
+                        "order": 8,
+                        "from_measure": 5,
+                        "to_measure": 8,
+                        "score_kind": "main",
+                        "pause_after_ms": 5000
+                      },
+                      {
+                        "order": 9,
+                        "from_measure": 7,
+                        "to_measure": 8,
+                        "score_kind": "main",
+                        "pause_after_ms": 5000
+                      },
+                      {
+                        "order": 10,
+                        "from_measure": 7,
+                        "to_measure": 8,
+                        "score_kind": "main",
+                        "pause_after_ms": 5000
+                      },
+                      {
+                        "order": 11,
+                        "from_measure": 1,
+                        "to_measure": 8,
+                        "score_kind": "main",
+                        "pause_after_ms": 0
+                      }
+                    ]
+                  },
+                  "server_time": "2026-10-23T06:05:20Z"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Error400"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error401"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error404"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error429"
+          },
+          "503": {
+            "$ref": "#/components/responses/Error503"
+          },
+          "default": {
+            "$ref": "#/components/responses/UnexpectedError"
+          }
+        }
+      }
+    },
+    "/attempts/{attempt_id}/start/": {
+      "post": {
+        "operationId": "startAttempt",
+        "tags": [
+          "Attempts"
+        ],
+        "summary": "Start timer once after all assets are ready",
+        "description": "No request body. Download and validate both MXL assets, parse and prebuild segments, load the bundled piano before start. ready -> in_progress. Repeated calls never reset started_at. Submitted attempts reject the call.",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/attempt_id"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "headers": {
+              "X-Request-ID": {
+                "description": "Server-generated request correlation ID.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Cache-Control": {
+                "description": "API and private answer images: private, no-store.",
+                "schema": {
+                  "type": "string",
+                  "example": "private, no-store"
+                }
+              },
+              "Date": {
+                "description": "Current HTTP response time in RFC 9110 HTTP-date format.",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Attempt"
+                },
+                "example": {
+                  "id": "33333333-3333-4333-8333-333333333333",
+                  "status": "in_progress",
+                  "grading_mode": "demo",
+                  "created_at": "2026-10-23T06:00:00Z",
+                  "started_at": "2026-10-23T06:00:10Z",
+                  "recommended_end_at": "2026-10-23T06:05:10Z",
+                  "submitted_at": null,
+                  "submitted_answer_id": null,
+                  "latest_answer": null,
+                  "question": {
+                    "id": "22222222-2222-4222-8222-222222222222",
+                    "version": 1,
+                    "title": "Melodic Dictation · Practice 01",
+                    "source": "practice",
+                    "key_signature": {
+                      "tonic": "C",
+                      "mode": "major",
+                      "fifths": 0
+                    },
+                    "time_signature": {
+                      "numerator": 4,
+                      "denominator": 4
+                    },
+                    "measure_count": 8,
+                    "recommended_duration_seconds": 300,
+                    "description": "멜로디를 듣고 빈 오선에 적어보세요.",
+                    "time_policy": "advisory",
+                    "clef": "treble",
+                    "sheet_layout": {
+                      "id": "staff-8bars-v1",
+                      "logical_width": 1330,
+                      "logical_height": 846,
+                      "export_scale": 2,
+                      "pixel_width": 2660,
+                      "pixel_height": 1692,
+                      "template_png_url": "https://assets.sori.example/sheets/staff-8bars-v1.png",
+                      "template_sha256": "0fa8e695dcb6a36b8ba78ab73345518f737546fa819529ca1d93a935a6ae30c4",
+                      "systems": [
+                        {
+                          "index": 1,
+                          "first_measure": 1,
+                          "last_measure": 4,
+                          "staff_line_y": [
+                            164,
+                            176,
+                            188,
+                            200,
+                            212
+                          ],
+                          "barline_x": [
+                            54,
+                            450,
+                            725,
+                            1000,
+                            1276
+                          ]
+                        },
+                        {
+                          "index": 2,
+                          "first_measure": 5,
+                          "last_measure": 8,
+                          "staff_line_y": [
+                            499,
+                            511,
+                            523,
+                            535,
+                            547
+                          ],
+                          "barline_x": [
+                            54,
+                            397,
+                            690,
+                            983,
+                            1276
+                          ]
+                        }
+                      ]
+                    },
+                    "content_policy": "client_readable_practice",
+                    "score_visibility": "after_submission",
+                    "score_assets": {
+                      "main": {
+                        "url": "https://api.sori.example/api/v1/questions/22222222-2222-4222-8222-222222222222/versions/1/scores/main/",
+                        "content_type": "application/vnd.recordare.musicxml",
+                        "sha256": "f5ea2a6e2bbde0fe359bd566ce544ceb662faaa8122b243c79478255ea890f10",
+                        "size_bytes": 1364,
+                        "musicxml_version": "4.0",
+                        "profile": "sori-monophonic-v1",
+                        "part_id": "P1",
+                        "measure_count": 8
+                      },
+                      "scale": {
+                        "url": "https://api.sori.example/api/v1/questions/22222222-2222-4222-8222-222222222222/versions/1/scores/scale/",
+                        "content_type": "application/vnd.recordare.musicxml",
+                        "sha256": "af6f34ee8cbe1f2884a7340a08864b635fc8bae0c77437f9dafdd29896dd1d14",
+                        "size_bytes": 1100,
+                        "musicxml_version": "4.0",
+                        "profile": "sori-monophonic-v1",
+                        "part_id": "P1",
+                        "measure_count": 2
+                      }
+                    }
+                  },
+                  "playback_plan": {
+                    "version": 2,
+                    "engine": "local_midi",
+                    "tempo_bpm": 96,
+                    "instrument_profile_id": "sori-piano-v1",
+                    "tuning_hz": 440,
+                    "transpose_semitones": 0,
+                    "velocity": 80,
+                    "gate_ratio": 1.0,
+                    "release_tail_ms": 300,
+                    "scale": {
+                      "score_kind": "scale",
+                      "from_measure": 1,
+                      "to_measure": 2
+                    },
+                    "pause_after_scale_ms": 3000,
+                    "allow_manual_pause": true,
+                    "allow_manual_replay": false,
+                    "interruption_policy": "restart_current_segment",
+                    "steps": [
+                      {
+                        "order": 1,
+                        "from_measure": 1,
+                        "to_measure": 8,
+                        "score_kind": "main",
+                        "pause_after_ms": 5000
+                      },
+                      {
+                        "order": 2,
+                        "from_measure": 1,
+                        "to_measure": 2,
+                        "score_kind": "main",
+                        "pause_after_ms": 5000
+                      },
+                      {
+                        "order": 3,
+                        "from_measure": 1,
+                        "to_measure": 2,
+                        "score_kind": "main",
+                        "pause_after_ms": 5000
+                      },
+                      {
+                        "order": 4,
+                        "from_measure": 1,
+                        "to_measure": 4,
+                        "score_kind": "main",
+                        "pause_after_ms": 5000
+                      },
+                      {
+                        "order": 5,
+                        "from_measure": 3,
+                        "to_measure": 4,
+                        "score_kind": "main",
+                        "pause_after_ms": 5000
+                      },
+                      {
+                        "order": 6,
+                        "from_measure": 3,
+                        "to_measure": 6,
+                        "score_kind": "main",
+                        "pause_after_ms": 5000
+                      },
+                      {
+                        "order": 7,
+                        "from_measure": 5,
+                        "to_measure": 6,
+                        "score_kind": "main",
+                        "pause_after_ms": 5000
+                      },
+                      {
+                        "order": 8,
+                        "from_measure": 5,
+                        "to_measure": 8,
+                        "score_kind": "main",
+                        "pause_after_ms": 5000
+                      },
+                      {
+                        "order": 9,
+                        "from_measure": 7,
+                        "to_measure": 8,
+                        "score_kind": "main",
+                        "pause_after_ms": 5000
+                      },
+                      {
+                        "order": 10,
+                        "from_measure": 7,
+                        "to_measure": 8,
+                        "score_kind": "main",
+                        "pause_after_ms": 5000
+                      },
+                      {
+                        "order": 11,
+                        "from_measure": 1,
+                        "to_measure": 8,
+                        "score_kind": "main",
+                        "pause_after_ms": 0
+                      }
+                    ]
+                  },
+                  "server_time": "2026-10-23T06:00:10Z"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Error400"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error401"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error404"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error409"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error429"
+          },
+          "503": {
+            "$ref": "#/components/responses/Error503"
+          },
+          "default": {
+            "$ref": "#/components/responses/UnexpectedError"
+          }
+        }
+      }
+    },
+    "/attempts/{attempt_id}/answers/": {
+      "post": {
+        "operationId": "uploadAnswer",
+        "tags": [
+          "Answers"
+        ],
+        "summary": "Upload one immutable answer PNG",
+        "description": "Only in_progress accepts new answers. A repeated client_answer_id with the same image bytes and metadata returns the existing 201 receipt even after submission; a different payload conflicts. No automatic grading.",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/attempt_id"
+          },
+          {
+            "$ref": "#/components/parameters/IdempotencyKey"
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Success",
+            "headers": {
+              "X-Request-ID": {
+                "description": "Server-generated request correlation ID.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Cache-Control": {
+                "description": "API and private answer images: private, no-store.",
+                "schema": {
+                  "type": "string",
+                  "example": "private, no-store"
+                }
+              },
+              "Date": {
+                "description": "Current HTTP response time in RFC 9110 HTTP-date format.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Location": {
+                "description": "URI of the created resource, or the result resource for 202.",
+                "schema": {
+                  "type": "string",
+                  "format": "uri"
+                }
+              },
+              "Idempotency-Replayed": {
+                "description": "true when returning a previously committed response.",
+                "schema": {
+                  "type": "boolean"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Answer"
+                },
+                "example": {
+                  "id": "44444444-4444-4444-8444-444444444444",
+                  "attempt_id": "33333333-3333-4333-8333-333333333333",
+                  "client_answer_id": "55555555-5555-4555-8555-555555555555",
+                  "revision": 1,
+                  "answer_format_version": 1,
+                  "sheet_layout_id": "staff-8bars-v1",
+                  "image_width": 2660,
+                  "image_height": 1692,
+                  "content_type": "image/png",
+                  "size_bytes": 120000,
+                  "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                  "created_at": "2026-10-23T06:05:20Z",
+                  "image_url": "https://api.sori.example/api/v1/attempts/33333333-3333-4333-8333-333333333333/answers/44444444-4444-4444-8444-444444444444/image/"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Error400"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error401"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error404"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error409"
+          },
+          "413": {
+            "$ref": "#/components/responses/Error413"
+          },
+          "415": {
+            "$ref": "#/components/responses/Error415"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error422"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error429"
+          },
+          "503": {
+            "$ref": "#/components/responses/Error503"
+          },
+          "default": {
+            "$ref": "#/components/responses/UnexpectedError"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/AnswerUpload"
+              },
+              "encoding": {
+                "image": {
+                  "contentType": "image/png"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/attempts/{attempt_id}/submit/": {
+      "post": {
+        "operationId": "submitAttempt",
+        "tags": [
+          "Attempts"
+        ],
+        "summary": "Freeze a chosen answer and queue grading",
+        "description": "Atomically freeze answer_id and create one grading job using a transactional outbox. Same answer on an already submitted attempt returns the existing result with 202; a different answer returns ATTEMPT_ALREADY_SUBMITTED.",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/attempt_id"
+          },
+          {
+            "$ref": "#/components/parameters/IdempotencyKey"
+          }
+        ],
+        "responses": {
+          "202": {
+            "description": "Success",
+            "headers": {
+              "X-Request-ID": {
+                "description": "Server-generated request correlation ID.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Cache-Control": {
+                "description": "API and private answer images: private, no-store.",
+                "schema": {
+                  "type": "string",
+                  "example": "private, no-store"
+                }
+              },
+              "Date": {
+                "description": "Current HTTP response time in RFC 9110 HTTP-date format.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Location": {
+                "description": "URI of the created resource, or the result resource for 202.",
+                "schema": {
+                  "type": "string",
+                  "format": "uri"
+                }
+              },
+              "Idempotency-Replayed": {
+                "description": "true when returning a previously committed response.",
+                "schema": {
+                  "type": "boolean"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Grading"
+                },
+                "example": {
+                  "attempt_id": "33333333-3333-4333-8333-333333333333",
+                  "answer_id": "44444444-4444-4444-8444-444444444444",
+                  "job_id": "66666666-6666-4666-8666-666666666666",
+                  "grading_mode": "demo",
+                  "grading_version": "pitch-rhythm-v1",
+                  "status": "queued",
+                  "stage": "pending",
+                  "score": null,
+                  "pitch_accuracy": null,
+                  "rhythm_accuracy": null,
+                  "feedback": null,
+                  "annotations": [],
+                  "failure": null,
+                  "poll_after_ms": 2000,
+                  "created_at": "2026-10-23T06:05:21Z",
+                  "updated_at": "2026-10-23T06:05:21Z",
+                  "server_time": "2026-10-23T06:05:21Z"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Error400"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error401"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error404"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error409"
+          },
+          "415": {
+            "$ref": "#/components/responses/Error415"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error429"
+          },
+          "503": {
+            "$ref": "#/components/responses/Error503"
+          },
+          "default": {
+            "$ref": "#/components/responses/UnexpectedError"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SubmitRequest"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/attempts/{attempt_id}/result/": {
+      "get": {
+        "operationId": "getResult",
+        "tags": [
+          "Grading"
+        ],
+        "summary": "Get grading state or terminal result",
+        "description": "200 for all existing grading statuses, including queued and failed. Before submission return 409 NOT_SUBMITTED. poll_after_ms controls the next foreground poll.",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/attempt_id"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "headers": {
+              "X-Request-ID": {
+                "description": "Server-generated request correlation ID.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Cache-Control": {
+                "description": "API and private answer images: private, no-store.",
+                "schema": {
+                  "type": "string",
+                  "example": "private, no-store"
+                }
+              },
+              "Date": {
+                "description": "Current HTTP response time in RFC 9110 HTTP-date format.",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Grading"
+                },
+                "example": {
+                  "attempt_id": "33333333-3333-4333-8333-333333333333",
+                  "answer_id": "44444444-4444-4444-8444-444444444444",
+                  "job_id": "66666666-6666-4666-8666-666666666666",
+                  "grading_mode": "demo",
+                  "grading_version": "pitch-rhythm-v1",
+                  "status": "completed",
+                  "stage": "done",
+                  "score": 81,
+                  "pitch_accuracy": 84.0,
+                  "rhythm_accuracy": 78.0,
+                  "feedback": {
+                    "summary": "도약 뒤의 음정과 쉼표 길이를 확인해 보세요.",
+                    "recommendations": [
+                      "3도·4도 도약 음정 연습"
+                    ]
+                  },
+                  "annotations": [
+                    {
+                      "id": "ann-001",
+                      "type": "pitch_error",
+                      "measure": 3,
+                      "bbox": {
+                        "x": 0.47,
+                        "y": 0.18,
+                        "width": 0.05,
+                        "height": 0.06
+                      },
+                      "message": "이 음의 높이를 확인해 보세요."
+                    }
+                  ],
+                  "failure": null,
+                  "poll_after_ms": 0,
+                  "created_at": "2026-10-23T06:05:21Z",
+                  "updated_at": "2026-10-23T06:05:30Z",
+                  "server_time": "2026-10-23T06:05:30Z"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Error400"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error401"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error404"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error409"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error429"
+          },
+          "503": {
+            "$ref": "#/components/responses/Error503"
+          },
+          "default": {
+            "$ref": "#/components/responses/UnexpectedError"
+          }
+        }
+      }
+    },
+    "/attempts/{attempt_id}/grading-retries/": {
+      "post": {
+        "operationId": "retryGrading",
+        "tags": [
+          "Grading"
+        ],
+        "summary": "Retry a retryable failed job with the frozen answer",
+        "description": "No request body. Only failed with failure.retryable=true. Create a new job_id, keep answer_id, grading_mode and grading_version unchanged. Concurrent distinct retries conflict; transport replay returns the original retry receipt.",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/attempt_id"
+          },
+          {
+            "$ref": "#/components/parameters/IdempotencyKey"
+          }
+        ],
+        "responses": {
+          "202": {
+            "description": "Success",
+            "headers": {
+              "X-Request-ID": {
+                "description": "Server-generated request correlation ID.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Cache-Control": {
+                "description": "API and private answer images: private, no-store.",
+                "schema": {
+                  "type": "string",
+                  "example": "private, no-store"
+                }
+              },
+              "Date": {
+                "description": "Current HTTP response time in RFC 9110 HTTP-date format.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Location": {
+                "description": "URI of the created resource, or the result resource for 202.",
+                "schema": {
+                  "type": "string",
+                  "format": "uri"
+                }
+              },
+              "Idempotency-Replayed": {
+                "description": "true when returning a previously committed response.",
+                "schema": {
+                  "type": "boolean"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Grading"
+                },
+                "example": {
+                  "attempt_id": "33333333-3333-4333-8333-333333333333",
+                  "answer_id": "44444444-4444-4444-8444-444444444444",
+                  "job_id": "77777777-7777-4777-8777-777777777777",
+                  "grading_mode": "demo",
+                  "grading_version": "pitch-rhythm-v1",
+                  "status": "queued",
+                  "stage": "pending",
+                  "score": null,
+                  "pitch_accuracy": null,
+                  "rhythm_accuracy": null,
+                  "feedback": null,
+                  "annotations": [],
+                  "failure": null,
+                  "poll_after_ms": 2000,
+                  "created_at": "2026-10-23T06:05:40Z",
+                  "updated_at": "2026-10-23T06:05:40Z",
+                  "server_time": "2026-10-23T06:05:40Z"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Error400"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error401"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error404"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error409"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error429"
+          },
+          "503": {
+            "$ref": "#/components/responses/Error503"
+          },
+          "default": {
+            "$ref": "#/components/responses/UnexpectedError"
+          }
+        }
+      }
+    },
+    "/attempts/{attempt_id}/answers/{answer_id}/image/": {
+      "get": {
+        "operationId": "getAnswerImage",
+        "tags": [
+          "Answers"
+        ],
+        "summary": "Download a private immutable answer PNG",
+        "description": "Requires the same bearer token as JSON APIs. Answer must belong to the specified attempt and user. Not a public CDN URL.",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/attempt_id"
+          },
+          {
+            "$ref": "#/components/parameters/answer_id"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Original accepted PNG bytes.",
+            "headers": {
+              "X-Request-ID": {
+                "description": "Server-generated request correlation ID.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Cache-Control": {
+                "description": "API and private answer images: private, no-store.",
+                "schema": {
+                  "type": "string",
+                  "example": "private, no-store"
+                }
+              },
+              "Date": {
+                "description": "Current HTTP response time in RFC 9110 HTTP-date format.",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "image/png": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Error400"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error401"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error404"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error429"
+          },
+          "503": {
+            "$ref": "#/components/responses/Error503"
+          },
+          "default": {
+            "$ref": "#/components/responses/UnexpectedError"
+          }
+        }
+      }
+    },
+    "/questions/{question_id}/versions/{question_version}/scores/{score_kind}/": {
+      "get": {
+        "operationId": "getQuestionScore",
+        "tags": [
+          "Questions"
+        ],
+        "summary": "Download immutable main or scale MXL for local rendering and synthesis",
+        "description": "Bearer-authenticated compressed MusicXML 4.0. Main contains the reference answer notes: supported only for personal practice. Score bytes match the SHA-256 in the pinned question. For an archived version, allow access if the user owns an attempt pinned to that version.",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/question_id"
+          },
+          {
+            "$ref": "#/components/parameters/question_version"
+          },
+          {
+            "$ref": "#/components/parameters/score_kind"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "MXL ZIP container; main score.xml referenced from META-INF/container.xml.",
+            "headers": {
+              "X-Request-ID": {
+                "description": "Server-generated request correlation ID.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Cache-Control": {
+                "description": "API and private answer images: private, no-store.",
+                "schema": {
+                  "type": "string",
+                  "example": "private, no-store"
+                }
+              },
+              "Date": {
+                "description": "Current HTTP response time in RFC 9110 HTTP-date format.",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "application/vnd.recordare.musicxml": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Error400"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error401"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error404"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error429"
+          },
+          "503": {
+            "$ref": "#/components/responses/Error503"
+          },
+          "default": {
+            "$ref": "#/components/responses/UnexpectedError"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "BearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "description": "Opaque bearer token. Development tokens issued per developer by backend; production enrollment/renewal separately defined."
+      }
+    },
+    "parameters": {
+      "question_id": {
+        "name": "question_id",
+        "in": "path",
+        "required": true,
+        "schema": {
+          "type": "string",
+          "format": "uuid"
+        }
+      },
+      "attempt_id": {
+        "name": "attempt_id",
+        "in": "path",
+        "required": true,
+        "schema": {
+          "type": "string",
+          "format": "uuid"
+        }
+      },
+      "answer_id": {
+        "name": "answer_id",
+        "in": "path",
+        "required": true,
+        "schema": {
+          "type": "string",
+          "format": "uuid"
+        }
+      },
+      "question_version": {
+        "name": "question_version",
+        "in": "path",
+        "required": true,
+        "schema": {
+          "type": "integer",
+          "minimum": 1
+        }
+      },
+      "score_kind": {
+        "name": "score_kind",
+        "in": "path",
+        "required": true,
+        "schema": {
+          "type": "string",
+          "enum": [
+            "main",
+            "scale"
+          ]
+        }
+      },
+      "IdempotencyKey": {
+        "name": "Idempotency-Key",
+        "in": "header",
+        "required": true,
+        "schema": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "description": "Persist one UUID per logical mutation. Reuse for transport retries; never regenerate on timeout. Scope: user + method + concrete path + key."
+      }
+    },
+    "schemas": {
+      "KeySignature": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "tonic": {
+            "type": "string"
+          },
+          "mode": {
+            "type": "string",
+            "enum": [
+              "major",
+              "minor"
+            ]
+          },
+          "fifths": {
+            "type": "integer",
+            "minimum": -7,
+            "maximum": 7
+          }
+        },
+        "required": [
+          "tonic",
+          "mode",
+          "fifths"
+        ]
+      },
+      "TimeSignature": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "numerator": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "denominator": {
+            "type": "integer",
+            "enum": [
+              1,
+              2,
+              4,
+              8,
+              16
+            ]
+          }
+        },
+        "required": [
+          "numerator",
+          "denominator"
+        ]
+      },
+      "SheetSystem": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "index": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "first_measure": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "last_measure": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "staff_line_y": {
+            "type": "array",
+            "items": {
+              "type": "number"
+            },
+            "minItems": 5,
+            "maxItems": 5
+          },
+          "barline_x": {
+            "type": "array",
+            "items": {
+              "type": "number"
+            },
+            "minItems": 5,
+            "maxItems": 5
+          }
+        },
+        "required": [
+          "index",
+          "first_measure",
+          "last_measure",
+          "staff_line_y",
+          "barline_x"
+        ]
+      },
+      "SheetLayout": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "logical_width": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "logical_height": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "export_scale": {
+            "type": "integer",
+            "enum": [
+              2
+            ]
+          },
+          "pixel_width": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "pixel_height": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "template_png_url": {
+            "type": "string",
+            "format": "uri"
+          },
+          "template_sha256": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{64}$"
+          },
+          "systems": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SheetSystem"
+            },
+            "minItems": 2,
+            "maxItems": 2
+          }
+        },
+        "required": [
+          "id",
+          "logical_width",
+          "logical_height",
+          "export_scale",
+          "pixel_width",
+          "pixel_height",
+          "template_png_url",
+          "template_sha256",
+          "systems"
+        ]
+      },
+      "QuestionSummary": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "version": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "title": {
+            "type": "string"
+          },
+          "source": {
+            "type": "string",
+            "enum": [
+              "practice"
+            ]
+          },
+          "key_signature": {
+            "$ref": "#/components/schemas/KeySignature"
+          },
+          "time_signature": {
+            "$ref": "#/components/schemas/TimeSignature"
+          },
+          "measure_count": {
+            "type": "integer",
+            "enum": [
+              8
+            ]
+          },
+          "recommended_duration_seconds": {
+            "type": "integer",
+            "minimum": 1
+          }
+        },
+        "required": [
+          "id",
+          "version",
+          "title",
+          "source",
+          "key_signature",
+          "time_signature",
+          "measure_count",
+          "recommended_duration_seconds"
+        ]
+      },
+      "ScoreAsset": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "url": {
+            "type": "string",
+            "format": "uri"
+          },
+          "content_type": {
+            "type": "string",
+            "enum": [
+              "application/vnd.recordare.musicxml"
+            ]
+          },
+          "sha256": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{64}$"
+          },
+          "size_bytes": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 1048576
+          },
+          "musicxml_version": {
+            "type": "string",
+            "enum": [
+              "4.0"
+            ]
+          },
+          "profile": {
+            "type": "string",
+            "enum": [
+              "sori-monophonic-v1"
+            ]
+          },
+          "part_id": {
+            "type": "string",
+            "enum": [
+              "P1"
+            ]
+          },
+          "measure_count": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 8
+          }
+        },
+        "required": [
+          "url",
+          "content_type",
+          "sha256",
+          "size_bytes",
+          "musicxml_version",
+          "profile",
+          "part_id",
+          "measure_count"
+        ]
+      },
+      "ScoreAssets": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "main": {
+            "$ref": "#/components/schemas/ScoreAsset"
+          },
+          "scale": {
+            "$ref": "#/components/schemas/ScoreAsset"
+          }
+        },
+        "required": [
+          "main",
+          "scale"
+        ]
+      },
+      "Question": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "version": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "title": {
+            "type": "string"
+          },
+          "source": {
+            "type": "string",
+            "enum": [
+              "practice"
+            ]
+          },
+          "key_signature": {
+            "$ref": "#/components/schemas/KeySignature"
+          },
+          "time_signature": {
+            "$ref": "#/components/schemas/TimeSignature"
+          },
+          "measure_count": {
+            "type": "integer",
+            "enum": [
+              8
+            ]
+          },
+          "recommended_duration_seconds": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "description": {
+            "type": "string"
+          },
+          "time_policy": {
+            "type": "string",
+            "enum": [
+              "advisory"
+            ]
+          },
+          "clef": {
+            "type": "string",
+            "enum": [
+              "treble"
+            ]
+          },
+          "sheet_layout": {
+            "$ref": "#/components/schemas/SheetLayout"
+          },
+          "content_policy": {
+            "type": "string",
+            "enum": [
+              "client_readable_practice"
+            ]
+          },
+          "score_visibility": {
+            "type": "string",
+            "enum": [
+              "after_submission"
+            ]
+          },
+          "score_assets": {
+            "$ref": "#/components/schemas/ScoreAssets"
+          }
+        },
+        "required": [
+          "id",
+          "version",
+          "title",
+          "source",
+          "key_signature",
+          "time_signature",
+          "measure_count",
+          "recommended_duration_seconds",
+          "description",
+          "time_policy",
+          "clef",
+          "sheet_layout",
+          "content_policy",
+          "score_visibility",
+          "score_assets"
+        ],
+        "example": {
+          "id": "22222222-2222-4222-8222-222222222222",
+          "version": 1,
+          "title": "Melodic Dictation · Practice 01",
+          "source": "practice",
+          "key_signature": {
+            "tonic": "C",
+            "mode": "major",
+            "fifths": 0
+          },
+          "time_signature": {
+            "numerator": 4,
+            "denominator": 4
+          },
+          "measure_count": 8,
+          "recommended_duration_seconds": 300,
+          "description": "멜로디를 듣고 빈 오선에 적어보세요.",
+          "time_policy": "advisory",
+          "clef": "treble",
+          "sheet_layout": {
+            "id": "staff-8bars-v1",
+            "logical_width": 1330,
+            "logical_height": 846,
+            "export_scale": 2,
+            "pixel_width": 2660,
+            "pixel_height": 1692,
+            "template_png_url": "https://assets.sori.example/sheets/staff-8bars-v1.png",
+            "template_sha256": "0fa8e695dcb6a36b8ba78ab73345518f737546fa819529ca1d93a935a6ae30c4",
+            "systems": [
+              {
+                "index": 1,
+                "first_measure": 1,
+                "last_measure": 4,
+                "staff_line_y": [
+                  164,
+                  176,
+                  188,
+                  200,
+                  212
+                ],
+                "barline_x": [
+                  54,
+                  450,
+                  725,
+                  1000,
+                  1276
+                ]
+              },
+              {
+                "index": 2,
+                "first_measure": 5,
+                "last_measure": 8,
+                "staff_line_y": [
+                  499,
+                  511,
+                  523,
+                  535,
+                  547
+                ],
+                "barline_x": [
+                  54,
+                  397,
+                  690,
+                  983,
+                  1276
+                ]
+              }
+            ]
+          },
+          "content_policy": "client_readable_practice",
+          "score_visibility": "after_submission",
+          "score_assets": {
+            "main": {
+              "url": "https://api.sori.example/api/v1/questions/22222222-2222-4222-8222-222222222222/versions/1/scores/main/",
+              "content_type": "application/vnd.recordare.musicxml",
+              "sha256": "f5ea2a6e2bbde0fe359bd566ce544ceb662faaa8122b243c79478255ea890f10",
+              "size_bytes": 1364,
+              "musicxml_version": "4.0",
+              "profile": "sori-monophonic-v1",
+              "part_id": "P1",
+              "measure_count": 8
+            },
+            "scale": {
+              "url": "https://api.sori.example/api/v1/questions/22222222-2222-4222-8222-222222222222/versions/1/scores/scale/",
+              "content_type": "application/vnd.recordare.musicxml",
+              "sha256": "af6f34ee8cbe1f2884a7340a08864b635fc8bae0c77437f9dafdd29896dd1d14",
+              "size_bytes": 1100,
+              "musicxml_version": "4.0",
+              "profile": "sori-monophonic-v1",
+              "part_id": "P1",
+              "measure_count": 2
+            }
+          }
+        }
+      },
+      "QuestionPage": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "count": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "next": {
+            "type": "string",
+            "format": "uri",
+            "nullable": true
+          },
+          "previous": {
+            "type": "string",
+            "format": "uri",
+            "nullable": true
+          },
+          "results": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/QuestionSummary"
+            }
+          }
+        },
+        "required": [
+          "count",
+          "next",
+          "previous",
+          "results"
+        ],
+        "example": {
+          "count": 1,
+          "next": null,
+          "previous": null,
+          "results": [
+            {
+              "id": "22222222-2222-4222-8222-222222222222",
+              "version": 1,
+              "title": "Melodic Dictation · Practice 01",
+              "source": "practice",
+              "key_signature": {
+                "tonic": "C",
+                "mode": "major",
+                "fifths": 0
+              },
+              "time_signature": {
+                "numerator": 4,
+                "denominator": 4
+              },
+              "measure_count": 8,
+              "recommended_duration_seconds": 300
+            }
+          ]
+        }
+      },
+      "PlaybackStep": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "order": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 11
+          },
+          "from_measure": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 8
+          },
+          "to_measure": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 8
+          },
+          "score_kind": {
+            "type": "string",
+            "enum": [
+              "main"
+            ]
+          },
+          "pause_after_ms": {
+            "type": "integer",
+            "minimum": 0
+          }
+        },
+        "required": [
+          "order",
+          "from_measure",
+          "to_measure",
+          "score_kind",
+          "pause_after_ms"
+        ]
+      },
+      "ScalePlayback": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "score_kind": {
+            "type": "string",
+            "enum": [
+              "scale"
+            ]
+          },
+          "from_measure": {
+            "type": "integer",
+            "enum": [
+              1
+            ]
+          },
+          "to_measure": {
+            "type": "integer",
+            "enum": [
+              2
+            ]
+          }
+        },
+        "required": [
+          "score_kind",
+          "from_measure",
+          "to_measure"
+        ]
+      },
+      "PlaybackPlan": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "version": {
+            "type": "integer",
+            "enum": [
+              2
+            ]
+          },
+          "engine": {
+            "type": "string",
+            "enum": [
+              "local_midi"
+            ]
+          },
+          "tempo_bpm": {
+            "type": "integer",
+            "minimum": 40,
+            "maximum": 200
+          },
+          "instrument_profile_id": {
+            "type": "string",
+            "enum": [
+              "sori-piano-v1"
+            ]
+          },
+          "tuning_hz": {
+            "type": "number",
+            "enum": [
+              440
+            ]
+          },
+          "transpose_semitones": {
+            "type": "integer",
+            "enum": [
+              0
+            ]
+          },
+          "velocity": {
+            "type": "integer",
+            "enum": [
+              80
+            ]
+          },
+          "gate_ratio": {
+            "type": "number",
+            "enum": [
+              1
+            ]
+          },
+          "release_tail_ms": {
+            "type": "integer",
+            "enum": [
+              300
+            ]
+          },
+          "scale": {
+            "$ref": "#/components/schemas/ScalePlayback"
+          },
+          "pause_after_scale_ms": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "allow_manual_pause": {
+            "type": "boolean",
+            "enum": [
+              true
+            ]
+          },
+          "allow_manual_replay": {
+            "type": "boolean",
+            "enum": [
+              false
+            ]
+          },
+          "interruption_policy": {
+            "type": "string",
+            "enum": [
+              "restart_current_segment"
+            ]
+          },
+          "steps": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PlaybackStep"
+            },
+            "minItems": 11,
+            "maxItems": 11
+          }
+        },
+        "required": [
+          "version",
+          "engine",
+          "tempo_bpm",
+          "instrument_profile_id",
+          "tuning_hz",
+          "transpose_semitones",
+          "velocity",
+          "gate_ratio",
+          "release_tail_ms",
+          "scale",
+          "pause_after_scale_ms",
+          "allow_manual_pause",
+          "allow_manual_replay",
+          "interruption_policy",
+          "steps"
+        ]
+      },
+      "UserProfile": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "display_name": {
+            "type": "string"
+          },
+          "learning_goal": {
+            "type": "string",
+            "enum": [
+              "arts_school_entrance",
+              "arts_school_student",
+              "college_entrance",
+              "teacher_exam",
+              "other"
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "display_name",
+          "learning_goal"
+        ],
+        "example": {
+          "id": "11111111-1111-4111-8111-111111111111",
+          "display_name": "연습 사용자",
+          "learning_goal": "college_entrance"
+        }
+      },
+      "UserProfilePatch": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "learning_goal": {
+            "type": "string",
+            "enum": [
+              "arts_school_entrance",
+              "arts_school_student",
+              "college_entrance",
+              "teacher_exam",
+              "other"
+            ]
+          }
+        },
+        "required": [
+          "learning_goal"
+        ],
+        "example": {
+          "learning_goal": "college_entrance"
+        }
+      },
+      "AttemptCreate": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "question_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "question_version": {
+            "type": "integer",
+            "minimum": 1
+          }
+        },
+        "required": [
+          "question_id",
+          "question_version"
+        ],
+        "example": {
+          "question_id": "22222222-2222-4222-8222-222222222222",
+          "question_version": 1
+        }
+      },
+      "Answer": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "attempt_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "client_answer_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "revision": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "answer_format_version": {
+            "type": "integer",
+            "enum": [
+              1
+            ]
+          },
+          "sheet_layout_id": {
+            "type": "string"
+          },
+          "image_width": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "image_height": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "content_type": {
+            "type": "string",
+            "enum": [
+              "image/png"
+            ]
+          },
+          "size_bytes": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 10485760
+          },
+          "sha256": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{64}$"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "image_url": {
+            "type": "string",
+            "format": "uri"
+          }
+        },
+        "required": [
+          "id",
+          "attempt_id",
+          "client_answer_id",
+          "revision",
+          "answer_format_version",
+          "sheet_layout_id",
+          "image_width",
+          "image_height",
+          "content_type",
+          "size_bytes",
+          "sha256",
+          "created_at",
+          "image_url"
+        ],
+        "example": {
+          "id": "44444444-4444-4444-8444-444444444444",
+          "attempt_id": "33333333-3333-4333-8333-333333333333",
+          "client_answer_id": "55555555-5555-4555-8555-555555555555",
+          "revision": 1,
+          "answer_format_version": 1,
+          "sheet_layout_id": "staff-8bars-v1",
+          "image_width": 2660,
+          "image_height": 1692,
+          "content_type": "image/png",
+          "size_bytes": 120000,
+          "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "created_at": "2026-10-23T06:05:20Z",
+          "image_url": "https://api.sori.example/api/v1/attempts/33333333-3333-4333-8333-333333333333/answers/44444444-4444-4444-8444-444444444444/image/"
+        }
+      },
+      "Attempt": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "ready",
+              "in_progress",
+              "submitted"
+            ]
+          },
+          "grading_mode": {
+            "type": "string",
+            "enum": [
+              "demo",
+              "automatic"
+            ]
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "started_at": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "recommended_end_at": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "submitted_at": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "submitted_answer_id": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          },
+          "latest_answer": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "id": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "attempt_id": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "client_answer_id": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "revision": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "answer_format_version": {
+                "type": "integer",
+                "enum": [
+                  1
+                ]
+              },
+              "sheet_layout_id": {
+                "type": "string"
+              },
+              "image_width": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "image_height": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "content_type": {
+                "type": "string",
+                "enum": [
+                  "image/png"
+                ]
+              },
+              "size_bytes": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 10485760
+              },
+              "sha256": {
+                "type": "string",
+                "pattern": "^[a-f0-9]{64}$"
+              },
+              "created_at": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "image_url": {
+                "type": "string",
+                "format": "uri"
+              }
+            },
+            "required": [
+              "id",
+              "attempt_id",
+              "client_answer_id",
+              "revision",
+              "answer_format_version",
+              "sheet_layout_id",
+              "image_width",
+              "image_height",
+              "content_type",
+              "size_bytes",
+              "sha256",
+              "created_at",
+              "image_url"
+            ],
+            "nullable": true
+          },
+          "question": {
+            "$ref": "#/components/schemas/Question"
+          },
+          "playback_plan": {
+            "$ref": "#/components/schemas/PlaybackPlan"
+          },
+          "server_time": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "id",
+          "status",
+          "grading_mode",
+          "created_at",
+          "started_at",
+          "recommended_end_at",
+          "submitted_at",
+          "submitted_answer_id",
+          "latest_answer",
+          "question",
+          "playback_plan",
+          "server_time"
+        ],
+        "example": {
+          "id": "33333333-3333-4333-8333-333333333333",
+          "status": "ready",
+          "grading_mode": "demo",
+          "created_at": "2026-10-23T06:00:00Z",
+          "started_at": null,
+          "recommended_end_at": null,
+          "submitted_at": null,
+          "submitted_answer_id": null,
+          "latest_answer": null,
+          "question": {
+            "id": "22222222-2222-4222-8222-222222222222",
+            "version": 1,
+            "title": "Melodic Dictation · Practice 01",
+            "source": "practice",
+            "key_signature": {
+              "tonic": "C",
+              "mode": "major",
+              "fifths": 0
+            },
+            "time_signature": {
+              "numerator": 4,
+              "denominator": 4
+            },
+            "measure_count": 8,
+            "recommended_duration_seconds": 300,
+            "description": "멜로디를 듣고 빈 오선에 적어보세요.",
+            "time_policy": "advisory",
+            "clef": "treble",
+            "sheet_layout": {
+              "id": "staff-8bars-v1",
+              "logical_width": 1330,
+              "logical_height": 846,
+              "export_scale": 2,
+              "pixel_width": 2660,
+              "pixel_height": 1692,
+              "template_png_url": "https://assets.sori.example/sheets/staff-8bars-v1.png",
+              "template_sha256": "0fa8e695dcb6a36b8ba78ab73345518f737546fa819529ca1d93a935a6ae30c4",
+              "systems": [
+                {
+                  "index": 1,
+                  "first_measure": 1,
+                  "last_measure": 4,
+                  "staff_line_y": [
+                    164,
+                    176,
+                    188,
+                    200,
+                    212
+                  ],
+                  "barline_x": [
+                    54,
+                    450,
+                    725,
+                    1000,
+                    1276
+                  ]
+                },
+                {
+                  "index": 2,
+                  "first_measure": 5,
+                  "last_measure": 8,
+                  "staff_line_y": [
+                    499,
+                    511,
+                    523,
+                    535,
+                    547
+                  ],
+                  "barline_x": [
+                    54,
+                    397,
+                    690,
+                    983,
+                    1276
+                  ]
+                }
+              ]
+            },
+            "content_policy": "client_readable_practice",
+            "score_visibility": "after_submission",
+            "score_assets": {
+              "main": {
+                "url": "https://api.sori.example/api/v1/questions/22222222-2222-4222-8222-222222222222/versions/1/scores/main/",
+                "content_type": "application/vnd.recordare.musicxml",
+                "sha256": "f5ea2a6e2bbde0fe359bd566ce544ceb662faaa8122b243c79478255ea890f10",
+                "size_bytes": 1364,
+                "musicxml_version": "4.0",
+                "profile": "sori-monophonic-v1",
+                "part_id": "P1",
+                "measure_count": 8
+              },
+              "scale": {
+                "url": "https://api.sori.example/api/v1/questions/22222222-2222-4222-8222-222222222222/versions/1/scores/scale/",
+                "content_type": "application/vnd.recordare.musicxml",
+                "sha256": "af6f34ee8cbe1f2884a7340a08864b635fc8bae0c77437f9dafdd29896dd1d14",
+                "size_bytes": 1100,
+                "musicxml_version": "4.0",
+                "profile": "sori-monophonic-v1",
+                "part_id": "P1",
+                "measure_count": 2
+              }
+            }
+          },
+          "playback_plan": {
+            "version": 2,
+            "engine": "local_midi",
+            "tempo_bpm": 96,
+            "instrument_profile_id": "sori-piano-v1",
+            "tuning_hz": 440,
+            "transpose_semitones": 0,
+            "velocity": 80,
+            "gate_ratio": 1.0,
+            "release_tail_ms": 300,
+            "scale": {
+              "score_kind": "scale",
+              "from_measure": 1,
+              "to_measure": 2
+            },
+            "pause_after_scale_ms": 3000,
+            "allow_manual_pause": true,
+            "allow_manual_replay": false,
+            "interruption_policy": "restart_current_segment",
+            "steps": [
+              {
+                "order": 1,
+                "from_measure": 1,
+                "to_measure": 8,
+                "score_kind": "main",
+                "pause_after_ms": 5000
+              },
+              {
+                "order": 2,
+                "from_measure": 1,
+                "to_measure": 2,
+                "score_kind": "main",
+                "pause_after_ms": 5000
+              },
+              {
+                "order": 3,
+                "from_measure": 1,
+                "to_measure": 2,
+                "score_kind": "main",
+                "pause_after_ms": 5000
+              },
+              {
+                "order": 4,
+                "from_measure": 1,
+                "to_measure": 4,
+                "score_kind": "main",
+                "pause_after_ms": 5000
+              },
+              {
+                "order": 5,
+                "from_measure": 3,
+                "to_measure": 4,
+                "score_kind": "main",
+                "pause_after_ms": 5000
+              },
+              {
+                "order": 6,
+                "from_measure": 3,
+                "to_measure": 6,
+                "score_kind": "main",
+                "pause_after_ms": 5000
+              },
+              {
+                "order": 7,
+                "from_measure": 5,
+                "to_measure": 6,
+                "score_kind": "main",
+                "pause_after_ms": 5000
+              },
+              {
+                "order": 8,
+                "from_measure": 5,
+                "to_measure": 8,
+                "score_kind": "main",
+                "pause_after_ms": 5000
+              },
+              {
+                "order": 9,
+                "from_measure": 7,
+                "to_measure": 8,
+                "score_kind": "main",
+                "pause_after_ms": 5000
+              },
+              {
+                "order": 10,
+                "from_measure": 7,
+                "to_measure": 8,
+                "score_kind": "main",
+                "pause_after_ms": 5000
+              },
+              {
+                "order": 11,
+                "from_measure": 1,
+                "to_measure": 8,
+                "score_kind": "main",
+                "pause_after_ms": 0
+              }
+            ]
+          },
+          "server_time": "2026-10-23T06:00:00Z"
+        }
+      },
+      "AnswerUpload": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "image": {
+            "type": "string",
+            "format": "binary",
+            "description": "2660 × 1692 PNG, RGB/RGBA without transparency, white background; maximum 10 MiB."
+          },
+          "client_answer_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "answer_format_version": {
+            "type": "integer",
+            "enum": [
+              1
+            ]
+          },
+          "sheet_layout_id": {
+            "type": "string",
+            "enum": [
+              "staff-8bars-v1"
+            ]
+          }
+        },
+        "required": [
+          "image",
+          "client_answer_id",
+          "answer_format_version",
+          "sheet_layout_id"
+        ]
+      },
+      "SubmitRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "answer_id": {
+            "type": "string",
+            "format": "uuid"
+          }
+        },
+        "required": [
+          "answer_id"
+        ],
+        "example": {
+          "answer_id": "44444444-4444-4444-8444-444444444444"
+        }
+      },
+      "BBox": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "x": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1
+          },
+          "y": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1
+          },
+          "width": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1
+          },
+          "height": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1
+          }
+        },
+        "required": [
+          "x",
+          "y",
+          "width",
+          "height"
+        ],
+        "description": "Top-left origin in the complete answer image. x+width <= 1, y+height <= 1. Width and height must be positive."
+      },
+      "Annotation": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "pitch_error",
+              "rhythm_error",
+              "missing_note",
+              "extra_note",
+              "recognition_uncertain"
+            ]
+          },
+          "measure": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 8,
+            "nullable": true
+          },
+          "bbox": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "x": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 1
+              },
+              "y": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 1
+              },
+              "width": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 1
+              },
+              "height": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 1
+              }
+            },
+            "required": [
+              "x",
+              "y",
+              "width",
+              "height"
+            ],
+            "description": "Top-left origin in the complete answer image. x+width <= 1, y+height <= 1. Width and height must be positive.",
+            "nullable": true
+          },
+          "message": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "type",
+          "measure",
+          "bbox",
+          "message"
+        ]
+      },
+      "Feedback": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "summary": {
+            "type": "string"
+          },
+          "recommendations": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "summary",
+          "recommendations"
+        ]
+      },
+      "GradingFailure": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "code": {
+            "type": "string",
+            "enum": [
+              "ENGINE_UNAVAILABLE",
+              "RECOGNITION_TIMEOUT",
+              "GRADING_INTERNAL_ERROR"
+            ]
+          },
+          "message": {
+            "type": "string"
+          },
+          "retryable": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "code",
+          "message",
+          "retryable"
+        ]
+      },
+      "Grading": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "attempt_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "answer_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "job_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "grading_mode": {
+            "type": "string",
+            "enum": [
+              "demo",
+              "automatic"
+            ]
+          },
+          "grading_version": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "queued",
+              "processing",
+              "completed",
+              "needs_review",
+              "failed"
+            ]
+          },
+          "stage": {
+            "type": "string",
+            "enum": [
+              "pending",
+              "recognizing",
+              "grading",
+              "feedback",
+              "done"
+            ]
+          },
+          "score": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 100,
+            "nullable": true
+          },
+          "pitch_accuracy": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 100,
+            "nullable": true
+          },
+          "rhythm_accuracy": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 100,
+            "nullable": true
+          },
+          "feedback": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "summary": {
+                "type": "string"
+              },
+              "recommendations": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            },
+            "required": [
+              "summary",
+              "recommendations"
+            ],
+            "nullable": true
+          },
+          "annotations": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Annotation"
+            }
+          },
+          "failure": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "code": {
+                "type": "string",
+                "enum": [
+                  "ENGINE_UNAVAILABLE",
+                  "RECOGNITION_TIMEOUT",
+                  "GRADING_INTERNAL_ERROR"
+                ]
+              },
+              "message": {
+                "type": "string"
+              },
+              "retryable": {
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "code",
+              "message",
+              "retryable"
+            ],
+            "nullable": true
+          },
+          "poll_after_ms": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "server_time": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "attempt_id",
+          "answer_id",
+          "job_id",
+          "grading_mode",
+          "grading_version",
+          "status",
+          "stage",
+          "score",
+          "pitch_accuracy",
+          "rhythm_accuracy",
+          "feedback",
+          "annotations",
+          "failure",
+          "poll_after_ms",
+          "created_at",
+          "updated_at",
+          "server_time"
+        ],
+        "description": "Conditional field invariants and grading formula are normative in API-CONTRACT.md. Non-completed results have null scores.",
+        "example": {
+          "attempt_id": "33333333-3333-4333-8333-333333333333",
+          "answer_id": "44444444-4444-4444-8444-444444444444",
+          "job_id": "66666666-6666-4666-8666-666666666666",
+          "grading_mode": "demo",
+          "grading_version": "pitch-rhythm-v1",
+          "status": "queued",
+          "stage": "pending",
+          "score": null,
+          "pitch_accuracy": null,
+          "rhythm_accuracy": null,
+          "feedback": null,
+          "annotations": [],
+          "failure": null,
+          "poll_after_ms": 2000,
+          "created_at": "2026-10-23T06:05:21Z",
+          "updated_at": "2026-10-23T06:05:21Z",
+          "server_time": "2026-10-23T06:05:21Z"
+        }
+      },
+      "FieldError": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "field": {
+            "type": "string"
+          },
+          "code": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "field",
+          "code",
+          "message"
+        ]
+      },
+      "ErrorDetail": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "code": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          },
+          "fields": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/FieldError"
+            }
+          },
+          "retry_after_ms": {
+            "type": "integer",
+            "minimum": 0,
+            "nullable": true
+          }
+        },
+        "required": [
+          "code",
+          "message",
+          "fields",
+          "retry_after_ms"
+        ]
+      },
+      "ErrorEnvelope": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "error": {
+            "$ref": "#/components/schemas/ErrorDetail"
+          },
+          "request_id": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "error",
+          "request_id"
+        ],
+        "example": {
+          "error": {
+            "code": "IMAGE_DIMENSIONS_MISMATCH",
+            "message": "답안 이미지는 2660 × 1692 픽셀이어야 합니다.",
+            "fields": [
+              {
+                "field": "image",
+                "code": "invalid_dimensions",
+                "message": "2660 × 1692 픽셀 PNG를 업로드해 주세요."
+              }
+            ],
+            "retry_after_ms": null
+          },
+          "request_id": "req-example-001"
+        }
+      }
+    },
+    "responses": {
+      "Error400": {
+        "description": "Malformed JSON/multipart, invalid or missing fields, or missing Idempotency-Key.",
+        "headers": {
+          "X-Request-ID": {
+            "description": "Server-generated request correlation ID.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          "Cache-Control": {
+            "description": "API and private answer images: private, no-store.",
+            "schema": {
+              "type": "string",
+              "example": "private, no-store"
+            }
+          },
+          "Date": {
+            "description": "Current HTTP response time in RFC 9110 HTTP-date format.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        },
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ErrorEnvelope"
+            }
+          }
+        }
+      },
+      "Error401": {
+        "description": "Missing or invalid bearer token; WWW-Authenticate: Bearer.",
+        "headers": {
+          "X-Request-ID": {
+            "description": "Server-generated request correlation ID.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          "Cache-Control": {
+            "description": "API and private answer images: private, no-store.",
+            "schema": {
+              "type": "string",
+              "example": "private, no-store"
+            }
+          },
+          "Date": {
+            "description": "Current HTTP response time in RFC 9110 HTTP-date format.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          "WWW-Authenticate": {
+            "schema": {
+              "type": "string",
+              "example": "Bearer"
+            },
+            "description": "Bearer authentication challenge."
+          }
+        },
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ErrorEnvelope"
+            }
+          }
+        }
+      },
+      "Error404": {
+        "description": "Resource not found or owned by another user.",
+        "headers": {
+          "X-Request-ID": {
+            "description": "Server-generated request correlation ID.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          "Cache-Control": {
+            "description": "API and private answer images: private, no-store.",
+            "schema": {
+              "type": "string",
+              "example": "private, no-store"
+            }
+          },
+          "Date": {
+            "description": "Current HTTP response time in RFC 9110 HTTP-date format.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        },
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ErrorEnvelope"
+            }
+          }
+        }
+      },
+      "Error409": {
+        "description": "Invalid state, stale question version, or conflicting idempotency/client-answer ID.",
+        "headers": {
+          "X-Request-ID": {
+            "description": "Server-generated request correlation ID.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          "Cache-Control": {
+            "description": "API and private answer images: private, no-store.",
+            "schema": {
+              "type": "string",
+              "example": "private, no-store"
+            }
+          },
+          "Date": {
+            "description": "Current HTTP response time in RFC 9110 HTTP-date format.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        },
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ErrorEnvelope"
+            }
+          }
+        }
+      },
+      "Error413": {
+        "description": "Image exceeds 10 MiB or total multipart request exceeds 11 MiB.",
+        "headers": {
+          "X-Request-ID": {
+            "description": "Server-generated request correlation ID.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          "Cache-Control": {
+            "description": "API and private answer images: private, no-store.",
+            "schema": {
+              "type": "string",
+              "example": "private, no-store"
+            }
+          },
+          "Date": {
+            "description": "Current HTTP response time in RFC 9110 HTTP-date format.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        },
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ErrorEnvelope"
+            }
+          }
+        }
+      },
+      "Error415": {
+        "description": "Unsupported request media type, or uploaded part MIME type is not image/png.",
+        "headers": {
+          "X-Request-ID": {
+            "description": "Server-generated request correlation ID.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          "Cache-Control": {
+            "description": "API and private answer images: private, no-store.",
+            "schema": {
+              "type": "string",
+              "example": "private, no-store"
+            }
+          },
+          "Date": {
+            "description": "Current HTTP response time in RFC 9110 HTTP-date format.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        },
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ErrorEnvelope"
+            }
+          }
+        }
+      },
+      "Error422": {
+        "description": "PNG decode, dimensions, layout version, or opaque-background validation failed.",
+        "headers": {
+          "X-Request-ID": {
+            "description": "Server-generated request correlation ID.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          "Cache-Control": {
+            "description": "API and private answer images: private, no-store.",
+            "schema": {
+              "type": "string",
+              "example": "private, no-store"
+            }
+          },
+          "Date": {
+            "description": "Current HTTP response time in RFC 9110 HTTP-date format.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        },
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ErrorEnvelope"
+            }
+          }
+        }
+      },
+      "Error429": {
+        "description": "Rate limited. Respect Retry-After.",
+        "headers": {
+          "X-Request-ID": {
+            "description": "Server-generated request correlation ID.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          "Cache-Control": {
+            "description": "API and private answer images: private, no-store.",
+            "schema": {
+              "type": "string",
+              "example": "private, no-store"
+            }
+          },
+          "Date": {
+            "description": "Current HTTP response time in RFC 9110 HTTP-date format.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          "Retry-After": {
+            "description": "Integer seconds to wait.",
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            }
+          }
+        },
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ErrorEnvelope"
+            }
+          }
+        }
+      },
+      "Error503": {
+        "description": "Temporary infrastructure failure; retry with the same idempotency key.",
+        "headers": {
+          "X-Request-ID": {
+            "description": "Server-generated request correlation ID.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          "Cache-Control": {
+            "description": "API and private answer images: private, no-store.",
+            "schema": {
+              "type": "string",
+              "example": "private, no-store"
+            }
+          },
+          "Date": {
+            "description": "Current HTTP response time in RFC 9110 HTTP-date format.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          "Retry-After": {
+            "description": "Integer seconds to wait.",
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            }
+          }
+        },
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ErrorEnvelope"
+            }
+          }
+        }
+      },
+      "UnexpectedError": {
+        "description": "Unexpected server error; do not assume mutation failed. Recover with the same idempotency key.",
+        "headers": {
+          "X-Request-ID": {
+            "description": "Server-generated request correlation ID.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          "Cache-Control": {
+            "description": "API and private answer images: private, no-store.",
+            "schema": {
+              "type": "string",
+              "example": "private, no-store"
+            }
+          },
+          "Date": {
+            "description": "Current HTTP response time in RFC 9110 HTTP-date format.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        },
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ErrorEnvelope"
+            }
+          }
+        }
+      }
+    }
+  }
+}

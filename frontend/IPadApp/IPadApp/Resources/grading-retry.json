@@ -1,0 +1,19 @@
+{
+  "attempt_id": "33333333-3333-4333-8333-333333333333",
+  "answer_id": "44444444-4444-4444-8444-444444444444",
+  "job_id": "77777777-7777-4777-8777-777777777777",
+  "grading_mode": "demo",
+  "grading_version": "pitch-rhythm-v1",
+  "status": "queued",
+  "stage": "pending",
+  "score": null,
+  "pitch_accuracy": null,
+  "rhythm_accuracy": null,
+  "feedback": null,
+  "annotations": [],
+  "failure": null,
+  "poll_after_ms": 2000,
+  "created_at": "2026-10-23T06:05:40Z",
+  "updated_at": "2026-10-23T06:05:40Z",
+  "server_time": "2026-10-23T06:05:40Z"
+}

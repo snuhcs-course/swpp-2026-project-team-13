@@ -1,0 +1,18 @@
+# SORI frontend implementation decisions
+
+Date: 2026-10-23
+
+1. This chat's initial folder was empty. The detailed SORI v0.2.0 delivery was found in the adjacent 2026-10-23 API-design task's outputs. The complete canonical contract, OpenAPI, original samples and validation record are copied unchanged to `docs/sori-api/`. They supersede the scaffold's health-only frontend scope; the health endpoint remains in the backend.
+2. Implement the API's full initial exam scope. Daily Training, focused practice, past-paper archive, registration/login UI and question administration are explicitly excluded by that contract. A development connection screen uses issued Bearer tokens.
+3. Keep native SwiftUI and use a native renderer limited to the explicitly supported monophonic MusicXML profile, instead of adding an unverified web renderer. The raw question notes are never shown during an active attempt. Submitted-image coordinates remain independent of the score renderer.
+4. The contract supplied no piano resource. Bundle an original deterministic additive piano-like SoundFont with no third-party samples. Freeze `sori-piano-v1`, program 0, melodic bank 121/0, gain −6 dB and the exact file hash in `instrument-profile.json`. This is synthesized practice audio, not a recorded grand piano.
+5. The included backend has no SORI endpoints or recognition engine. Provide a persistent local mock using the exact fixtures; always label results demo. Never substitute demo scores for failures of the live API. A real server address/token was not supplied, so production end-to-end recognition cannot be claimed.
+6. Use integer 480-PPQ time throughout parsing and segment generation. Ties merge before clipping. The provided event fixture is the independent oracle. MXL is parsed in memory with strict size/shape checks and no filesystem extraction or external entities.
+7. Store attempt snapshots, raw PencilKit data, original compressed MXL bytes, playback cursor, exact PNG and stable idempotency keys in protected per-user/per-origin files excluded from backup. Derived events/MIDI rebuild from hash-verified source, so stale parser caches cannot survive a parser change.
+8. Keep one frozen submission per local attempt. Once submitting, offer recovery with the same bytes and IDs. If server state is already submitted, show the pinned answer result. `latest_answer` never chooses the final answer. A missing original drawing does not create an editable approximation from a PNG.
+9. Refuse HTTP redirects and authenticated cross-origin requests. Templates can be downloaded from their public origin without tokens. 401 stops automatic retry, while retryable transport errors/5xx/429/REQUEST_IN_PROGRESS preserve the original request and honor Retry-After.
+10. Uploaded PNG is the full logical canvas at explicit 2× scale, normalized to 8-bit opaque sRGB with no toolbars, feedback, cropping, screen-scale dependence or auto-resize.
+
+11. Xcode PNG optimization changes compressed PNG bytes without changing the visible image. The app stores the contract template under `.pngdata` so it is copied verbatim; it is decoded as PNG at runtime. The canonical `.png` remains unchanged in `docs/sori-api/assets/`. This preserves the published SHA-256.
+
+12. Reuse one AVAudioSequencer per audio engine across all segments. Creating/replacing sequencers and resetting the active sampler at boundaries caused a native audio error during manual validation. All-sounds-off/all-notes-off clear voices without resetting the sampler. A whole-plan playback integration test covers the scale and every transition at 200 BPM with zero optional gaps; API/event tests separately validate the canonical 96 BPM plan.

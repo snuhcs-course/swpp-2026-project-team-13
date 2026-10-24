@@ -1,7 +1,7 @@
 # Team 13 — iPad App / Django Backend
 
 An initial project for two developers working separately on the frontend and backend.
-The product name is undecided. Authentication, handwriting recognition, and domain data models are not implemented yet.
+The iPad frontend is SORI, a melodic dictation practice app implementing the [v0.2.0 exam contract](docs/sori-api/API-CONTRACT.md). The Django backend currently provides the health endpoint; SORI domain APIs and handwriting recognition remain backend work.
 
 ```text
 SwiftUI iPad app ← HTTP / JSON → Django REST API → SQLite (local development)
@@ -9,7 +9,7 @@ SwiftUI iPad app ← HTTP / JSON → Django REST API → SQLite (local developme
 
 | Path | Contents | Owner |
 | --- | --- | --- |
-| `frontend/` | SwiftUI Xcode project and server connection screen | Frontend |
+| `frontend/` | SORI SwiftUI iPad app, PencilKit, MXL/piano, demo and live API clients | Frontend |
 | `backend/` | Django, Django REST Framework, and health API | Backend |
 | `docs/api.md` | Agreed request and response formats | Both |
 | `.github/workflows/ci.yml` | Backend checks and tests, iPad app build | Both |
@@ -34,9 +34,10 @@ Frontend:
 
 1. Open `frontend/IPadApp/IPadApp.xcodeproj` in Xcode on a Mac.
 2. Select the `IPadApp` scheme and an iPad simulator, then click Run.
-3. With the Django server running, tap the server connection button to check connectivity.
+3. The app opens a local SORI demo: choose a question, listen, write and submit. No server is required.
+4. When SORI backend endpoints are available, use the connection settings to enter the `/api/v1/` base URL and an issued development token.
 
-The app can launch without the server; connection checks will display an error message.
+The demo includes original MXL and piano resources and explicitly labeled example results. Live SORI APIs still need backend implementation.
 A physical iPad requires the Mac's LAN IP address instead of `localhost`.
 See the [frontend guide](frontend/README.md), [backend guide](backend/README.md), and [API contract](docs/api.md) for details.
 
@@ -68,7 +69,7 @@ xcodebuild -project frontend/IPadApp/IPadApp.xcodeproj \
   -derivedDataPath build/DerivedData CODE_SIGNING_ALLOWED=NO build
 ```
 
-Frontend automation currently checks the build; there are no UI tests.
+Frontend validation includes a simulator build, Swift Package contract/transport tests, and iPad-hosted export and submission/recovery integration tests. See `frontend/README.md`.
 The health API checks whether the server process responds, not database availability or product functionality.
 
 ## Collaboration

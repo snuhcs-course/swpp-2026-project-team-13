@@ -1,0 +1,37 @@
+{
+  "attempt_id": "33333333-3333-4333-8333-333333333333",
+  "answer_id": "44444444-4444-4444-8444-444444444444",
+  "job_id": "66666666-6666-4666-8666-666666666666",
+  "grading_mode": "demo",
+  "grading_version": "pitch-rhythm-v1",
+  "status": "completed",
+  "stage": "done",
+  "score": 81,
+  "pitch_accuracy": 84.0,
+  "rhythm_accuracy": 78.0,
+  "feedback": {
+    "summary": "도약 뒤의 음정과 쉼표 길이를 확인해 보세요.",
+    "recommendations": [
+      "3도·4도 도약 음정 연습"
+    ]
+  },
+  "annotations": [
+    {
+      "id": "ann-001",
+      "type": "pitch_error",
+      "measure": 3,
+      "bbox": {
+        "x": 0.47,
+        "y": 0.18,
+        "width": 0.05,
+        "height": 0.06
+      },
+      "message": "이 음의 높이를 확인해 보세요."
+    }
+  ],
+  "failure": null,
+  "poll_after_ms": 0,
+  "created_at": "2026-10-23T06:05:21Z",
+  "updated_at": "2026-10-23T06:05:30Z",
+  "server_time": "2026-10-23T06:05:30Z"
+}

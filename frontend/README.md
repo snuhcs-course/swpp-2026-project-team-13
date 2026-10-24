@@ -1,39 +1,55 @@
-# SwiftUI iPad App
+# SORI iPad frontend
 
-Open `IPadApp/IPadApp.xcodeproj` in Xcode 16 or later on a Mac.
-Select the `IPadApp` scheme and an iPad simulator, then click Run. The deployment target is iPadOS 17 or later.
-Only the initial screen and a Django server connection button are implemented.
+Native SwiftUI / PencilKit app for the complete SORI v0.2.0 exam contract. iPadOS 17+, Xcode 16+; no external Swift packages or network-loaded rendering code.
 
-## Server URL
+## Run
 
-- Debug: `http://localhost:8000`, configured in `IPadApp/Config/Debug.xcconfig`
-- Personal Debug settings: copy `Local.xcconfig.example` to `Local.xcconfig` in the same directory and edit it
-- Release: set a real HTTPS API URL in `Release.xcconfig`. It is currently empty, so requests display a configuration message
+Open `IPadApp/IPadApp.xcodeproj`, select the shared `IPadApp` scheme and an iPad simulator, and Run. The default **local demo** works without a server. The app includes the exact API fixtures, staff template, MXL examples, a native notation renderer, and a fixed synthesized piano SoundFont. Demo results are explicitly marked as examples and do not analyze handwriting.
 
-Because `//` starts a comment in xcconfig files, write URLs as `http:/$()/localhost:8000`.
-This expands to `http://localhost:8000` in the built app.
+Use **연결 설정** to switch to the backend. Enter an absolute base URL ending `/api/v1/` and a backend-issued Bearer token. The token is stored in this device's Keychain, never UserDefaults or source control. Release requires HTTPS. Debug permits HTTP for local development; the app's transport security configuration allows local networking only. For a physical iPad use the Mac's LAN address; `localhost` on an iPad means the iPad itself. A blank token field reuses the Keychain token for that server.
 
-To test on a physical iPad:
+The existing backend in this repository only implements `/api/health/`; it does not yet implement SORI's 13 operations. Live use requires the Django developer to implement [the versioned contract](../docs/sori-api/API-CONTRACT.md), replace `.example` origins, and issue development tokens. Local demo is deliberately separate from live API errors.
 
-1. Connect the iPad and Mac to the same network.
-2. Set the server URL in your personal `IPadApp/Config/Local.xcconfig` to the Mac's LAN IP address.
-3. Add that IP to the backend's `DJANGO_ALLOWED_HOSTS` and start Django with `runserver 0.0.0.0:8000`.
-4. Select your Team in Xcode's Signing & Capabilities settings and choose a unique bundle identifier if necessary.
-5. Rebuild and run the app. Allow local network access and allow connections to the development server through the Mac's firewall.
+## Screens and contract behavior
 
-The simulator does not require a developer Team or personal signing configuration.
-`NSAllowsLocalNetworking` is enabled for local HTTP connections. Use HTTPS for the production server.
+- Practice room: current user, five learning goals, paginated question list, pending creation recovery, saved unfinished attempt.
+- Question instructions and preparation: use the attempt's immutable snapshot; download and verify template, main/scale MXL, validate the limited profile, prepare every segment and the bundled piano before `start`.
+- Exam: fixed logical 1330×846 PencilKit canvas, black pens, vector eraser, undo/redo, Pencil or finger input, 100/150/200% zoom, continuous monotonic advisory timer (including system sleep). No automatic submission when time reaches zero.
+- Playback: scale, tail, gap, exactly 11 ordered main segments; 480-PPQ MIDI, A4=440 Hz, velocity 80, fixed tempo. Merge ties before clipping; preserve leading/trailing silence. Native AVAudioSequencer and AVAudioUnitSampler schedule notes. Pause, background, interruptions and unplugged headphones stop all notes. User action resumes from the current segment, or restarts the interrupted gap.
+- Submission: lock editing, save original PKDrawing, persist exact opaque sRGB PNG and UUIDs before uploading. Retry the same bytes and keys after uncertain network outcomes; pin the returned answer ID explicitly. Reconcile `GET attempt` before recovery to avoid uploading after a committed submit.
+- Results: foreground-only polling, queued/processing, completed including genuine zero, needs_review with no score, failed with conditional retry, unknown-state fallback. After 60 seconds the user can leave and return via history. Submitted image annotations use normalized full-image coordinates; the separately rendered answer score is visible only after submission.
+- History: records local to the authenticated user and API origin. Changing tokens for the same user retains access to local records. Missing raw drawing is never reconstructed from a PNG.
 
-## Files
+## Structure
 
-| File | Purpose |
+| Directory | Responsibility |
 | --- | --- |
-| `IPadAppApp.swift` | App entry point |
-| `ContentView.swift` | Initial screen and asynchronous connection status |
-| `APIClient.swift` | URLSession requests, HTTP error handling, and JSON decoding |
-| `Info.plist` | API URL injection and local network usage description |
-| `Assets.xcassets` | Accent color and app icon placeholder |
+| `IPadApp/IPadApp/Core/` | Codable contract models, origin security, HTTP/multipart/retry logic, bounded ZIP/XML parsing, normalized integer-tick events, MIDI, monotonic clock |
+| `IPadApp/IPadApp/Services/` | durable app state and mock backend, protected local journal, Keychain, PencilKit/export, native piano playback |
+| `IPadApp/IPadApp/Views/` | iPad screens, annotation overlay and limited native score renderer |
+| `Tests/SORICoreTests/` | Swift Package contract and real URLSession transport tests with URLProtocol fixtures |
+| `Tests/IPadAppTests/` | iPad-hosted export, journal, preparation/start/submit/restore demo terminal-state and complete 11-segment playback integration tests |
+| `scripts/` | original SoundFont generator and actual Sampler offline audio verification |
 
-`IPadApp` and `org.snuhcs.team13.ipadapp` are initial names.
-Configure the final app name, icon, distribution signing, and production API URL later.
-Handwriting input, handwriting recognition, authentication, and local storage are not implemented yet.
+Server enum fields decode as strings and branch explicitly. Added unknown values never crash decoding. Contract JSON uses one snake_case strategy and accepts ISO 8601 timestamps with or without fractional seconds. All authenticated assets must use the configured API origin. Redirects are refused, including public template redirects, to prevent credential leakage. Public templates receive no Authorization header. Downloads are streamed with explicit limits; CRC, compressed/uncompressed size, ZIP entry names, and XML shape are checked before use.
+
+## Validation
+
+From the repository root:
+
+```sh
+swift test --package-path frontend
+xcodebuild -project frontend/IPadApp/IPadApp.xcodeproj -scheme IPadApp \
+  -configuration Debug -destination 'generic/platform=iOS Simulator' \
+  -derivedDataPath build/DerivedData CODE_SIGNING_ALLOWED=NO build
+xcodebuild -project frontend/IPadApp/IPadApp.xcodeproj -scheme IPadApp \
+  -configuration Debug -destination 'platform=iOS Simulator,name=iPad Pro 13-inch (M5)' \
+  -derivedDataPath build/DerivedData CODE_SIGNING_ALLOWED=NO test
+swift frontend/scripts/check_piano.swift frontend/IPadApp/IPadApp/Resources/sori-piano-v1.sf2
+```
+
+Select any installed iPad simulator name when your Xcode has a different device set. Physical Apple Pencil pressure, device speakers/headphones, signing and a live Django/recognition backend require device/integration checks beyond simulator coverage.
+
+## Instrument profile
+
+`sori-piano-v1.sf2` is original additive piano-like synthesis, not a recording of an acoustic piano. No third-party samples, fonts or runtime downloads are used. Its CC0-1.0 dedication, bank/program, gain, tuning, byte count and SHA-256 are in `Resources/instrument-profile.json`. The committed SF2 bytes are canonical. The generator is included for auditability; floating-point regeneration on a different platform is not a replacement for those bytes. If sound or mapping changes, assign a new profile ID and coordinate the contract change with the backend. The native renderer supports only `sori-monophonic-v1`, not arbitrary MusicXML.
