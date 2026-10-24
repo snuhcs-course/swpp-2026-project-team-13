@@ -1,0 +1,872 @@
+{
+  "description": "Original synthetic content for contract checks, not a production question. Times are rational quarter notes; ties merged before segment clipping.",
+  "tempo_bpm": 96,
+  "main": [
+    {
+      "kind": "note",
+      "midi": 60,
+      "onset": {
+        "numerator": 0,
+        "denominator": 1
+      },
+      "duration": {
+        "numerator": 1,
+        "denominator": 1
+      },
+      "source_note_ids": [
+        "n-1-1"
+      ]
+    },
+    {
+      "kind": "note",
+      "midi": 62,
+      "onset": {
+        "numerator": 1,
+        "denominator": 1
+      },
+      "duration": {
+        "numerator": 1,
+        "denominator": 1
+      },
+      "source_note_ids": [
+        "n-1-2"
+      ]
+    },
+    {
+      "kind": "note",
+      "midi": 64,
+      "onset": {
+        "numerator": 2,
+        "denominator": 1
+      },
+      "duration": {
+        "numerator": 1,
+        "denominator": 1
+      },
+      "source_note_ids": [
+        "n-1-3"
+      ]
+    },
+    {
+      "kind": "note",
+      "midi": 67,
+      "onset": {
+        "numerator": 3,
+        "denominator": 1
+      },
+      "duration": {
+        "numerator": 1,
+        "denominator": 1
+      },
+      "source_note_ids": [
+        "n-1-4"
+      ]
+    },
+    {
+      "kind": "note",
+      "midi": 67,
+      "onset": {
+        "numerator": 4,
+        "denominator": 1
+      },
+      "duration": {
+        "numerator": 2,
+        "denominator": 1
+      },
+      "source_note_ids": [
+        "n-2-1"
+      ]
+    },
+    {
+      "kind": "note",
+      "midi": 65,
+      "onset": {
+        "numerator": 6,
+        "denominator": 1
+      },
+      "duration": {
+        "numerator": 1,
+        "denominator": 1
+      },
+      "source_note_ids": [
+        "n-2-2"
+      ]
+    },
+    {
+      "kind": "note",
+      "midi": 64,
+      "onset": {
+        "numerator": 7,
+        "denominator": 1
+      },
+      "duration": {
+        "numerator": 1,
+        "denominator": 1
+      },
+      "source_note_ids": [
+        "n-2-3"
+      ]
+    },
+    {
+      "kind": "note",
+      "midi": 62,
+      "onset": {
+        "numerator": 8,
+        "denominator": 1
+      },
+      "duration": {
+        "numerator": 3,
+        "denominator": 2
+      },
+      "source_note_ids": [
+        "n-3-1"
+      ]
+    },
+    {
+      "kind": "note",
+      "midi": 64,
+      "onset": {
+        "numerator": 19,
+        "denominator": 2
+      },
+      "duration": {
+        "numerator": 1,
+        "denominator": 2
+      },
+      "source_note_ids": [
+        "n-3-2"
+      ]
+    },
+    {
+      "kind": "note",
+      "midi": 66,
+      "onset": {
+        "numerator": 10,
+        "denominator": 1
+      },
+      "duration": {
+        "numerator": 1,
+        "denominator": 1
+      },
+      "source_note_ids": [
+        "n-3-3"
+      ]
+    },
+    {
+      "kind": "note",
+      "midi": 67,
+      "onset": {
+        "numerator": 11,
+        "denominator": 1
+      },
+      "duration": {
+        "numerator": 1,
+        "denominator": 1
+      },
+      "source_note_ids": [
+        "n-3-4"
+      ]
+    },
+    {
+      "kind": "note",
+      "midi": 67,
+      "onset": {
+        "numerator": 12,
+        "denominator": 1
+      },
+      "duration": {
+        "numerator": 2,
+        "denominator": 1
+      },
+      "source_note_ids": [
+        "n-4-1"
+      ]
+    },
+    {
+      "kind": "note",
+      "midi": 69,
+      "onset": {
+        "numerator": 14,
+        "denominator": 1
+      },
+      "duration": {
+        "numerator": 1,
+        "denominator": 1
+      },
+      "source_note_ids": [
+        "n-4-2"
+      ]
+    },
+    {
+      "kind": "note",
+      "midi": 67,
+      "onset": {
+        "numerator": 15,
+        "denominator": 1
+      },
+      "duration": {
+        "numerator": 2,
+        "denominator": 1
+      },
+      "source_note_ids": [
+        "n-4-3",
+        "n-5-1"
+      ]
+    },
+    {
+      "kind": "note",
+      "midi": 65,
+      "onset": {
+        "numerator": 17,
+        "denominator": 1
+      },
+      "duration": {
+        "numerator": 1,
+        "denominator": 1
+      },
+      "source_note_ids": [
+        "n-5-2"
+      ]
+    },
+    {
+      "kind": "rest",
+      "midi": null,
+      "onset": {
+        "numerator": 18,
+        "denominator": 1
+      },
+      "duration": {
+        "numerator": 1,
+        "denominator": 1
+      },
+      "source_note_ids": [
+        "n-5-3"
+      ]
+    },
+    {
+      "kind": "note",
+      "midi": 64,
+      "onset": {
+        "numerator": 19,
+        "denominator": 1
+      },
+      "duration": {
+        "numerator": 1,
+        "denominator": 1
+      },
+      "source_note_ids": [
+        "n-5-4"
+      ]
+    },
+    {
+      "kind": "note",
+      "midi": 64,
+      "onset": {
+        "numerator": 20,
+        "denominator": 1
+      },
+      "duration": {
+        "numerator": 1,
+        "denominator": 2
+      },
+      "source_note_ids": [
+        "n-6-1"
+      ]
+    },
+    {
+      "kind": "note",
+      "midi": 65,
+      "onset": {
+        "numerator": 41,
+        "denominator": 2
+      },
+      "duration": {
+        "numerator": 1,
+        "denominator": 2
+      },
+      "source_note_ids": [
+        "n-6-2"
+      ]
+    },
+    {
+      "kind": "note",
+      "midi": 67,
+      "onset": {
+        "numerator": 21,
+        "denominator": 1
+      },
+      "duration": {
+        "numerator": 3,
+        "denominator": 2
+      },
+      "source_note_ids": [
+        "n-6-3"
+      ]
+    },
+    {
+      "kind": "note",
+      "midi": 69,
+      "onset": {
+        "numerator": 45,
+        "denominator": 2
+      },
+      "duration": {
+        "numerator": 1,
+        "denominator": 2
+      },
+      "source_note_ids": [
+        "n-6-4"
+      ]
+    },
+    {
+      "kind": "note",
+      "midi": 67,
+      "onset": {
+        "numerator": 23,
+        "denominator": 1
+      },
+      "duration": {
+        "numerator": 1,
+        "denominator": 1
+      },
+      "source_note_ids": [
+        "n-6-5"
+      ]
+    },
+    {
+      "kind": "rest",
+      "midi": null,
+      "onset": {
+        "numerator": 24,
+        "denominator": 1
+      },
+      "duration": {
+        "numerator": 2,
+        "denominator": 1
+      },
+      "source_note_ids": [
+        "n-7-1"
+      ]
+    },
+    {
+      "kind": "note",
+      "midi": 62,
+      "onset": {
+        "numerator": 26,
+        "denominator": 1
+      },
+      "duration": {
+        "numerator": 1,
+        "denominator": 1
+      },
+      "source_note_ids": [
+        "n-7-2"
+      ]
+    },
+    {
+      "kind": "note",
+      "midi": 64,
+      "onset": {
+        "numerator": 27,
+        "denominator": 1
+      },
+      "duration": {
+        "numerator": 1,
+        "denominator": 1
+      },
+      "source_note_ids": [
+        "n-7-3"
+      ]
+    },
+    {
+      "kind": "note",
+      "midi": 60,
+      "onset": {
+        "numerator": 28,
+        "denominator": 1
+      },
+      "duration": {
+        "numerator": 4,
+        "denominator": 1
+      },
+      "source_note_ids": [
+        "n-8-1"
+      ]
+    }
+  ],
+  "scale": [
+    {
+      "kind": "note",
+      "midi": 60,
+      "onset": {
+        "numerator": 0,
+        "denominator": 1
+      },
+      "duration": {
+        "numerator": 1,
+        "denominator": 1
+      },
+      "source_note_ids": [
+        "n-1-1"
+      ]
+    },
+    {
+      "kind": "note",
+      "midi": 62,
+      "onset": {
+        "numerator": 1,
+        "denominator": 1
+      },
+      "duration": {
+        "numerator": 1,
+        "denominator": 1
+      },
+      "source_note_ids": [
+        "n-1-2"
+      ]
+    },
+    {
+      "kind": "note",
+      "midi": 64,
+      "onset": {
+        "numerator": 2,
+        "denominator": 1
+      },
+      "duration": {
+        "numerator": 1,
+        "denominator": 1
+      },
+      "source_note_ids": [
+        "n-1-3"
+      ]
+    },
+    {
+      "kind": "note",
+      "midi": 65,
+      "onset": {
+        "numerator": 3,
+        "denominator": 1
+      },
+      "duration": {
+        "numerator": 1,
+        "denominator": 1
+      },
+      "source_note_ids": [
+        "n-1-4"
+      ]
+    },
+    {
+      "kind": "note",
+      "midi": 67,
+      "onset": {
+        "numerator": 4,
+        "denominator": 1
+      },
+      "duration": {
+        "numerator": 1,
+        "denominator": 1
+      },
+      "source_note_ids": [
+        "n-2-1"
+      ]
+    },
+    {
+      "kind": "note",
+      "midi": 69,
+      "onset": {
+        "numerator": 5,
+        "denominator": 1
+      },
+      "duration": {
+        "numerator": 1,
+        "denominator": 1
+      },
+      "source_note_ids": [
+        "n-2-2"
+      ]
+    },
+    {
+      "kind": "note",
+      "midi": 71,
+      "onset": {
+        "numerator": 6,
+        "denominator": 1
+      },
+      "duration": {
+        "numerator": 1,
+        "denominator": 1
+      },
+      "source_note_ids": [
+        "n-2-3"
+      ]
+    },
+    {
+      "kind": "note",
+      "midi": 72,
+      "onset": {
+        "numerator": 7,
+        "denominator": 1
+      },
+      "duration": {
+        "numerator": 1,
+        "denominator": 1
+      },
+      "source_note_ids": [
+        "n-2-4"
+      ]
+    }
+  ],
+  "boundary_cases": {
+    "measures_1_4": [
+      {
+        "kind": "note",
+        "midi": 60,
+        "onset": {
+          "numerator": 0,
+          "denominator": 1
+        },
+        "duration": {
+          "numerator": 1,
+          "denominator": 1
+        },
+        "source_note_ids": [
+          "n-1-1"
+        ]
+      },
+      {
+        "kind": "note",
+        "midi": 62,
+        "onset": {
+          "numerator": 1,
+          "denominator": 1
+        },
+        "duration": {
+          "numerator": 1,
+          "denominator": 1
+        },
+        "source_note_ids": [
+          "n-1-2"
+        ]
+      },
+      {
+        "kind": "note",
+        "midi": 64,
+        "onset": {
+          "numerator": 2,
+          "denominator": 1
+        },
+        "duration": {
+          "numerator": 1,
+          "denominator": 1
+        },
+        "source_note_ids": [
+          "n-1-3"
+        ]
+      },
+      {
+        "kind": "note",
+        "midi": 67,
+        "onset": {
+          "numerator": 3,
+          "denominator": 1
+        },
+        "duration": {
+          "numerator": 1,
+          "denominator": 1
+        },
+        "source_note_ids": [
+          "n-1-4"
+        ]
+      },
+      {
+        "kind": "note",
+        "midi": 67,
+        "onset": {
+          "numerator": 4,
+          "denominator": 1
+        },
+        "duration": {
+          "numerator": 2,
+          "denominator": 1
+        },
+        "source_note_ids": [
+          "n-2-1"
+        ]
+      },
+      {
+        "kind": "note",
+        "midi": 65,
+        "onset": {
+          "numerator": 6,
+          "denominator": 1
+        },
+        "duration": {
+          "numerator": 1,
+          "denominator": 1
+        },
+        "source_note_ids": [
+          "n-2-2"
+        ]
+      },
+      {
+        "kind": "note",
+        "midi": 64,
+        "onset": {
+          "numerator": 7,
+          "denominator": 1
+        },
+        "duration": {
+          "numerator": 1,
+          "denominator": 1
+        },
+        "source_note_ids": [
+          "n-2-3"
+        ]
+      },
+      {
+        "kind": "note",
+        "midi": 62,
+        "onset": {
+          "numerator": 8,
+          "denominator": 1
+        },
+        "duration": {
+          "numerator": 3,
+          "denominator": 2
+        },
+        "source_note_ids": [
+          "n-3-1"
+        ]
+      },
+      {
+        "kind": "note",
+        "midi": 64,
+        "onset": {
+          "numerator": 19,
+          "denominator": 2
+        },
+        "duration": {
+          "numerator": 1,
+          "denominator": 2
+        },
+        "source_note_ids": [
+          "n-3-2"
+        ]
+      },
+      {
+        "kind": "note",
+        "midi": 66,
+        "onset": {
+          "numerator": 10,
+          "denominator": 1
+        },
+        "duration": {
+          "numerator": 1,
+          "denominator": 1
+        },
+        "source_note_ids": [
+          "n-3-3"
+        ]
+      },
+      {
+        "kind": "note",
+        "midi": 67,
+        "onset": {
+          "numerator": 11,
+          "denominator": 1
+        },
+        "duration": {
+          "numerator": 1,
+          "denominator": 1
+        },
+        "source_note_ids": [
+          "n-3-4"
+        ]
+      },
+      {
+        "kind": "note",
+        "midi": 67,
+        "onset": {
+          "numerator": 12,
+          "denominator": 1
+        },
+        "duration": {
+          "numerator": 2,
+          "denominator": 1
+        },
+        "source_note_ids": [
+          "n-4-1"
+        ]
+      },
+      {
+        "kind": "note",
+        "midi": 69,
+        "onset": {
+          "numerator": 14,
+          "denominator": 1
+        },
+        "duration": {
+          "numerator": 1,
+          "denominator": 1
+        },
+        "source_note_ids": [
+          "n-4-2"
+        ]
+      },
+      {
+        "kind": "note",
+        "midi": 67,
+        "onset": {
+          "numerator": 15,
+          "denominator": 1
+        },
+        "duration": {
+          "numerator": 1,
+          "denominator": 1
+        },
+        "source_note_ids": [
+          "n-4-3",
+          "n-5-1"
+        ]
+      }
+    ],
+    "measures_5_6": [
+      {
+        "kind": "note",
+        "midi": 67,
+        "onset": {
+          "numerator": 0,
+          "denominator": 1
+        },
+        "duration": {
+          "numerator": 1,
+          "denominator": 1
+        },
+        "source_note_ids": [
+          "n-4-3",
+          "n-5-1"
+        ]
+      },
+      {
+        "kind": "note",
+        "midi": 65,
+        "onset": {
+          "numerator": 1,
+          "denominator": 1
+        },
+        "duration": {
+          "numerator": 1,
+          "denominator": 1
+        },
+        "source_note_ids": [
+          "n-5-2"
+        ]
+      },
+      {
+        "kind": "rest",
+        "midi": null,
+        "onset": {
+          "numerator": 2,
+          "denominator": 1
+        },
+        "duration": {
+          "numerator": 1,
+          "denominator": 1
+        },
+        "source_note_ids": [
+          "n-5-3"
+        ]
+      },
+      {
+        "kind": "note",
+        "midi": 64,
+        "onset": {
+          "numerator": 3,
+          "denominator": 1
+        },
+        "duration": {
+          "numerator": 1,
+          "denominator": 1
+        },
+        "source_note_ids": [
+          "n-5-4"
+        ]
+      },
+      {
+        "kind": "note",
+        "midi": 64,
+        "onset": {
+          "numerator": 4,
+          "denominator": 1
+        },
+        "duration": {
+          "numerator": 1,
+          "denominator": 2
+        },
+        "source_note_ids": [
+          "n-6-1"
+        ]
+      },
+      {
+        "kind": "note",
+        "midi": 65,
+        "onset": {
+          "numerator": 9,
+          "denominator": 2
+        },
+        "duration": {
+          "numerator": 1,
+          "denominator": 2
+        },
+        "source_note_ids": [
+          "n-6-2"
+        ]
+      },
+      {
+        "kind": "note",
+        "midi": 67,
+        "onset": {
+          "numerator": 5,
+          "denominator": 1
+        },
+        "duration": {
+          "numerator": 3,
+          "denominator": 2
+        },
+        "source_note_ids": [
+          "n-6-3"
+        ]
+      },
+      {
+        "kind": "note",
+        "midi": 69,
+        "onset": {
+          "numerator": 13,
+          "denominator": 2
+        },
+        "duration": {
+          "numerator": 1,
+          "denominator": 2
+        },
+        "source_note_ids": [
+          "n-6-4"
+        ]
+      },
+      {
+        "kind": "note",
+        "midi": 67,
+        "onset": {
+          "numerator": 7,
+          "denominator": 1
+        },
+        "duration": {
+          "numerator": 1,
+          "denominator": 1
+        },
+        "source_note_ids": [
+          "n-6-5"
+        ]
+      }
+    ]
+  }
+}

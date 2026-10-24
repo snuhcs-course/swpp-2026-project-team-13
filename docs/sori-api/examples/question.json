@@ -1,0 +1,94 @@
+{
+  "id": "22222222-2222-4222-8222-222222222222",
+  "version": 1,
+  "title": "Melodic Dictation · Practice 01",
+  "source": "practice",
+  "key_signature": {
+    "tonic": "C",
+    "mode": "major",
+    "fifths": 0
+  },
+  "time_signature": {
+    "numerator": 4,
+    "denominator": 4
+  },
+  "measure_count": 8,
+  "recommended_duration_seconds": 300,
+  "description": "멜로디를 듣고 빈 오선에 적어보세요.",
+  "time_policy": "advisory",
+  "clef": "treble",
+  "sheet_layout": {
+    "id": "staff-8bars-v1",
+    "logical_width": 1330,
+    "logical_height": 846,
+    "export_scale": 2,
+    "pixel_width": 2660,
+    "pixel_height": 1692,
+    "template_png_url": "https://assets.sori.example/sheets/staff-8bars-v1.png",
+    "template_sha256": "0fa8e695dcb6a36b8ba78ab73345518f737546fa819529ca1d93a935a6ae30c4",
+    "systems": [
+      {
+        "index": 1,
+        "first_measure": 1,
+        "last_measure": 4,
+        "staff_line_y": [
+          164,
+          176,
+          188,
+          200,
+          212
+        ],
+        "barline_x": [
+          54,
+          450,
+          725,
+          1000,
+          1276
+        ]
+      },
+      {
+        "index": 2,
+        "first_measure": 5,
+        "last_measure": 8,
+        "staff_line_y": [
+          499,
+          511,
+          523,
+          535,
+          547
+        ],
+        "barline_x": [
+          54,
+          397,
+          690,
+          983,
+          1276
+        ]
+      }
+    ]
+  },
+  "content_policy": "client_readable_practice",
+  "score_visibility": "after_submission",
+  "score_assets": {
+    "main": {
+      "url": "https://api.sori.example/api/v1/questions/22222222-2222-4222-8222-222222222222/versions/1/scores/main/",
+      "content_type": "application/vnd.recordare.musicxml",
+      "sha256": "f5ea2a6e2bbde0fe359bd566ce544ceb662faaa8122b243c79478255ea890f10",
+      "size_bytes": 1364,
+      "musicxml_version": "4.0",
+      "profile": "sori-monophonic-v1",
+      "part_id": "P1",
+      "measure_count": 8
+    },
+    "scale": {
+      "url": "https://api.sori.example/api/v1/questions/22222222-2222-4222-8222-222222222222/versions/1/scores/scale/",
+      "content_type": "application/vnd.recordare.musicxml",
+      "sha256": "af6f34ee8cbe1f2884a7340a08864b635fc8bae0c77437f9dafdd29896dd1d14",
+      "size_bytes": 1100,
+      "musicxml_version": "4.0",
+      "profile": "sori-monophonic-v1",
+      "part_id": "P1",
+      "measure_count": 2
+    }
+  }
+}

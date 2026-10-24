@@ -1,0 +1,24 @@
+{
+  "count": 1,
+  "next": null,
+  "previous": null,
+  "results": [
+    {
+      "id": "22222222-2222-4222-8222-222222222222",
+      "version": 1,
+      "title": "Melodic Dictation · Practice 01",
+      "source": "practice",
+      "key_signature": {
+        "tonic": "C",
+        "mode": "major",
+        "fifths": 0
+      },
+      "time_signature": {
+        "numerator": 4,
+        "denominator": 4
+      },
+      "measure_count": 8,
+      "recommended_duration_seconds": 300
+    }
+  ]
+}

@@ -1,0 +1,15 @@
+{
+  "error": {
+    "code": "IMAGE_DIMENSIONS_MISMATCH",
+    "message": "답안 이미지는 2660 × 1692 픽셀이어야 합니다.",
+    "fields": [
+      {
+        "field": "image",
+        "code": "invalid_dimensions",
+        "message": "2660 × 1692 픽셀 PNG를 업로드해 주세요."
+      }
+    ],
+    "retry_after_ms": null
+  },
+  "request_id": "req-example-001"
+}

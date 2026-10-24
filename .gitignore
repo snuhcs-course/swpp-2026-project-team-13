@@ -23,3 +23,8 @@ xcuserdata/
 *.xcuserstate
 .idea/
 .vscode/
+
+# Swift Package caches
+.build/
+.swiftpm/
+*.xcresult/

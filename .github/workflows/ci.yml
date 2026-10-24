@@ -33,6 +33,10 @@ jobs:
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v4
+      - name: Test SORI API, MusicXML and transport contracts
+        run: swift test --package-path frontend
+      - name: Verify bundled piano audio
+        run: swift frontend/scripts/check_piano.swift frontend/IPadApp/IPadApp/Resources/sori-piano-v1.sf2
       - name: Build iPad app for simulator
         run: >-
           xcodebuild -project frontend/IPadApp/IPadApp.xcodeproj

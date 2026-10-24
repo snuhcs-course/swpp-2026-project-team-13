@@ -1,0 +1,77 @@
+{
+  "description": "Mock fixtures. .example hosts are placeholders. The blank template and two original synthetic MXL assets are real local files with verified hashes. Answer upload hash/size and grading figures are illustrative. No SoundFont, renderer or iPad player is bundled.",
+  "fixtures": [
+    {
+      "file": "me.json",
+      "schema": "UserProfile"
+    },
+    {
+      "file": "me-patch-request.json",
+      "schema": "UserProfilePatch"
+    },
+    {
+      "file": "questions.json",
+      "schema": "QuestionPage"
+    },
+    {
+      "file": "question.json",
+      "schema": "Question"
+    },
+    {
+      "file": "attempt-create-request.json",
+      "schema": "AttemptCreate"
+    },
+    {
+      "file": "attempt-ready.json",
+      "schema": "Attempt"
+    },
+    {
+      "file": "attempt-started.json",
+      "schema": "Attempt"
+    },
+    {
+      "file": "attempt-resumed.json",
+      "schema": "Attempt"
+    },
+    {
+      "file": "answer-upload.json",
+      "schema": "Answer"
+    },
+    {
+      "file": "submit-request.json",
+      "schema": "SubmitRequest"
+    },
+    {
+      "file": "attempt-submitted.json",
+      "schema": "Attempt"
+    },
+    {
+      "file": "grading-queued.json",
+      "schema": "Grading"
+    },
+    {
+      "file": "grading-processing.json",
+      "schema": "Grading"
+    },
+    {
+      "file": "grading-completed.json",
+      "schema": "Grading"
+    },
+    {
+      "file": "grading-needs-review.json",
+      "schema": "Grading"
+    },
+    {
+      "file": "grading-failed.json",
+      "schema": "Grading"
+    },
+    {
+      "file": "grading-retry.json",
+      "schema": "Grading"
+    },
+    {
+      "file": "error-image-dimensions.json",
+      "schema": "ErrorEnvelope"
+    }
+  ]
+}
