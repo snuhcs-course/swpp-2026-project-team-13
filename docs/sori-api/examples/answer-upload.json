@@ -1,0 +1,15 @@
+{
+  "id": "44444444-4444-4444-8444-444444444444",
+  "attempt_id": "33333333-3333-4333-8333-333333333333",
+  "client_answer_id": "55555555-5555-4555-8555-555555555555",
+  "revision": 1,
+  "answer_format_version": 1,
+  "sheet_layout_id": "staff-8bars-v1",
+  "image_width": 2660,
+  "image_height": 1692,
+  "content_type": "image/png",
+  "size_bytes": 120000,
+  "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "created_at": "2026-10-23T06:05:20Z",
+  "image_url": "https://api.sori.example/api/v1/attempts/33333333-3333-4333-8333-333333333333/answers/44444444-4444-4444-8444-444444444444/image/"
+}
