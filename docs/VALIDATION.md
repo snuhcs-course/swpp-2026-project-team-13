@@ -12,7 +12,7 @@
 | 실제 클라이언트의 binary Accept 헤더 | MXL·PNG 요청 및 JSON 오류 응답까지 통과; 발견한 406 수정 후 9개 전체 재검증 통과 |
 | 실제 HTTP 다운로드·업로드·조회 | 통과; 실제 HTTP 및 이미지 왕복 포함 전체 18개 점검 완료 |
 | 실제 OpenRouter 호출·피드백 | 통과; 실제 OpenRouter 호출로 빈 답안의 completed·0점·한국어 피드백 확인 |
-| Swift Package 검증·Xcode 빌드 | Mac 필요, 미실행 |
+| Swift Package 검증·Xcode 빌드 | GitHub macOS CI 실행, 앱 빌드의 좌표 타입 오류 수정 후 재검증 대기 |
 | 개인 iPad 설치·필기·소리·실제 서버 연결 | Mac 빌드 후 기기 확인 필요 |
 
 서버 검증 로그: backend/.local/backend-checks.log. 실제 HTTP·선택적 AI 점검 기록: backend/.local/live-checks.json. 이 파일들은 비공개이며 전달 ZIP에서 제외합니다.
@@ -99,3 +99,11 @@ ThreeQuestionTests.testBadTripletDurationIsRejected 한 테스트에서 단언 2
 사용하지 않는 q 경고도 해당 값을 실제 자산 파싱에 사용하면서 해결했습니다.
 악보·앱 파서는 이 수정에서 변경하지 않았습니다. Windows에서 입력 변조가 실제로 일어나는지는 대조했지만, 수정 후 Swift 테스트 통과 여부는 다시 실행한 GitHub Actions 결과로 확인해야 합니다.
 Core 검사 실패로 이후 iPad 앱 빌드 단계는 아직 확인되지 않았습니다.
+
+
+## iPad 시뮬레이터 빌드의 좌표 타입 오류 수정
+
+후속 GitHub Actions 로그에서 ScoreView.swift:53의 (Bool, CGFloat)를 (down: Bool, end: Double) 튜플에 저장할 수 없어 x86_64 앱 컴파일이 실패한 것을 확인했습니다.
+NativeScoreRenderer의 줄기 끝 위치·마디 좌표·선 두께·텍스트 좌표와 계산을 SwiftUI/CoreGraphics에서 사용하는 CGFloat로 통일했습니다.
+Windows에는 Xcode가 없어 이 수정 후 앱 빌드 성공 여부는 GitHub macOS CI의 재실행으로 확인해야 합니다.
+이 변경은 좌표의 수치 타입에 관한 수정입니다. 악보 데이터와 재생·채점 로직은 변경하지 않았습니다.
