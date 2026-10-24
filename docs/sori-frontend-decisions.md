@@ -1,3 +1,5 @@
+> 이 문서는 받은 v0.2.0 프론트엔드의 이전 기록입니다. 이번 v0.3.0 수정본의 검증 상태는 [VALIDATION.md](VALIDATION.md)를 따릅니다.
+
 # SORI frontend implementation decisions
 
 Date: 2026-10-23

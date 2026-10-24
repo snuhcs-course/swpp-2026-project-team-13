@@ -11,13 +11,18 @@ struct ScoreSymbol: Equatable {
     var measure: Int; var onset: Int; var duration: Int; var midi: Int?
     var step: String?; var octave: Int; var alter: Int; var type: String; var dots: Int
     var tieStart: Bool; var tieStop: Bool
+    var beams: [Int:String] = [:]
+    var tupletActual = 1; var tupletNormal = 1
+    var tupletStart = false; var tupletStop = false
 }
 struct MusicScore: Equatable {
     var tempo: Int; var measures: Int; var events: [MusicEvent]; var symbols: [ScoreSymbol]
-    var totalTicks: Int { measures * 1920 }
+    var timeSignature = TimeSignature(numerator: 4, denominator: 4)
+    var ticksPerMeasure: Int { timeSignature.ticksPerMeasure }
+    var totalTicks: Int { measures * ticksPerMeasure }
     func segment(from: Int, through: Int) throws -> [MusicEvent] {
         guard from >= 1, through <= measures, from <= through else { throw SORIError.invalidScore("잘못된 재생 구간입니다.") }
-        let start = (from - 1) * 1920, end = through * 1920
+        let start = (from - 1) * ticksPerMeasure, end = through * ticksPerMeasure
         return events.compactMap { event in
             let a = max(event.onset, start), b = min(event.onset + event.duration, end)
             return a < b ? MusicEvent(midi: event.midi, onset: a - start, duration: b - a) : nil
@@ -123,17 +128,17 @@ final class SafeXML: NSObject, XMLParserDelegate {
 }
 
 enum MusicXMLParser {
-    static let version = "sori-parser-1"
+    static let version = "sori-parser-2"
     static func parseMXL(_ data: Data, asset: ScoreAsset, tempo: Int) throws -> MusicScore {
         guard data.count == asset.sizeBytes, data.sha256 == asset.sha256 else { throw SORIError.invalidScore("SCORE_HASH_MISMATCH: 악보의 해시 또는 크기가 다릅니다.") }
-        guard asset.profile == "sori-monophonic-v1", asset.musicxmlVersion == "4.0", asset.partId == "P1", asset.contentType == "application/vnd.recordare.musicxml" else { throw SORIError.unsupported("UNSUPPORTED_SCORE_PROFILE: 악보 형식을 확인해 주세요.") }
+        guard ["sori-monophonic-v1", "sori-monophonic-v2"].contains(asset.profile), asset.musicxmlVersion == "4.0", asset.partId == "P1", asset.contentType == "application/vnd.recordare.musicxml" else { throw SORIError.unsupported("UNSUPPORTED_SCORE_PROFILE: 악보 형식을 확인해 주세요.") }
         let files = try MXLContainer.entries(data)
         return try parseXML(files["score.xml"]!, measures: asset.measureCount, tempo: tempo)
     }
     static func parseXML(_ data: Data, measures: Int, tempo: Int) throws -> MusicScore {
         let root = try SafeXML.parse(data)
         func fail(_ message: String) -> SORIError { .invalidScore("UNSUPPORTED_SCORE_PROFILE: " + message) }
-        let allowed: Set<String> = ["score-partwise","work","work-title","movement-title","identification","creator","rights","encoding","software","encoding-date","part-list","score-part","part-name","part-abbreviation","score-instrument","instrument-name","instrument-abbreviation","midi-instrument","midi-channel","midi-program","part","measure","attributes","divisions","key","fifths","mode","time","beats","beat-type","clef","sign","line","staves","direction","direction-type","metronome","beat-unit","per-minute","sound","note","pitch","step","alter","octave","rest","duration","voice","staff","type","dot","accidental","tie","notations","tied","barline","bar-style"]
+        let allowed: Set<String> = ["score-partwise","work","work-title","movement-title","identification","creator","rights","encoding","software","encoding-date","part-list","score-part","part-name","part-abbreviation","score-instrument","instrument-name","instrument-abbreviation","midi-instrument","midi-channel","midi-program","part","measure","attributes","divisions","key","fifths","mode","time","beats","beat-type","clef","sign","line","staves","direction","direction-type","metronome","beat-unit","per-minute","sound","note","pitch","step","alter","octave","rest","duration","voice","staff","type","dot","accidental","tie","notations","tied","barline","bar-style","stem","beam","time-modification","actual-notes","normal-notes","normal-type","tuplet"]
         func validate(_ node: XMLNode) throws {
             guard allowed.contains(node.name) else { throw fail("지원하지 않는 기호: \(node.name)") }
             let childrenByParent: [String: Set<String>] = [
@@ -143,15 +148,16 @@ enum MusicXMLParser {
                 "attributes": ["divisions","key","time","clef","staves"],
                 "key": ["fifths","mode"], "time": ["beats","beat-type"], "clef": ["sign","line"],
                 "direction": ["direction-type","sound"], "direction-type": ["metronome"], "metronome": ["beat-unit","per-minute"],
-                "note": ["pitch","rest","duration","voice","type","dot","accidental","tie","notations","staff"],
-                "pitch": ["step","alter","octave"], "notations": ["tied"], "barline": ["bar-style"],
+                "note": ["pitch","rest","duration","voice","type","dot","accidental","tie","notations","staff","stem","beam","time-modification"],
+                "time-modification": ["actual-notes","normal-notes","normal-type"],
+                "pitch": ["step","alter","octave"], "notations": ["tied","tuplet"], "barline": ["bar-style"],
                 "work": ["work-title"], "identification": ["creator","rights","encoding"], "encoding": ["software","encoding-date"],
                 "score-instrument": ["instrument-name","instrument-abbreviation"], "midi-instrument": ["midi-channel","midi-program"]
             ]
             if let permitted = childrenByParent[node.name] {
                 guard node.children.allSatisfy({ permitted.contains($0.name) }) else { throw fail("잘못된 기호 위치: " + node.name) }
             } else if !node.children.isEmpty { throw fail("예상하지 못한 하위 기호: " + node.name) }
-            let repeatable: Set<String> = ["part","measure","note","direction","dot","tie","tied","creator","rights","software","score-instrument","midi-instrument"]
+            let repeatable: Set<String> = ["part","measure","note","direction","dot","tie","tied","creator","rights","software","score-instrument","midi-instrument","beam","tuplet"]
             for group in Dictionary(grouping: node.children, by: \.name).values {
                 guard group.count == 1 || repeatable.contains(group[0].name) else { throw fail("중복 기호: " + group[0].name) }
             }
@@ -169,15 +175,19 @@ enum MusicXMLParser {
         }
         let bars = part.children(named: "measure")
         guard bars.count == measures else { throw fail("마디 수 불일치") }
+        guard let time = bars.first?.one("attributes")?.one("time"), let beats = Int(time.value("beats") ?? ""), let beatType = Int(time.value("beat-type") ?? "") else { throw fail("박자표 누락") }
+        let meter = TimeSignature(numerator: beats, denominator: beatType)
+        guard meter.supported else { throw fail("지원하는 박자는 4/4, 3/4, 6/8입니다.") }
+        let barTicks = meter.ticksPerMeasure
         var events: [MusicEvent] = [], symbols: [ScoreSymbol] = [], openTie: Int?, sawTempo = false
         for (barIndex, bar) in bars.enumerated() {
             guard bar.attributes["number"] == String(barIndex+1), bar.attributes["implicit"] != "yes" else { throw fail("마디 번호·못갖춘마디") }
             let attrs = bar.children(named: "attributes")
             if barIndex == 0 {
                 guard attrs.count == 1, let a = attrs.first, a.value("divisions") == "480", a.one("key")?.value("fifths") == "0",
-                      a.one("key")?.value("mode") == "major", a.one("time")?.value("beats") == "4", a.one("time")?.value("beat-type") == "4",
+                      a.one("key")?.value("mode") == "major", a.one("time")?.value("beats") == String(beats), a.one("time")?.value("beat-type") == String(beatType),
                       a.one("clef")?.value("sign") == "G", a.one("clef")?.value("line") == "2",
-                      a.value("staves") == nil || a.value("staves") == "1" else { throw fail("C Major·4/4·높은음자리표·divisions 480 필요") }
+                      a.value("staves") == nil || a.value("staves") == "1" else { throw fail("C Major·지원 박자·높은음자리표·divisions 480 필요") }
             } else if !attrs.isEmpty { throw fail("중간 속성 변경") }
             for direction in bar.children(named: "direction") {
                 let sounds = direction.children(named: "sound")
@@ -191,10 +201,14 @@ enum MusicXMLParser {
             for note in bar.children(named: "note") {
                 let duration = Int(note.value("duration") ?? "") ?? 0
                 let type = note.value("type") ?? "", dots = note.children(named: "dot").count
-                let bases = ["whole":1920,"half":960,"quarter":480,"eighth":240]
-                guard let base = bases[type], dots <= 2, duration == base * (dots == 0 ? 1 : (dots == 1 ? 3 : 7)) / (dots == 0 ? 1 : (dots == 1 ? 2 : 4)),
+                let bases = ["whole":1920,"half":960,"quarter":480,"eighth":240,"16th":120]
+                let modification = note.one("time-modification")
+                let actual = modification.flatMap { Int($0.value("actual-notes") ?? "") } ?? (modification == nil ? 1 : 0)
+                let normal = modification.flatMap { Int($0.value("normal-notes") ?? "") } ?? (modification == nil ? 1 : 0)
+                guard (actual == 1 && normal == 1) || (actual == 3 && normal == 2) else { throw fail("지원하지 않는 잇단음표") }
+                guard let base = bases[type], dots <= 2, duration > 0, duration * actual * (dots == 0 ? 1 : (dots == 1 ? 2 : 4)) == base * normal * (dots == 0 ? 1 : (dots == 1 ? 3 : 7)),
                       note.value("voice") == nil || note.value("voice") == "1",
-                      note.value("staff") == nil || note.value("staff") == "1", offset + duration <= 1920 else { throw fail("지원하지 않는 리듬·성부") }
+                      note.value("staff") == nil || note.value("staff") == "1", offset + duration <= barTicks else { throw fail("지원하지 않는 리듬·성부") }
                 let rest = note.children(named: "rest").count == 1
                 let pitch = note.one("pitch"), step = pitch?.value("step"), octave = Int(pitch?.value("octave") ?? "") ?? -1
                 let alter = Int(pitch?.value("alter") ?? "0") ?? 99
@@ -211,7 +225,7 @@ enum MusicXMLParser {
                       !rest || ties.isEmpty else { throw fail("붙임줄") }
                 let notationTies = note.one("notations")?.children(named: "tied").compactMap { $0.attributes["type"] } ?? []
                 guard notationTies.isEmpty || notationTies.sorted() == ties.sorted() else { throw fail("재생 붙임줄과 표시 붙임줄 불일치") }
-                let start = ties.contains("start"), stop = ties.contains("stop"), onset = barIndex * 1920 + offset
+                let start = ties.contains("start"), stop = ties.contains("stop"), onset = barIndex * barTicks + offset
                 if let open = openTie {
                     guard stop, events[open].midi == midi, events[open].onset + events[open].duration == onset else { throw fail("연결되지 않은 붙임줄") }
                     events[open].duration += duration; openTie = start ? open : nil
@@ -219,13 +233,19 @@ enum MusicXMLParser {
                     guard !stop else { throw fail("붙임줄 시작 누락") }
                     events.append(MusicEvent(midi: midi, onset: onset, duration: duration)); if start { openTie = events.count-1 }
                 }
-                symbols.append(ScoreSymbol(measure: barIndex+1, onset: onset, duration: duration, midi: midi, step: step, octave: octave, alter: alter, type: type, dots: dots, tieStart: start, tieStop: stop))
+                var beams: [Int:String] = [:]
+                for beam in note.children(named: "beam") {
+                    guard let level = Int(beam.attributes["number"] ?? "1"), (1...2).contains(level), beams[level] == nil, ["begin","continue","end","forward hook","backward hook"].contains(beam.text.trimmingCharacters(in: .whitespacesAndNewlines)) else { throw fail("빔 형식") }
+                    beams[level] = beam.text.trimmingCharacters(in: .whitespacesAndNewlines)
+                }
+                let tuplets = note.one("notations")?.children(named: "tuplet") ?? []
+                symbols.append(ScoreSymbol(measure: barIndex+1, onset: onset, duration: duration, midi: midi, step: step, octave: octave, alter: alter, type: type, dots: dots, tieStart: start, tieStop: stop, beams: beams, tupletActual: actual, tupletNormal: normal, tupletStart: tuplets.contains { $0.attributes["type"] == "start" }, tupletStop: tuplets.contains { $0.attributes["type"] == "stop" }))
                 offset += duration
             }
-            guard offset == 1920 else { throw fail("마디 길이는 정확히 4박이어야 합니다.") }
+            guard offset == barTicks else { throw fail("마디 길이와 박자표가 다릅니다.") }
         }
         guard sawTempo, openTie == nil else { throw fail("템포 또는 붙임줄 끝 누락") }
-        return MusicScore(tempo: tempo, measures: measures, events: events, symbols: symbols)
+        return MusicScore(tempo: tempo, measures: measures, events: events, symbols: symbols, timeSignature: meter)
     }
 }
 
@@ -235,12 +255,12 @@ enum MIDIFile {
         var n = value, bytes = [UInt8(n & 127)]; n >>= 7
         while n > 0 { bytes.insert(UInt8(n & 127) | 128, at: 0); n >>= 7 }; return bytes
     }
-    static func make(events: [MusicEvent], totalTicks: Int, tempo: Int, velocity: Int = 80) -> Data {
+    static func make(events: [MusicEvent], totalTicks: Int, tempo: Int, velocity: Int = 80, firstNoteVelocity: Int? = nil) -> Data {
         let micros = 60_000_000 / tempo
         var track: [UInt8] = [0,0xff,0x51,3, UInt8((micros >> 16) & 255), UInt8((micros >> 8) & 255), UInt8(micros & 255), 0,0xc0,0]
         var messages: [(Int,Int,[UInt8])] = []
         for e in events { if let midi = e.midi {
-            messages.append((e.onset,1,[0x90,UInt8(midi),UInt8(velocity)]))
+            messages.append((e.onset,1,[0x90,UInt8(midi),UInt8((e.onset == 0 ? firstNoteVelocity : nil) ?? velocity)]))
             messages.append((e.onset+e.duration,0,[0x80,UInt8(midi),0]))
         } }
         messages.sort { $0.0 == $1.0 ? $0.1 < $1.1 : $0.0 < $1.0 }
@@ -251,5 +271,22 @@ enum MIDIFile {
         var result = Data([0x4d,0x54,0x68,0x64,0,0,0,6,0,0,0,1,1,0xe0,0x4d,0x54,0x72,0x6b])
         result.append(contentsOf: [UInt8((length >> 24) & 255), UInt8((length >> 16) & 255),UInt8((length >> 8) & 255),UInt8(length & 255)])
         result.append(contentsOf: track); return result
+    }
+
+    // A single tempo clock schedules the count-in and first score onset; no separate audio starts.
+    // Track 0 is piano, track 1 is the short click sample. No clicks continue into the score.
+    static func withCountIn(events: [MusicEvent], totalTicks: Int, tempo: Int, countIn: CountInPlayback) -> Data {
+        let prefix = countIn.totalTicks
+        let piano = make(events:events.map { MusicEvent(midi:$0.midi,onset:$0.onset+prefix,duration:$0.duration) },
+                         totalTicks:totalTicks+prefix,tempo:tempo)
+        let clicks = (0..<(countIn.measures*countIn.beatsPerMeasure)).map {
+            MusicEvent(midi:60,onset:$0*countIn.ticksPerBeat,duration:min(40,countIn.ticksPerBeat))
+        }
+        let click = make(events:clicks,totalTicks:totalTicks+prefix,tempo:tempo,
+                         velocity:countIn.velocity,firstNoteVelocity:countIn.accentVelocity)
+        var result = Data([0x4d,0x54,0x68,0x64,0,0,0,6,0,1,0,2,1,0xe0])
+        result.append(contentsOf:piano.dropFirst(14))
+        result.append(contentsOf:click.dropFirst(14))
+        return result
     }
 }

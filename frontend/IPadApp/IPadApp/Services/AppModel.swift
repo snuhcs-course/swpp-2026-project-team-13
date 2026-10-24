@@ -166,6 +166,7 @@ import PencilKit
         let scaleData = try await cached("scale.mxl", url: q.scoreAssets.scale.url, authenticated: true, sha: q.scoreAssets.scale.sha256, limit: 1_048_576, id: record.id)
         let main = try MusicXMLParser.parseMXL(mainData, asset: q.scoreAssets.main, tempo: plan.tempoBpm)
         let scale = try MusicXMLParser.parseMXL(scaleData, asset: q.scoreAssets.scale, tempo: plan.tempoBpm)
+        guard main.timeSignature == q.timeSignature else { throw SORIError.invalidScore("문제 안내와 악보의 박자가 다릅니다.") }
         self.template = try AnswerExporter.validateTemplate(imageData, layout: q.sheetLayout); self.mainScore = main
         try player.prepare(main: main, scale: scale, plan: plan); player.restore(record.cursor)
         self.prepared = true

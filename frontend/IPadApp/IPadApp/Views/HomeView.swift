@@ -17,7 +17,7 @@ struct HomeView: View {
                         Text("MELODIC DICTATION").font(.caption.weight(.bold)).tracking(2).foregroundStyle(SORITheme.violet)
                         Text("소리를 듣고,\n음악을 기록하세요.").font(.system(size: 34, weight: .bold, design: .rounded)).lineSpacing(5).fixedSize(horizontal: false, vertical: true)
                         Text("멜로디를 듣고 오선 위에 옮겨 적는 시간.\n작은 연습이 더 정확한 귀를 만들어요.").font(.subheadline).lineSpacing(6).foregroundStyle(.secondary)
-                        HStack { Pill(text: "Apple Pencil", icon: "pencil.tip"); Pill(text: "8마디 · 5분", icon: "music.note.list") }
+                        HStack { Pill(text: "Apple Pencil", icon: "pencil.tip"); Pill(text: "8마디 · 시험 순서", icon: "music.note.list") }
                     }
                     Spacer(minLength: 0)
                     Image(systemName: "waveform.path").font(.system(size: 96, weight: .ultraLight)).foregroundStyle(SORITheme.violet.opacity(0.45)).accessibilityHidden(true)
@@ -43,7 +43,7 @@ struct HomeView: View {
                             Card { HStack(spacing: 20) {
                                 Text(String(format: "%02d", index+1)).font(.system(size: 29, weight: .light, design: .rounded)).foregroundStyle(SORITheme.violet).frame(width: 48)
                                 VStack(alignment: .leading, spacing: 10) { Text(q.title).font(.headline).foregroundStyle(SORITheme.ink)
-                                    HStack { Text("\(q.keySignature.tonic) \(q.keySignature.mode.capitalized)"); Text("·"); Text("\(q.timeSignature.numerator)/\(q.timeSignature.denominator)"); Text("·"); Text("\(q.measureCount)마디"); Text("·"); Text("\(q.recommendedDurationSeconds / 60)분") }.font(.caption).foregroundStyle(.secondary)
+                                    HStack { Text("\(q.keySignature.tonic) \(q.keySignature.mode.capitalized)"); Text("·"); Text("\(q.timeSignature.numerator)/\(q.timeSignature.denominator)"); Text("·"); Text("\(q.measureCount)마디"); Text("·"); Text("\(q.recommendedDurationSeconds / 60)분 \(q.recommendedDurationSeconds % 60)초") }.font(.caption).foregroundStyle(.secondary)
                                 }
                                 Spacer(); Image(systemName: "arrow.up.right").font(.title3).foregroundStyle(SORITheme.violet).padding(14).background(SORITheme.soft, in: Circle())
                             } }
@@ -62,10 +62,10 @@ struct QuestionView: View {
         ScrollView { if let q = model.selectedQuestion {
             VStack(alignment: .leading, spacing: 28) {
                 SectionCaption(eyebrow: "READY TO LISTEN", title: q.title, subtitle: q.description)
-                HStack { Pill(text: "\(q.keySignature.tonic) Major", icon: "music.note"); Pill(text: "4/4 · 8마디"); Pill(text: "권장 \(q.recommendedDurationSeconds/60)분", icon: "clock") }
+                HStack { Pill(text: "\(q.keySignature.tonic) Major", icon: "music.note"); Pill(text: "\(q.timeSignature.numerator)/\(q.timeSignature.denominator) · 8마디"); Pill(text: "권장 \(q.recommendedDurationSeconds/60)분 \(q.recommendedDurationSeconds%60)초", icon: "clock") }
                 Card { VStack(alignment: .leading, spacing: 24) {
                     Text("연습은 이렇게 진행돼요").font(.title2.bold())
-                    instruction("01", "스케일과 멜로디 듣기", "스케일 제시 후, 전체와 부분 멜로디가 정해진 11개 구간으로 재생돼요.")
+                    instruction("01", "스케일과 멜로디 듣기", "시작 2초 후 스케일을 듣고, 2초 뒤 예비박과 첫 전체 재생이 이어져요. 마지막 전체 재생 앞에도 예비박이 나와요.")
                     instruction("02", "Pencil로 오선에 기록하기", "검정 펜으로 자유롭게 적어 주세요. 필기는 이 iPad에 자동 저장돼요.")
                     instruction("03", "답안을 제출하고 확인하기", "제출한 답안을 분석한 뒤 점수와 피드백, 정답 악보를 확인해요.")
                 } }

@@ -28,3 +28,8 @@ xcuserdata/
 .build/
 .swiftpm/
 *.xcresult/
+
+.local/
+.tmp/
+.venv*/
+dist/

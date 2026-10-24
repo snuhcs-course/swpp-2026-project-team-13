@@ -37,7 +37,7 @@
         };
         A00000000000000000000004 = {
             isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
-            membershipExceptions = (Info.plist,);
+            membershipExceptions = (Info.plist, "Info-Debug.plist",);
             target = A00000000000000000000010;
         };
         A00000000000000000000005 = {
@@ -156,7 +156,7 @@
                 CURRENT_PROJECT_VERSION = 1;
                 ENABLE_PREVIEWS = YES;
                 GENERATE_INFOPLIST_FILE = NO;
-                INFOPLIST_FILE = IPadApp/Info.plist;
+                INFOPLIST_FILE = "IPadApp/Info-Debug.plist";
                 LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
                 MARKETING_VERSION = 0.1.0;
                 PRODUCT_BUNDLE_IDENTIFIER = org.snuhcs.team13.ipadapp;

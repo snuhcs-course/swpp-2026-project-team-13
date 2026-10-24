@@ -87,4 +87,15 @@ import ImageIO
         player.pause()
     }
 
+
+    func testAllThreeMetersLoadTheCountInClickResource() throws {
+        let questions:[Question] = try Bundled.decode("practice-catalog")
+        for (index,q) in questions.enumerated() {
+            let main = try MusicXMLParser.parseMXL(Bundled.data("excerpt-\(index+1)-main",ext:"mxl"),asset:q.scoreAssets.main,tempo:96)
+            let scale = try MusicXMLParser.parseMXL(Bundled.data("excerpt-\(index+1)-scale",ext:"mxl"),asset:q.scoreAssets.scale,tempo:96)
+            let player = PianoPlayback()
+            try player.prepare(main:main,scale:scale,plan:.exam(meter:q.timeSignature))
+            player.pause()
+        }
+    }
 }

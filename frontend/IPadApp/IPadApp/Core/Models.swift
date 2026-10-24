@@ -10,7 +10,11 @@ struct UserProfile: Codable, Identifiable, Equatable {
     var learningGoal: String
 }
 struct KeySignature: Codable, Equatable { var tonic: String; var mode: String; var fifths: Int }
-struct TimeSignature: Codable, Equatable { var numerator: Int; var denominator: Int }
+struct TimeSignature: Codable, Equatable {
+    var numerator: Int; var denominator: Int
+    var ticksPerMeasure: Int { numerator * 480 * 4 / denominator }
+    var supported: Bool { [(4,4), (3,4), (6,8)].contains { $0.0 == numerator && $0.1 == denominator } }
+}
 struct SheetSystem: Codable, Equatable {
     var index: Int; var firstMeasure: Int; var lastMeasure: Int
     var staffLineY: [Double]; var barlineX: [Double]
@@ -21,7 +25,7 @@ struct SheetLayout: Codable, Equatable {
     var pixelWidth: Int; var pixelHeight: Int
     var templatePngUrl: URL; var templateSha256: String; var systems: [SheetSystem]
     func validate() throws {
-        guard id == "staff-8bars-v1", logicalWidth == 1330, logicalHeight == 846,
+        guard ["staff-8bars-v1", "staff-8bars-4-4-v2", "staff-8bars-3-4-v2", "staff-8bars-6-8-v2"].contains(id), logicalWidth == 1330, logicalHeight == 846,
               exportScale == 2, pixelWidth == 2660, pixelHeight == 1692,
               systems.count == 2, systems.allSatisfy({ $0.staffLineY.count == 5 && $0.barlineX.count == 5 }) else {
             throw SORIError.unsupported("지원하지 않는 오선 템플릿입니다.")
@@ -47,7 +51,7 @@ struct Question: Codable, Identifiable, Equatable {
     func validate() throws {
         try sheetLayout.validate()
         guard source == "practice", keySignature.tonic == "C", keySignature.mode == "major", keySignature.fifths == 0,
-              timeSignature.numerator == 4, timeSignature.denominator == 4, measureCount == 8,
+              timeSignature.supported, measureCount == 8,
               timePolicy == "advisory", clef == "treble", contentPolicy == "client_readable_practice",
               scoreVisibility == "after_submission" else { throw SORIError.unsupported("지원하지 않는 문제 형식입니다.") }
     }
@@ -57,14 +61,45 @@ struct PlaybackStep: Codable, Equatable {
     var order: Int; var fromMeasure: Int; var toMeasure: Int; var scoreKind: String; var pauseAfterMs: Int
 }
 struct ScalePlayback: Codable, Equatable { var scoreKind: String; var fromMeasure: Int; var toMeasure: Int }
+struct CountInPlayback: Codable, Equatable {
+    var measures: Int; var beforeStepOrders: [Int]
+    var beatsPerMeasure: Int; var beatUnit: Int
+    var accentVelocity: Int; var velocity: Int; var profileId: String
+    var ticksPerBeat: Int { 480 * 4 / beatUnit }
+    var totalTicks: Int { measures * beatsPerMeasure * ticksPerBeat }
+}
 struct PlaybackPlan: Codable, Equatable {
     var version: Int; var engine: String; var tempoBpm: Int; var instrumentProfileId: String
     var tuningHz: Double; var transposeSemitones: Int; var velocity: Int; var gateRatio: Double; var releaseTailMs: Int
     var scale: ScalePlayback; var pauseAfterScaleMs: Int
     var allowManualPause: Bool; var allowManualReplay: Bool; var interruptionPolicy: String; var steps: [PlaybackStep]
+    var initialDelayMs: Int? = nil
+    var countIn: CountInPlayback? = nil
+
+    static func exam(meter: TimeSignature, tempo: Int = 96) -> PlaybackPlan {
+        let ranges = [(1,8),(1,2),(1,2),(1,4),(3,4),(3,6),(5,6),(5,8),(7,8),(7,8),(1,8)]
+        return PlaybackPlan(version:3, engine:"local_midi", tempoBpm:tempo, instrumentProfileId:"sori-piano-v1",
+            tuningHz:440, transposeSemitones:0, velocity:80, gateRatio:1, releaseTailMs:300,
+            scale:ScalePlayback(scoreKind:"scale",fromMeasure:1,toMeasure:2), pauseAfterScaleMs:2000,
+            allowManualPause:true, allowManualReplay:false, interruptionPolicy:"restart_current_segment",
+            steps:ranges.enumerated().map { i, range in
+                PlaybackStep(order:i+1,fromMeasure:range.0,toMeasure:range.1,scoreKind:"main",pauseAfterMs:i == 10 ? 120000 : 20000)
+            },
+            initialDelayMs:2000,
+            countIn:CountInPlayback(measures:1,beforeStepOrders:[1,11],beatsPerMeasure:meter.numerator,
+                beatUnit:meter.denominator,accentVelocity:110,velocity:70,profileId:"sori-click-v1"))
+    }
+    func nominalDurationSeconds(meter: TimeSignature) -> Double {
+        let bars = scale.toMeasure - scale.fromMeasure + 1
+            + steps.reduce(0) { $0 + $1.toMeasure - $1.fromMeasure + 1 }
+        let countTicks = (countIn?.totalTicks ?? 0) * (countIn?.beforeStepOrders.count ?? 0)
+        let audio = Double(bars * meter.ticksPerMeasure + countTicks) / 480 * 60 / Double(tempoBpm)
+        let pauses = (initialDelayMs ?? 0) + pauseAfterScaleMs + steps.reduce(0) { $0 + $1.pauseAfterMs }
+        return audio + Double(pauses) / 1000
+    }
     func validate() throws {
         let ranges = [(1,8),(1,2),(1,2),(1,4),(3,4),(3,6),(5,6),(5,8),(7,8),(7,8),(1,8)]
-        guard version == 2, engine == "local_midi", instrumentProfileId == "sori-piano-v1", tuningHz == 440,
+        guard [2,3].contains(version), engine == "local_midi", instrumentProfileId == "sori-piano-v1", tuningHz == 440,
               transposeSemitones == 0, velocity == 80, gateRatio == 1, releaseTailMs == 300,
               (40...200).contains(tempoBpm), allowManualPause, !allowManualReplay,
               interruptionPolicy == "restart_current_segment", scale.scoreKind == "scale",
@@ -72,6 +107,16 @@ struct PlaybackPlan: Codable, Equatable {
               zip(steps, ranges).enumerated().allSatisfy({ i, pair in
                   pair.0.order == i + 1 && pair.0.fromMeasure == pair.1.0 && pair.0.toMeasure == pair.1.1 && pair.0.scoreKind == "main" && pair.0.pauseAfterMs >= 0
               }) else { throw SORIError.unsupported("지원하지 않는 재생 계획입니다.") }
+        if version == 3 {
+            guard initialDelayMs == 2000, pauseAfterScaleMs == 2000, let countIn,
+                  countIn.measures == 1, countIn.beforeStepOrders == [1,11],
+                  TimeSignature(numerator:countIn.beatsPerMeasure,denominator:countIn.beatUnit).supported,
+                  countIn.accentVelocity == 110, countIn.velocity == 70, countIn.profileId == "sori-click-v1",
+                  steps.enumerated().allSatisfy({ $0.element.pauseAfterMs == ($0.offset == 10 ? 120000 : 20000) })
+            else { throw SORIError.unsupported("시험의 예비박·필기 시간 설정을 확인해 주세요.") }
+        } else if countIn != nil || (initialDelayMs ?? 0) != 0 {
+            throw SORIError.unsupported("구버전 재생 계획에 예비박을 추가할 수 없습니다.")
+        }
     }
 }
 struct Answer: Codable, Identifiable, Equatable {

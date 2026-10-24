@@ -1,0 +1,58 @@
+{
+  "count": 3,
+  "next": null,
+  "previous": null,
+  "results": [
+    {
+      "id": "128f51a9-5498-50fd-a2a7-1a271883e72b",
+      "version": 1,
+      "title": "청음 연습 1 · 6/8",
+      "source": "practice",
+      "key_signature": {
+        "tonic": "C",
+        "mode": "major",
+        "fifths": 0
+      },
+      "time_signature": {
+        "numerator": 6,
+        "denominator": 8
+      },
+      "measure_count": 8,
+      "recommended_duration_seconds": 407
+    },
+    {
+      "id": "cfe540d9-445e-59c5-9338-586fc9ba2842",
+      "version": 1,
+      "title": "청음 연습 2 · 4/4",
+      "source": "practice",
+      "key_signature": {
+        "tonic": "C",
+        "mode": "major",
+        "fifths": 0
+      },
+      "time_signature": {
+        "numerator": 4,
+        "denominator": 4
+      },
+      "measure_count": 8,
+      "recommended_duration_seconds": 434
+    },
+    {
+      "id": "e8b704b7-efe5-583c-944a-270915628ca2",
+      "version": 1,
+      "title": "청음 연습 3 · 3/4",
+      "source": "practice",
+      "key_signature": {
+        "tonic": "C",
+        "mode": "major",
+        "fifths": 0
+      },
+      "time_signature": {
+        "numerator": 3,
+        "denominator": 4
+      },
+      "measure_count": 8,
+      "recommended_duration_seconds": 407
+    }
+  ]
+}

@@ -1,0 +1,10 @@
+.venv
+.venv*
+.env
+.env.*
+.local
+.tmp
+__pycache__
+*.pyc
+media
+*.sqlite3

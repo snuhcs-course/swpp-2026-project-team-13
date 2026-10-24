@@ -1,87 +1,44 @@
-# Team 13 — iPad App / Django Backend
+# SORI — iPad 청음 연습
 
-An initial project for two developers working separately on the frontend and backend.
-The iPad frontend is SORI, a melodic dictation practice app implementing the [v0.2.0 exam contract](docs/sori-api/API-CONTRACT.md). The Django backend currently provides the health endpoint; SORI domain APIs and handwriting recognition remain backend work.
+세 문제(6/8·4/4·3/4)를 듣고 Apple Pencil로 작성한 뒤, Django 서버를 통해 AI 평가와 한국어 피드백을 받는 개인 연습용 앱입니다. 기본 로컬 데모에서는 같은 세 문제의 재생·필기를 서버 없이 확인할 수 있으며, 예시 결과임을 표시합니다.
 
-```text
-SwiftUI iPad app ← HTTP / JSON → Django REST API → SQLite (local development)
-```
+## 먼저 확인할 문서
 
-| Path | Contents | Owner |
-| --- | --- | --- |
-| `frontend/` | SORI SwiftUI iPad app, PencilKit, MXL/piano, demo and live API clients | Frontend |
-| `backend/` | Django, Django REST Framework, and health API | Backend |
-| `docs/api.md` | Agreed request and response formats | Both |
-| `.github/workflows/ci.yml` | Backend checks and tests, iPad app build | Both |
+- 개인 iPad 설치와 Windows 서버 실행: [docs/IPAD-SETUP.md](docs/IPAD-SETUP.md)
+- 친구의 Mac에서 빌드 확인: [docs/MAC-HANDOFF.md](docs/MAC-HANDOFF.md)
+- API 계약: [docs/sori-api/API-CONTRACT.md](docs/sori-api/API-CONTRACT.md)
+- 실제 검증 상태: [docs/VALIDATION.md](docs/VALIDATION.md)
 
-## Quick Start
+## 구성
 
-Backend (macOS / Linux, starting from the repository root):
+    iPad SwiftUI/PencilKit → Django REST API → PostgreSQL + 개인 답안 파일
+                                                   ↓
+                                                채점 워커
+                                                   ↓
+                                           OpenRouter AI 평가
 
-```sh
-cd backend
-python3 -m venv .venv
-source .venv/bin/activate
-python -m pip install -r requirements.txt
-cp .env.example .env
-python manage.py migrate
-python manage.py runserver
-```
+서버는 PostgreSQL과 API·워커를 Docker Compose로 실행합니다. 앱은 Mac의 Xcode에서 빌드·서명해 개인 iPad에 설치합니다. OpenRouter 키는 서버에만 설정하고, 앱에는 사용자별 개발 Bearer 토큰만 넣습니다.
 
-`curl http://localhost:8000/api/health/` returns `{"status":"ok"}`.
+## Windows 시작
 
-Frontend:
+프로젝트 디렉터리의 일반 PowerShell에서 실행합니다. Docker Desktop의 Linux 엔진이 Running이어야 합니다.
 
-1. Open `frontend/IPadApp/IPadApp.xcodeproj` in Xcode on a Mac.
-2. Select the `IPadApp` scheme and an iPad simulator, then click Run.
-3. The app opens a local SORI demo: choose a question, listen, write and submit. No server is required.
-4. When SORI backend endpoints are available, use the connection settings to enter the `/api/v1/` base URL and an issued development token.
+    python scripts/prepare-local.py
 
-The demo includes original MXL and piano resources and explicitly labeled example results. Live SORI APIs still need backend implementation.
-A physical iPad requires the Mac's LAN IP address instead of `localhost`.
-See the [frontend guide](frontend/README.md), [backend guide](backend/README.md), and [API contract](docs/api.md) for details.
+생성된 backend/.env의 OPENROUTER_API_KEY에 팀 키를 설정합니다. DJANGO_ALLOWED_HOSTS에 이 PC의 LAN IPv4 주소가 포함되는지 확인합니다.
 
-## Development Environment
+    docker compose --env-file backend/.env up --build -d --wait
+    docker compose --env-file backend/.env exec -T api python manage.py test api sori --noinput
 
-- Frontend: Mac, Xcode 16 or later with a compatible macOS version, iPadOS 17 or later
-- Swift language mode: 5.0; UI: SwiftUI; no external Swift packages
-- Backend: Python 3.14, Django 5.2 LTS, Django REST Framework
-- Direct and transitive Python dependencies are pinned in `backend/requirements.txt`
-- Local database: SQLite. Choose the production database before introducing domain models and real data
+개발 토큰은 backend/.local/connection.txt에 저장됩니다. 앱의 연결 설정에서 로컬 데모를 끄고 http://<이 PC의 IPv4>:8000/api/v1/과 이 토큰을 입력합니다. Windows와 iPad는 같은 LAN을 사용합니다.
 
-## Validation
+## 소스와 데이터
 
-Backend (after preparing `backend/.env`):
+- frontend/: 기존 앱을 확장한 SwiftUI·PencilKit 코드와 원본 피아노 리소스
+- backend/: Django API, PostgreSQL 모델·migration, 별도 AI 워커
+- backend/content/source/: 사용자가 제공한 정답 XML 3개
+- backend/content/questions/: 앱·채점이 공유하는 버전 고정 MXL
+- docs/: 공유 API와 설치·검증 안내
+- scripts/: 데이터 확인과 실행·전달 도구
 
-```sh
-cd backend
-source .venv/bin/activate
-python manage.py check
-python manage.py test api
-```
-
-iPad app (on a Mac, from the repository root):
-
-```sh
-xcodebuild -project frontend/IPadApp/IPadApp.xcodeproj \
-  -scheme IPadApp -configuration Debug \
-  -destination 'generic/platform=iOS Simulator' \
-  -derivedDataPath build/DerivedData CODE_SIGNING_ALLOWED=NO build
-```
-
-Frontend validation includes a simulator build, Swift Package contract/transport tests, and iPad-hosted export and submission/recovery integration tests. See `frontend/README.md`.
-The health API checks whether the server process responds, not database availability or product functionality.
-
-## Collaboration
-
-- Keep `main` runnable and open pull requests from working branches.
-- Example branches: `feat/ipad-editor`, `feat/notes-api`.
-- Update `docs/api.md` whenever an API changes.
-- Do not commit `.env` files, databases, virtual environments, personal Xcode settings, certificates, or keys.
-- Commit Django migration files and the shared Xcode project and scheme.
-- Add Docker and production deployment configuration when needed.
-
-## Previous Project
-
-The previous Android code and documentation have been removed from the current project.
-Git history is preserved. The state before this replacement is available at commit `465dde2`.
+학생 필기 이미지·DB·토큰·API 키는 Git과 전달 ZIP에서 제외합니다. 제출한 답안 이미지는 변경하지 않고, AI 주석은 별도 데이터로 저장합니다. AI 평가의 음악적 정확도는 보장하지 않으며 실제 정답과 함께 확인합니다.

@@ -1,0 +1,89 @@
+# 검증 기록
+
+2026-10-25, Windows 작업 환경에서 기록합니다. 기능 구현과 실제 실행 확인을 구분합니다.
+
+| 항목 | 상태 |
+|---|---|
+| 원본 XML 3개와 등록 MXL 음정·길이·부점·붙임줄·빔·셋잇단음표 대조 | 통과 |
+| 모든 마디 길이·음표 길이와 3종 PNG/MXL 해시·앱 번들 bytes | 통과, scripts/test_content.py의 3개 검증 |
+| Python 3.14 문법 검사 | 통과 |
+| Docker Compose 구성 파싱 | 통과 |
+| 실제 PostgreSQL에서 기존 API·복구 검증 | 9개 통과, 실제 PostgreSQL / Python 3.14의 사용자 PowerShell 로그 확인 |
+| 실제 클라이언트의 binary Accept 헤더 | MXL·PNG 요청 및 JSON 오류 응답까지 통과; 발견한 406 수정 후 9개 전체 재검증 통과 |
+| 실제 HTTP 다운로드·업로드·조회 | 통과; 실제 HTTP 및 이미지 왕복 포함 전체 18개 점검 완료 |
+| 실제 OpenRouter 호출·피드백 | 통과; 실제 OpenRouter 호출로 빈 답안의 completed·0점·한국어 피드백 확인 |
+| Swift Package 검증·Xcode 빌드 | Mac 필요, 미실행 |
+| 개인 iPad 설치·필기·소리·실제 서버 연결 | Mac 빌드 후 기기 확인 필요 |
+
+서버 검증 로그: backend/.local/backend-checks.log. 실제 HTTP·선택적 AI 점검 기록: backend/.local/live-checks.json. 이 파일들은 비공개이며 전달 ZIP에서 제외합니다.
+
+Windows에서 Docker 엔진 named pipe 및 localhost HTTP 접근이 에이전트 실행 환경의 권한 제한으로 거부됩니다. 따라서 사용자의 일반 PowerShell에서 실제 서버/검증 스크립트를 실행하고, 저장된 결과를 확인합니다. SQLite로 실행 결과를 대체하지 않았습니다. 초기 DB migration 파일 생성만 로컬 캐시의 Django 5.2.17 도구로 수행했고, 배포용 requirements.txt의 고정 버전은 변경하지 않았습니다.
+
+실제 AI 점검은 빈 오선 답안 한 장으로 호출해 전송·워커·구조화 결과·0점·한국어 피드백을 확인합니다. 실제 학생 필기의 인식 정확도나 기기 전체 흐름이 검증되었다는 뜻은 아닙니다.
+
+실제 점검 결과: status=completed, score=0, failure=null. 빈 오선에 음표·쉼표가 없는 상황을 설명하는 한국어 피드백과 3개의 연습 제안을 받았습니다. 이 기록은 사용자 일반 PowerShell에서 실행한 scripts/verify-live.py --with-ai의 비공개 보고서로 확인했습니다.
+
+
+## 실제 필기 3문제 평가 준비
+
+scripts/evaluate_handwriting.py로 기존 PDF 발췌 3장을 실제 API에 제출할 준비를 했습니다.
+기본 실행은 오프라인 준비만 하며 --run을 지정하면 실제 AI 채점 요청이 최대 3건 발생합니다.
+API·모델·프롬프트는 현재 서버 설정을 그대로 사용합니다.
+
+- 입력: ../evaluation/runs/pdf-excerpts/page-1-lines-{1-2,3-4,5-6}.png
+- 변환: 원본 RGB 픽셀을 변경하지 않고 2660×1692 흰 캔버스 중앙에 배치
+- 오프라인 검사 4개 통과: 세 입력의 모든 픽셀 보존, 알려진 A4 부점 누락의 구분, 제출 직후 응답 유실 시 중복 과금 방지, 실패 작업의 자동 유료 재시도 방지
+- 실제 AI 실행: 사용자 일반 PowerShell에서 python scripts/evaluate_handwriting.py --run
+- 결과: backend/.local/handwriting-evaluation/{REPORT.md,report.json,*-recognized.musicxml}
+- 같은 명령을 재실행하면 저장된 응시·Idempotency-Key로 재개하며 별도 유료 재시도를 하지 않습니다.
+- 비용·인식 XML·모델·워커 시간은 로컬 Docker에서 해당 job만 읽어 수집합니다. 비용이 없으면 추정하지 않고 null로 남깁니다.
+- 실제 iPad export와 오류 표시 좌표는 이 평가 범위가 아닙니다. 기존 PDF의 오선 좌표가 앱 템플릿과 다릅니다.
+- 정답 XML과의 차이는 인식 실수와 학생의 오답을 자동으로 구분하지 못합니다. 사용자 확인 사실은 3번 첫 마디 네 번째 음 A4의 부점 누락입니다.
+
+현재 기록은 평가 준비·오프라인 검증이며, 실제 필기 3장의 서버 AI 결과가 통과했다는 뜻이 아닙니다.
+
+
+## 실제 필기 3문제 평가 결과
+
+사용자가 일반 PowerShell에서 evaluate_handwriting.py --run을 실행한 비공개 결과를 확인했습니다.
+현재 모델 스냅샷은 openai/gpt-6.1-sol / medium / sori-feedback-1입니다.
+
+| 문제 | 상태 | AI 점수 | 제출→결과 관측 | 응답 보고 비용(USD) |
+|---|---|---:|---:|---:|
+| 1 | completed | 100 | 47.209초 | 0.056516 |
+| 2 | needs_review | 없음 | 115.419초 | 0.0946685 |
+| 3 | completed | 98 | 60.119초 | 0.061216 |
+
+합계 비용 0.2124005 USD. 1번 인식 XML은 등록 정답의 47개 이벤트와 일치했습니다.
+2번은 제자리표/내림표 판독을 확정하지 못해 전체 점수를 보류했습니다. 확대 재업로드를 요청하는 피드백이 현재 앱 기능과 맞지 않습니다.
+3번은 사용자 확인 A4 부점 누락을 인식·지적했지만, 뒤 B4의 짧은 두 번째 빔을 놓쳐 8분음표라고 설명하는 인식·피드백 오류도 있었습니다.
+전체 인식·채점 정확도 통과로 표시하지 않습니다. 서버 처리 경로는 동작했고 품질·대기 시간 문제가 남았습니다.
+
+상세 검토는 backend/.local/handwriting-evaluation/REVIEW.md, 원본 보고는 report.json과 REPORT.md에 있습니다.
+기존 PDF 입력에 흰 여백만 추가한 검사이며 실제 iPad 내보내기·오디오·표시 좌표는 검증하지 않았습니다.
+
+
+## 시험 재생 시간표·예비박 수정
+
+사용자 지정에 따라 playback_plan v3을 구현했습니다. 시작 2초 → 스케일 → 2초 → 예비박 1마디 → 첫 전체 재생이며, 중간 각 필기 시간은 20초입니다.
+마지막 전체 재생 앞에도 예비박을 주고, 그 재생 후 필기 120초를 제공합니다.
+4/4·3/4·6/8의 클릭 수는 각각 4·3·6이며, 첫 클릭 velocity 110, 나머지는 70입니다.
+두 전체 재생 모두 예비박과 문제를 같은 MIDI 시간축에 넣고, 중간 부분 재생에는 예비박을 넣지 않습니다.
+
+Python 오프라인 시간·리소스 검사 2개와 Python 문법 검사를 통과했습니다.
+추가한 Django 회귀 검사(전체 10개)는 사용자 Docker 재빌드 후 실행해야 합니다.
+Swift의 실제 MIDI 이벤트 시점·강약·서버 v3 fixture·기존 v2 fixture 회귀 검사와 iPad 클릭 샘플 로딩 검사를 추가했지만 Mac이 없어 미실행입니다.
+기기에서 실제 클릭 수·첫 박 음량·연속 재생·마지막 필기 시간을 확인하기 전까지 실기 재생 검증 완료로 보지 않습니다.
+
+전체 길이는 현재 4분음표 BPM 96에서 4/4 434초(7분14초), 3/4·6/8 406.5초(안내 407초)입니다.
+기존 문제 버전·정답 파일·기존 응시는 유지하며, 새 응시 스냅샷과 현재 문제 안내에 계산한 시간을 제공합니다.
+
+
+## 재생 시간표 변경 후 서버 회귀 검사
+
+사용자가 Docker 재빌드 후 실행한 backend/.local/backend-checks.log를 확인했습니다. PostgreSQL에서 10개 테스트가 0.781초에 OK로 완료됐으며, 박자별 예비박 계약·권장 시간·기존 문제 메타데이터 보존 검사를 포함합니다. Swift MIDI·기기 소리 검증은 아직 미실행입니다. 다음은 iPad Safari에서 Windows LAN 서버 health 접속 확인입니다.
+
+
+## iPad Safari에서 Windows LAN 접속
+
+사용자가 iPad Safari로 Windows 서버의 /api/health/에 접속해 ok 응답을 확인했다고 보고했습니다. 같은 LAN의 기기→Docker API 연결을 확인했습니다. 앱 개발 토큰 인증·필기 제출·기기 오디오는 앱 설치 후 확인해야 합니다.
