@@ -1,46 +1,70 @@
-# SORI — iPad 청음 연습
+# SORI — Iteration 2 Demo (Team 13)
 
-세 문제(6/8·4/4·3/4)를 듣고 Apple Pencil로 작성한 뒤, Django 서버를 통해 AI 평가와 한국어 피드백을 받는 개인 연습용 앱입니다. 기본 로컬 데모에서는 같은 세 문제의 재생·필기를 서버 없이 확인할 수 있으며, 예시 결과임을 표시합니다.
+SORI is an iPad app for melodic dictation practice. The student listens to a melody, writes it with Apple Pencil, and gets AI grading with Korean feedback from a Django server.
 
-## 먼저 확인할 문서
+## Demo Video
 
-- Windows에서 iPad 앱 설치: [docs/WINDOWS-IPAD.md](docs/WINDOWS-IPAD.md)
-- Windows 서버 실행과 연결: [docs/IPAD-SETUP.md](docs/IPAD-SETUP.md)
-- 친구의 Mac에서 빌드 확인: [docs/MAC-HANDOFF.md](docs/MAC-HANDOFF.md)
-- API 계약: [docs/sori-api/API-CONTRACT.md](docs/sori-api/API-CONTRACT.md)
-- 실제 검증 상태: [docs/VALIDATION.md](docs/VALIDATION.md)
-- MuseScore 악보와 외부 음원 준비: [docs/ASSETS.md](docs/ASSETS.md)
+▶ **[Watch the demo](https://drive.google.com/file/d/13kJvSPO3Af8R14l6GcGNIS4TVbJKOQwp/view?usp=share_link)**
 
-## 구성
+## How to Run
 
-    iPad SwiftUI/PencilKit → Django REST API → PostgreSQL + 개인 답안 파일
-                                                   ↓
-                                                채점 워커
-                                                   ↓
-                                           OpenRouter AI 평가
+### Environment
 
-서버는 PostgreSQL과 API·워커를 Docker Compose로 실행합니다. 앱은 GitHub의 macOS CI에서 실기기용 IPA를 만들고 Windows의 Sideloadly로 서명·설치합니다. 친구의 Mac에서 Xcode로 직접 설치하는 경로도 사용할 수 있습니다. OpenRouter 키는 서버에만 설정하고, 앱에는 사용자별 개발 Bearer 토큰만 넣습니다.
+- **iPad app**: Swift / SwiftUI / PencilKit, Xcode 16+, iPadOS 17+
+- **Backend**: Python 3.14, Django 5.2 + DRF, PostgreSQL 17, Docker Compose
+- **AI grading**: OpenRouter API
+- **Tested on**: macOS (Xcode, iPad simulator), Windows (Docker server, Sideloadly install to a physical iPad)
 
-## Windows 시작
+### 1. Run the app (local demo, no server)
 
-프로젝트 디렉터리의 일반 PowerShell에서 실행합니다. Docker Desktop의 Linux 엔진이 Running이어야 합니다.
+```sh
+git clone https://github.com/snuhcs-course/swpp-2026-project-team-13.git
+cd swpp-2026-project-team-13 && git checkout iteration-2-demo
+python3 scripts/fetch_soundfont.py
+open frontend/IPadApp/IPadApp.xcodeproj
+```
 
-    python scripts/prepare-local.py
+If `fetch_soundfont.py` fails with `CERTIFICATE_VERIFY_FAILED`, run `SSL_CERT_FILE=/etc/ssl/cert.pem python3 scripts/fetch_soundfont.py` instead.
 
-생성된 backend/.env의 OPENROUTER_API_KEY에 팀 키를 설정합니다. DJANGO_ALLOWED_HOSTS에 이 PC의 LAN IPv4 주소가 포함되는지 확인합니다.
+Select the `IPadApp` scheme and an iPad simulator, then press **Run (⌘R)**. The app starts in local demo mode. Results in this mode are example results, not real grading.
 
-    docker compose --env-file backend/.env up --build -d --wait
-    docker compose --env-file backend/.env exec -T api python manage.py test api sori --noinput
+### 2. Run the backend (real AI grading)
 
-개발 토큰은 backend/.local/connection.txt에 저장됩니다. 앱의 연결 설정에서 로컬 데모를 끄고 http://<이 PC의 IPv4>:8000/api/v1/과 이 토큰을 입력합니다. Windows와 iPad는 같은 LAN을 사용합니다.
+```sh
+python3 scripts/prepare-local.py        # creates backend/.env (your LAN IP is added automatically)
+# set OPENROUTER_API_KEY in backend/.env
+docker compose --env-file backend/.env up --build -d --wait
+```
 
-## 소스와 데이터
+Check that `http://localhost:8000/api/health/` returns `{"status":"ok"}`.
 
-- frontend/: 기존 앱을 확장한 SwiftUI·PencilKit 코드와 원본 피아노 리소스
-- backend/: Django API, PostgreSQL 모델·migration, 별도 AI 워커
-- backend/content/source/: 사용자가 제공한 정답 XML 3개
-- backend/content/questions/: 앱·채점이 공유하는 버전 고정 MXL
-- docs/: 공유 API와 설치·검증 안내
-- scripts/: 데이터 확인과 실행·전달 도구
+### 3. Connect the app to the server
 
-학생 필기 이미지·DB·토큰·API 키는 Git과 전달 ZIP에서 제외합니다. 제출한 답안 이미지는 변경하지 않고, AI 주석은 별도 데이터로 저장합니다. AI 평가의 음악적 정확도는 보장하지 않으며 실제 정답과 함께 확인합니다.
+In the app, open **연결 설정**, turn **로컬 데모 사용** off, fill in the fields below, and tap **서버 연결**:
+
+- **Server URL**: `http://localhost:8000/api/v1/` (simulator) or `http://<server LAN IP>:8000/api/v1/` (physical iPad)
+- **Token**: the value in `backend/.local/connection.txt`
+
+To install on a physical iPad without a Mac, see [docs/WINDOWS-IPAD.md](docs/WINDOWS-IPAD.md).
+
+## What This Demo Demonstrates
+
+### Features
+
+- **Questions**: three dictation questions in 6/8, 4/4 and 3/4.
+- **Exam playback**: scale, count-in, the full melody, and segmented replays with timed writing gaps.
+- **Handwriting**: PencilKit canvas with pen, eraser, undo/redo and zoom.
+- **Submission**: reliable upload with retry and recovery after an app restart.
+- **AI results**: score, pitch/rhythm evaluation, per-measure comments and Korean feedback.
+- **Answer comparison**: the student's answer shown next to the reference score.
+- **Other**: attempt history and a local demo mode that works without a server.
+
+### Major Progress in Iteration 2
+
+- End-to-end AI grading works: iPad → Django API → grading worker → OpenRouter → result in the app.
+- Added three real questions, including tuplets, sixteenth notes and ties.
+- Redesigned the playback schedule (count-in, writing gaps, tempo) and made audio playback more robust.
+- Added answer/reference comparison and measure-level feedback highlighting.
+- CI now runs backend and Swift tests and builds an installable iPad IPA.
+
+More details: [docs/VALIDATION.md](docs/VALIDATION.md), [docs/IPAD-SETUP.md](docs/IPAD-SETUP.md), [API contract](docs/sori-api/API-CONTRACT.md)
