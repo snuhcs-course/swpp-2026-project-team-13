@@ -2,3 +2,10 @@
 *.sh text eol=lf
 *.py text eol=lf
 *.swift text eol=lf
+
+# Preserve exact bytes of hash-pinned score, sheet and audio resources.
+*.mxl binary
+*.png binary
+*.pngdata binary
+*.sf2 binary
+*.wav binary

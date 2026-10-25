@@ -137,7 +137,7 @@ final class NoRedirectDelegate: NSObject, URLSessionTaskDelegate, @unchecked Sen
     func attempt(_ id: UUID) async throws -> Attempt { try await json("attempts/\(id.uuidString.lowercased())/") }
     func start(_ id: UUID) async throws -> Attempt { try await json("attempts/\(id.uuidString.lowercased())/start/", method: "POST") }
     static func multipart(png: Data, clientId: UUID, layout: String, boundary: String) throws -> Data {
-        guard png.count <= 10 * 1024 * 1024, layout == "staff-8bars-v1" else { throw SORIError.configuration("답안 이미지의 규격을 확인해 주세요.") }
+        guard png.count <= 10 * 1024 * 1024, ["staff-8bars-v1", "staff-8bars-4-4-v2", "staff-8bars-3-4-v2", "staff-8bars-6-8-v2"].contains(layout) else { throw SORIError.configuration("답안 이미지의 규격을 확인해 주세요.") }
         var body = Data()
         func append(_ text: String) { body.append(Data(text.utf8)) }
         for (name, value) in [("client_answer_id", clientId.uuidString.lowercased()), ("answer_format_version", "1"), ("sheet_layout_id", layout)] {

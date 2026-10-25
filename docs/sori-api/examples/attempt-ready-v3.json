@@ -1,0 +1,218 @@
+{
+  "id": "33333333-3333-4333-8333-333333333333",
+  "status": "ready",
+  "grading_mode": "automatic",
+  "created_at": "2026-10-23T06:00:00Z",
+  "started_at": null,
+  "recommended_end_at": null,
+  "submitted_at": null,
+  "submitted_answer_id": null,
+  "latest_answer": null,
+  "question": {
+    "id": "128f51a9-5498-50fd-a2a7-1a271883e72b",
+    "version": 1,
+    "title": "청음 연습 1 · 6/8",
+    "source": "practice",
+    "key_signature": {
+      "tonic": "C",
+      "mode": "major",
+      "fifths": 0
+    },
+    "time_signature": {
+      "numerator": 6,
+      "denominator": 8
+    },
+    "measure_count": 8,
+    "recommended_duration_seconds": 407,
+    "description": "멜로디를 듣고 빈 오선에 적어보세요. 제출 후 AI 평가와 정답을 확인할 수 있어요.",
+    "time_policy": "advisory",
+    "clef": "treble",
+    "sheet_layout": {
+      "id": "staff-8bars-6-8-v2",
+      "logical_width": 1330,
+      "logical_height": 846,
+      "export_scale": 2,
+      "pixel_width": 2660,
+      "pixel_height": 1692,
+      "template_png_url": "https://api.sori.example/assets/sheets/staff-8bars-6-8-v2.png",
+      "template_sha256": "32906ad8aeab576eec3b7dfd0e3e86d28a7f446b285e09dcecb468384c55b287",
+      "systems": [
+        {
+          "index": 1,
+          "first_measure": 1,
+          "last_measure": 4,
+          "staff_line_y": [
+            164,
+            176,
+            188,
+            200,
+            212
+          ],
+          "barline_x": [
+            54,
+            450,
+            725,
+            1000,
+            1276
+          ]
+        },
+        {
+          "index": 2,
+          "first_measure": 5,
+          "last_measure": 8,
+          "staff_line_y": [
+            499,
+            511,
+            523,
+            535,
+            547
+          ],
+          "barline_x": [
+            54,
+            397,
+            690,
+            983,
+            1276
+          ]
+        }
+      ]
+    },
+    "content_policy": "client_readable_practice",
+    "score_visibility": "after_submission",
+    "score_assets": {
+      "main": {
+        "url": "https://api.sori.example/api/v1/questions/128f51a9-5498-50fd-a2a7-1a271883e72b/versions/1/scores/main/",
+        "content_type": "application/vnd.recordare.musicxml",
+        "sha256": "1accb0beaf393bf5a46288578e7811383a9a14dca847936cffbf788fc7b190d4",
+        "size_bytes": 1652,
+        "musicxml_version": "4.0",
+        "profile": "sori-monophonic-v2",
+        "part_id": "P1",
+        "measure_count": 8
+      },
+      "scale": {
+        "url": "https://api.sori.example/api/v1/questions/128f51a9-5498-50fd-a2a7-1a271883e72b/versions/1/scores/scale/",
+        "content_type": "application/vnd.recordare.musicxml",
+        "sha256": "cd334b70f2dd71397b86b671d4fa6329347071140774ea2c80b41aedac82d0eb",
+        "size_bytes": 1061,
+        "musicxml_version": "4.0",
+        "profile": "sori-monophonic-v2",
+        "part_id": "P1",
+        "measure_count": 2
+      }
+    }
+  },
+  "playback_plan": {
+    "version": 3,
+    "engine": "local_midi",
+    "tempo_bpm": 96,
+    "instrument_profile_id": "sori-piano-v1",
+    "tuning_hz": 440,
+    "transpose_semitones": 0,
+    "velocity": 80,
+    "gate_ratio": 1.0,
+    "release_tail_ms": 300,
+    "initial_delay_ms": 2000,
+    "scale": {
+      "score_kind": "scale",
+      "from_measure": 1,
+      "to_measure": 2
+    },
+    "pause_after_scale_ms": 2000,
+    "count_in": {
+      "measures": 1,
+      "before_step_orders": [
+        1,
+        11
+      ],
+      "beats_per_measure": 6,
+      "beat_unit": 8,
+      "accent_velocity": 110,
+      "velocity": 70,
+      "profile_id": "sori-click-v1"
+    },
+    "allow_manual_pause": true,
+    "allow_manual_replay": false,
+    "interruption_policy": "restart_current_segment",
+    "steps": [
+      {
+        "order": 1,
+        "from_measure": 1,
+        "to_measure": 8,
+        "score_kind": "main",
+        "pause_after_ms": 20000
+      },
+      {
+        "order": 2,
+        "from_measure": 1,
+        "to_measure": 2,
+        "score_kind": "main",
+        "pause_after_ms": 20000
+      },
+      {
+        "order": 3,
+        "from_measure": 1,
+        "to_measure": 2,
+        "score_kind": "main",
+        "pause_after_ms": 20000
+      },
+      {
+        "order": 4,
+        "from_measure": 1,
+        "to_measure": 4,
+        "score_kind": "main",
+        "pause_after_ms": 20000
+      },
+      {
+        "order": 5,
+        "from_measure": 3,
+        "to_measure": 4,
+        "score_kind": "main",
+        "pause_after_ms": 20000
+      },
+      {
+        "order": 6,
+        "from_measure": 3,
+        "to_measure": 6,
+        "score_kind": "main",
+        "pause_after_ms": 20000
+      },
+      {
+        "order": 7,
+        "from_measure": 5,
+        "to_measure": 6,
+        "score_kind": "main",
+        "pause_after_ms": 20000
+      },
+      {
+        "order": 8,
+        "from_measure": 5,
+        "to_measure": 8,
+        "score_kind": "main",
+        "pause_after_ms": 20000
+      },
+      {
+        "order": 9,
+        "from_measure": 7,
+        "to_measure": 8,
+        "score_kind": "main",
+        "pause_after_ms": 20000
+      },
+      {
+        "order": 10,
+        "from_measure": 7,
+        "to_measure": 8,
+        "score_kind": "main",
+        "pause_after_ms": 20000
+      },
+      {
+        "order": 11,
+        "from_measure": 1,
+        "to_measure": 8,
+        "score_kind": "main",
+        "pause_after_ms": 120000
+      }
+    ]
+  },
+  "server_time": "2026-10-23T06:00:00Z"
+}

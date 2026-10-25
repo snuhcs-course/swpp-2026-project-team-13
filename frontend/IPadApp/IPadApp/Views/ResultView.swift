@@ -8,6 +8,7 @@ struct ResultView: View {
             VStack(alignment: .leading, spacing: 26) {
                 SectionCaption(eyebrow:"YOUR LISTENING, IN NOTES", title: title, subtitle: model.session?.attempt.question.title ?? "")
                 if model.session?.attempt.gradingMode == "demo" { DemoBadge() }
+                else { Text("AI가 제공하는 학습 참고용 평가입니다. 실제 필기와 정답 악보도 함께 확인해 주세요.").font(.footnote).foregroundStyle(.secondary) }
                 if let grading = model.session?.grading {
                     switch grading.status {
                     case "queued", "processing": pending(grading)
@@ -59,9 +60,9 @@ struct ResultView: View {
     private func stage(_ value:String) -> String { ["pending":"분석 대기 중","recognizing":"필기를 읽는 중","grading":"음정과 리듬을 확인하는 중","feedback":"피드백을 준비하는 중"][value] ?? "분석 진행 중" }
     private func completed(_ g: Grading) -> some View {
         Card { HStack(alignment:.center,spacing:32) {
-            VStack(alignment:.leading,spacing:8) { Text("종합 점수").font(.subheadline).foregroundStyle(.secondary); HStack(alignment:.firstTextBaseline,spacing:4) { Text(g.score.map(String.init) ?? "—").font(.system(size:64,weight:.bold,design:.rounded)).foregroundStyle(SORITheme.violet); Text("/ 100").foregroundStyle(.secondary) } }
+            VStack(alignment:.leading,spacing:8) { Text("AI 종합 평가").font(.subheadline).foregroundStyle(.secondary); HStack(alignment:.firstTextBaseline,spacing:4) { Text(g.score.map(String.init) ?? "—").font(.system(size:64,weight:.bold,design:.rounded)).foregroundStyle(SORITheme.violet); Text("/ 100").foregroundStyle(.secondary) } }
             Spacer()
-            VStack(alignment:.leading,spacing:22) { accuracy("음정 정확도",g.pitchAccuracy); accuracy("리듬 정확도",g.rhythmAccuracy) }.frame(maxWidth:330)
+            VStack(alignment:.leading,spacing:22) { accuracy("음정 평가",g.pitchAccuracy); accuracy("리듬 평가",g.rhythmAccuracy) }.frame(maxWidth:330)
         } }
     }
     private func accuracy(_ title:String,_ value:Double?) -> some View {

@@ -2,8 +2,8 @@
   "openapi": "3.0.3",
   "info": {
     "title": "SORI iPad Exam API",
-    "version": "0.2.0",
-    "description": "Personal-practice MVP: server delivers MXL; iPad renders notation and synthesizes piano locally; iPad uploads answer PNG for asynchronous server recognition/grading. API-CONTRACT.md and MXL-ARCHITECTURE.md define business invariants. Example hosts are placeholders; two original MXL fixtures are supplied. No network MIDI or audio files. Authentication enrollment is outside this exam API."
+    "version": "0.4.0",
+    "description": "Personal-practice iPad API with three immutable MusicXML questions (6/8, 4/4, 3/4), local piano playback and asynchronous OpenRouter AI grading and Korean feedback. AI values are estimates; API-CONTRACT.md defines invariants. Legacy v1 fixtures remain for regression checks. Playback v3 adds meter-matched, accented count-ins before both full replays, 20-second writing pauses and a final 120 seconds."
   },
   "servers": [
     {
@@ -232,14 +232,31 @@
                   "$ref": "#/components/schemas/QuestionPage"
                 },
                 "example": {
-                  "count": 1,
+                  "count": 3,
                   "next": null,
                   "previous": null,
                   "results": [
                     {
-                      "id": "22222222-2222-4222-8222-222222222222",
+                      "id": "128f51a9-5498-50fd-a2a7-1a271883e72b",
                       "version": 1,
-                      "title": "Melodic Dictation · Practice 01",
+                      "title": "청음 연습 1 · 6/8",
+                      "source": "practice",
+                      "key_signature": {
+                        "tonic": "C",
+                        "mode": "major",
+                        "fifths": 0
+                      },
+                      "time_signature": {
+                        "numerator": 6,
+                        "denominator": 8
+                      },
+                      "measure_count": 8,
+                      "recommended_duration_seconds": 407
+                    },
+                    {
+                      "id": "cfe540d9-445e-59c5-9338-586fc9ba2842",
+                      "version": 1,
+                      "title": "청음 연습 2 · 4/4",
                       "source": "practice",
                       "key_signature": {
                         "tonic": "C",
@@ -251,7 +268,24 @@
                         "denominator": 4
                       },
                       "measure_count": 8,
-                      "recommended_duration_seconds": 300
+                      "recommended_duration_seconds": 434
+                    },
+                    {
+                      "id": "e8b704b7-efe5-583c-944a-270915628ca2",
+                      "version": 1,
+                      "title": "청음 연습 3 · 3/4",
+                      "source": "practice",
+                      "key_signature": {
+                        "tonic": "C",
+                        "mode": "major",
+                        "fifths": 0
+                      },
+                      "time_signature": {
+                        "numerator": 3,
+                        "denominator": 4
+                      },
+                      "measure_count": 8,
+                      "recommended_duration_seconds": 407
                     }
                   ]
                 }
@@ -319,9 +353,9 @@
                   "$ref": "#/components/schemas/Question"
                 },
                 "example": {
-                  "id": "22222222-2222-4222-8222-222222222222",
+                  "id": "128f51a9-5498-50fd-a2a7-1a271883e72b",
                   "version": 1,
-                  "title": "Melodic Dictation · Practice 01",
+                  "title": "청음 연습 1 · 6/8",
                   "source": "practice",
                   "key_signature": {
                     "tonic": "C",
@@ -329,23 +363,23 @@
                     "fifths": 0
                   },
                   "time_signature": {
-                    "numerator": 4,
-                    "denominator": 4
+                    "numerator": 6,
+                    "denominator": 8
                   },
                   "measure_count": 8,
-                  "recommended_duration_seconds": 300,
-                  "description": "멜로디를 듣고 빈 오선에 적어보세요.",
+                  "recommended_duration_seconds": 407,
+                  "description": "멜로디를 듣고 빈 오선에 적어보세요. 제출 후 AI 평가와 정답을 확인할 수 있어요.",
                   "time_policy": "advisory",
                   "clef": "treble",
                   "sheet_layout": {
-                    "id": "staff-8bars-v1",
+                    "id": "staff-8bars-6-8-v2",
                     "logical_width": 1330,
                     "logical_height": 846,
                     "export_scale": 2,
                     "pixel_width": 2660,
                     "pixel_height": 1692,
-                    "template_png_url": "https://assets.sori.example/sheets/staff-8bars-v1.png",
-                    "template_sha256": "0fa8e695dcb6a36b8ba78ab73345518f737546fa819529ca1d93a935a6ae30c4",
+                    "template_png_url": "https://api.sori.example/assets/sheets/staff-8bars-6-8-v2.png",
+                    "template_sha256": "32906ad8aeab576eec3b7dfd0e3e86d28a7f446b285e09dcecb468384c55b287",
                     "systems": [
                       {
                         "index": 1,
@@ -391,22 +425,22 @@
                   "score_visibility": "after_submission",
                   "score_assets": {
                     "main": {
-                      "url": "https://api.sori.example/api/v1/questions/22222222-2222-4222-8222-222222222222/versions/1/scores/main/",
+                      "url": "https://api.sori.example/api/v1/questions/128f51a9-5498-50fd-a2a7-1a271883e72b/versions/1/scores/main/",
                       "content_type": "application/vnd.recordare.musicxml",
-                      "sha256": "f5ea2a6e2bbde0fe359bd566ce544ceb662faaa8122b243c79478255ea890f10",
-                      "size_bytes": 1364,
+                      "sha256": "1accb0beaf393bf5a46288578e7811383a9a14dca847936cffbf788fc7b190d4",
+                      "size_bytes": 1652,
                       "musicxml_version": "4.0",
-                      "profile": "sori-monophonic-v1",
+                      "profile": "sori-monophonic-v2",
                       "part_id": "P1",
                       "measure_count": 8
                     },
                     "scale": {
-                      "url": "https://api.sori.example/api/v1/questions/22222222-2222-4222-8222-222222222222/versions/1/scores/scale/",
+                      "url": "https://api.sori.example/api/v1/questions/128f51a9-5498-50fd-a2a7-1a271883e72b/versions/1/scores/scale/",
                       "content_type": "application/vnd.recordare.musicxml",
-                      "sha256": "af6f34ee8cbe1f2884a7340a08864b635fc8bae0c77437f9dafdd29896dd1d14",
-                      "size_bytes": 1100,
+                      "sha256": "cd334b70f2dd71397b86b671d4fa6329347071140774ea2c80b41aedac82d0eb",
+                      "size_bytes": 1061,
                       "musicxml_version": "4.0",
-                      "profile": "sori-monophonic-v1",
+                      "profile": "sori-monophonic-v2",
                       "part_id": "P1",
                       "measure_count": 2
                     }
@@ -494,7 +528,7 @@
                 "example": {
                   "id": "33333333-3333-4333-8333-333333333333",
                   "status": "ready",
-                  "grading_mode": "demo",
+                  "grading_mode": "automatic",
                   "created_at": "2026-10-23T06:00:00Z",
                   "started_at": null,
                   "recommended_end_at": null,
@@ -502,9 +536,9 @@
                   "submitted_answer_id": null,
                   "latest_answer": null,
                   "question": {
-                    "id": "22222222-2222-4222-8222-222222222222",
+                    "id": "128f51a9-5498-50fd-a2a7-1a271883e72b",
                     "version": 1,
-                    "title": "Melodic Dictation · Practice 01",
+                    "title": "청음 연습 1 · 6/8",
                     "source": "practice",
                     "key_signature": {
                       "tonic": "C",
@@ -512,23 +546,23 @@
                       "fifths": 0
                     },
                     "time_signature": {
-                      "numerator": 4,
-                      "denominator": 4
+                      "numerator": 6,
+                      "denominator": 8
                     },
                     "measure_count": 8,
-                    "recommended_duration_seconds": 300,
-                    "description": "멜로디를 듣고 빈 오선에 적어보세요.",
+                    "recommended_duration_seconds": 407,
+                    "description": "멜로디를 듣고 빈 오선에 적어보세요. 제출 후 AI 평가와 정답을 확인할 수 있어요.",
                     "time_policy": "advisory",
                     "clef": "treble",
                     "sheet_layout": {
-                      "id": "staff-8bars-v1",
+                      "id": "staff-8bars-6-8-v2",
                       "logical_width": 1330,
                       "logical_height": 846,
                       "export_scale": 2,
                       "pixel_width": 2660,
                       "pixel_height": 1692,
-                      "template_png_url": "https://assets.sori.example/sheets/staff-8bars-v1.png",
-                      "template_sha256": "0fa8e695dcb6a36b8ba78ab73345518f737546fa819529ca1d93a935a6ae30c4",
+                      "template_png_url": "https://api.sori.example/assets/sheets/staff-8bars-6-8-v2.png",
+                      "template_sha256": "32906ad8aeab576eec3b7dfd0e3e86d28a7f446b285e09dcecb468384c55b287",
                       "systems": [
                         {
                           "index": 1,
@@ -574,29 +608,29 @@
                     "score_visibility": "after_submission",
                     "score_assets": {
                       "main": {
-                        "url": "https://api.sori.example/api/v1/questions/22222222-2222-4222-8222-222222222222/versions/1/scores/main/",
+                        "url": "https://api.sori.example/api/v1/questions/128f51a9-5498-50fd-a2a7-1a271883e72b/versions/1/scores/main/",
                         "content_type": "application/vnd.recordare.musicxml",
-                        "sha256": "f5ea2a6e2bbde0fe359bd566ce544ceb662faaa8122b243c79478255ea890f10",
-                        "size_bytes": 1364,
+                        "sha256": "1accb0beaf393bf5a46288578e7811383a9a14dca847936cffbf788fc7b190d4",
+                        "size_bytes": 1652,
                         "musicxml_version": "4.0",
-                        "profile": "sori-monophonic-v1",
+                        "profile": "sori-monophonic-v2",
                         "part_id": "P1",
                         "measure_count": 8
                       },
                       "scale": {
-                        "url": "https://api.sori.example/api/v1/questions/22222222-2222-4222-8222-222222222222/versions/1/scores/scale/",
+                        "url": "https://api.sori.example/api/v1/questions/128f51a9-5498-50fd-a2a7-1a271883e72b/versions/1/scores/scale/",
                         "content_type": "application/vnd.recordare.musicxml",
-                        "sha256": "af6f34ee8cbe1f2884a7340a08864b635fc8bae0c77437f9dafdd29896dd1d14",
-                        "size_bytes": 1100,
+                        "sha256": "cd334b70f2dd71397b86b671d4fa6329347071140774ea2c80b41aedac82d0eb",
+                        "size_bytes": 1061,
                         "musicxml_version": "4.0",
-                        "profile": "sori-monophonic-v1",
+                        "profile": "sori-monophonic-v2",
                         "part_id": "P1",
                         "measure_count": 2
                       }
                     }
                   },
                   "playback_plan": {
-                    "version": 2,
+                    "version": 3,
                     "engine": "local_midi",
                     "tempo_bpm": 96,
                     "instrument_profile_id": "sori-piano-v1",
@@ -605,12 +639,25 @@
                     "velocity": 80,
                     "gate_ratio": 1.0,
                     "release_tail_ms": 300,
+                    "initial_delay_ms": 2000,
                     "scale": {
                       "score_kind": "scale",
                       "from_measure": 1,
                       "to_measure": 2
                     },
-                    "pause_after_scale_ms": 3000,
+                    "pause_after_scale_ms": 2000,
+                    "count_in": {
+                      "measures": 1,
+                      "before_step_orders": [
+                        1,
+                        11
+                      ],
+                      "beats_per_measure": 6,
+                      "beat_unit": 8,
+                      "accent_velocity": 110,
+                      "velocity": 70,
+                      "profile_id": "sori-click-v1"
+                    },
                     "allow_manual_pause": true,
                     "allow_manual_replay": false,
                     "interruption_policy": "restart_current_segment",
@@ -620,77 +667,77 @@
                         "from_measure": 1,
                         "to_measure": 8,
                         "score_kind": "main",
-                        "pause_after_ms": 5000
+                        "pause_after_ms": 20000
                       },
                       {
                         "order": 2,
                         "from_measure": 1,
                         "to_measure": 2,
                         "score_kind": "main",
-                        "pause_after_ms": 5000
+                        "pause_after_ms": 20000
                       },
                       {
                         "order": 3,
                         "from_measure": 1,
                         "to_measure": 2,
                         "score_kind": "main",
-                        "pause_after_ms": 5000
+                        "pause_after_ms": 20000
                       },
                       {
                         "order": 4,
                         "from_measure": 1,
                         "to_measure": 4,
                         "score_kind": "main",
-                        "pause_after_ms": 5000
+                        "pause_after_ms": 20000
                       },
                       {
                         "order": 5,
                         "from_measure": 3,
                         "to_measure": 4,
                         "score_kind": "main",
-                        "pause_after_ms": 5000
+                        "pause_after_ms": 20000
                       },
                       {
                         "order": 6,
                         "from_measure": 3,
                         "to_measure": 6,
                         "score_kind": "main",
-                        "pause_after_ms": 5000
+                        "pause_after_ms": 20000
                       },
                       {
                         "order": 7,
                         "from_measure": 5,
                         "to_measure": 6,
                         "score_kind": "main",
-                        "pause_after_ms": 5000
+                        "pause_after_ms": 20000
                       },
                       {
                         "order": 8,
                         "from_measure": 5,
                         "to_measure": 8,
                         "score_kind": "main",
-                        "pause_after_ms": 5000
+                        "pause_after_ms": 20000
                       },
                       {
                         "order": 9,
                         "from_measure": 7,
                         "to_measure": 8,
                         "score_kind": "main",
-                        "pause_after_ms": 5000
+                        "pause_after_ms": 20000
                       },
                       {
                         "order": 10,
                         "from_measure": 7,
                         "to_measure": 8,
                         "score_kind": "main",
-                        "pause_after_ms": 5000
+                        "pause_after_ms": 20000
                       },
                       {
                         "order": 11,
                         "from_measure": 1,
                         "to_measure": 8,
                         "score_kind": "main",
-                        "pause_after_ms": 0
+                        "pause_after_ms": 120000
                       }
                     ]
                   },
@@ -901,7 +948,7 @@
                     "tuning_hz": 440,
                     "transpose_semitones": 0,
                     "velocity": 80,
-                    "gate_ratio": 1.0,
+                    "gate_ratio": 1,
                     "release_tail_ms": 300,
                     "scale": {
                       "score_kind": "scale",
@@ -1172,7 +1219,7 @@
                     "tuning_hz": 440,
                     "transpose_semitones": 0,
                     "velocity": 80,
-                    "gate_ratio": 1.0,
+                    "gate_ratio": 1,
                     "release_tail_ms": 300,
                     "scale": {
                       "score_kind": "scale",
@@ -1584,8 +1631,8 @@
                   "status": "completed",
                   "stage": "done",
                   "score": 81,
-                  "pitch_accuracy": 84.0,
-                  "rhythm_accuracy": 78.0,
+                  "pitch_accuracy": 84,
+                  "rhythm_accuracy": 78,
                   "feedback": {
                     "summary": "도약 뒤의 음정과 쉼표 길이를 확인해 보세요.",
                     "recommendations": [
@@ -2004,6 +2051,50 @@
         "required": [
           "numerator",
           "denominator"
+        ],
+        "oneOf": [
+          {
+            "properties": {
+              "numerator": {
+                "enum": [
+                  4
+                ]
+              },
+              "denominator": {
+                "enum": [
+                  4
+                ]
+              }
+            }
+          },
+          {
+            "properties": {
+              "numerator": {
+                "enum": [
+                  3
+                ]
+              },
+              "denominator": {
+                "enum": [
+                  4
+                ]
+              }
+            }
+          },
+          {
+            "properties": {
+              "numerator": {
+                "enum": [
+                  6
+                ]
+              },
+              "denominator": {
+                "enum": [
+                  8
+                ]
+              }
+            }
+          }
         ]
       },
       "SheetSystem": {
@@ -2186,7 +2277,8 @@
           "profile": {
             "type": "string",
             "enum": [
-              "sori-monophonic-v1"
+              "sori-monophonic-v1",
+              "sori-monophonic-v2"
             ]
           },
           "part_id": {
@@ -2317,9 +2409,9 @@
           "score_assets"
         ],
         "example": {
-          "id": "22222222-2222-4222-8222-222222222222",
+          "id": "128f51a9-5498-50fd-a2a7-1a271883e72b",
           "version": 1,
-          "title": "Melodic Dictation · Practice 01",
+          "title": "청음 연습 1 · 6/8",
           "source": "practice",
           "key_signature": {
             "tonic": "C",
@@ -2327,23 +2419,23 @@
             "fifths": 0
           },
           "time_signature": {
-            "numerator": 4,
-            "denominator": 4
+            "numerator": 6,
+            "denominator": 8
           },
           "measure_count": 8,
           "recommended_duration_seconds": 300,
-          "description": "멜로디를 듣고 빈 오선에 적어보세요.",
+          "description": "멜로디를 듣고 빈 오선에 적어보세요. 제출 후 AI 평가와 정답을 확인할 수 있어요.",
           "time_policy": "advisory",
           "clef": "treble",
           "sheet_layout": {
-            "id": "staff-8bars-v1",
+            "id": "staff-8bars-6-8-v2",
             "logical_width": 1330,
             "logical_height": 846,
             "export_scale": 2,
             "pixel_width": 2660,
             "pixel_height": 1692,
-            "template_png_url": "https://assets.sori.example/sheets/staff-8bars-v1.png",
-            "template_sha256": "0fa8e695dcb6a36b8ba78ab73345518f737546fa819529ca1d93a935a6ae30c4",
+            "template_png_url": "https://api.sori.example/assets/sheets/staff-8bars-6-8-v2.png",
+            "template_sha256": "32906ad8aeab576eec3b7dfd0e3e86d28a7f446b285e09dcecb468384c55b287",
             "systems": [
               {
                 "index": 1,
@@ -2389,22 +2481,22 @@
           "score_visibility": "after_submission",
           "score_assets": {
             "main": {
-              "url": "https://api.sori.example/api/v1/questions/22222222-2222-4222-8222-222222222222/versions/1/scores/main/",
+              "url": "https://api.sori.example/api/v1/questions/128f51a9-5498-50fd-a2a7-1a271883e72b/versions/1/scores/main/",
               "content_type": "application/vnd.recordare.musicxml",
-              "sha256": "f5ea2a6e2bbde0fe359bd566ce544ceb662faaa8122b243c79478255ea890f10",
-              "size_bytes": 1364,
+              "sha256": "1accb0beaf393bf5a46288578e7811383a9a14dca847936cffbf788fc7b190d4",
+              "size_bytes": 1652,
               "musicxml_version": "4.0",
-              "profile": "sori-monophonic-v1",
+              "profile": "sori-monophonic-v2",
               "part_id": "P1",
               "measure_count": 8
             },
             "scale": {
-              "url": "https://api.sori.example/api/v1/questions/22222222-2222-4222-8222-222222222222/versions/1/scores/scale/",
+              "url": "https://api.sori.example/api/v1/questions/128f51a9-5498-50fd-a2a7-1a271883e72b/versions/1/scores/scale/",
               "content_type": "application/vnd.recordare.musicxml",
-              "sha256": "af6f34ee8cbe1f2884a7340a08864b635fc8bae0c77437f9dafdd29896dd1d14",
-              "size_bytes": 1100,
+              "sha256": "cd334b70f2dd71397b86b671d4fa6329347071140774ea2c80b41aedac82d0eb",
+              "size_bytes": 1061,
               "musicxml_version": "4.0",
-              "profile": "sori-monophonic-v1",
+              "profile": "sori-monophonic-v2",
               "part_id": "P1",
               "measure_count": 2
             }
@@ -2494,7 +2586,8 @@
           },
           "pause_after_ms": {
             "type": "integer",
-            "minimum": 0
+            "minimum": 0,
+            "description": "v3: 20000 after steps 1..10, 120000 after step 11."
           }
         },
         "required": [
@@ -2541,7 +2634,8 @@
           "version": {
             "type": "integer",
             "enum": [
-              2
+              2,
+              3
             ]
           },
           "engine": {
@@ -2623,6 +2717,15 @@
             },
             "minItems": 11,
             "maxItems": 11
+          },
+          "initial_delay_ms": {
+            "type": "integer",
+            "enum": [
+              2000
+            ]
+          },
+          "count_in": {
+            "$ref": "#/components/schemas/CountInPlayback"
           }
         },
         "required": [
@@ -2641,7 +2744,37 @@
           "allow_manual_replay",
           "interruption_policy",
           "steps"
-        ]
+        ],
+        "oneOf": [
+          {
+            "properties": {
+              "version": {
+                "enum": [
+                  2
+                ]
+              }
+            }
+          },
+          {
+            "properties": {
+              "version": {
+                "enum": [
+                  3
+                ]
+              },
+              "pause_after_scale_ms": {
+                "enum": [
+                  2000
+                ]
+              }
+            },
+            "required": [
+              "initial_delay_ms",
+              "count_in"
+            ]
+          }
+        ],
+        "description": "Existing immutable attempts may use v2. New attempts use v3: initial 2 s, scale, 2 s, counted first full replay, 20 s after steps 1..10, counted final full replay, 120 s final writing. Release tails occupy the prescribed pauses and do not add 300 ms."
       },
       "UserProfile": {
         "type": "object",
@@ -3074,7 +3207,7 @@
             "tuning_hz": 440,
             "transpose_semitones": 0,
             "velocity": 80,
-            "gate_ratio": 1.0,
+            "gate_ratio": 1,
             "release_tail_ms": 300,
             "scale": {
               "score_kind": "scale",
@@ -3515,7 +3648,7 @@
           "updated_at",
           "server_time"
         ],
-        "description": "Conditional field invariants and grading formula are normative in API-CONTRACT.md. Non-completed results have null scores.",
+        "description": "AI evaluation: conditional field invariants in API-CONTRACT.md. Scores are null unless completed. No deterministic 50:50 formula in ai-melodic-v1.",
         "example": {
           "attempt_id": "33333333-3333-4333-8333-333333333333",
           "answer_id": "44444444-4444-4444-8444-444444444444",
@@ -3615,6 +3748,77 @@
           },
           "request_id": "req-example-001"
         }
+      },
+      "CountInPlayback": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "measures": {
+            "type": "integer",
+            "enum": [
+              1
+            ]
+          },
+          "before_step_orders": {
+            "type": "array",
+            "items": {
+              "type": "integer",
+              "enum": [
+                1,
+                11
+              ]
+            },
+            "minItems": 2,
+            "maxItems": 2,
+            "example": [
+              1,
+              11
+            ]
+          },
+          "beats_per_measure": {
+            "type": "integer",
+            "enum": [
+              3,
+              4,
+              6
+            ]
+          },
+          "beat_unit": {
+            "type": "integer",
+            "enum": [
+              4,
+              8
+            ]
+          },
+          "accent_velocity": {
+            "type": "integer",
+            "enum": [
+              110
+            ]
+          },
+          "velocity": {
+            "type": "integer",
+            "enum": [
+              70
+            ]
+          },
+          "profile_id": {
+            "type": "string",
+            "enum": [
+              "sori-click-v1"
+            ]
+          }
+        },
+        "required": [
+          "measures",
+          "before_step_orders",
+          "beats_per_measure",
+          "beat_unit",
+          "accent_velocity",
+          "velocity",
+          "profile_id"
+        ],
+        "description": "One measure before steps 1 and 11 only. Numerator clicks at denominator-note intervals; first velocity 110, others 70. Count-in and score share one MIDI clock. 6/8 has six eighth-note clicks."
       }
     },
     "responses": {

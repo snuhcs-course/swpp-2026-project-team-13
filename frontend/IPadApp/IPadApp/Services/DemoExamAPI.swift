@@ -2,10 +2,10 @@ import Foundation
 
 // Durable mock backend. It never claims to recognize handwriting; every result is marked demo.
 @MainActor final class DemoExamAPI: ExamAPI {
-    let scope = "sori-local-demo-v1"
+    let scope = "sori-local-demo-v3"
     let store: LocalStore
     let outcome: String
-    init(outcome: String) throws { store = try LocalStore(scope: "demo-backend-v1"); self.outcome = outcome }
+    init(outcome: String) throws { store = try LocalStore(scope: "demo-backend-v3"); self.outcome = outcome }
     func profile() async throws -> UserProfile {
         let url = store.root.appendingPathComponent("profile.json")
         if FileManager.default.fileExists(atPath: url.path) { return try ContractJSON.decoder().decode(UserProfile.self, from: Data(contentsOf: url)) }
@@ -15,12 +15,24 @@ import Foundation
         var value = try await profile(); value.learningGoal = goal
         try ContractJSON.encoder().encode(value).write(to: store.root.appendingPathComponent("profile.json"), options: .atomic); return value
     }
-    func questions(page: Int) async throws -> QuestionPage { try Bundled.decode("questions") }
-    func question(_ id: UUID) async throws -> Question { try Bundled.decode("question") }
+    private func catalog() throws -> [Question] {
+        let values: [Question] = try Bundled.decode("practice-catalog")
+        return values.map { source in
+            var q = source; q.recommendedDurationSeconds = Int(ceil(PlaybackPlan.exam(meter:q.timeSignature).nominalDurationSeconds(meter:q.timeSignature))); return q
+        }
+    }
+    func questions(page: Int) async throws -> QuestionPage {
+        let values = try catalog()
+        return QuestionPage(count: values.count, next: nil, previous: nil, results: values.map { q in QuestionSummary(id:q.id,version:q.version,title:q.title,source:q.source,keySignature:q.keySignature,timeSignature:q.timeSignature,measureCount:q.measureCount,recommendedDurationSeconds:q.recommendedDurationSeconds) })
+    }
+    func question(_ id: UUID) async throws -> Question {
+        guard let q = try catalog().first(where: { $0.id == id }) else { throw SORIError.configuration("데모 문제를 찾을 수 없습니다.") }; return q
+    }
     func createAttempt(question: Question, key: UUID) async throws -> Attempt {
         let path = store.root.appendingPathComponent("create-\(key).json")
         if FileManager.default.fileExists(atPath: path.path) { return try ContractJSON.decoder().decode(Attempt.self, from: Data(contentsOf: path)) }
         var attempt: Attempt = try Bundled.decode("attempt-ready")
+        attempt.playbackPlan = .exam(meter:question.timeSignature)
         attempt.id = UUID(); attempt.question = question; attempt.createdAt = Date(); attempt.serverTime = Date()
         try store.save(SessionRecord(attempt: attempt))
         try ContractJSON.encoder().encode(attempt).write(to: path, options: .atomic); return attempt
@@ -74,9 +86,13 @@ import Foundation
     }
     func asset(_ url: URL, authenticated: Bool, limit: Int) async throws -> Data {
         let data: Data
-        if url.path.contains("/scores/main") { data = try Bundled.data("practice-01-main", ext: "mxl") }
-        else if url.path.contains("/scores/scale") { data = try Bundled.data("practice-01-scale", ext: "mxl") }
-        else { data = try Bundled.data("staff-8bars-v1", ext: "png") }
+        let values = try catalog()
+        if let index = values.firstIndex(where: { url.path.lowercased().contains($0.id.uuidString.lowercased()) }) {
+            let kind = url.path.contains("/scores/scale") ? "scale" : "main"
+            data = try Bundled.data("excerpt-\(index+1)-\(kind)", ext:"mxl")
+        } else if let q = values.first(where: { $0.sheetLayout.templatePngUrl == url }) {
+            data = try Bundled.data(q.sheetLayout.id, ext:"png")
+        } else { throw SORIError.configuration("데모 자산을 찾을 수 없습니다.") }
         guard data.count <= limit else { throw SORIError.storage("자산 용량 초과") }; return data
     }
 }

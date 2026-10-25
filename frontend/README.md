@@ -1,14 +1,16 @@
 # SORI iPad frontend
 
-Native SwiftUI / PencilKit app for the complete SORI v0.2.0 exam contract. iPadOS 17+, Xcode 16+; no external Swift packages or network-loaded rendering code.
+Native SwiftUI / PencilKit app for the SORI v0.4.0 personal-practice contract. iPadOS 17+, Xcode 16+; no external Swift packages or network-loaded rendering code.
 
 ## Run
 
 Open `IPadApp/IPadApp.xcodeproj`, select the shared `IPadApp` scheme and an iPad simulator, and Run. The default **local demo** works without a server. The app includes the exact API fixtures, staff template, MXL examples, a native notation renderer, and a fixed synthesized piano SoundFont. Demo results are explicitly marked as examples and do not analyze handwriting.
 
-Use **연결 설정** to switch to the backend. Enter an absolute base URL ending `/api/v1/` and a backend-issued Bearer token. The token is stored in this device's Keychain, never UserDefaults or source control. Release requires HTTPS. Debug permits HTTP for local development; the app's transport security configuration allows local networking only. For a physical iPad use the Mac's LAN address; `localhost` on an iPad means the iPad itself. A blank token field reuses the Keychain token for that server.
+Use **연결 설정** to switch to the backend. Enter an absolute base URL ending `/api/v1/` and a backend-issued Bearer token. The token is stored in this device's Keychain, never UserDefaults or source control. Release requires HTTPS. Debug permits HTTP for local development. For a physical iPad use the backend PC's LAN address; `localhost` on an iPad means the iPad itself. A blank token field reuses the Keychain token for that server.
 
-The existing backend in this repository only implements `/api/health/`; it does not yet implement SORI's 13 operations. Live use requires the Django developer to implement [the versioned contract](../docs/sori-api/API-CONTRACT.md), replace `.example` origins, and issue development tokens. Local demo is deliberately separate from live API errors.
+The Django backend implements the versioned SORI operations with PostgreSQL and an OpenRouter worker. Follow ../docs/IPAD-SETUP.md to start the server and issue development tokens. Local demo is deliberately separate from live API errors.
+
+For Windows installation without a Mac, follow [the Sideloadly guide](../docs/WINDOWS-IPAD.md). Successful push CI runs publish the unsigned device Debug IPA as **SORI-iPad-install**; signing takes place on the user’s Windows PC.
 
 ## Screens and contract behavior
 
@@ -52,4 +54,4 @@ Select any installed iPad simulator name when your Xcode has a different device 
 
 ## Instrument profile
 
-`sori-piano-v1.sf2` is original additive piano-like synthesis, not a recording of an acoustic piano. No third-party samples, fonts or runtime downloads are used. Its CC0-1.0 dedication, bank/program, gain, tuning, byte count and SHA-256 are in `Resources/instrument-profile.json`. The committed SF2 bytes are canonical. The generator is included for auditability; floating-point regeneration on a different platform is not a replacement for those bytes. If sound or mapping changes, assign a new profile ID and coordinate the contract change with the backend. The native renderer supports only `sori-monophonic-v1`, not arbitrary MusicXML.
+`sori-piano-v1.sf2` is original additive piano-like synthesis, not a recording of an acoustic piano. No third-party samples, fonts or runtime downloads are used. Its CC0-1.0 dedication, bank/program, gain, tuning, byte count and SHA-256 are in `Resources/instrument-profile.json`. The committed SF2 bytes are canonical. The generator is included for auditability; floating-point regeneration on a different platform is not a replacement for those bytes. If sound or mapping changes, assign a new profile ID and coordinate the contract change with the backend. The native renderer supports the limited sori-monophonic-v1 and sori-monophonic-v2 profiles; v2 includes 3/4, 6/8, sixteenth notes and 3:2 tuplets. It does not support arbitrary MusicXML.

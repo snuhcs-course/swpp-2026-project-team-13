@@ -10,12 +10,28 @@ permissions:
 jobs:
   backend:
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_DB: sori
+          POSTGRES_USER: sori
+          POSTGRES_PASSWORD: ci-only-database-password
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U sori -d sori"
+          --health-interval 5s --health-timeout 5s --health-retries 12
     defaults:
       run:
         working-directory: backend
     env:
       DJANGO_SECRET_KEY: ci-only-not-a-deployment-secret
       DJANGO_DEBUG: 'false'
+      POSTGRES_DB: sori
+      POSTGRES_USER: sori
+      POSTGRES_PASSWORD: ci-only-database-password
+      POSTGRES_HOST: localhost
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -27,7 +43,9 @@ jobs:
       - run: python manage.py check
       - run: python manage.py migrate --noinput
       - run: python manage.py makemigrations --check --dry-run
-      - run: python manage.py test api
+      - run: python ../scripts/test_content.py
+      - run: python ../scripts/test_playback.py
+      - run: python manage.py test api sori --noinput
 
   frontend:
     runs-on: macos-latest
@@ -43,3 +61,31 @@ jobs:
           -scheme IPadApp -configuration Debug
           -destination 'generic/platform=iOS Simulator'
           -derivedDataPath build/DerivedData CODE_SIGNING_ALLOWED=NO build
+
+      - name: Build unsigned iPad app for Windows installation
+        if: github.event_name == 'push'
+        run: >-
+          xcodebuild -project frontend/IPadApp/IPadApp.xcodeproj
+          -scheme IPadApp -configuration Debug -sdk iphoneos
+          -destination 'generic/platform=iOS'
+          -derivedDataPath build/Device
+          ARCHS=arm64 CODE_SIGNING_ALLOWED=NO
+          ENABLE_DEBUG_DYLIB=NO ENABLE_PREVIEWS=NO build
+      - name: Verify device architecture and package IPA
+        if: github.event_name == 'push'
+        run: |
+          xcrun lipo "build/Device/Build/Products/Debug-iphoneos/IPadApp.app/IPadApp" -verify_arch arm64
+          python3 scripts/package-ipad.py --app build/Device/Build/Products/Debug-iphoneos/IPadApp.app
+      - name: Upload iPad installation package
+        if: github.event_name == 'push'
+        uses: actions/upload-artifact@v4
+        with:
+          name: SORI-iPad-install
+          path: |
+            dist/ipad/SORI-iPad-unsigned.ipa
+            dist/ipad/INSTALL-WINDOWS.md
+            dist/ipad/build-info.json
+            dist/ipad/SHA256SUMS.txt
+          if-no-files-found: error
+          retention-days: 14
+          compression-level: 0
