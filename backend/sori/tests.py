@@ -150,6 +150,33 @@ class FlowTests(TestCase):
         self.assertEqual(response.status_code, 401)
         self.assertEqual(response["Content-Type"], "application/json")
 
+    def test_reference_display_is_authenticated_and_pinned_to_source(self):
+        q = QuestionVersion.objects.order_by("question__order").first().metadata
+        preview = self.client.get(f'/api/v1/questions/{q["id"]}/').data["correct_score"]
+        response = self.client.get(preview["url"], HTTP_ACCEPT="image/png")
+        self.assertEqual(response.status_code,200)
+        data = b"".join(response.streaming_content)
+        self.assertEqual(hashlib.sha256(data).hexdigest(),preview["sha256"])
+        self.assertEqual(len(data),preview["size_bytes"])
+        self.client.credentials()
+        self.assertEqual(self.client.get(preview["url"],HTTP_ACCEPT="image/png").status_code,401)
+
+    def test_submission_freezes_notation_rubric_in_job_and_keeps_note_locations(self):
+        attempt, _, _ = self.submitted()
+        job = claim_job()
+        self.assertEqual(job.prompt_version,"sori-feedback-2-notation-1")
+        self.assertIn("N4 빔과 박 묶음",job.prompt_text)
+        self.assertIn("notation_suggestion",job.prompt_text)
+        value = {"status":"completed","recognized_musicxml":"<score-partwise/>","score":100,"pitch_accuracy":100,"rhythm_accuracy":100,"feedback":{"summary":"음정과 리듬은 맞고 표기를 더 읽기 좋게 해 봐요.","recommendations":[]},"annotations":[{"type":"notation_error","measure":1,"note_index":2,"end_note_index":5,"message":"6/8의 빔을 3개씩 묶어 봐요."},{"type":"notation_suggestion","measure":3,"note_index":1,"end_note_index":None,"message":"권장 제자리표를 적어 봐요."}]}
+        provider = {"response":{"choices":[{"finish_reason":"stop","message":{"content":json.dumps(value)}}]}}
+        with self.settings(OPENROUTER_API_KEY="test-not-a-real-key"), patch("sori.grading.subprocess.run",return_value=subprocess.CompletedProcess([],0,stdout=json.dumps(provider),stderr="")):
+            execute_job(job)
+        job.refresh_from_db()
+        self.assertEqual(job.status,"completed")
+        self.assertEqual(job.score,100)
+        self.assertEqual(job.annotations[0]["end_note_index"],5)
+        self.assertEqual(job.annotations[1]["type"],"notation_suggestion")
+
     def test_repeated_create_upload_submit_never_duplicate(self):
         q = QuestionVersion.objects.first().metadata
         key = str(uuid.uuid4()); body={"question_id":q["id"], "question_version":q["version"]}
@@ -205,6 +232,13 @@ class FlowTests(TestCase):
         self.assertEqual(self.client.get("/api/v1/me/").status_code,401)
 
 class ResultValidationTests(SimpleTestCase):
+    def test_invalid_note_ranges_cannot_be_persisted(self):
+        layout = json.loads((settings.CONTENT_ROOT / "catalog.json").read_text(encoding="utf-8"))[0]["metadata"]["sheet_layout"]
+        for note,end,measure in [(0,None,1),(True,None,1),(3,2,1),(None,2,1),(1,None,None),(129,None,1)]:
+            value = {"status":"completed","recognized_musicxml":"","score":100,"pitch_accuracy":100,"rhythm_accuracy":100,"feedback":{"summary":"확인해요.","recommendations":[]},"annotations":[{"type":"notation_error","measure":measure,"note_index":note,"end_note_index":end,"message":"확인해요."}]}
+            with self.subTest(note=note,end=end,measure=measure), self.assertRaises(ValueError):
+                validate_result(value,layout)
+
     def test_uncertain_result_cannot_include_numeric_scores(self):
         value={"status":"needs_review","recognized_musicxml":"","score":80,"pitch_accuracy":None,"rhythm_accuracy":None,"feedback":{"summary":"확인이 필요해요.","recommendations":[]},"annotations":[]}
         with self.assertRaises(ValueError):

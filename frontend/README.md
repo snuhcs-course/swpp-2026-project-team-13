@@ -64,3 +64,6 @@ New v4 plans use quarter=80 in 4/4 and 3/4, dotted-quarter=55 in 6/8 (quarter BP
 PianoAudioGraph is shared by the app and the macOS offline audio regression check. It creates fresh sampler nodes after a problem change or playback interruption. MIDI contains no program-change event that can override the loaded piano/click. New plans use the original synthesized sori-piano-v2.sf2; its generator and identity are frontend/scripts/generate_piano_v2.py and Resources/instrument-profile-v2.json. It is a synthesized piano timbre, not a recording.
 
 The drawing canvas installs one UIPencilInteraction and respects the system double-tap preference for pen/eraser or previous-tool switching. Disabled double taps and locked submissions do not change tools. Physical Pencil behavior still requires an iPad check.
+
+
+Before building on a Mac, run `python3 scripts/fetch_soundfont.py` from the repository root to install the pinned GeneralUser GS bank and original license. CI performs this automatically. See [asset provenance and regeneration](../docs/ASSETS.md) and [notation review cases](../docs/NOTATION-REVIEW.md).

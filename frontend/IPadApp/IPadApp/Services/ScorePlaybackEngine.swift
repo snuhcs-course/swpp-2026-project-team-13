@@ -14,6 +14,7 @@ import AudioToolbox
     @Published private(set) var message = "재생 준비 중"
     var onCursor: ((PlaybackCursor) throws -> Void)?
     var onError: ((Error) -> Void)?
+    var voiceId = "grand-piano"
     private let audioGraph = PianoAudioGraph()
     private var engine: AVAudioEngine { audioGraph.engine }
     private var sampler: AVAudioUnitSampler { audioGraph.piano }
@@ -43,17 +44,22 @@ import AudioToolbox
                   scale.timeSignature == main.timeSignature, scale.measures == plan.scale.toMeasure,
                   main.measures == 8 else { throw SORIError.invalidScore("예비박과 문제의 박자표가 다릅니다.") }
         }
-        struct Instrument: Decodable { var id:String; var sha256:String; var program:Int; var bankMsb:Int; var bankLsb:Int; var gainDb:Float }
-        let manifest: Instrument = try Bundled.decode(plan.instrumentProfileId == "sori-piano-v1" ? "instrument-profile" : "instrument-profile-v2")
-        guard manifest.id == plan.instrumentProfileId, let url = Bundle.main.url(forResource:manifest.id,withExtension:"sf2"),
-              try Data(contentsOf:url).sha256 == manifest.sha256 else { throw SORIError.invalidScore("SOUND_BANK_UNAVAILABLE: 피아노 리소스가 손상되었거나 없습니다.") }
-        instrumentURL = url; instrumentProgram = UInt8(manifest.program); bankMSB = UInt8(manifest.bankMsb); bankLSB = UInt8(manifest.bankLsb)
+        struct Bank: Decodable { var sha256:String; var sizeBytes:Int }
+        let choices: InstrumentChoices = try Bundled.decode("instruments")
+        guard let voice = choices.voices.first(where: { $0.id == voiceId }),
+              let url = Bundle.main.url(forResource:"GeneralUser-GS",withExtension:"sf2") else {
+            throw SORIError.invalidScore("음원 리소스가 없습니다. 음원이 포함된 최신 앱으로 설치해 주세요.")
+        }
+        let bank: Bank = try Bundled.decode("instrument-bank")
+        let data = try Data(contentsOf:url)
+        guard data.count == bank.sizeBytes, data.sha256 == bank.sha256 else { throw SORIError.invalidScore("SOUND_BANK_UNAVAILABLE: 음원 리소스가 손상되었습니다.") }
+        instrumentURL = url; instrumentProgram = voice.program; bankMSB = 121; bankLSB = 0
+        outputGain = pow(10,voice.gainDb / 20)
         clickURL = nil
         if let count = plan.countIn {
             guard let url = Bundle.main.url(forResource:count.profileId,withExtension:"wav") else { throw SORIError.invalidScore("예비박 소리 리소스가 없습니다.") }
             clickURL = url
         }
-        outputGain = pow(10,manifest.gainDb / 20)
         self.main = main; self.scale = scale; self.plan = plan
         for i in 0...11 { _ = try midi(index:i) }
         try rebuildAudioGraph()

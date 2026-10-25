@@ -37,6 +37,10 @@ struct ScoreAsset: Codable, Equatable {
     var musicxmlVersion: String; var profile: String; var partId: String; var measureCount: Int
     var sourceTempoBpm: Double? = nil
 }
+struct ReferenceImage: Codable, Equatable {
+    var url: URL; var contentType: String; var sha256: String; var sizeBytes: Int
+    var pixelWidth: Int; var pixelHeight: Int; var renderer: String
+}
 struct ScoreAssets: Codable, Equatable { var main: ScoreAsset; var scale: ScoreAsset }
 struct QuestionSummary: Codable, Identifiable, Equatable {
     var id: UUID; var version: Int; var title: String; var source: String
@@ -51,6 +55,7 @@ struct Question: Codable, Identifiable, Equatable {
     var description: String; var timePolicy: String; var clef: String
     var sheetLayout: SheetLayout; var contentPolicy: String; var scoreVisibility: String; var scoreAssets: ScoreAssets
     var tempo: TempoSetting? = nil
+    var correctScore: ReferenceImage? = nil
     func validate() throws {
         try sheetLayout.validate()
         guard source == "practice", keySignature.tonic == "C", keySignature.mode == "major", keySignature.fifths == 0,
@@ -155,7 +160,19 @@ struct BBox: Codable, Equatable {
     var x: Double; var y: Double; var width: Double; var height: Double
     var isValid: Bool { [x,y,width,height].allSatisfy(\.isFinite) && x >= 0 && y >= 0 && width > 0 && height > 0 && x + width <= 1.000001 && y + height <= 1.000001 }
 }
-struct Annotation: Codable, Identifiable, Equatable { var id: String; var type: String; var measure: Int?; var bbox: BBox?; var message: String }
+struct Annotation: Codable, Identifiable, Equatable {
+    var id: String; var type: String; var measure: Int?; var bbox: BBox?; var message: String
+    var noteIndex: Int? = nil; var endNoteIndex: Int? = nil
+    var locationLabel: String {
+        guard let measure else { return "위치 확인 필요" }
+        guard let noteIndex else { return "\(measure)마디" }
+        if let endNoteIndex, endNoteIndex > noteIndex { return "\(measure)마디 · \(noteIndex)–\(endNoteIndex)번째 음표·쉼표" }
+        return "\(measure)마디 · \(noteIndex)번째 음표·쉼표"
+    }
+    var categoryLabel: String {
+        ["pitch_error":"음정", "rhythm_error":"리듬", "missing_note":"빠진 음표", "extra_note":"추가 음표", "recognition_uncertain":"인식 확인", "notation_error":"표기 관습", "notation_suggestion":"권장 표기"][type] ?? "피드백"
+    }
+}
 struct Feedback: Codable, Equatable { var summary: String; var recommendations: [String] }
 struct GradingFailure: Codable, Equatable { var code: String; var message: String; var retryable: Bool }
 struct Grading: Codable, Equatable {

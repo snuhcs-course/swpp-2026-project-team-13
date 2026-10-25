@@ -2,45 +2,87 @@ import SwiftUI
 
 struct ResultView: View {
     @ObservedObject var model: AppModel
-    @State private var tab = 0
+    @State private var selectedAnnotation: String?
+    @State private var showOriginal = false
     var body: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 26) {
-                SectionCaption(eyebrow:"YOUR LISTENING, IN NOTES", title: title, subtitle: model.session?.attempt.question.title ?? "")
-                if model.session?.attempt.gradingMode == "demo" { DemoBadge() }
-                else { Text("AI가 제공하는 학습 참고용 평가입니다. 실제 필기와 정답 악보도 함께 확인해 주세요.").font(.footnote).foregroundStyle(.secondary) }
-                if let grading = model.session?.grading {
-                    switch grading.status {
-                    case "queued", "processing": pending(grading)
-                    case "completed": completed(grading)
-                    case "needs_review": messageCard("필기를 한 번 더 확인해 주세요", detail: grading.feedback?.summary ?? "필기 인식이 불확실해 점수를 계산하지 않았어요.", icon:"pencil.and.outline")
-                    case "failed":
-                        messageCard("분석을 완료하지 못했어요", detail: grading.failure?.message ?? "서버에서 결과를 확인할 수 없습니다.", icon:"exclamationmark.arrow.triangle.2.circlepath")
-                        if grading.canRetry { Button("같은 답안으로 채점 재시도") { Task { await model.retryGrading() } }.buttonStyle(PrimaryButton()) }
-                    default: messageCard("지원하지 않는 결과 상태예요", detail:"상태: \(grading.status). 앱과 서버 버전을 확인해 주세요.",icon:"questionmark.circle")
-                    }
-                    if !grading.isPending {
-                        if let feedback = grading.feedback {
-                            Card { VStack(alignment:.leading,spacing:12) { Label("다음 연습을 위한 힌트",systemImage:"lightbulb").font(.headline); Text(feedback.summary).lineSpacing(5); ForEach(feedback.recommendations,id:\.self) { Text("• " + $0).font(.subheadline).foregroundStyle(.secondary) } } }
+        ScrollViewReader { scroll in
+            ScrollView {
+                VStack(alignment:.leading,spacing:24) {
+                    SectionCaption(eyebrow:"YOUR LISTENING, IN NOTES",title:title,subtitle:model.session?.attempt.question.title ?? "")
+                    if model.session?.attempt.gradingMode == "demo" { DemoBadge() }
+                    else { Text("AI가 제공하는 학습 참고용 평가입니다. 실제 필기와 정답 악보도 함께 확인해 주세요.").font(.footnote).foregroundStyle(.secondary) }
+                    if let grading = model.session?.grading {
+                        switch grading.status {
+                        case "queued", "processing": pending(grading)
+                        case "completed": completed(grading)
+                        case "needs_review": messageCard("필기를 한 번 더 확인해 주세요",detail:grading.feedback?.summary ?? "인식이 불확실해 점수를 계산하지 않았어요.",icon:"pencil.and.outline")
+                        case "failed":
+                            messageCard("분석을 완료하지 못했어요",detail:grading.failure?.message ?? "결과를 확인할 수 없습니다.",icon:"exclamationmark.arrow.triangle.2.circlepath")
+                            if grading.canRetry { Button("같은 답안으로 채점 재시도") { Task { await model.retryGrading() } }.buttonStyle(PrimaryButton()) }
+                        default: messageCard("지원하지 않는 결과 상태예요",detail:grading.status,icon:"questionmark.circle")
                         }
-                        Picker("악보 보기", selection:$tab) { Text("제출한 답안").tag(0); Text("정답 악보").tag(1) }.pickerStyle(.segmented)
-                        if tab == 0 {
-                            if let image = model.submittedImage { AnnotatedAnswerView(image:image,annotations:grading.annotations).clipShape(RoundedRectangle(cornerRadius:16)) }
-                            else { messageCard("제출 이미지가 아직 준비되지 않았어요",detail:"결과 새로고침으로 이미지를 다시 불러올 수 있어요.",icon:"photo") }
-                            ForEach(grading.annotations) { a in
-                                Label { VStack(alignment:.leading,spacing:5) { Text(a.measure.map { "\($0)마디" } ?? "위치 확인 필요").font(.caption.bold()); Text(a.message).font(.subheadline) } } icon: { Image(systemName:a.type == "recognition_uncertain" ? "questionmark.circle" : "pencil.tip.crop.circle").foregroundStyle(a.type == "recognition_uncertain" ? .orange : .red) }
+                        comparison(grading).id("score-comparison")
+                        if !grading.isPending {
+                            if let feedback = grading.feedback {
+                                Card { VStack(alignment:.leading,spacing:12) {
+                                    Label("다음 연습을 위한 힌트",systemImage:"lightbulb").font(.headline)
+                                    Text(feedback.summary).lineSpacing(5)
+                                    ForEach(feedback.recommendations,id:\.self) { Text("• " + $0).font(.subheadline).foregroundStyle(.secondary) }
+                                } }
                             }
-                        } else if let score = model.mainScore { ScoreView(score:score).clipShape(RoundedRectangle(cornerRadius:16)) }
-                        Button { if let id = model.session?.attempt.question.id { Task { await model.choose(id) } } } label: { Label("새 응시로 다시 연습하기",systemImage:"arrow.clockwise") }.buttonStyle(PrimaryButton())
+                            if !grading.annotations.isEmpty {
+                                Text("피드백을 누르면 해당 마디를 표시해요. 음표 순서는 쉼표를 포함하며, 표시는 마디 범위입니다.").font(.caption).foregroundStyle(.secondary)
+                                ForEach(grading.annotations) { annotation in
+                                    Button { withAnimation { selectedAnnotation = selectedAnnotation == annotation.id ? nil : annotation.id; scroll.scrollTo("score-comparison",anchor:.top) } } label: {
+                                        HStack(alignment:.top,spacing:12) {
+                                            Image(systemName:annotation.type == "recognition_uncertain" ? "questionmark.circle" : "music.note").foregroundStyle(annotationColor(annotation))
+                                            VStack(alignment:.leading,spacing:5) {
+                                                Text(annotation.categoryLabel + " · " + annotation.locationLabel).font(.caption.bold())
+                                                Text(annotation.message).font(.subheadline).multilineTextAlignment(.leading)
+                                            }
+                                            Spacer(minLength:0)
+                                        }.padding(12).background(selectedAnnotation == annotation.id ? annotationColor(annotation).opacity(0.08) : Color.clear).clipShape(RoundedRectangle(cornerRadius:10))
+                                    }.buttonStyle(.plain)
+                                }
+                            }
+                            Button { if let id = model.session?.attempt.question.id { Task { await model.choose(id) } } } label: { Label("새 응시로 다시 연습하기",systemImage:"arrow.clockwise") }.buttonStyle(PrimaryButton())
+                        }
+                    } else { messageCard("제출 결과를 확인해 주세요",detail:"새로고침으로 결과를 다시 불러올 수 있어요.",icon:"network") }
+                    HStack {
+                        Button("결과 새로고침") { Task { await model.refreshResult() } }.buttonStyle(.bordered)
+                        Button("연습실로 돌아가기") { model.navigate(.home) }
                     }
-                } else { messageCard("제출 결과를 확인해 주세요", detail:"결과를 불러오는 중 오류가 있었다면 새로고침할 수 있어요.",icon:"network") }
-                HStack {
-                    Button("결과 새로고침") { Task { await model.refreshResult() } }.buttonStyle(.bordered)
-                    Button("연습실로 돌아가기") { model.navigate(.home) }
+                }.padding(24).frame(maxWidth:1100,alignment:.leading).frame(maxWidth:.infinity)
+            }
+            .task(id:model.pollGeneration) { await model.poll() }
+            .sheet(isPresented:$showOriginal) {
+                NavigationStack {
+                    ScrollView { if let image = model.submittedImage { Image(uiImage:image).resizable().scaledToFit().padding() } }
+                        .navigationTitle("제출 원본").navigationBarTitleDisplayMode(.inline)
+                        .toolbar { ToolbarItem(placement:.confirmationAction) { Button("닫기") { showOriginal = false } } }
                 }
-            }.padding(32).frame(maxWidth:1100,alignment:.leading).frame(maxWidth:.infinity)
+            }
         }
-        .task(id:model.pollGeneration) { await model.poll() }
+    }
+    private func comparison(_ grading: Grading) -> some View {
+        VStack(alignment:.leading,spacing:12) {
+            Label("정답 악보",systemImage:"music.note.list").font(.headline)
+            if let image = model.correctScoreImage {
+                Image(uiImage:image).resizable().scaledToFit().padding(.vertical,8).background(.white).clipShape(RoundedRectangle(cornerRadius:12))
+            } else if let score = model.mainScore, model.session?.attempt.question.correctScore == nil {
+                ScoreView(score:score).clipShape(RoundedRectangle(cornerRadius:12))
+            } else { Text(model.correctScoreError ?? "정답 악보를 불러오는 중이에요.").font(.subheadline).foregroundStyle(.secondary) }
+            Divider().padding(.vertical,4)
+            HStack {
+                Label("내 악보",systemImage:"pencil.tip").font(.headline)
+                Spacer()
+                Button("제출 원본 전체 보기") { showOriginal = true }.font(.caption).disabled(model.submittedImage == nil)
+            }
+            if let image = model.submittedImage, let layout = model.session?.attempt.question.sheetLayout {
+                CompactAnswerView(image:image,layout:layout,annotation:grading.annotations.first(where: { $0.id == selectedAnnotation }))
+                    .clipShape(RoundedRectangle(cornerRadius:12))
+            } else { Text("제출 이미지를 불러오는 중이에요.").font(.subheadline).foregroundStyle(.secondary) }
+        }
     }
     private var title: String {
         switch model.session?.grading?.status {
@@ -72,18 +114,35 @@ struct ResultView: View {
         Card { VStack(alignment:.leading,spacing:16) { Label(title,systemImage:icon).font(.title3.bold()); Text(detail).font(.subheadline).foregroundStyle(.secondary).lineSpacing(5) } }
     }
 }
-struct AnnotatedAnswerView: View {
-    let image:UIImage; let annotations:[Annotation]
+
+func annotationColor(_ annotation: Annotation) -> Color {
+    switch annotation.type {
+    case "notation_suggestion": return .teal
+    case "notation_error", "recognition_uncertain": return .orange
+    default: return .red
+    }
+}
+struct CompactAnswerView: View {
+    let image: UIImage
+    let layout: SheetLayout
+    let annotation: Annotation?
     var body: some View {
-        Image(uiImage:image).resizable().aspectRatio(2660.0/1692,contentMode:.fit)
-            .overlay { GeometryReader { proxy in
-                ForEach(annotations) { a in if let b=a.bbox, b.isValid {
-                    RoundedRectangle(cornerRadius:5).stroke(a.type == "recognition_uncertain" ? Color.orange : .red,lineWidth:2)
-                        .background((a.type == "recognition_uncertain" ? Color.orange : .red).opacity(0.07))
-                        .frame(width:b.width*proxy.size.width,height:b.height*proxy.size.height)
-                        .position(x:(b.x+b.width/2)*proxy.size.width,y:(b.y+b.height/2)*proxy.size.height)
-                        .accessibilityLabel(a.message)
-                } }
-            } }
+        VStack(spacing:8) {
+            ForEach(AnswerSystemCrop.strips(layout:layout)) { crop in
+                if let source = image.cgImage,
+                   let row = source.cropping(to:CGRect(x:0,y:CGFloat(crop.bounds.y)*CGFloat(source.height),width:CGFloat(source.width),height:CGFloat(crop.bounds.height)*CGFloat(source.height)).integral) {
+                    Image(uiImage:UIImage(cgImage:row)).resizable().scaledToFit()
+                        .overlay { GeometryReader { proxy in
+                            if let annotation, let box = annotation.bbox, let projected = crop.project(box) {
+                                RoundedRectangle(cornerRadius:5).stroke(annotationColor(annotation),lineWidth:2)
+                                    .background(annotationColor(annotation).opacity(0.06))
+                                    .frame(width:CGFloat(projected.width)*proxy.size.width,height:CGFloat(projected.height)*proxy.size.height)
+                                    .position(x:CGFloat(projected.x+projected.width/2)*proxy.size.width,y:CGFloat(projected.y+projected.height/2)*proxy.size.height)
+                                    .accessibilityLabel(annotation.message)
+                            }
+                        } }
+                }
+            }
+        }.background(.white)
     }
 }

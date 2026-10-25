@@ -1,0 +1,34 @@
+{
+  "renderer": "MuseScore Studio 4.6.3",
+  "style": "compact-v1",
+  "style_sha256": "c6986e63a7d510c3d683c1ddd9b3a017b21477999b1abd8166f343a3c46a538f",
+  "scores": {
+    "1accb0beaf393bf5a46288578e7811383a9a14dca847936cffbf788fc7b190d4": {
+      "resource": "excerpt-1-reference-v1",
+      "content_type": "image/png",
+      "sha256": "89f5ea7152f036550984e0d7621c754fcb02ec09c22e5922acbc1aefe83f8439",
+      "size_bytes": 72062,
+      "pixel_width": 2600,
+      "pixel_height": 421,
+      "renderer": "MuseScore Studio 4.6.3"
+    },
+    "d584d7ef1f19ba070c23eee6b2518e7c8faf1ef981dc210fbd1117ecc52a6bf2": {
+      "resource": "excerpt-2-reference-v1",
+      "content_type": "image/png",
+      "sha256": "c51e1e7afc1d84dcc4d92c0e2338e2a4cd438e1e0b368d9e5b8db7021cad1b97",
+      "size_bytes": 76270,
+      "pixel_width": 2600,
+      "pixel_height": 431,
+      "renderer": "MuseScore Studio 4.6.3"
+    },
+    "66ccbe52a34194ba4d1ef70ebbbce67b86568471d773ad82a182f291c3617ace": {
+      "resource": "excerpt-3-reference-v1",
+      "content_type": "image/png",
+      "sha256": "723005b0d7f411456fa4e00a8dbe701242c4a18e7ea840ed6eaccc3fc7b8067b",
+      "size_bytes": 71321,
+      "pixel_width": 2600,
+      "pixel_height": 463,
+      "renderer": "MuseScore Studio 4.6.3"
+    }
+  }
+}

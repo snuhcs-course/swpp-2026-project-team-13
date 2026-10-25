@@ -2,7 +2,7 @@
   "openapi": "3.0.3",
   "info": {
     "title": "SORI iPad Exam API",
-    "version": "0.5.0",
+    "version": "0.6.0",
     "description": "Personal-practice iPad API with three immutable MusicXML questions (6/8, 4/4, 3/4), local piano playback and asynchronous OpenRouter AI grading and Korean feedback. AI values are estimates; API-CONTRACT.md defines invariants. Legacy v1 fixtures remain for regression checks. Playback v3 adds meter-matched, accented count-ins before both full replays, 20-second writing pauses and a final 120 seconds."
   },
   "servers": [
@@ -1932,6 +1932,56 @@
           }
         }
       }
+    },
+    "/questions/{question_id}/versions/{version}/display/": {
+      "get": {
+        "operationId": "getReferenceScoreImage",
+        "summary": "Pinned MuseScore reference image. Practice content, available with authentication.",
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "question_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "version",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Pre-rendered compact PNG, no measure numbers.",
+            "content": {
+              "image/png": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "404": {
+            "description": "Version or rendering is unavailable"
+          }
+        }
+      }
     }
   },
   "components": {
@@ -2401,6 +2451,9 @@
           },
           "tempo": {
             "$ref": "#/components/schemas/TempoSetting"
+          },
+          "correct_score": {
+            "$ref": "#/components/schemas/ReferenceImage"
           }
         },
         "required": [
@@ -3435,7 +3488,9 @@
               "rhythm_error",
               "missing_note",
               "extra_note",
-              "recognition_uncertain"
+              "recognition_uncertain",
+              "notation_error",
+              "notation_suggestion"
             ]
           },
           "measure": {
@@ -3480,6 +3535,20 @@
           },
           "message": {
             "type": "string"
+          },
+          "note_index": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 128,
+            "nullable": true,
+            "description": "1-based note/rest order in this measure; omitted in legacy records."
+          },
+          "end_note_index": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 128,
+            "nullable": true,
+            "description": "Last note/rest in a group, must be >= note_index."
           }
         },
         "required": [
@@ -3892,6 +3961,48 @@
             "minimum": 1
           }
         }
+      },
+      "ReferenceImage": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "url": {
+            "type": "string",
+            "format": "uri"
+          },
+          "content_type": {
+            "type": "string",
+            "enum": [
+              "image/png"
+            ]
+          },
+          "sha256": {
+            "type": "string"
+          },
+          "size_bytes": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 2097152
+          },
+          "pixel_width": {
+            "type": "integer"
+          },
+          "pixel_height": {
+            "type": "integer"
+          },
+          "renderer": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "url",
+          "content_type",
+          "sha256",
+          "size_bytes",
+          "pixel_width",
+          "pixel_height",
+          "renderer"
+        ]
       }
     },
     "responses": {

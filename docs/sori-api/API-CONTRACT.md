@@ -1,4 +1,4 @@
-# SORI API 계약 v0.5.0
+# SORI API 계약 v0.6.0
 
 이 버전은 개인 연습용 iPad 앱과 Django 서버의 계약입니다. HTTP 경로는 /api/v1/을 유지합니다. 기존 v0.2.0의 서버 비교 산식 대신, 서버가 OpenRouter에 필기 이미지와 고정된 정답을 함께 보내 AI 평가와 한국어 피드백을 받습니다. 자기채점 및 감독형 Exam 모드는 이번 구현 범위 밖입니다.
 
@@ -135,3 +135,16 @@ AI가 한 번에 처리하므로 진행 중 stage=recognizing으로 표시하고
 오류 객체는 error(code, message, fields, retry_after_ms), request_id입니다. HTTP 요청 실패와 채점 작업 실패를 구분합니다. 결과를 정상 조회해 failed를 받는 것은 HTTP 200입니다.
 
 원본 v0.2.0 examples는 구버전 클라이언트 회귀 검증용으로 유지합니다. 이번 세 문제의 실제 예시는 question-excerpt-1.json부터 question-excerpt-3.json, questions-v0.4.json 및 attempt-ready-v3.json입니다. 실제 구현·검증 범위는 ../VALIDATION.md를 확인합니다.
+
+
+## v0.6.0: 정답 이미지, 표기 관습, 악기 음색
+
+문제 상세·응시의 question에 선택 필드 correct_score가 추가됩니다. url, content_type=image/png, sha256, size_bytes, pixel_width, pixel_height, renderer를 포함합니다. GET /api/v1/questions/{id}/versions/{version}/display/는 Bearer 인증과 Accept: image/png를 사용하며 기존 악보 파일과 같은 버전 접근 규칙을 적용합니다. 원본 main.mxl의 SHA-256으로 사전 생성 이미지를 연결하므로 DB 문제 metadata와 응시 스냅샷을 수정할 필요가 없습니다. 현재 개인 연습용 client_readable_practice 정책은 유지됩니다.
+
+정답 이미지는 MuseScore Studio 4.6.3 + scripts/engraving/compact-v1.mss로 사전 생성합니다. 마디 번호 없이 4+4마디 두 줄이며, 직전 마디의 변화음을 환기하는 주의 임시표를 표시용 사본에 추가합니다. 원본 MusicXML·재생 데이터·채점 기준은 수정하지 않습니다. 앱은 PNG 바이트·해시·크기를 검증하고 응시별로 캐시합니다. 미리보기 생성은 서버 요청/LLM 대기 경로 밖에서 수행합니다.
+
+annotations.type에 notation_error(표기 관습 오류), notation_suggestion(권장 표기)을 추가합니다. note_index와 end_note_index는 선택 가능한 nullable 정수(1~128)로 마디 안의 음표/쉼표 순서이며, 마지막 순서는 첫 순서 이상이어야 합니다. 기존 기록에는 두 필드가 없습니다. bbox는 여전히 제출 전체 이미지의 마디 범위이며 음표 좌표가 아닙니다. 프론트엔드는 선택한 피드백의 마디만 강조하고, 설명에 음표 순서를 표시합니다.
+
+새 채점 프롬프트 버전은 sori-feedback-2-notation-1입니다. grading-prompt-v2.txt + notation-rules-v1.txt 전문을 각 GradingJob에 저장합니다. 호출은 기존과 같은 이미지+정답 1회이며 자동 유료 재시도는 없습니다. 권장 제자리표 생략과 빔 묶음 지적은 이번 버전에서 음정·리듬 점수에 추가 감점하지 않습니다. 실제 음높이·길이 오류와 별도로 설명합니다. 규칙을 프롬프트에 넣었다고 인식 정확도를 보장하지 않으며 실제 필기 평가는 별도 검증이 필요합니다.
+
+음색은 사용자 기기의 로컬 선호입니다. 기존 playback_plan의 악보·템포·대기 시간·예비박 계약은 변경하지 않습니다. 악기 프로필은 문제의 원본 기본값이며, 앱 설정의 GeneralUser GS 프리셋이 실제 문제/스케일 음색을 선택합니다. 음색 ID는 서버에 전송하거나 점수에 사용하지 않습니다.

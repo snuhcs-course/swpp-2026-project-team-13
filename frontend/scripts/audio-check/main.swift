@@ -56,6 +56,22 @@ do {
         _ = try render(graph.click,note:60)
         log("PASS actual app audio graph rebuild \(index+1): \(bankName), A4 \(detected) Hz and audible count-in")
     }
+    // Exercise every selectable third-party preset through the production sampler graph.
+    let choices = try JSONSerialization.jsonObject(with:Data(contentsOf:resources.appendingPathComponent("instruments.json"))) as! [String:Any]
+    for voice in choices["voices"] as! [[String:Any]] {
+        let id = voice["id"] as! String
+        let program = UInt8(voice["program"] as! Int)
+        log("CHECK external preset \(id)")
+        try graph.rebuild(bank:resources.appendingPathComponent("GeneralUser-GS.sf2"),program:program,bankMSB:121,bankLSB:0,clickURL:clickURL,gain:0.5,offlineFormat:format)
+        for pitch in [UInt8(48),60,69,84] {
+            // Clear the previous release tail so it cannot mask a silent sample zone.
+            try graph.rebuild(bank:resources.appendingPathComponent("GeneralUser-GS.sf2"),program:program,bankMSB:121,bankLSB:0,clickURL:clickURL,gain:0.5,offlineFormat:format)
+            _ = try render(graph.piano,note:pitch)
+        }
+        _ = try render(graph.click,note:60)
+        log("PASS external preset \(id): C3, C4, A4, C6 and count-in are audible")
+        graph.engine.pause()
+    }
     graph.engine.stop()
 } catch {
     graph.engine.stop()

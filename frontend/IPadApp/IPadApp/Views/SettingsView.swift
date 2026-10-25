@@ -6,13 +6,14 @@ struct SettingsView: View {
     @State private var useDemo = true
     @State private var address = ""
     @State private var outcome = "completed"
+    @State private var showSoundLicense = false
     var body: some View {
         ScrollView { VStack(alignment:.leading,spacing:28) {
             SectionCaption(eyebrow:"CONNECTION & PREFERENCES",title:"연결 설정",subtitle:"로컬 데모 또는 개발 중인 Django 서버에 연결하세요.")
             Card { VStack(alignment:.leading,spacing:20) {
                 Toggle("로컬 데모 사용",isOn:$useDemo).font(.headline)
                 if useDemo {
-                    Text("인터넷 없이 실제 오선·MXL·합성 피아노·필기·제출 흐름을 확인할 수 있어요. 결과는 API 예시이며 필기를 인식하지 않습니다.").font(.subheadline).foregroundStyle(.secondary).lineSpacing(5)
+                    Text("인터넷 없이 실제 오선·MXL·악기 음색·필기·제출 흐름을 확인할 수 있어요. 결과는 API 예시이며 필기를 인식하지 않습니다.").font(.subheadline).foregroundStyle(.secondary).lineSpacing(5)
                     Picker("데모 결과",selection:$outcome) { Text("완료 · 예시 81점").tag("completed"); Text("필기 확인 필요").tag("needs-review"); Text("분석 실패 · 재시도 가능").tag("failed") }
                 } else {
                     Text("API 기준 주소").font(.subheadline.bold())
@@ -26,6 +27,15 @@ struct SettingsView: View {
                     await model.connect(token:token.isEmpty ? nil : token); token=""
                 } } label: { Label(useDemo ? "데모 시작" : "서버 연결",systemImage:"arrow.right.circle") }.buttonStyle(PrimaryButton())
             } }
+            Card { VStack(alignment:.leading,spacing:16) {
+                Label("악기 음색",systemImage:"pianokeys").font(.headline)
+                Picker("재생 악기",selection:Binding(get:{model.selectedVoice},set:{model.selectVoice($0)})) {
+                    ForEach(model.instrumentVoices) { voice in Text(voice.title).tag(voice.id) }
+                }
+                Text("선택한 음색은 이 기기에 저장되며, 다음 재생부터 스케일과 문제에 함께 적용돼요. 예비박 소리와 템포는 그대로예요.").font(.subheadline).foregroundStyle(.secondary)
+                Text("GeneralUser GS · S. Christian Collins").font(.caption).foregroundStyle(.secondary)
+                Button("음원 출처와 이용 조건") { showSoundLicense = true }.font(.caption)
+            } }
             if let user=model.profile {
                 Card { VStack(alignment:.leading,spacing:16) {
                     Text("나의 학습 목표").font(.headline)
@@ -35,9 +45,16 @@ struct SettingsView: View {
             Card { VStack(alignment:.leading,spacing:12) {
                 Label("필기와 응시 복구",systemImage:"externaldrive").font(.headline)
                 Text("필기 원본, 고정된 제출 이미지와 요청 키는 사용자·서버별로 이 iPad에 보관합니다. 앱을 지우거나 기기를 바꾸면 편집 가능한 필기를 복구할 수 없습니다.").font(.subheadline).foregroundStyle(.secondary).lineSpacing(5)
-                Text("API 계약 v0.5.0 · MusicXML 4.0 · sori-piano-v2").font(.caption).foregroundStyle(.tertiary)
+                Text("API 계약 v0.6.0 · MusicXML 4.0 · GeneralUser GS").font(.caption).foregroundStyle(.tertiary)
             } }
         }.padding(32).frame(maxWidth:900).frame(maxWidth:.infinity) }
+        .sheet(isPresented:$showSoundLicense) {
+            NavigationStack {
+                ScrollView { Text((try? String(data:Bundled.data("generaluser-license",ext:"txt"),encoding:.utf8)) ?? "음원 라이선스를 불러오지 못했습니다.").font(.footnote).textSelection(.enabled).padding() }
+                    .navigationTitle("GeneralUser GS")
+                    .toolbar { ToolbarItem(placement:.confirmationAction) { Button("닫기") { showSoundLicense = false } } }
+            }
+        }
         .onAppear { useDemo=model.demo; address=model.server; outcome=model.demoOutcome }
     }
 }

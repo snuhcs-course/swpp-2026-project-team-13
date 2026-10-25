@@ -44,6 +44,8 @@ jobs:
       - run: python manage.py migrate --noinput
       - run: python manage.py makemigrations --check --dry-run
       - run: python ../scripts/test_content.py
+      - run: python ../scripts/test_engraving.py
+      - run: python ../scripts/test_grading_contract.py
       - run: python ../scripts/test_playback.py
       - run: python ../scripts/test_audio_assets.py
       - run: python manage.py test api sori --noinput
@@ -52,6 +54,8 @@ jobs:
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v4
+      - name: Fetch pinned external instrument bank and license
+        run: python3 scripts/fetch_soundfont.py
       - name: Test SORI API, MusicXML and transport contracts
         run: swift test --package-path frontend
       - name: Verify bundled piano audio
@@ -67,6 +71,19 @@ jobs:
           -scheme IPadApp -configuration Debug
           -destination 'generic/platform=iOS Simulator'
           -derivedDataPath build/DerivedData CODE_SIGNING_ALLOWED=NO build
+
+      - name: Test comparison, voice settings and submission recovery on iPad simulator
+        run: |
+          SIM_ID=$(xcrun simctl list devices available -j | python3 -c 'import json,sys; d=json.load(sys.stdin); print(next(x["udid"] for group in d["devices"].values() for x in group if x["name"].startswith("iPad")))')
+          xcodebuild -project frontend/IPadApp/IPadApp.xcodeproj -scheme IPadApp -configuration Debug -destination "platform=iOS Simulator,id=$SIM_ID" -derivedDataPath build/DerivedData -resultBundlePath build/Comparison.xcresult CODE_SIGNING_ALLOWED=NO -only-testing:IPadAppTests/IntegrationTests/testReferenceImagesAndCompactAnswerRenderTogether -only-testing:IPadAppTests/IntegrationTests/testVoiceSelectionPersistsAndCanPrepareNextProblem -only-testing:IPadAppTests/IntegrationTests/testRealAppFlowPrepareStartSubmitAndRestoreResult test
+      - name: Upload comparison screenshots and test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: SORI-comparison-tests
+          path: build/Comparison.xcresult
+          if-no-files-found: ignore
+          retention-days: 7
 
       - name: Build unsigned iPad app for Windows installation
         if: github.event_name == 'push'
