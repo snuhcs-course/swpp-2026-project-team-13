@@ -9,3 +9,6 @@
 *.pngdata binary
 *.sf2 binary
 *.wav binary
+
+# The renderer manifest pins the stylesheet hash on Windows and Linux.
+*.mss text eol=lf
