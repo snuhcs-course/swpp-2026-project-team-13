@@ -17,12 +17,27 @@ final class PianoAudioGraph {
         engine.attach(click)
         engine.connect(piano,to:engine.mainMixerNode,format:nil)
         engine.connect(click,to:engine.mainMixerNode,format:nil)
-        try piano.loadSoundBankInstrument(at:bank,program:program,bankMSB:bankMSB,bankLSB:bankLSB)
-        if let clickURL { try click.loadAudioFiles(at:[clickURL]) }
+        try load(bank,label:"피아노") {
+            try piano.loadSoundBankInstrument(at:bank,program:program,bankMSB:bankMSB,bankLSB:bankLSB)
+        }
+        if let clickURL {
+            try load(clickURL,label:"예비박") { try click.loadAudioFiles(at:[clickURL]) }
+        }
         engine.mainMixerNode.outputVolume = gain
         if let offlineFormat {
             try engine.enableManualRenderingMode(.offline,format:offlineFormat,maximumFrameCount:4096)
         }
         engine.prepare()
     }
+    private func load(_ file:URL,label:String,operation:() throws -> Void) throws {
+        do { try operation() }
+        catch {
+            let cause=error as NSError
+            throw NSError(domain:"SORI.AudioGraph",code:cause.code,userInfo:[
+                NSLocalizedDescriptionKey:"\(label) 음원을 불러오지 못했습니다. \(file.lastPathComponent) (\(cause.domain) \(cause.code))",
+                NSUnderlyingErrorKey:cause
+            ])
+        }
+    }
+
 }

@@ -12,6 +12,13 @@ SECONDS = 4
 OUT = Path(__file__).resolve().parents[1] / "IPadApp/IPadApp/Resources"
 
 
+def soundfont_text(tag, value):
+    # SF2 ZSTR sizes include the one/two null terminators, not RIFF external padding.
+    payload=value.encode("ascii")+b"\0"
+    payload+=b"\0"*(len(payload)%2)
+    return chunk(tag,payload)
+
+
 def note_pcm(key):
     frequency = 440 * 2 ** ((key-69)/12)
     # Damped inharmonic string partials, with paired strings and a short felt-hammer transient.
@@ -58,7 +65,7 @@ def generate():
             previews[key]=pcm
     ibag+=struct.pack("<HH",len(igen)//4,0);igen+=gen(0,0)
     headers+=struct.pack("<20sIIIIIBbHH",name("EOS"),len(samples)//2,len(samples)//2,0,0,RATE,0,0,0,1)
-    info=chunk("ifil",struct.pack("<HH",2,1))+chunk("isng",b"EMU8000\0")+chunk("INAM",b"SORI Struck Piano v2\0")+chunk("ICOP",b"Original generated synthesis; CC0-1.0\0")
+    info=chunk("ifil",struct.pack("<HH",2,1))+soundfont_text("isng","EMU8000")+soundfont_text("INAM","SORI Struck Piano v2")+soundfont_text("ICOP","Original generated synthesis; CC0-1.0")
     phdr=struct.pack("<20sHHHIII",name("SORI Piano v2"),0,0,0,0,0,0)+struct.pack("<20sHHHIII",name("EOP"),0,0,1,0,0,0)
     pdta=b"".join([chunk("phdr",phdr),chunk("pbag",struct.pack("<HHHH",0,0,1,0)),chunk("pmod",bytes(10)),
         chunk("pgen",gen(41,0)+gen(0,0)),chunk("inst",struct.pack("<20sH",name("SORI Piano v2"),0)+struct.pack("<20sH",name("EOI"),37)),

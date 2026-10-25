@@ -17,6 +17,16 @@ def chunks(data,start,end):
         start+=8+length+(length%2)
 
 class AudioAssetTests(unittest.TestCase):
+    def test_soundfont_info_strings_have_even_declared_lengths(self):
+        for filename in ("sori-piano-v1.sf2","sori-piano-v2.sf2"):
+            data=(RESOURCES/filename).read_bytes()
+            for tag,start,end in chunks(data,12,len(data)):
+                if tag==b"LIST" and data[start:start+4]==b"INFO":
+                    for child,a,b in chunks(data,start+4,end):
+                        if child in (b"isng",b"INAM",b"ICOP"):
+                            self.assertEqual((b-a)%2,0,f"{filename}: {child!r} must include its zero padding in the declared size")
+                            self.assertEqual(data[b-1],0)
+
     def test_new_bank_identity_pcm_tuning_and_decay(self):
         profile=json.loads((RESOURCES/"instrument-profile-v2.json").read_text(encoding="utf-8"))
         data=(RESOURCES/profile["resource"]).read_bytes()
