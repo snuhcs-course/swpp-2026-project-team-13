@@ -34,7 +34,7 @@ final class PlaybackTimingTests: XCTestCase {
                     offset += 1
                     let length = try variable(); offset += length
                 } else if status & 0xf0 == 0xc0 {
-                    offset += 1
+                    XCTFail("MIDI must not replace the sampler instrument"); offset += 1
                 } else if status & 0xf0 == 0x90 || status & 0xf0 == 0x80 {
                     guard offset+2 <= end else { throw SORIError.invalidScore("MIDI note") }
                     if status & 0xf0 == 0x90, bytes[offset+1] > 0 {
@@ -54,7 +54,7 @@ final class PlaybackTimingTests: XCTestCase {
             try plan.validate()
             let count = try XCTUnwrap(plan.countIn)
             let data = MIDIFile.withCountIn(events:[MusicEvent(midi:64,onset:0,duration:480)],
-                totalTicks:8*meter.ticksPerMeasure,tempo:96,countIn:count)
+                totalTicks:8*meter.ticksPerMeasure,tempo:plan.tempoBpm,countIn:count)
             let tracks = try notes(data)
             XCTAssertEqual(tracks.count,2)
             XCTAssertEqual(tracks[1].count,n)
@@ -66,9 +66,9 @@ final class PlaybackTimingTests: XCTestCase {
         }
     }
     func testFullScheduleIncludesBothCountInsAndLastTwoMinutes() throws {
-        for (meter,seconds) in [(TimeSignature(numerator:4,denominator:4),434.0),
-                                (TimeSignature(numerator:3,denominator:4),406.5),
-                                (TimeSignature(numerator:6,denominator:8),406.5)] {
+        for (meter,seconds) in [(TimeSignature(numerator:4,denominator:4),456.0),
+                                (TimeSignature(numerator:3,denominator:4),425.25),
+                                (TimeSignature(numerator:6,denominator:8),422.1818181818182)] {
             let plan = PlaybackPlan.exam(meter:meter)
             XCTAssertEqual(plan.initialDelayMs,2000)
             XCTAssertEqual(plan.pauseAfterScaleMs,2000)
@@ -80,7 +80,7 @@ final class PlaybackTimingTests: XCTestCase {
     func testNewServerFixtureAndLegacyFixturesRemainReadable() throws {
         let root = URL(fileURLWithPath:#filePath).deletingLastPathComponent().deletingLastPathComponent()
             .deletingLastPathComponent().deletingLastPathComponent().appendingPathComponent("docs/sori-api/examples")
-        for (name,version) in [("attempt-ready-v3",3),("attempt-ready",2)] {
+        for (name,version) in [("attempt-ready-v4",4),("attempt-ready-v3",3),("attempt-ready",2)] {
             let value = try ContractJSON.decoder().decode(Attempt.self,from:Data(contentsOf:root.appendingPathComponent(name+".json")))
             try value.playbackPlan.validate()
             XCTAssertEqual(value.playbackPlan.version,version)
@@ -89,4 +89,29 @@ final class PlaybackTimingTests: XCTestCase {
         plan.countIn?.beatsPerMeasure = 2
         XCTAssertThrowsError(try plan.validate())
     }
+    func testDottedQuarterTempoUsesFractionalQuarterBPMInTheActualMIDI() throws {
+        let meter=TimeSignature(numerator:6,denominator:8)
+        let plan=PlaybackPlan.exam(meter:meter)
+        try plan.validate()
+        XCTAssertEqual(plan.tempo?.beatUnit,"dotted_quarter"); XCTAssertEqual(plan.tempo?.bpm,55)
+        XCTAssertEqual(plan.tempoBpm,82.5,accuracy:0.000001)
+        let data=[UInt8](MIDIFile.make(events:[],totalTicks:1440,tempo:plan.tempoBpm))
+        let micros=Int(data[26])<<16 | Int(data[27])<<8 | Int(data[28])
+        XCTAssertEqual(60_000_000/Double(micros),82.5,accuracy:0.0001)
+        XCTAssertEqual(plan.nominalDurationSeconds(meter:meter),422.1818181818182,accuracy:0.0001)
+        var invalid=plan; invalid.tempoBpm=83; XCTAssertThrowsError(try invalid.validate())
+    }
+    func testScoreTempoIsIndependentOfTheSelectedPlaybackTempo() throws {
+        let resources=URL(fileURLWithPath:#filePath).deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent().appendingPathComponent("IPadApp/IPadApp/Resources")
+        let questions=try ContractJSON.decoder().decode([Question].self,from:Data(contentsOf:resources.appendingPathComponent("practice-catalog.json")))
+        for (index,q) in questions.enumerated() {
+            let score=try MusicXMLParser.parseMXL(Data(contentsOf:resources.appendingPathComponent("excerpt-\(index+1)-v2-main.mxl")),asset:q.scoreAssets.main)
+            XCTAssertEqual(score.tempo,96)
+            var chosen=TempoDefaults.setting(for:q.timeSignature); chosen.bpm=chosen.maximumBpm
+            let plan=PlaybackPlan.exam(meter:q.timeSignature,setting:chosen)
+            try plan.validate()
+            XCTAssertEqual(plan.tempoBpm,chosen.quarterBpm)
+        }
+    }
+
 }

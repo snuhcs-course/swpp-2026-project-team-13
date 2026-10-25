@@ -3,7 +3,7 @@
     "order": 1,
     "metadata": {
       "id": "128f51a9-5498-50fd-a2a7-1a271883e72b",
-      "version": 1,
+      "version": 2,
       "title": "청음 연습 1 · 6/8",
       "source": "practice",
       "key_signature": {
@@ -74,35 +74,37 @@
       "score_visibility": "after_submission",
       "score_assets": {
         "main": {
-          "url": "https://api.sori.example/api/v1/questions/128f51a9-5498-50fd-a2a7-1a271883e72b/versions/1/scores/main/",
+          "url": "https://api.sori.example/api/v1/questions/128f51a9-5498-50fd-a2a7-1a271883e72b/versions/2/scores/main/",
           "content_type": "application/vnd.recordare.musicxml",
           "sha256": "1accb0beaf393bf5a46288578e7811383a9a14dca847936cffbf788fc7b190d4",
           "size_bytes": 1652,
           "musicxml_version": "4.0",
           "profile": "sori-monophonic-v2",
           "part_id": "P1",
-          "measure_count": 8
+          "measure_count": 8,
+          "source_tempo_bpm": 96
         },
         "scale": {
-          "url": "https://api.sori.example/api/v1/questions/128f51a9-5498-50fd-a2a7-1a271883e72b/versions/1/scores/scale/",
+          "url": "https://api.sori.example/api/v1/questions/128f51a9-5498-50fd-a2a7-1a271883e72b/versions/2/scores/scale/",
           "content_type": "application/vnd.recordare.musicxml",
-          "sha256": "cd334b70f2dd71397b86b671d4fa6329347071140774ea2c80b41aedac82d0eb",
-          "size_bytes": 1061,
+          "sha256": "b49c5527903617bf600471b2208c76f8b2e1b5b2c88f3e16a0dfd0bf10a882ee",
+          "size_bytes": 1083,
           "musicxml_version": "4.0",
           "profile": "sori-monophonic-v2",
           "part_id": "P1",
-          "measure_count": 2
+          "measure_count": 3,
+          "source_tempo_bpm": 96
         }
       }
     },
-    "main_path": "questions/excerpt-1/v1/main.mxl",
-    "scale_path": "questions/excerpt-1/v1/scale.mxl"
+    "main_path": "questions/excerpt-1/v2/main.mxl",
+    "scale_path": "questions/excerpt-1/v2/scale.mxl"
   },
   {
     "order": 2,
     "metadata": {
       "id": "cfe540d9-445e-59c5-9338-586fc9ba2842",
-      "version": 1,
+      "version": 2,
       "title": "청음 연습 2 · 4/4",
       "source": "practice",
       "key_signature": {
@@ -173,35 +175,37 @@
       "score_visibility": "after_submission",
       "score_assets": {
         "main": {
-          "url": "https://api.sori.example/api/v1/questions/cfe540d9-445e-59c5-9338-586fc9ba2842/versions/1/scores/main/",
+          "url": "https://api.sori.example/api/v1/questions/cfe540d9-445e-59c5-9338-586fc9ba2842/versions/2/scores/main/",
           "content_type": "application/vnd.recordare.musicxml",
           "sha256": "d584d7ef1f19ba070c23eee6b2518e7c8faf1ef981dc210fbd1117ecc52a6bf2",
           "size_bytes": 1781,
           "musicxml_version": "4.0",
           "profile": "sori-monophonic-v2",
           "part_id": "P1",
-          "measure_count": 8
+          "measure_count": 8,
+          "source_tempo_bpm": 96
         },
         "scale": {
-          "url": "https://api.sori.example/api/v1/questions/cfe540d9-445e-59c5-9338-586fc9ba2842/versions/1/scores/scale/",
+          "url": "https://api.sori.example/api/v1/questions/cfe540d9-445e-59c5-9338-586fc9ba2842/versions/2/scores/scale/",
           "content_type": "application/vnd.recordare.musicxml",
-          "sha256": "762093003fac859b87937fae3a573eea7c4475f722cfcda30a56af13ab885833",
-          "size_bytes": 1035,
+          "sha256": "b167aaba7171421def6dc3da4771eb5a9ab071aa7e2e818e7b4319692549cbb8",
+          "size_bytes": 1070,
           "musicxml_version": "4.0",
           "profile": "sori-monophonic-v2",
           "part_id": "P1",
-          "measure_count": 2
+          "measure_count": 2,
+          "source_tempo_bpm": 96
         }
       }
     },
-    "main_path": "questions/excerpt-2/v1/main.mxl",
-    "scale_path": "questions/excerpt-2/v1/scale.mxl"
+    "main_path": "questions/excerpt-2/v2/main.mxl",
+    "scale_path": "questions/excerpt-2/v2/scale.mxl"
   },
   {
     "order": 3,
     "metadata": {
       "id": "e8b704b7-efe5-583c-944a-270915628ca2",
-      "version": 1,
+      "version": 2,
       "title": "청음 연습 3 · 3/4",
       "source": "practice",
       "key_signature": {
@@ -272,28 +276,30 @@
       "score_visibility": "after_submission",
       "score_assets": {
         "main": {
-          "url": "https://api.sori.example/api/v1/questions/e8b704b7-efe5-583c-944a-270915628ca2/versions/1/scores/main/",
+          "url": "https://api.sori.example/api/v1/questions/e8b704b7-efe5-583c-944a-270915628ca2/versions/2/scores/main/",
           "content_type": "application/vnd.recordare.musicxml",
           "sha256": "66ccbe52a34194ba4d1ef70ebbbce67b86568471d773ad82a182f291c3617ace",
           "size_bytes": 1683,
           "musicxml_version": "4.0",
           "profile": "sori-monophonic-v2",
           "part_id": "P1",
-          "measure_count": 8
+          "measure_count": 8,
+          "source_tempo_bpm": 96
         },
         "scale": {
-          "url": "https://api.sori.example/api/v1/questions/e8b704b7-efe5-583c-944a-270915628ca2/versions/1/scores/scale/",
+          "url": "https://api.sori.example/api/v1/questions/e8b704b7-efe5-583c-944a-270915628ca2/versions/2/scores/scale/",
           "content_type": "application/vnd.recordare.musicxml",
-          "sha256": "9d642d3b0cbb84a5dbaaed8da16ec0a98145359c431620d52ee920b36ec91a72",
-          "size_bytes": 1061,
+          "sha256": "9c3149f4ac0a4a7cc9dcbca60cd0ce25be676f451c0cf1077b96b5571f07fbf8",
+          "size_bytes": 1084,
           "musicxml_version": "4.0",
           "profile": "sori-monophonic-v2",
           "part_id": "P1",
-          "measure_count": 2
+          "measure_count": 3,
+          "source_tempo_bpm": 96
         }
       }
     },
-    "main_path": "questions/excerpt-3/v1/main.mxl",
-    "scale_path": "questions/excerpt-3/v1/scale.mxl"
+    "main_path": "questions/excerpt-3/v2/main.mxl",
+    "scale_path": "questions/excerpt-3/v2/scale.mxl"
   }
 ]

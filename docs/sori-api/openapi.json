@@ -2,7 +2,7 @@
   "openapi": "3.0.3",
   "info": {
     "title": "SORI iPad Exam API",
-    "version": "0.4.0",
+    "version": "0.5.0",
     "description": "Personal-practice iPad API with three immutable MusicXML questions (6/8, 4/4, 3/4), local piano playback and asynchronous OpenRouter AI grading and Korean feedback. AI values are estimates; API-CONTRACT.md defines invariants. Legacy v1 fixtures remain for regression checks. Playback v3 adds meter-matched, accented count-ins before both full replays, 20-second writing pauses and a final 120 seconds."
   },
   "servers": [
@@ -637,7 +637,7 @@
                     "tuning_hz": 440,
                     "transpose_semitones": 0,
                     "velocity": 80,
-                    "gate_ratio": 1.0,
+                    "gate_ratio": 1,
                     "release_tail_ms": 300,
                     "initial_delay_ms": 2000,
                     "scale": {
@@ -2232,6 +2232,9 @@
           "recommended_duration_seconds": {
             "type": "integer",
             "minimum": 1
+          },
+          "tempo": {
+            "$ref": "#/components/schemas/TempoSetting"
           }
         },
         "required": [
@@ -2291,6 +2294,12 @@
             "type": "integer",
             "minimum": 1,
             "maximum": 8
+          },
+          "source_tempo_bpm": {
+            "type": "number",
+            "minimum": 40,
+            "maximum": 200,
+            "description": "Notation tempo for asset validation, independent of playback tempo. Legacy assets default to quarter=96."
           }
         },
         "required": [
@@ -2389,6 +2398,9 @@
           },
           "score_assets": {
             "$ref": "#/components/schemas/ScoreAssets"
+          },
+          "tempo": {
+            "$ref": "#/components/schemas/TempoSetting"
           }
         },
         "required": [
@@ -2617,7 +2629,8 @@
           "to_measure": {
             "type": "integer",
             "enum": [
-              2
+              2,
+              3
             ]
           }
         },
@@ -2635,7 +2648,8 @@
             "type": "integer",
             "enum": [
               2,
-              3
+              3,
+              4
             ]
           },
           "engine": {
@@ -2645,14 +2659,16 @@
             ]
           },
           "tempo_bpm": {
-            "type": "integer",
+            "type": "number",
             "minimum": 40,
-            "maximum": 200
+            "maximum": 200,
+            "description": "Quarter-note BPM. For dotted-quarter=55 this is exactly 82.5."
           },
           "instrument_profile_id": {
             "type": "string",
             "enum": [
-              "sori-piano-v1"
+              "sori-piano-v1",
+              "sori-piano-v2"
             ]
           },
           "tuning_hz": {
@@ -2726,6 +2742,9 @@
           },
           "count_in": {
             "$ref": "#/components/schemas/CountInPlayback"
+          },
+          "tempo": {
+            "$ref": "#/components/schemas/TempoSetting"
           }
         },
         "required": [
@@ -2772,9 +2791,28 @@
               "initial_delay_ms",
               "count_in"
             ]
+          },
+          {
+            "properties": {
+              "version": {
+                "enum": [
+                  4
+                ]
+              },
+              "pause_after_scale_ms": {
+                "enum": [
+                  2000
+                ]
+              }
+            },
+            "required": [
+              "initial_delay_ms",
+              "count_in",
+              "tempo"
+            ]
           }
         ],
-        "description": "Existing immutable attempts may use v2. New attempts use v3: initial 2 s, scale, 2 s, counted first full replay, 20 s after steps 1..10, counted final full replay, 120 s final writing. Release tails occupy the prescribed pauses and do not add 300 ms."
+        "description": "Immutable v2/v3 attempts retain their original snapshots. New v4 plans carry a meter-specific tempo setting, fractional quarter-note tempo_bpm, a 2- or 3-bar ascending/descending scale and the v2 synthesized piano. Timing pauses and the first/last count-ins retain v3 rules."
       },
       "UserProfile": {
         "type": "object",
@@ -3819,6 +3857,41 @@
           "profile_id"
         ],
         "description": "One measure before steps 1 and 11 only. Numerator clicks at denominator-note intervals; first velocity 110, others 70. Count-in and score share one MIDI clock. 6/8 has six eighth-note clicks."
+      },
+      "TempoSetting": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "policy_id",
+          "beat_unit",
+          "bpm",
+          "minimum_bpm",
+          "maximum_bpm"
+        ],
+        "properties": {
+          "policy_id": {
+            "type": "string"
+          },
+          "beat_unit": {
+            "type": "string",
+            "enum": [
+              "quarter",
+              "dotted_quarter"
+            ]
+          },
+          "bpm": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "minimum_bpm": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "maximum_bpm": {
+            "type": "integer",
+            "minimum": 1
+          }
+        }
       }
     },
     "responses": {

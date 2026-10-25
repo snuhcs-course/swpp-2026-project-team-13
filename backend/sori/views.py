@@ -73,7 +73,7 @@ def questions(request):
     for question in items[(page - 1) * size:page * size]:
         version = QuestionVersion.objects.get(question=question, version=question.current_version)
         metadata = timed_question(version.metadata)
-        result.append({k: metadata[k] for k in ("id", "version", "title", "source", "key_signature", "time_signature", "measure_count", "recommended_duration_seconds")})
+        result.append({k: metadata[k] for k in ("id", "version", "title", "source", "key_signature", "time_signature", "measure_count", "recommended_duration_seconds", "tempo")})
     def url(p):
         return absolute(request, f"/api/v1/questions/?page={p}&page_size={size}")
     return Response({"count": count, "next": url(page + 1) if page * size < count else None, "previous": url(page - 1) if page > 1 else None, "results": result})

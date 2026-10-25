@@ -1,0 +1,19 @@
+{
+  "id": "sori-piano-v2",
+  "version": 2,
+  "sha256": "217041e24b45d5bf0d71901b0b2a4a0249f2d6413194ef9e3e3f2129d9b48b60",
+  "size_bytes": 6533236,
+  "resource": "sori-piano-v2.sf2",
+  "license": "CC0-1.0",
+  "provenance": "Original struck-string synthesis with inharmonic partials, paired strings and felt-hammer attack. Synthesized piano; not an acoustic recording.",
+  "program": 0,
+  "bank_msb": 121,
+  "bank_lsb": 0,
+  "gain_db": -6,
+  "sample_rate_hz": 22050,
+  "midi_range": [
+    48,
+    84
+  ],
+  "tuning_hz": 440
+}

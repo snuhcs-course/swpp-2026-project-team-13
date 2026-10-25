@@ -1,6 +1,6 @@
 # SORI iPad frontend
 
-Native SwiftUI / PencilKit app for the SORI v0.4.0 personal-practice contract. iPadOS 17+, Xcode 16+; no external Swift packages or network-loaded rendering code.
+Native SwiftUI / PencilKit app for the SORI v0.5.0 personal-practice contract. iPadOS 17+, Xcode 16+; no external Swift packages or network-loaded rendering code.
 
 ## Run
 
@@ -55,3 +55,12 @@ Select any installed iPad simulator name when your Xcode has a different device 
 ## Instrument profile
 
 `sori-piano-v1.sf2` is original additive piano-like synthesis, not a recording of an acoustic piano. No third-party samples, fonts or runtime downloads are used. Its CC0-1.0 dedication, bank/program, gain, tuning, byte count and SHA-256 are in `Resources/instrument-profile.json`. The committed SF2 bytes are canonical. The generator is included for auditability; floating-point regeneration on a different platform is not a replacement for those bytes. If sound or mapping changes, assign a new profile ID and coordinate the contract change with the backend. The native renderer supports the limited sori-monophonic-v1 and sori-monophonic-v2 profiles; v2 includes 3/4, 6/8, sixteenth notes and 3:2 tuplets. It does not support arbitrary MusicXML.
+
+
+## Tempo, audio recovery and Pencil updates
+
+New v4 plans use quarter=80 in 4/4 and 3/4, dotted-quarter=55 in 6/8 (quarter BPM 82.5). The source policy is backend/content/playback-settings.json; scripts/build_question_assets.py generates TempoDefaults.swift. Existing v2/v3 snapshots and v1 resources remain supported. The new scale has 15 ascending/descending notes and its asset determines its length.
+
+PianoAudioGraph is shared by the app and the macOS offline audio regression check. It creates fresh sampler nodes after a problem change or playback interruption. MIDI contains no program-change event that can override the loaded piano/click. New plans use the original synthesized sori-piano-v2.sf2; its generator and identity are frontend/scripts/generate_piano_v2.py and Resources/instrument-profile-v2.json. It is a synthesized piano timbre, not a recording.
+
+The drawing canvas installs one UIPencilInteraction and respects the system double-tap preference for pen/eraser or previous-tool switching. Disabled double taps and locked submissions do not change tools. Physical Pencil behavior still requires an iPad check.

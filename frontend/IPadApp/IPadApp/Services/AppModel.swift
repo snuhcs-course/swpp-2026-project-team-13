@@ -136,7 +136,7 @@ import PencilKit
         }
     }
     private func activate(_ record: SessionRecord) async throws {
-        player.pause(); prepared = false; drawingMissing = false; saveFailed = false; mainScore = nil; submittedImage = nil; template = nil
+        player.stopForPreparation(); prepared = false; drawingMissing = false; saveFailed = false; mainScore = nil; submittedImage = nil; template = nil
         guard let store else { return }
         clock.sync(record.attempt)
         switch record.attempt.status {
@@ -164,8 +164,8 @@ import PencilKit
         let imageData = try await cached("template.png", url: q.sheetLayout.templatePngUrl, authenticated: false, sha: q.sheetLayout.templateSha256, limit: 10_485_760, id: record.id)
         let mainData = try await cached("main.mxl", url: q.scoreAssets.main.url, authenticated: true, sha: q.scoreAssets.main.sha256, limit: 1_048_576, id: record.id)
         let scaleData = try await cached("scale.mxl", url: q.scoreAssets.scale.url, authenticated: true, sha: q.scoreAssets.scale.sha256, limit: 1_048_576, id: record.id)
-        let main = try MusicXMLParser.parseMXL(mainData, asset: q.scoreAssets.main, tempo: plan.tempoBpm)
-        let scale = try MusicXMLParser.parseMXL(scaleData, asset: q.scoreAssets.scale, tempo: plan.tempoBpm)
+        let main = try MusicXMLParser.parseMXL(mainData, asset: q.scoreAssets.main)
+        let scale = try MusicXMLParser.parseMXL(scaleData, asset: q.scoreAssets.scale)
         guard main.timeSignature == q.timeSignature else { throw SORIError.invalidScore("문제 안내와 악보의 박자가 다릅니다.") }
         self.template = try AnswerExporter.validateTemplate(imageData, layout: q.sheetLayout); self.mainScore = main
         try player.prepare(main: main, scale: scale, plan: plan); player.restore(record.cursor)
@@ -255,7 +255,7 @@ import PencilKit
         if mainScore == nil {
             let asset = record.attempt.question.scoreAssets.main
             let data = try await cached("main.mxl", url: asset.url, authenticated: true, sha: asset.sha256, limit: 1_048_576, id: record.id)
-            mainScore = try MusicXMLParser.parseMXL(data, asset: asset, tempo: record.attempt.playbackPlan.tempoBpm)
+            mainScore = try MusicXMLParser.parseMXL(data, asset: asset)
         }
     }
     func refreshResult() async { await run("결과를 확인하는 중") { try await self.loadResult() }; pollGeneration = UUID() }

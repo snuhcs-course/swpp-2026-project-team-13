@@ -30,9 +30,9 @@ def package(app, output, commit):
     if not info.get("NSAppTransportSecurity", {}).get("NSAllowsArbitraryLoads"):
         raise ValueError("Expected the Debug app that supports the local HTTP server")
 
-    required = ["sori-piano-v1.sf2", "sori-click-v1.wav", "practice-catalog.json"]
+    required = ["sori-piano-v1.sf2", "sori-piano-v2.sf2", "instrument-profile-v2.json", "sori-click-v1.wav", "practice-catalog.json"]
     for number in (1, 2, 3):
-        required += [f"excerpt-{number}-main.mxl", f"excerpt-{number}-scale.mxl"]
+        required += [f"excerpt-{number}-v2-main.mxl", f"excerpt-{number}-v2-scale.mxl"]
     for name in required:
         bundled = app / name
         canonical = ROOT / "frontend/IPadApp/IPadApp/Resources" / name

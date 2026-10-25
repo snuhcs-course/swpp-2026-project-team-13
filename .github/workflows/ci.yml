@@ -45,6 +45,7 @@ jobs:
       - run: python manage.py makemigrations --check --dry-run
       - run: python ../scripts/test_content.py
       - run: python ../scripts/test_playback.py
+      - run: python ../scripts/test_audio_assets.py
       - run: python manage.py test api sori --noinput
 
   frontend:
@@ -55,6 +56,11 @@ jobs:
         run: swift test --package-path frontend
       - name: Verify bundled piano audio
         run: swift frontend/scripts/check_piano.swift frontend/IPadApp/IPadApp/Resources/sori-piano-v1.sf2
+      - name: Verify piano and count-in after repeated app audio graph rebuilds
+        run: |
+          mkdir -p build
+          swiftc frontend/IPadApp/IPadApp/Services/PianoAudioGraph.swift frontend/scripts/audio-check/main.swift -o build/check-audio
+          build/check-audio frontend/IPadApp/IPadApp/Resources
       - name: Build iPad app for simulator
         run: >-
           xcodebuild -project frontend/IPadApp/IPadApp.xcodeproj

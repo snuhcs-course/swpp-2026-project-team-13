@@ -18,7 +18,7 @@ import Foundation
     private func catalog() throws -> [Question] {
         let values: [Question] = try Bundled.decode("practice-catalog")
         return values.map { source in
-            var q = source; q.recommendedDurationSeconds = Int(ceil(PlaybackPlan.exam(meter:q.timeSignature).nominalDurationSeconds(meter:q.timeSignature))); return q
+            var q = source; q.tempo = TempoDefaults.setting(for:q.timeSignature); q.recommendedDurationSeconds = Int(ceil(PlaybackPlan.exam(meter:q.timeSignature,setting:q.tempo,scaleMeasures:q.scoreAssets.scale.measureCount).nominalDurationSeconds(meter:q.timeSignature))); return q
         }
     }
     func questions(page: Int) async throws -> QuestionPage {
@@ -32,7 +32,7 @@ import Foundation
         let path = store.root.appendingPathComponent("create-\(key).json")
         if FileManager.default.fileExists(atPath: path.path) { return try ContractJSON.decoder().decode(Attempt.self, from: Data(contentsOf: path)) }
         var attempt: Attempt = try Bundled.decode("attempt-ready")
-        attempt.playbackPlan = .exam(meter:question.timeSignature)
+        attempt.playbackPlan = .exam(meter:question.timeSignature,setting:question.tempo,scaleMeasures:question.scoreAssets.scale.measureCount)
         attempt.id = UUID(); attempt.question = question; attempt.createdAt = Date(); attempt.serverTime = Date()
         try store.save(SessionRecord(attempt: attempt))
         try ContractJSON.encoder().encode(attempt).write(to: path, options: .atomic); return attempt
@@ -89,7 +89,8 @@ import Foundation
         let values = try catalog()
         if let index = values.firstIndex(where: { url.path.lowercased().contains($0.id.uuidString.lowercased()) }) {
             let kind = url.path.contains("/scores/scale") ? "scale" : "main"
-            data = try Bundled.data("excerpt-\(index+1)-\(kind)", ext:"mxl")
+            let version = url.path.contains("/versions/2/") ? "-v2" : ""
+            data = try Bundled.data("excerpt-\(index+1)\(version)-\(kind)", ext:"mxl")
         } else if let q = values.first(where: { $0.sheetLayout.templatePngUrl == url }) {
             data = try Bundled.data(q.sheetLayout.id, ext:"png")
         } else { throw SORIError.configuration("데모 자산을 찾을 수 없습니다.") }

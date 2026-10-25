@@ -16,7 +16,7 @@ struct ScoreSymbol: Equatable {
     var tupletStart = false; var tupletStop = false
 }
 struct MusicScore: Equatable {
-    var tempo: Int; var measures: Int; var events: [MusicEvent]; var symbols: [ScoreSymbol]
+    var tempo: Double; var measures: Int; var events: [MusicEvent]; var symbols: [ScoreSymbol]
     var timeSignature = TimeSignature(numerator: 4, denominator: 4)
     var ticksPerMeasure: Int { timeSignature.ticksPerMeasure }
     var totalTicks: Int { measures * ticksPerMeasure }
@@ -128,14 +128,14 @@ final class SafeXML: NSObject, XMLParserDelegate {
 }
 
 enum MusicXMLParser {
-    static let version = "sori-parser-2"
-    static func parseMXL(_ data: Data, asset: ScoreAsset, tempo: Int) throws -> MusicScore {
+    static let version = "sori-parser-3"
+    static func parseMXL(_ data: Data, asset: ScoreAsset, tempo: Double? = nil) throws -> MusicScore {
         guard data.count == asset.sizeBytes, data.sha256 == asset.sha256 else { throw SORIError.invalidScore("SCORE_HASH_MISMATCH: 악보의 해시 또는 크기가 다릅니다.") }
         guard ["sori-monophonic-v1", "sori-monophonic-v2"].contains(asset.profile), asset.musicxmlVersion == "4.0", asset.partId == "P1", asset.contentType == "application/vnd.recordare.musicxml" else { throw SORIError.unsupported("UNSUPPORTED_SCORE_PROFILE: 악보 형식을 확인해 주세요.") }
         let files = try MXLContainer.entries(data)
-        return try parseXML(files["score.xml"]!, measures: asset.measureCount, tempo: tempo)
+        return try parseXML(files["score.xml"]!, measures: asset.measureCount, tempo: tempo ?? asset.sourceTempoBpm ?? 96)
     }
-    static func parseXML(_ data: Data, measures: Int, tempo: Int) throws -> MusicScore {
+    static func parseXML(_ data: Data, measures: Int, tempo: Double) throws -> MusicScore {
         let root = try SafeXML.parse(data)
         func fail(_ message: String) -> SORIError { .invalidScore("UNSUPPORTED_SCORE_PROFILE: " + message) }
         let allowed: Set<String> = ["score-partwise","work","work-title","movement-title","identification","creator","rights","encoding","software","encoding-date","part-list","score-part","part-name","part-abbreviation","score-instrument","instrument-name","instrument-abbreviation","midi-instrument","midi-channel","midi-program","part","measure","attributes","divisions","key","fifths","mode","time","beats","beat-type","clef","sign","line","staves","direction","direction-type","metronome","beat-unit","per-minute","sound","note","pitch","step","alter","octave","rest","duration","voice","staff","type","dot","accidental","tie","notations","tied","barline","bar-style","stem","beam","time-modification","actual-notes","normal-notes","normal-type","tuplet"]
@@ -166,7 +166,7 @@ enum MusicXMLParser {
             for child in node.children { try validate(child) }
         }
         try validate(root)
-        guard root.name == "score-partwise", root.attributes["version"] == "4.0", [2,8].contains(measures),
+        guard root.name == "score-partwise", root.attributes["version"] == "4.0", [2,3,8].contains(measures),
               root.children(named: "part").count == 1, let part = root.one("part"), part.attributes["id"] == "P1",
               let partList = root.one("part-list"), partList.children(named: "score-part").count == 1,
               partList.one("score-part")?.attributes["id"] == "P1", (40...200).contains(tempo) else { throw fail("파트·버전·마디 수를 확인해 주세요.") }
@@ -255,9 +255,9 @@ enum MIDIFile {
         var n = value, bytes = [UInt8(n & 127)]; n >>= 7
         while n > 0 { bytes.insert(UInt8(n & 127) | 128, at: 0); n >>= 7 }; return bytes
     }
-    static func make(events: [MusicEvent], totalTicks: Int, tempo: Int, velocity: Int = 80, firstNoteVelocity: Int? = nil) -> Data {
-        let micros = 60_000_000 / tempo
-        var track: [UInt8] = [0,0xff,0x51,3, UInt8((micros >> 16) & 255), UInt8((micros >> 8) & 255), UInt8(micros & 255), 0,0xc0,0]
+    static func make(events: [MusicEvent], totalTicks: Int, tempo: Double, velocity: Int = 80, firstNoteVelocity: Int? = nil) -> Data {
+        let micros = Int((60_000_000 / tempo).rounded())
+        var track: [UInt8] = [0,0xff,0x51,3, UInt8((micros >> 16) & 255), UInt8((micros >> 8) & 255), UInt8(micros & 255)]
         var messages: [(Int,Int,[UInt8])] = []
         for e in events { if let midi = e.midi {
             messages.append((e.onset,1,[0x90,UInt8(midi),UInt8((e.onset == 0 ? firstNoteVelocity : nil) ?? velocity)]))
@@ -275,7 +275,7 @@ enum MIDIFile {
 
     // A single tempo clock schedules the count-in and first score onset; no separate audio starts.
     // Track 0 is piano, track 1 is the short click sample. No clicks continue into the score.
-    static func withCountIn(events: [MusicEvent], totalTicks: Int, tempo: Int, countIn: CountInPlayback) -> Data {
+    static func withCountIn(events: [MusicEvent], totalTicks: Int, tempo: Double, countIn: CountInPlayback) -> Data {
         let prefix = countIn.totalTicks
         let piano = make(events:events.map { MusicEvent(midi:$0.midi,onset:$0.onset+prefix,duration:$0.duration) },
                          totalTicks:totalTicks+prefix,tempo:tempo)

@@ -73,3 +73,12 @@ GitHub 빌드 성공은 실제 iPad의 오디오·필기·서버 제출까지 �
 - 서버 연결 실패: iPad Safari에서 health 확인 후 앱 주소와 토큰을 확인합니다.
 
 공식 자료: [Sideloadly](https://sideloadly.io/), [Sideloadly FAQ](https://sideloadly.io/faq.html), [Apple 개발자 모드](https://developer.apple.com/documentation/xcode/enabling-developer-mode-on-a-device), [GitHub 빌드 파일 다운로드](https://docs.github.com/en/actions/how-tos/manage-workflow-runs/download-workflow-artifacts).
+
+
+## v0.5 업데이트 후 확인
+
+새 IPA를 같은 Apple 계정·Bundle ID로 기존 앱 위에 설치합니다. 서버 실행 폴더 sori에서 docker compose --env-file backend/.env up --build -d --wait를 실행해 API와 worker를 함께 갱신합니다. db·답안 볼륨은 유지하며 seed_questions가 현재 문제를 v2로 올립니다.
+
+새 응시에서 템포(4/4·3/4는 ♩=80, 6/8은 ♩.=55), 도레미파솔라시도시라솔파미레도 스케일과 새 합성 피아노를 확인합니다. 이전에 시작한 응시는 저장된 예전 계획을 사용합니다.
+
+문제 두 개를 연속으로 풀기, 앱 내 연습실 왕복, iPad 홈 화면으로 나갔다 복귀 후 재생 계속을 각각 확인합니다. 노트 앱에서 더블탭이 되는 Apple Pencil로 펜·지우개 전환과 화면 버튼 상태가 함께 바뀌는지도 확인합니다.
