@@ -15,10 +15,17 @@ import Foundation
         var value = try await profile(); value.learningGoal = goal
         try ContractJSON.encoder().encode(value).write(to: store.root.appendingPathComponent("profile.json"), options: .atomic); return value
     }
+    private struct EngravingManifest: Decodable { var scores: [String: ImageEntry] }
+    private struct ImageEntry: Decodable { var resource:String; var contentType:String; var sha256:String; var sizeBytes:Int; var pixelWidth:Int; var pixelHeight:Int; var renderer:String }
     private func catalog() throws -> [Question] {
         let values: [Question] = try Bundled.decode("practice-catalog")
+        let engraving: EngravingManifest = try Bundled.decode("engraving-manifest")
         return values.map { source in
-            var q = source; q.recommendedDurationSeconds = Int(ceil(PlaybackPlan.exam(meter:q.timeSignature).nominalDurationSeconds(meter:q.timeSignature))); return q
+            var q = source
+            if let image = engraving.scores[q.scoreAssets.main.sha256] {
+                q.correctScore = ReferenceImage(url:q.scoreAssets.main.url.deletingLastPathComponent().deletingLastPathComponent().appendingPathComponent("display",isDirectory:true),contentType:image.contentType,sha256:image.sha256,sizeBytes:image.sizeBytes,pixelWidth:image.pixelWidth,pixelHeight:image.pixelHeight,renderer:image.renderer)
+            }
+            q.tempo = TempoDefaults.setting(for:q.timeSignature); q.recommendedDurationSeconds = Int(ceil(PlaybackPlan.exam(meter:q.timeSignature,setting:q.tempo,scaleMeasures:q.scoreAssets.scale.measureCount).nominalDurationSeconds(meter:q.timeSignature))); return q
         }
     }
     func questions(page: Int) async throws -> QuestionPage {
@@ -32,12 +39,19 @@ import Foundation
         let path = store.root.appendingPathComponent("create-\(key).json")
         if FileManager.default.fileExists(atPath: path.path) { return try ContractJSON.decoder().decode(Attempt.self, from: Data(contentsOf: path)) }
         var attempt: Attempt = try Bundled.decode("attempt-ready")
-        attempt.playbackPlan = .exam(meter:question.timeSignature)
+        attempt.playbackPlan = .exam(meter:question.timeSignature,setting:question.tempo,scaleMeasures:question.scoreAssets.scale.measureCount)
         attempt.id = UUID(); attempt.question = question; attempt.createdAt = Date(); attempt.serverTime = Date()
         try store.save(SessionRecord(attempt: attempt))
         try ContractJSON.encoder().encode(attempt).write(to: path, options: .atomic); return attempt
     }
-    func attempt(_ id: UUID) async throws -> Attempt { var a = try store.load(id).attempt; a.serverTime = Date(); return a }
+    func attempt(_ id: UUID) async throws -> Attempt {
+        var a = try store.load(id).attempt; a.serverTime = Date()
+        if a.question.correctScore == nil,
+           let current = try catalog().first(where: { $0.id == a.question.id && $0.scoreAssets.main.sha256 == a.question.scoreAssets.main.sha256 }) {
+            a.question.correctScore = current.correctScore
+        }
+        return a
+    }
     func start(_ id: UUID) async throws -> Attempt {
         var r = try store.load(id)
         if r.attempt.status == "ready" {
@@ -88,8 +102,17 @@ import Foundation
         let data: Data
         let values = try catalog()
         if let index = values.firstIndex(where: { url.path.lowercased().contains($0.id.uuidString.lowercased()) }) {
+            // Foundation URL.path strips a trailing slash on Apple platforms.
+            if url.lastPathComponent == "display" {
+                let manifest: EngravingManifest = try Bundled.decode("engraving-manifest")
+                guard let item = manifest.scores[values[index].scoreAssets.main.sha256] else { throw SORIError.configuration("정답 이미지가 없습니다.") }
+                let image = try Bundled.data(item.resource,ext:"png")
+                guard image.count <= limit else { throw SORIError.storage("정답 이미지 용량 초과") }
+                return image
+            }
             let kind = url.path.contains("/scores/scale") ? "scale" : "main"
-            data = try Bundled.data("excerpt-\(index+1)-\(kind)", ext:"mxl")
+            let version = url.path.contains("/versions/2/") ? "-v2" : ""
+            data = try Bundled.data("excerpt-\(index+1)\(version)-\(kind)", ext:"mxl")
         } else if let q = values.first(where: { $0.sheetLayout.templatePngUrl == url }) {
             data = try Bundled.data(q.sheetLayout.id, ext:"png")
         } else { throw SORIError.configuration("데모 자산을 찾을 수 없습니다.") }

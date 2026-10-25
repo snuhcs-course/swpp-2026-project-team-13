@@ -35,12 +35,18 @@ struct SheetLayout: Codable, Equatable {
 struct ScoreAsset: Codable, Equatable {
     var url: URL; var contentType: String; var sha256: String; var sizeBytes: Int
     var musicxmlVersion: String; var profile: String; var partId: String; var measureCount: Int
+    var sourceTempoBpm: Double? = nil
+}
+struct ReferenceImage: Codable, Equatable {
+    var url: URL; var contentType: String; var sha256: String; var sizeBytes: Int
+    var pixelWidth: Int; var pixelHeight: Int; var renderer: String
 }
 struct ScoreAssets: Codable, Equatable { var main: ScoreAsset; var scale: ScoreAsset }
 struct QuestionSummary: Codable, Identifiable, Equatable {
     var id: UUID; var version: Int; var title: String; var source: String
     var keySignature: KeySignature; var timeSignature: TimeSignature
     var measureCount: Int; var recommendedDurationSeconds: Int
+    var tempo: TempoSetting? = nil
 }
 struct Question: Codable, Identifiable, Equatable {
     var id: UUID; var version: Int; var title: String; var source: String
@@ -48,6 +54,8 @@ struct Question: Codable, Identifiable, Equatable {
     var measureCount: Int; var recommendedDurationSeconds: Int
     var description: String; var timePolicy: String; var clef: String
     var sheetLayout: SheetLayout; var contentPolicy: String; var scoreVisibility: String; var scoreAssets: ScoreAssets
+    var tempo: TempoSetting? = nil
+    var correctScore: ReferenceImage? = nil
     func validate() throws {
         try sheetLayout.validate()
         guard source == "practice", keySignature.tonic == "C", keySignature.mode == "major", keySignature.fifths == 0,
@@ -68,46 +76,61 @@ struct CountInPlayback: Codable, Equatable {
     var ticksPerBeat: Int { 480 * 4 / beatUnit }
     var totalTicks: Int { measures * beatsPerMeasure * ticksPerBeat }
 }
+struct TempoSetting: Codable, Equatable {
+    var policyId: String; var beatUnit: String; var bpm: Int
+    var minimumBpm: Int; var maximumBpm: Int
+    var quarterBpm: Double { Double(bpm) * (beatUnit == "dotted_quarter" ? 1.5 : 1) }
+    var label: String { "\(beatUnit == "dotted_quarter" ? "♩." : "♩") = \(bpm)" }
+    func validate(meter: TimeSignature? = nil) throws {
+        guard ["quarter","dotted_quarter"].contains(beatUnit), !policyId.isEmpty,
+              minimumBpm > 0, maximumBpm >= minimumBpm, (minimumBpm...maximumBpm).contains(bpm),
+              quarterBpm >= 40, quarterBpm <= 200 else { throw SORIError.unsupported("템포 설정을 확인해 주세요.") }
+        if let meter {
+            guard beatUnit == (meter.denominator == 8 ? "dotted_quarter" : "quarter") else { throw SORIError.unsupported("템포의 기준 음표가 박자와 다릅니다.") }
+        }
+    }
+}
 struct PlaybackPlan: Codable, Equatable {
-    var version: Int; var engine: String; var tempoBpm: Int; var instrumentProfileId: String
+    var version: Int; var engine: String; var tempoBpm: Double; var instrumentProfileId: String
     var tuningHz: Double; var transposeSemitones: Int; var velocity: Int; var gateRatio: Double; var releaseTailMs: Int
     var scale: ScalePlayback; var pauseAfterScaleMs: Int
     var allowManualPause: Bool; var allowManualReplay: Bool; var interruptionPolicy: String; var steps: [PlaybackStep]
     var initialDelayMs: Int? = nil
     var countIn: CountInPlayback? = nil
+    var tempo: TempoSetting? = nil
 
-    static func exam(meter: TimeSignature, tempo: Int = 96) -> PlaybackPlan {
+    static func exam(meter: TimeSignature, setting: TempoSetting? = nil, scaleMeasures: Int? = nil) -> PlaybackPlan {
+        let selected = setting ?? TempoDefaults.setting(for:meter)
         let ranges = [(1,8),(1,2),(1,2),(1,4),(3,4),(3,6),(5,6),(5,8),(7,8),(7,8),(1,8)]
-        return PlaybackPlan(version:3, engine:"local_midi", tempoBpm:tempo, instrumentProfileId:"sori-piano-v1",
-            tuningHz:440, transposeSemitones:0, velocity:80, gateRatio:1, releaseTailMs:300,
-            scale:ScalePlayback(scoreKind:"scale",fromMeasure:1,toMeasure:2), pauseAfterScaleMs:2000,
-            allowManualPause:true, allowManualReplay:false, interruptionPolicy:"restart_current_segment",
+        return PlaybackPlan(version:4,engine:"local_midi",tempoBpm:selected.quarterBpm,instrumentProfileId:"sori-piano-v2",
+            tuningHz:440,transposeSemitones:0,velocity:80,gateRatio:1,releaseTailMs:300,
+            scale:ScalePlayback(scoreKind:"scale",fromMeasure:1,toMeasure:scaleMeasures ?? (meter.numerator == 4 ? 2 : 3)),pauseAfterScaleMs:2000,
+            allowManualPause:true,allowManualReplay:false,interruptionPolicy:"restart_current_segment",
             steps:ranges.enumerated().map { i, range in
                 PlaybackStep(order:i+1,fromMeasure:range.0,toMeasure:range.1,scoreKind:"main",pauseAfterMs:i == 10 ? 120000 : 20000)
-            },
-            initialDelayMs:2000,
-            countIn:CountInPlayback(measures:1,beforeStepOrders:[1,11],beatsPerMeasure:meter.numerator,
-                beatUnit:meter.denominator,accentVelocity:110,velocity:70,profileId:"sori-click-v1"))
+            },initialDelayMs:2000,
+            countIn:CountInPlayback(measures:1,beforeStepOrders:[1,11],beatsPerMeasure:meter.numerator,beatUnit:meter.denominator,
+                accentVelocity:110,velocity:70,profileId:"sori-click-v1"),tempo:selected)
     }
     func nominalDurationSeconds(meter: TimeSignature) -> Double {
-        let bars = scale.toMeasure - scale.fromMeasure + 1
-            + steps.reduce(0) { $0 + $1.toMeasure - $1.fromMeasure + 1 }
+        let bars = scale.toMeasure-scale.fromMeasure+1 + steps.reduce(0) { $0+$1.toMeasure-$1.fromMeasure+1 }
         let countTicks = (countIn?.totalTicks ?? 0) * (countIn?.beforeStepOrders.count ?? 0)
-        let audio = Double(bars * meter.ticksPerMeasure + countTicks) / 480 * 60 / Double(tempoBpm)
-        let pauses = (initialDelayMs ?? 0) + pauseAfterScaleMs + steps.reduce(0) { $0 + $1.pauseAfterMs }
-        return audio + Double(pauses) / 1000
+        let audio = Double(bars*meter.ticksPerMeasure+countTicks)/480*60/tempoBpm
+        let pauses = (initialDelayMs ?? 0)+pauseAfterScaleMs+steps.reduce(0) { $0+$1.pauseAfterMs }
+        return audio+Double(pauses)/1000
     }
     func validate() throws {
         let ranges = [(1,8),(1,2),(1,2),(1,4),(3,4),(3,6),(5,6),(5,8),(7,8),(7,8),(1,8)]
-        guard [2,3].contains(version), engine == "local_midi", instrumentProfileId == "sori-piano-v1", tuningHz == 440,
+        guard [2,3,4].contains(version), engine == "local_midi",
+              instrumentProfileId == (version == 4 ? "sori-piano-v2" : "sori-piano-v1"), tuningHz == 440,
               transposeSemitones == 0, velocity == 80, gateRatio == 1, releaseTailMs == 300,
-              (40...200).contains(tempoBpm), allowManualPause, !allowManualReplay,
-              interruptionPolicy == "restart_current_segment", scale.scoreKind == "scale",
-              scale.fromMeasure == 1, scale.toMeasure == 2, pauseAfterScaleMs >= 0, steps.count == 11,
-              zip(steps, ranges).enumerated().allSatisfy({ i, pair in
-                  pair.0.order == i + 1 && pair.0.fromMeasure == pair.1.0 && pair.0.toMeasure == pair.1.1 && pair.0.scoreKind == "main" && pair.0.pauseAfterMs >= 0
+              tempoBpm.isFinite, (40...200).contains(tempoBpm), allowManualPause, !allowManualReplay,
+              interruptionPolicy == "restart_current_segment", scale.scoreKind == "scale", scale.fromMeasure == 1,
+              (version == 4 ? [2,3].contains(scale.toMeasure) : scale.toMeasure == 2), pauseAfterScaleMs >= 0, steps.count == 11,
+              zip(steps,ranges).enumerated().allSatisfy({ i,pair in
+                  pair.0.order == i+1 && pair.0.fromMeasure == pair.1.0 && pair.0.toMeasure == pair.1.1 && pair.0.scoreKind == "main" && pair.0.pauseAfterMs >= 0
               }) else { throw SORIError.unsupported("지원하지 않는 재생 계획입니다.") }
-        if version == 3 {
+        if version >= 3 {
             guard initialDelayMs == 2000, pauseAfterScaleMs == 2000, let countIn,
                   countIn.measures == 1, countIn.beforeStepOrders == [1,11],
                   TimeSignature(numerator:countIn.beatsPerMeasure,denominator:countIn.beatUnit).supported,
@@ -116,6 +139,10 @@ struct PlaybackPlan: Codable, Equatable {
             else { throw SORIError.unsupported("시험의 예비박·필기 시간 설정을 확인해 주세요.") }
         } else if countIn != nil || (initialDelayMs ?? 0) != 0 {
             throw SORIError.unsupported("구버전 재생 계획에 예비박을 추가할 수 없습니다.")
+        }
+        if version == 4 {
+            guard let tempo, let countIn, abs(tempo.quarterBpm-tempoBpm) < 0.000001 else { throw SORIError.unsupported("템포 환산이 일치하지 않습니다.") }
+            try tempo.validate(meter:TimeSignature(numerator:countIn.beatsPerMeasure,denominator:countIn.beatUnit))
         }
     }
 }
@@ -133,7 +160,19 @@ struct BBox: Codable, Equatable {
     var x: Double; var y: Double; var width: Double; var height: Double
     var isValid: Bool { [x,y,width,height].allSatisfy(\.isFinite) && x >= 0 && y >= 0 && width > 0 && height > 0 && x + width <= 1.000001 && y + height <= 1.000001 }
 }
-struct Annotation: Codable, Identifiable, Equatable { var id: String; var type: String; var measure: Int?; var bbox: BBox?; var message: String }
+struct Annotation: Codable, Identifiable, Equatable {
+    var id: String; var type: String; var measure: Int?; var bbox: BBox?; var message: String
+    var noteIndex: Int? = nil; var endNoteIndex: Int? = nil
+    var locationLabel: String {
+        guard let measure else { return "위치 확인 필요" }
+        guard let noteIndex else { return "\(measure)마디" }
+        if let endNoteIndex, endNoteIndex > noteIndex { return "\(measure)마디 · \(noteIndex)–\(endNoteIndex)번째 음표·쉼표" }
+        return "\(measure)마디 · \(noteIndex)번째 음표·쉼표"
+    }
+    var categoryLabel: String {
+        ["pitch_error":"음정", "rhythm_error":"리듬", "missing_note":"빠진 음표", "extra_note":"추가 음표", "recognition_uncertain":"인식 확인", "notation_error":"표기 관습", "notation_suggestion":"권장 표기"][type] ?? "피드백"
+    }
+}
 struct Feedback: Codable, Equatable { var summary: String; var recommendations: [String] }
 struct GradingFailure: Codable, Equatable { var code: String; var message: String; var retryable: Bool }
 struct Grading: Codable, Equatable {

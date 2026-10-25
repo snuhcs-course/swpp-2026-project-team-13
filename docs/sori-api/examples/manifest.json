@@ -72,6 +72,14 @@
     {
       "file": "error-image-dimensions.json",
       "schema": "ErrorEnvelope"
+    },
+    {
+      "file": "questions-v0.5.json",
+      "schema": "QuestionPage"
+    },
+    {
+      "file": "attempt-ready-v4.json",
+      "schema": "Attempt"
     }
   ]
 }

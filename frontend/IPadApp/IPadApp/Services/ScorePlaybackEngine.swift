@@ -14,9 +14,11 @@ import AudioToolbox
     @Published private(set) var message = "재생 준비 중"
     var onCursor: ((PlaybackCursor) throws -> Void)?
     var onError: ((Error) -> Void)?
-    private var engine = AVAudioEngine()
-    private var sampler = AVAudioUnitSampler()
-    private var metronome = AVAudioUnitSampler()
+    var voiceId = "grand-piano"
+    private let audioGraph = PianoAudioGraph()
+    private var engine: AVAudioEngine { audioGraph.engine }
+    private var sampler: AVAudioUnitSampler { audioGraph.piano }
+    private var metronome: AVAudioUnitSampler { audioGraph.click }
     private var sequencer: AVAudioSequencer?
     private var main: MusicScore?
     private var scale: MusicScore?
@@ -25,39 +27,62 @@ import AudioToolbox
     private var prepared = false
     private var waitAnchor: TimeInterval?
     private var waitInitialMs = 0
+    private var graphNeedsRebuild = true
+    private var playbackGeneration = UUID()
+    private var instrumentURL: URL?
+    private var clickURL: URL?
+    private var instrumentProgram: UInt8 = 0
+    private var bankMSB: UInt8 = 121
+    private var bankLSB: UInt8 = 0
+    private var outputGain: Float = 1
 
-    init() {
-        engine.attach(sampler); engine.connect(sampler,to:engine.mainMixerNode,format:nil)
-        engine.attach(metronome); engine.connect(metronome,to:engine.mainMixerNode,format:nil)
-    }
     func prepare(main: MusicScore, scale: MusicScore, plan: PlaybackPlan) throws {
         prepared = false; pause()
         try plan.validate()
         if let count = plan.countIn {
             guard count.beatsPerMeasure == main.timeSignature.numerator, count.beatUnit == main.timeSignature.denominator,
-                  scale.timeSignature == main.timeSignature else { throw SORIError.invalidScore("예비박과 문제의 박자표가 다릅니다.") }
+                  scale.timeSignature == main.timeSignature, scale.measures == plan.scale.toMeasure,
+                  main.measures == 8 else { throw SORIError.invalidScore("예비박과 문제의 박자표가 다릅니다.") }
         }
-        struct Instrument: Decodable { var id:String; var sha256:String; var program:Int; var bankMsb:Int; var bankLsb:Int; var gainDb:Float }
-        let manifest: Instrument = try Bundled.decode("instrument-profile")
-        guard manifest.id == plan.instrumentProfileId, let url = Bundle.main.url(forResource:manifest.id,withExtension:"sf2"),
-              try Data(contentsOf:url).sha256 == manifest.sha256 else { throw SORIError.invalidScore("SOUND_BANK_UNAVAILABLE: 피아노 리소스가 손상되었거나 없습니다.") }
+        struct Bank: Decodable { var sha256:String; var sizeBytes:Int }
+        let choices: InstrumentChoices = try Bundled.decode("instruments")
+        guard let voice = choices.voices.first(where: { $0.id == voiceId }),
+              let url = Bundle.main.url(forResource:"GeneralUser-GS",withExtension:"sf2") else {
+            throw SORIError.invalidScore("음원 리소스가 없습니다. 음원이 포함된 최신 앱으로 설치해 주세요.")
+        }
+        let bank: Bank = try Bundled.decode("instrument-bank")
+        let data = try Data(contentsOf:url)
+        guard data.count == bank.sizeBytes, data.sha256 == bank.sha256 else { throw SORIError.invalidScore("SOUND_BANK_UNAVAILABLE: 음원 리소스가 손상되었습니다.") }
+        instrumentURL = url; instrumentProgram = voice.program; bankMSB = 121; bankLSB = 0
+        outputGain = pow(10,voice.gainDb / 20)
+        clickURL = nil
+        if let count = plan.countIn {
+            guard let url = Bundle.main.url(forResource:count.profileId,withExtension:"wav") else { throw SORIError.invalidScore("예비박 소리 리소스가 없습니다.") }
+            clickURL = url
+        }
+        self.main = main; self.scale = scale; self.plan = plan
+        for i in 0...11 { _ = try midi(index:i) }
+        try rebuildAudioGraph()
+        prepared = true; message = "스케일·예비박·11개 구간이 준비되었어요"
+    }
+    // A sampler is rebuilt after leaving a problem or an audio interruption. Reusing a
+    // stopped I/O graph can leave a running sequencer connected to a silent instrument.
+    private func rebuildAudioGraph() throws {
+        sequencer?.stop(); sequencer = nil; engine.stop()
         let audio = AVAudioSession.sharedInstance()
         try audio.setCategory(.playback,mode:.default,options:[])
         try audio.setActive(true)
-        try sampler.loadSoundBankInstrument(at:url,program:UInt8(manifest.program),bankMSB:UInt8(manifest.bankMsb),bankLSB:UInt8(manifest.bankLsb))
-        if let count = plan.countIn {
-            guard let clickURL = Bundle.main.url(forResource:count.profileId,withExtension:"wav") else { throw SORIError.invalidScore("예비박 소리 리소스가 없습니다.") }
-            try metronome.loadAudioFiles(at:[clickURL])
-        }
-        engine.mainMixerNode.outputVolume = pow(10,manifest.gainDb / 20)
-        self.main = main; self.scale = scale; self.plan = plan
-        for i in 0...11 { _ = try midi(index:i) }
-        let seq = AVAudioSequencer(audioEngine:engine)
-        try seq.load(from:midi(index:0),options:[])
-        route(seq,index:0); seq.prepareToPlay(); sequencer = seq
-        engine.prepare(); try engine.start(); engine.pause()
-        prepared = true; message = "스케일·예비박·11개 구간이 준비되었어요"
+        guard let url = instrumentURL else { throw SORIError.invalidScore("SOUND_BANK_UNAVAILABLE") }
+        try audioGraph.rebuild(bank:url,program:instrumentProgram,bankMSB:bankMSB,bankLSB:bankLSB,clickURL:clickURL,gain:outputGain)
+        sequencer = AVAudioSequencer(audioEngine:engine)
+        engine.prepare(); graphNeedsRebuild = false
     }
+    func audioConfigurationChanged(_ notification: Notification) {
+        guard let changed = notification.object as? AVAudioEngine, changed === engine else { return }
+        invalidateAudio()
+    }
+    func invalidateAudio() { pause(); graphNeedsRebuild = true }
+    func stopForPreparation() { prepared = false; pause() }
     func restore(_ cursor: PlaybackCursor) {
         self.cursor = cursor
         message = cursor.index > 11 ? "필기 시간 종료 · 답안을 제출해 주세요" : "재생 계속을 누르면 저장된 단계부터 이어져요"
@@ -70,7 +95,7 @@ import AudioToolbox
         guard let plan, let main, let scale else { throw SORIError.invalidScore("PLAYBACK_PREPARE_FAILED") }
         let score = index == 0 ? scale : main
         let from = index == 0 ? 1 : plan.steps[index-1].fromMeasure
-        let through = index == 0 ? 2 : plan.steps[index-1].toMeasure
+        let through = index == 0 ? plan.scale.toMeasure : plan.steps[index-1].toMeasure
         let events = try score.segment(from:from,through:through)
         let ticks = (through-from+1)*score.ticksPerMeasure
         if let count = countIn(index:index) { return MIDIFile.withCountIn(events:events,totalTicks:ticks,tempo:plan.tempoBpm,countIn:count) }
@@ -109,10 +134,14 @@ import AudioToolbox
     }
     func resume() {
         guard prepared, !isPlaying, cursor.index <= 11 else { return }
+        let generation = UUID(); playbackGeneration = generation
         isPlaying = true
         runner = Task { [weak self] in
             guard let self, let plan else { return }
             do {
+                try Task.checkCancellation()
+                guard generation == playbackGeneration else { throw CancellationError() }
+                if graphNeedsRebuild { try rebuildAudioGraph() }
                 try AVAudioSession.sharedInstance().setActive(true)
                 try engine.start()
                 if cursor.index == 0, cursor.phase == "initial" {
@@ -121,6 +150,7 @@ import AudioToolbox
                 }
                 while cursor.index <= 11 {
                     try Task.checkCancellation()
+                    guard generation == playbackGeneration else { throw CancellationError() }
                     let index = cursor.index
                     if cursor.phase != "gap" {
                         guard let seq = sequencer, let score = (index == 0 ? self.scale : self.main) else { throw SORIError.invalidScore("PLAYBACK_PREPARE_FAILED") }
@@ -133,7 +163,7 @@ import AudioToolbox
                             ?? (index == 0 ? "스케일 제시" : "\(index) / 11 · \(plan.steps[index-1].fromMeasure)–\(plan.steps[index-1].toMeasure)마디")
                         try seq.start()
                         let began = ProcessInfo.processInfo.systemUptime
-                        let bars = index == 0 ? 2 : plan.steps[index-1].toMeasure-plan.steps[index-1].fromMeasure+1
+                        let bars = index == 0 ? plan.scale.toMeasure-plan.scale.fromMeasure+1 : plan.steps[index-1].toMeasure-plan.steps[index-1].fromMeasure+1
                         let countTicks = count?.totalTicks ?? 0
                         let seconds = Double(bars*score.ticksPerMeasure+countTicks) / 480 * 60 / Double(plan.tempoBpm)
                         if countTicks > 0 {
@@ -155,7 +185,7 @@ import AudioToolbox
                 message = "필기 시간 종료 · 답안을 제출해 주세요"
                 isPlaying = false; engine.pause()
             } catch is CancellationError { }
-            catch { pause(); onError?(error) }
+            catch { if generation == playbackGeneration { pause(); onError?(error) } }
         }
     }
     private func silence() {
@@ -167,6 +197,7 @@ import AudioToolbox
     }
     func pause() {
         let wasPlaying = isPlaying
+        playbackGeneration = UUID(); graphNeedsRebuild = true
         runner?.cancel(); runner = nil
         checkpointWait(); waitAnchor = nil
         silence(); engine.pause(); isPlaying = false

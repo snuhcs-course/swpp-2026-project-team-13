@@ -9,6 +9,7 @@
 - 친구의 Mac에서 빌드 확인: [docs/MAC-HANDOFF.md](docs/MAC-HANDOFF.md)
 - API 계약: [docs/sori-api/API-CONTRACT.md](docs/sori-api/API-CONTRACT.md)
 - 실제 검증 상태: [docs/VALIDATION.md](docs/VALIDATION.md)
+- MuseScore 악보와 외부 음원 준비: [docs/ASSETS.md](docs/ASSETS.md)
 
 ## 구성
 

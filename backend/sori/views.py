@@ -19,6 +19,7 @@ from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.renderers import JSONRenderer
 from .renderers import MXLRenderer, PNGRenderer
+from .engraving import reference_asset
 from .playback import make_playback_plan, timed_question
 from .errors import ContractError
 from .idempotency import run_idempotent, uuid_value
@@ -39,7 +40,7 @@ def result_location(request, attempt):
     return absolute(request, f"/api/v1/attempts/{attempt.id}/result/")
 
 def new_job(attempt, answer):
-    job = GradingJob.objects.create(attempt=attempt, answer=answer, grading_version=attempt.grading_version, model=settings.OPENROUTER_MODEL, reasoning_effort=settings.OPENROUTER_REASONING_EFFORT, prompt_version=settings.AI_PROMPT_VERSION, timeout_seconds=settings.AI_TIMEOUT_SECONDS, max_output_tokens=settings.AI_MAX_OUTPUT_TOKENS, prompt_text=(settings.BASE_DIR / "sori" / "grading-prompt-v1.txt").read_text(encoding="utf-8"))
+    job = GradingJob.objects.create(attempt=attempt, answer=answer, grading_version=attempt.grading_version, model=settings.OPENROUTER_MODEL, reasoning_effort=settings.OPENROUTER_REASONING_EFFORT, prompt_version=settings.AI_PROMPT_VERSION, timeout_seconds=settings.AI_TIMEOUT_SECONDS, max_output_tokens=settings.AI_MAX_OUTPUT_TOKENS, prompt_text=(settings.BASE_DIR / "sori" / "grading-prompt-v2.txt").read_text(encoding="utf-8") + "\n" + (settings.BASE_DIR / "sori" / "notation-rules-v1.txt").read_text(encoding="utf-8"))
     attempt.current_job = job
     return job
 
@@ -73,7 +74,7 @@ def questions(request):
     for question in items[(page - 1) * size:page * size]:
         version = QuestionVersion.objects.get(question=question, version=question.current_version)
         metadata = timed_question(version.metadata)
-        result.append({k: metadata[k] for k in ("id", "version", "title", "source", "key_signature", "time_signature", "measure_count", "recommended_duration_seconds")})
+        result.append({k: metadata[k] for k in ("id", "version", "title", "source", "key_signature", "time_signature", "measure_count", "recommended_duration_seconds", "tempo")})
     def url(p):
         return absolute(request, f"/api/v1/questions/?page={p}&page_size={size}")
     return Response({"count": count, "next": url(page + 1) if page * size < count else None, "previous": url(page - 1) if page > 1 else None, "results": result})
@@ -255,3 +256,18 @@ def sheet_asset(request, layout_id):
     if layout_id not in allowed:
         raise ContractError("RESOURCE_NOT_FOUND", "오선 템플릿을 찾을 수 없습니다.", 404)
     return FileResponse((settings.CONTENT_ROOT / "sheets" / f"{layout_id}.png").open("rb"), content_type="image/png")
+
+@api_view(["GET"])
+@renderer_classes([JSONRenderer, PNGRenderer])
+def score_display(request, question_id, version):
+    item = get_object_or_404(QuestionVersion, question_id=question_id, version=version)
+    visible = item.question.published and item.question.current_version == version
+    if not visible and not Attempt.objects.filter(user=request.user, question_version=item).exists():
+        raise ContractError("RESOURCE_NOT_FOUND", "악보를 찾을 수 없습니다.", 404)
+    asset = reference_asset(item.metadata)
+    if asset is None:
+        raise ContractError("RESOURCE_NOT_FOUND", "정답 이미지가 준비되지 않았습니다.", 404)
+    response = FileResponse((settings.CONTENT_ROOT / "engraving" / (asset["resource"] + ".png")).open("rb"), content_type="image/png")
+    response["ETag"] = '"' + asset["sha256"] + '"'
+    response["Cache-Control"] = "private, max-age=86400"
+    return response

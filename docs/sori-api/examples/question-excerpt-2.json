@@ -1,6 +1,6 @@
 {
   "id": "cfe540d9-445e-59c5-9338-586fc9ba2842",
-  "version": 1,
+  "version": 2,
   "title": "청음 연습 2 · 4/4",
   "source": "practice",
   "key_signature": {
@@ -13,7 +13,7 @@
     "denominator": 4
   },
   "measure_count": 8,
-  "recommended_duration_seconds": 434,
+  "recommended_duration_seconds": 456,
   "description": "멜로디를 듣고 빈 오선에 적어보세요. 제출 후 AI 평가와 정답을 확인할 수 있어요.",
   "time_policy": "advisory",
   "clef": "treble",
@@ -71,24 +71,33 @@
   "score_visibility": "after_submission",
   "score_assets": {
     "main": {
-      "url": "https://api.sori.example/api/v1/questions/cfe540d9-445e-59c5-9338-586fc9ba2842/versions/1/scores/main/",
+      "url": "https://api.sori.example/api/v1/questions/cfe540d9-445e-59c5-9338-586fc9ba2842/versions/2/scores/main/",
       "content_type": "application/vnd.recordare.musicxml",
       "sha256": "d584d7ef1f19ba070c23eee6b2518e7c8faf1ef981dc210fbd1117ecc52a6bf2",
       "size_bytes": 1781,
       "musicxml_version": "4.0",
       "profile": "sori-monophonic-v2",
       "part_id": "P1",
-      "measure_count": 8
+      "measure_count": 8,
+      "source_tempo_bpm": 96
     },
     "scale": {
-      "url": "https://api.sori.example/api/v1/questions/cfe540d9-445e-59c5-9338-586fc9ba2842/versions/1/scores/scale/",
+      "url": "https://api.sori.example/api/v1/questions/cfe540d9-445e-59c5-9338-586fc9ba2842/versions/2/scores/scale/",
       "content_type": "application/vnd.recordare.musicxml",
-      "sha256": "762093003fac859b87937fae3a573eea7c4475f722cfcda30a56af13ab885833",
-      "size_bytes": 1035,
+      "sha256": "b167aaba7171421def6dc3da4771eb5a9ab071aa7e2e818e7b4319692549cbb8",
+      "size_bytes": 1070,
       "musicxml_version": "4.0",
       "profile": "sori-monophonic-v2",
       "part_id": "P1",
-      "measure_count": 2
+      "measure_count": 2,
+      "source_tempo_bpm": 96
     }
+  },
+  "tempo": {
+    "policy_id": "sori-tempo-1",
+    "beat_unit": "quarter",
+    "bpm": 80,
+    "minimum_bpm": 72,
+    "maximum_bpm": 96
   }
 }

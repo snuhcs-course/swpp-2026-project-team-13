@@ -58,13 +58,31 @@ class ContentTests(unittest.TestCase):
                 data=(CONTENT / item[f"{kind}_path"]).read_bytes()
                 self.assertEqual(len(data),asset["size_bytes"])
                 self.assertEqual(hashlib.sha256(data).hexdigest(),asset["sha256"])
-                self.assertEqual(data,(resources / f"excerpt-{index}-{kind}.mxl").read_bytes())
+                self.assertEqual(data,(resources / f"excerpt-{index}-v2-{kind}.mxl").read_bytes())
             layout=item["metadata"]["sheet_layout"]
             png=(CONTENT / "sheets" / (layout["id"]+".png")).read_bytes()
             self.assertEqual(hashlib.sha256(png).hexdigest(),layout["template_sha256"])
             self.assertEqual(struct.unpack(">II",png[16:24]),(2660,1692))
             self.assertEqual(png[24],8)
             self.assertEqual(png,(resources / (layout["id"]+".pngdata")).read_bytes())
+
+    def test_scale_is_the_exact_fifteen_note_up_and_down_sequence(self):
+        expected=[("C","4"),("D","4"),("E","4"),("F","4"),("G","4"),("A","4"),("B","4"),("C","5"),("B","4"),("A","4"),("G","4"),("F","4"),("E","4"),("D","4"),("C","4")]
+        for item in CATALOG:
+            with zipfile.ZipFile(CONTENT / item["scale_path"]) as archive:
+                score=ET.fromstring(archive.read("score.xml"))
+            notes=score.findall("part/measure/note")
+            self.assertEqual([(n.findtext("pitch/step"),n.findtext("pitch/octave")) for n in notes],expected)
+            self.assertTrue(all(n.findtext("duration")=="240" for n in notes[:-1]))
+            self.assertEqual(len(score.findall("part/measure")),item["metadata"]["score_assets"]["scale"]["measure_count"])
+            self.assertEqual(item["metadata"]["version"],2)
+
+    def test_original_v1_files_remain_available_with_the_original_hashes(self):
+        original=json.loads((CONTENT / "catalog-v1.json").read_text(encoding="utf-8"))
+        for item in original:
+            for kind in ("main","scale"):
+                data=(CONTENT / item[f"{kind}_path"]).read_bytes()
+                self.assertEqual(hashlib.sha256(data).hexdigest(),item["metadata"]["score_assets"][kind]["sha256"])
 
 if __name__ == "__main__":
     unittest.main(verbosity=2)

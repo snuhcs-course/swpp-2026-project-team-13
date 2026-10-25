@@ -10,7 +10,8 @@ import zipfile
 ROOT = Path(__file__).resolve().parents[1]
 CONTENT = ROOT / "backend" / "content"
 RESOURCES = ROOT / "frontend" / "IPadApp" / "IPadApp" / "Resources"
-TEMPO = 96
+TEMPO = 96  # Source notation tempo; playback is independently selected per attempt.
+POLICY = json.loads((CONTENT / "playback-settings.json").read_text(encoding="utf-8"))
 SOURCE_NAMES = ["lead_sheet_p1_01-08.xml", "lead_sheet_p1_09-16.xml", "lead_sheet_p1_17-24.xml"]
 NOTE_TAGS = {"pitch", "rest", "duration", "voice", "type", "dot", "accidental", "tie", "notations", "time-modification", "stem", "beam", "staff"}
 
@@ -81,27 +82,27 @@ def main():
         main_bytes = package(root)
         scale_root, scale_part = document("C Major Scale", numerator, denominator)
         bar_ticks = numerator * 480 * 4 // denominator
-        duration = 480 if (numerator, denominator) == (4,4) else 240
-        pitches = [("C",4), ("D",4), ("E",4), ("F",4), ("G",4), ("A",4), ("B",4), ("C",5)]
+        pitches = [("C",4),("D",4),("E",4),("F",4),("G",4),("A",4),("B",4),("C",5),("B",4),("A",4),("G",4),("F",4),("E",4),("D",4),("C",4)]
+        # Fourteen eighth notes, then hold the final tonic to the end of its bar.
+        scale_measures = (15 * 240 + bar_ticks - 1) // bar_ticks
         cursor = 0
-        for number in range(1, 3):
+        for number in range(1, scale_measures + 1):
             bar = child(scale_part, "measure", number=str(number))
             if number == 1:
                 attributes(bar, numerator, denominator)
             used = 0
-            while used < bar_ticks:
+            while cursor < len(pitches) and used < bar_ticks:
                 note = child(bar, "note")
-                if cursor < len(pitches):
-                    step, octave = pitches[cursor]; cursor += 1
-                    pitch = child(note, "pitch"); child(pitch, "step", step); child(pitch, "octave", octave)
-                    child(note, "duration", duration); child(note, "type", "quarter" if duration == 480 else "eighth")
-                    used += duration
-                else:
-                    child(note, "rest"); child(note, "duration", 480); child(note, "type", "quarter"); used += 480
+                step, octave = pitches[cursor]
+                pitch = child(note, "pitch"); child(pitch, "step", step); child(pitch, "octave", octave)
+                duration = bar_ticks - used if cursor == len(pitches)-1 else 240
+                child(note, "duration", duration)
+                child(note, "type", {240:"eighth",480:"quarter",960:"half"}[duration])
+                used += duration; cursor += 1
             assert used == bar_ticks
-        assert cursor == 8
+        assert cursor == 15
         scale_bytes = package(scale_root)
-        target = CONTENT / "questions" / f"excerpt-{index}" / "v1"
+        target = CONTENT / "questions" / f"excerpt-{index}" / "v2"
         target.mkdir(parents=True, exist_ok=True)
         (target / "main.mxl").write_bytes(main_bytes); (target / "scale.mxl").write_bytes(scale_bytes)
         layout_id = f"staff-8bars-{numerator}-{denominator}-v2"
@@ -109,17 +110,24 @@ def main():
         layout = {"id": layout_id, "logical_width": 1330, "logical_height": 846, "export_scale": 2, "pixel_width": 2660, "pixel_height": 1692, "template_png_url": f"https://api.sori.example/assets/sheets/{layout_id}.png", "template_sha256": hashlib.sha256(png).hexdigest(), "systems": [{"index": 1, "first_measure": 1, "last_measure": 4, "staff_line_y": [164,176,188,200,212], "barline_x": [54,450,725,1000,1276]}, {"index": 2, "first_measure": 5, "last_measure": 8, "staff_line_y": [499,511,523,535,547], "barline_x": [54,397,690,983,1276]}]}
         question_id = str(uuid.uuid5(uuid.NAMESPACE_URL, f"https://sori.local/questions/lead-sheet-excerpt-{index}"))
         assets = {}
-        for kind, value, count in [("main", main_bytes, 8), ("scale", scale_bytes, 2)]:
-            assets[kind] = {"url": f"https://api.sori.example/api/v1/questions/{question_id}/versions/1/scores/{kind}/", "content_type": "application/vnd.recordare.musicxml", "sha256": hashlib.sha256(value).hexdigest(), "size_bytes": len(value), "musicxml_version": "4.0", "profile": "sori-monophonic-v2", "part_id": "P1", "measure_count": count}
-            (RESOURCES / f"excerpt-{index}-{kind}.mxl").write_bytes(value)
+        for kind, value, count in [("main", main_bytes, 8), ("scale", scale_bytes, scale_measures)]:
+            assets[kind] = {"url": f"https://api.sori.example/api/v1/questions/{question_id}/versions/2/scores/{kind}/", "content_type": "application/vnd.recordare.musicxml", "sha256": hashlib.sha256(value).hexdigest(), "size_bytes": len(value), "musicxml_version": "4.0", "profile": "sori-monophonic-v2", "part_id": "P1", "measure_count": count, "source_tempo_bpm": TEMPO}
+            (RESOURCES / f"excerpt-{index}-v2-{kind}.mxl").write_bytes(value)
         (RESOURCES / f"{layout_id}.pngdata").write_bytes(png)
         (CONTENT / "sheets" / f"{layout_id}.layout.json").write_text(json.dumps(layout, ensure_ascii=False, indent=2), encoding="utf-8")
-        metadata = {"id": question_id, "version": 1, "title": title, "source": "practice", "key_signature": {"tonic": "C", "mode": "major", "fifths": 0}, "time_signature": {"numerator": numerator, "denominator": denominator}, "measure_count": 8, "recommended_duration_seconds": 300, "description": "멜로디를 듣고 빈 오선에 적어보세요. 제출 후 AI 평가와 정답을 확인할 수 있어요.", "time_policy": "advisory", "clef": "treble", "sheet_layout": layout, "content_policy": "client_readable_practice", "score_visibility": "after_submission", "score_assets": assets}
-        catalog.append({"order": index, "metadata": metadata, "main_path": f"questions/excerpt-{index}/v1/main.mxl", "scale_path": f"questions/excerpt-{index}/v1/scale.mxl"})
+        metadata = {"id": question_id, "version": 2, "title": title, "source": "practice", "key_signature": {"tonic": "C", "mode": "major", "fifths": 0}, "time_signature": {"numerator": numerator, "denominator": denominator}, "measure_count": 8, "recommended_duration_seconds": 300, "description": "멜로디를 듣고 빈 오선에 적어보세요. 제출 후 AI 평가와 정답을 확인할 수 있어요.", "time_policy": "advisory", "clef": "treble", "sheet_layout": layout, "content_policy": "client_readable_practice", "score_visibility": "after_submission", "score_assets": assets}
+        catalog.append({"order": index, "metadata": metadata, "main_path": f"questions/excerpt-{index}/v2/main.mxl", "scale_path": f"questions/excerpt-{index}/v2/scale.mxl"})
         demo.append(metadata)
     (CONTENT / "catalog.json").write_text(json.dumps(catalog, ensure_ascii=False, indent=2), encoding="utf-8")
     (RESOURCES / "practice-catalog.json").write_text(json.dumps(demo, ensure_ascii=False, indent=2), encoding="utf-8")
-    print("Built three question versions; source pitches, durations, dots and tuplets preserved.")
+
+    lines = ["// Generated by scripts/build_question_assets.py from playback-settings.json.", "enum TempoDefaults {", "    static func setting(for meter: TimeSignature) -> TempoSetting {", "        switch (meter.numerator, meter.denominator) {"]
+    for key, value in POLICY["meters"].items():
+        n,d = key.split("/")
+        lines.append(f'        case ({n},{d}): return TempoSetting(policyId:"{POLICY["id"]}",beatUnit:"{value["beat_unit"]}",bpm:{value["default_bpm"]},minimumBpm:{value["minimum_bpm"]},maximumBpm:{value["maximum_bpm"]})')
+    lines += ['        default: return setting(for:TimeSignature(numerator:4,denominator:4))', "        }", "    }", "}"]
+    (RESOURCES.parent / "Core/TempoDefaults.swift").write_text("\n".join(lines)+"\n",encoding="utf-8")
+    print("Built v2 questions and ascending/descending scales; v1 assets preserved.")
 
 if __name__ == "__main__":
     main()

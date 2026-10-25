@@ -1,5 +1,6 @@
 import copy
 from django.utils import timezone
+from .engraving import reference_asset
 
 def timestamp(value):
     return value.isoformat().replace("+00:00", "Z") if value else None
@@ -13,6 +14,11 @@ def question_json(request, metadata):
     result["sheet_layout"]["template_png_url"] = absolute(request, f'/assets/sheets/{result["sheet_layout"]["id"]}.png')
     for kind, asset in result["score_assets"].items():
         asset["url"] = absolute(request, f"/api/v1/questions/{question_id}/versions/{version}/scores/{kind}/")
+    preview = reference_asset(metadata)
+    if preview:
+        preview.pop("resource")
+        preview["url"] = absolute(request, f"/api/v1/questions/{question_id}/versions/{version}/display/")
+        result["correct_score"] = preview
     return result
 
 def answer_json(request, answer):

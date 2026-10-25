@@ -1,0 +1,29 @@
+{
+  "default_voice": "grand-piano",
+  "voices": [
+    {
+      "id": "grand-piano",
+      "title": "그랜드 피아노",
+      "program": 0,
+      "gain_db": -4
+    },
+    {
+      "id": "electric-piano",
+      "title": "전기 피아노",
+      "program": 4,
+      "gain_db": -3
+    },
+    {
+      "id": "harpsichord",
+      "title": "하프시코드",
+      "program": 6,
+      "gain_db": -5
+    },
+    {
+      "id": "vibraphone",
+      "title": "비브라폰",
+      "program": 11,
+      "gain_db": -3
+    }
+  ]
+}

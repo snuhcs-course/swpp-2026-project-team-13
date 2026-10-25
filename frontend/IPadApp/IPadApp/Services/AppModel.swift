@@ -14,6 +14,8 @@ import PencilKit
     @Published var error: String?
     @Published var template: UIImage?
     @Published var submittedImage: UIImage?
+    @Published var correctScoreImage: UIImage?
+    @Published var correctScoreError: String?
     @Published var mainScore: MusicScore?
     @Published var prepared = false
     @Published var foreground = true
@@ -26,6 +28,8 @@ import PencilKit
     @Published var demo: Bool
     @Published var server: String
     @Published var demoOutcome: String
+    @Published private(set) var instrumentVoices: [InstrumentVoice] = []
+    @Published private(set) var selectedVoice = "grand-piano"
     let drawing = DrawingController()
     let player = PianoPlayback()
     private var api: (any ExamAPI)?
@@ -41,6 +45,12 @@ import PencilKit
         demo = d.object(forKey: "sori.demo") as? Bool ?? true
         server = d.string(forKey: "sori.server") ?? Self.defaultServer
         demoOutcome = d.string(forKey: "sori.demoOutcome") ?? "completed"
+        if let choices: InstrumentChoices = try? Bundled.decode("instruments") {
+            instrumentVoices = choices.voices
+            let saved = d.string(forKey:"sori.voice") ?? choices.defaultVoice
+            selectedVoice = choices.voices.contains(where: { $0.id == saved }) ? saved : choices.defaultVoice
+            player.voiceId = selectedVoice
+        }
         player.onCursor = { [weak self] cursor in
             guard let self, var record = session else { return }; record.cursor = cursor; try persist(record)
         }
@@ -79,7 +89,7 @@ import PencilKit
             let page = try await candidate.questions(page: 1)
             self.api = candidate; self.store = local; self.profile = user; self.history = records
             self.questions = page.results; self.page = 1; self.hasNextPage = page.next != nil
-            self.session = nil; self.template = nil; self.submittedImage = nil; self.mainScore = nil
+            self.session = nil; self.template = nil; self.submittedImage = nil; self.mainScore = nil; self.correctScoreImage = nil; self.correctScoreError = nil
             self.connected = true; self.screen = .home
             let defaults = UserDefaults.standard
             defaults.set(self.demo, forKey: "sori.demo"); defaults.set(self.server, forKey: "sori.server"); defaults.set(self.demoOutcome, forKey: "sori.demoOutcome")
@@ -92,6 +102,12 @@ import PencilKit
             self.questions.append(contentsOf: value.results.filter { q in !self.questions.contains(where: { $0.id == q.id }) })
             self.page += 1; self.hasNextPage = value.next != nil
         }
+    }
+    func selectVoice(_ id: String) {
+        guard instrumentVoices.contains(where: { $0.id == id }), id != selectedVoice else { return }
+        player.stopForPreparation(); prepared = false
+        selectedVoice = id; player.voiceId = id
+        UserDefaults.standard.set(id,forKey:"sori.voice")
     }
     func updateGoal(_ goal: String) async {
         await run("목표를 저장하는 중") { guard let api = self.api else { return }; self.profile = try await api.updateGoal(goal) }
@@ -136,7 +152,7 @@ import PencilKit
         }
     }
     private func activate(_ record: SessionRecord) async throws {
-        player.pause(); prepared = false; drawingMissing = false; saveFailed = false; mainScore = nil; submittedImage = nil; template = nil
+        player.stopForPreparation(); prepared = false; drawingMissing = false; saveFailed = false; mainScore = nil; submittedImage = nil; template = nil; correctScoreImage = nil; correctScoreError = nil
         guard let store else { return }
         clock.sync(record.attempt)
         switch record.attempt.status {
@@ -164,8 +180,8 @@ import PencilKit
         let imageData = try await cached("template.png", url: q.sheetLayout.templatePngUrl, authenticated: false, sha: q.sheetLayout.templateSha256, limit: 10_485_760, id: record.id)
         let mainData = try await cached("main.mxl", url: q.scoreAssets.main.url, authenticated: true, sha: q.scoreAssets.main.sha256, limit: 1_048_576, id: record.id)
         let scaleData = try await cached("scale.mxl", url: q.scoreAssets.scale.url, authenticated: true, sha: q.scoreAssets.scale.sha256, limit: 1_048_576, id: record.id)
-        let main = try MusicXMLParser.parseMXL(mainData, asset: q.scoreAssets.main, tempo: plan.tempoBpm)
-        let scale = try MusicXMLParser.parseMXL(scaleData, asset: q.scoreAssets.scale, tempo: plan.tempoBpm)
+        let main = try MusicXMLParser.parseMXL(mainData, asset: q.scoreAssets.main)
+        let scale = try MusicXMLParser.parseMXL(scaleData, asset: q.scoreAssets.scale)
         guard main.timeSignature == q.timeSignature else { throw SORIError.invalidScore("문제 안내와 악보의 박자가 다릅니다.") }
         self.template = try AnswerExporter.validateTemplate(imageData, layout: q.sheetLayout); self.mainScore = main
         try player.prepare(main: main, scale: scale, plan: plan); player.restore(record.cursor)
@@ -252,11 +268,24 @@ import PencilKit
                 guard let image = UIImage(data: bytes), image.cgImage?.width == 2660, image.cgImage?.height == 1692 else { throw SORIError.transport("제출 이미지 형식 오류") }; submittedImage = image
             }
         }
+        await loadReferenceImage()
         if mainScore == nil {
             let asset = record.attempt.question.scoreAssets.main
             let data = try await cached("main.mxl", url: asset.url, authenticated: true, sha: asset.sha256, limit: 1_048_576, id: record.id)
-            mainScore = try MusicXMLParser.parseMXL(data, asset: asset, tempo: record.attempt.playbackPlan.tempoBpm)
+            mainScore = try MusicXMLParser.parseMXL(data, asset: asset)
         }
+    }
+    private func loadReferenceImage() async {
+        guard correctScoreImage == nil, let record = session, let asset = record.attempt.question.correctScore else { return }
+        do {
+            guard asset.contentType == "image/png", asset.sizeBytes > 0, asset.sizeBytes <= 2_097_152,
+                  asset.pixelWidth > 0, asset.pixelWidth <= 4096, asset.pixelHeight > 0, asset.pixelHeight <= 2048 else { throw SORIError.invalidScore("정답 이미지 규격을 확인해 주세요.") }
+            let data = try await cached("correct-score.png", url:asset.url, authenticated:true, sha:asset.sha256, limit:2_097_152, id:record.id)
+            guard data.count == asset.sizeBytes, let image = UIImage(data:data), image.cgImage?.width == asset.pixelWidth,
+                  image.cgImage?.height == asset.pixelHeight else { throw SORIError.invalidScore("정답 이미지의 크기가 일치하지 않습니다.") }
+            guard session?.id == record.id else { return }
+            correctScoreImage = image; correctScoreError = nil
+        } catch { if session?.id == record.id { correctScoreError = error.localizedDescription } }
     }
     func refreshResult() async { await run("결과를 확인하는 중") { try await self.loadResult() }; pollGeneration = UUID() }
     func poll() async {

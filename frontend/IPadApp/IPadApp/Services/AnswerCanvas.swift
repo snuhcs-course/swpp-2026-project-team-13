@@ -5,6 +5,7 @@ import UniformTypeIdentifiers
 
 @MainActor final class DrawingController: ObservableObject {
     let canvas = PKCanvasView()
+    let pencilInteraction = UIPencilInteraction()
     @Published var erasing = false { didSet { updateTool() } }
     @Published var penWidth: CGFloat = 2 { didSet { updateTool() } }
     @Published var fingerDrawing = false { didSet { canvas.drawingPolicy = fingerDrawing ? .anyInput : .pencilOnly } }
@@ -13,7 +14,7 @@ import UniformTypeIdentifiers
     init() {
         canvas.backgroundColor = .clear; canvas.isOpaque = false; canvas.overrideUserInterfaceStyle = .light
         canvas.contentSize = CGSize(width: 1330, height: 846); canvas.isScrollEnabled = false
-        canvas.drawingPolicy = .pencilOnly; updateTool()
+        canvas.drawingPolicy = .pencilOnly; canvas.addInteraction(pencilInteraction); updateTool()
     }
     func updateTool() { canvas.tool = erasing ? PKEraserTool(.vector) : PKInkingTool(.pen, color: .black, width: penWidth) }
     func undo() { canvas.undoManager?.undo() }
@@ -25,11 +26,21 @@ import UniformTypeIdentifiers
 struct PencilSurface: UIViewRepresentable {
     @ObservedObject var drawing: DrawingController
     func makeCoordinator() -> Coordinator { Coordinator(drawing) }
-    func makeUIView(context: Context) -> PKCanvasView { drawing.canvas.delegate = context.coordinator; return drawing.canvas }
+    func makeUIView(context: Context) -> PKCanvasView { drawing.canvas.delegate = context.coordinator; drawing.pencilInteraction.delegate = context.coordinator; return drawing.canvas }
     func updateUIView(_ uiView: PKCanvasView, context: Context) { }
-    final class Coordinator: NSObject, PKCanvasViewDelegate {
+    final class Coordinator: NSObject, PKCanvasViewDelegate, UIPencilInteractionDelegate {
         let controller: DrawingController
         init(_ controller: DrawingController) { self.controller = controller }
+        private func handleDoubleTap() {
+            guard controller.canvas.isUserInteractionEnabled else { return }
+            switch UIPencilInteraction.preferredTapAction {
+            case .switchEraser, .switchPrevious: controller.erasing.toggle()
+            default: break
+            }
+        }
+        func pencilInteractionDidTap(_ interaction: UIPencilInteraction) { handleDoubleTap() }
+        @available(iOS 17.5, *)
+        func pencilInteraction(_ interaction: UIPencilInteraction, didReceiveTap tap: UIPencilInteraction.Tap) { handleDoubleTap() }
         func canvasViewDrawingDidChange(_ canvasView: PKCanvasView) { controller.revision += 1; controller.onChange?(canvasView.drawing) }
     }
 }

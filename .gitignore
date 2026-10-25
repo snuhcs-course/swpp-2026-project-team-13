@@ -33,3 +33,8 @@ xcuserdata/
 .tmp/
 .venv*/
 dist/
+# Downloaded, pinned external instruments are bundled by CI, not committed.
+frontend/IPadApp/IPadApp/Resources/GeneralUser-GS.sf2
+frontend/IPadApp/IPadApp/Resources/instrument-bank.json
+frontend/IPadApp/IPadApp/Resources/generaluser-license.txt
+frontend/IPadApp/IPadApp/Resources/*.download

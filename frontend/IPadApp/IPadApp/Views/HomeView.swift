@@ -62,7 +62,12 @@ struct QuestionView: View {
         ScrollView { if let q = model.selectedQuestion {
             VStack(alignment: .leading, spacing: 28) {
                 SectionCaption(eyebrow: "READY TO LISTEN", title: q.title, subtitle: q.description)
-                HStack { Pill(text: "\(q.keySignature.tonic) Major", icon: "music.note"); Pill(text: "\(q.timeSignature.numerator)/\(q.timeSignature.denominator) · 8마디"); Pill(text: "권장 \(q.recommendedDurationSeconds/60)분 \(q.recommendedDurationSeconds%60)초", icon: "clock") }
+                HStack {
+                    Pill(text:"\(q.keySignature.tonic) Major",icon:"music.note")
+                    Pill(text:"\(q.timeSignature.numerator)/\(q.timeSignature.denominator) · 8마디")
+                    if let tempo = q.tempo { Pill(text:tempo.label,icon:"metronome") }
+                    Pill(text:"권장 \(q.recommendedDurationSeconds/60)분 \(q.recommendedDurationSeconds%60)초",icon:"clock")
+                }
                 Card { VStack(alignment: .leading, spacing: 24) {
                     Text("연습은 이렇게 진행돼요").font(.title2.bold())
                     instruction("01", "스케일과 멜로디 듣기", "시작 2초 후 스케일을 듣고, 2초 뒤 예비박과 첫 전체 재생이 이어져요. 마지막 전체 재생 앞에도 예비박이 나와요.")

@@ -5,6 +5,61 @@ import ImageIO
 @testable import IPadApp
 
 @MainActor final class IntegrationTests:XCTestCase {
+    func testDemoReferenceAssetRoutesReturnPinnedPNGWithOrWithoutSlash() async throws {
+        let api = try DemoExamAPI(outcome:"completed")
+        let page = try await api.questions(page:1)
+        for summary in page.results {
+            let q = try await api.question(summary.id)
+            let asset = try XCTUnwrap(q.correctScore)
+            let withoutSlash = asset.url.absoluteString.trimmingCharacters(in:CharacterSet(charactersIn:"/"))
+            for address in [withoutSlash,withoutSlash+"/"] {
+                let url = try XCTUnwrap(URL(string:address))
+                let bytes = try await api.asset(url,authenticated:true,limit:2_097_152)
+                XCTAssertEqual(bytes.prefix(8),Data([137,80,78,71,13,10,26,10]),"Expected PNG for \(address)")
+                XCTAssertEqual(bytes.sha256,asset.sha256)
+                XCTAssertNotNil(UIImage(data:bytes))
+            }
+        }
+    }
+    func testReferenceImagesAndCompactAnswerRenderTogether() async throws {
+        let api = try DemoExamAPI(outcome:"completed")
+        let questions = try await api.questions(page:1)
+        for summary in questions.results {
+            let q = try await api.question(summary.id)
+            let asset = try XCTUnwrap(q.correctScore)
+            let data = try await api.asset(asset.url,authenticated:true,limit:2_097_152)
+            XCTAssertEqual(data.sha256,asset.sha256)
+            let reference = try XCTUnwrap(UIImage(data:data))
+            XCTAssertEqual(reference.cgImage?.width,asset.pixelWidth)
+            let template = try AnswerExporter.validateTemplate(Bundled.data(q.sheetLayout.id,ext:"png"),layout:q.sheetLayout)
+            let renderer = ImageRenderer(content:VStack(alignment:.leading,spacing:12) {
+                Text("정답 악보")
+                Image(uiImage:reference).resizable().scaledToFit()
+                Text("내 악보")
+                CompactAnswerView(image:template,layout:q.sheetLayout,annotation:nil)
+            }.padding(20).frame(width:1024).background(.white))
+            renderer.scale = 2
+            let rendered = try XCTUnwrap(renderer.uiImage)
+            XCTAssertLessThan(rendered.size.height,700)
+            let attachment = XCTAttachment(image:rendered)
+            attachment.name = "comparison-"+q.title; attachment.lifetime = .keepAlways; add(attachment)
+        }
+    }
+    func testVoiceSelectionPersistsAndCanPrepareNextProblem() async throws {
+        let saved = UserDefaults.standard.string(forKey:"sori.voice")
+        defer { UserDefaults.standard.set(saved,forKey:"sori.voice") }
+        let model = AppModel(); model.demo = true
+        await model.connect(); XCTAssertNil(model.error)
+        for voice in model.instrumentVoices {
+            model.selectVoice(voice.id)
+            await model.choose(try XCTUnwrap(model.questions.first?.id)); await model.begin()
+            XCTAssertNil(model.error); XCTAssertTrue(model.prepared)
+            XCTAssertEqual(model.player.voiceId,voice.id)
+            let restored = AppModel()
+            XCTAssertEqual(restored.selectedVoice,voice.id)
+            model.player.pause()
+        }
+    }
     func testPNGExportHasFixedSizeOpaqueSRGBAndCorrectCoordinates() throws {
         let q:Question=try Bundled.decode("question")
         let template=try AnswerExporter.validateTemplate(Bundled.data("staff-8bars-v1",ext:"png"),layout:q.sheetLayout)
@@ -44,7 +99,7 @@ import ImageIO
         await model.submit();XCTAssertNil(model.error);XCTAssertEqual(model.session?.attempt.status,"submitted");XCTAssertEqual(model.screen,.result)
         let submitted=try XCTUnwrap(model.session?.attempt.submittedAnswerId)
         try await Task.sleep(for:.seconds(5));await model.refreshResult()
-        XCTAssertNil(model.error);XCTAssertEqual(model.session?.grading?.status,"completed");XCTAssertEqual(model.session?.grading?.answerId,submitted);XCTAssertNotNil(model.submittedImage)
+        XCTAssertNil(model.error);XCTAssertEqual(model.session?.grading?.status,"completed");XCTAssertEqual(model.session?.grading?.answerId,submitted);XCTAssertNotNil(model.submittedImage);XCTAssertNotNil(model.correctScoreImage)
         let restored=AppModel();restored.demo=true;await restored.connect();await restored.open(try XCTUnwrap(restored.history.first(where:{$0.id==id})))
         XCTAssertNil(restored.error);XCTAssertEqual(restored.session?.attempt.submittedAnswerId,submitted);XCTAssertEqual(restored.session?.grading?.status,"completed")
     }
@@ -91,8 +146,8 @@ import ImageIO
     func testAllThreeMetersLoadTheCountInClickResource() throws {
         let questions:[Question] = try Bundled.decode("practice-catalog")
         for (index,q) in questions.enumerated() {
-            let main = try MusicXMLParser.parseMXL(Bundled.data("excerpt-\(index+1)-main",ext:"mxl"),asset:q.scoreAssets.main,tempo:96)
-            let scale = try MusicXMLParser.parseMXL(Bundled.data("excerpt-\(index+1)-scale",ext:"mxl"),asset:q.scoreAssets.scale,tempo:96)
+            let main = try MusicXMLParser.parseMXL(Bundled.data("excerpt-\(index+1)-v2-main",ext:"mxl"),asset:q.scoreAssets.main,tempo:96)
+            let scale = try MusicXMLParser.parseMXL(Bundled.data("excerpt-\(index+1)-v2-scale",ext:"mxl"),asset:q.scoreAssets.scale,tempo:96)
             let player = PianoPlayback()
             try player.prepare(main:main,scale:scale,plan:.exam(meter:q.timeSignature))
             player.pause()

@@ -27,4 +27,7 @@ class Command(BaseCommand):
                 raise CommandError("An existing question version is immutable. Publish a new version instead.")
             if old is None:
                 QuestionVersion.objects.create(question=question, version=metadata["version"], metadata=metadata, main_path=item["main_path"], scale_path=item["scale_path"])
+            if question.current_version < metadata["version"]:
+                question.current_version = metadata["version"]
+                question.save(update_fields=["current_version"])
             self.stdout.write(f"Question {item['order']}: {metadata['title']}")

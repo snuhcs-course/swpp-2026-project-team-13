@@ -5,6 +5,7 @@ urlpatterns = [
     path("questions/", views.questions),
     path("questions/<uuid:question_id>/", views.question_detail),
     path("questions/<uuid:question_id>/versions/<int:version>/scores/<str:kind>/", views.score_asset),
+    path("questions/<uuid:question_id>/versions/<int:version>/display/", views.score_display),
     path("attempts/", views.create_attempt),
     path("attempts/<uuid:attempt_id>/", views.attempt_detail),
     path("attempts/<uuid:attempt_id>/start/", views.start_attempt),

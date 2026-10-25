@@ -77,7 +77,7 @@ class FlowTests(TestCase):
             q = self.client.get(f"/api/v1/questions/{version.question_id}/").data
             a = self.post("attempts/", {"question_id":q["id"], "question_version":q["version"]}).data
             plan = a["playback_plan"]
-            self.assertEqual(plan["version"], 3)
+            self.assertEqual(plan["version"], 4)
             self.assertEqual(plan["initial_delay_ms"], 2000)
             self.assertEqual(plan["pause_after_scale_ms"], 2000)
             self.assertEqual(plan["count_in"]["before_step_orders"], [1,11])
@@ -85,7 +85,7 @@ class FlowTests(TestCase):
             self.assertEqual(plan["count_in"]["beat_unit"], q["time_signature"]["denominator"])
             self.assertEqual([s["pause_after_ms"] for s in plan["steps"]], [20000]*10+[120000])
             started = self.post(f'attempts/{a["id"]}/start/').data
-            expected = 434 if q["time_signature"]["numerator"] == 4 else 407
+            expected = {(4,4):456,(3,4):426,(6,8):423}[(q["time_signature"]["numerator"],q["time_signature"]["denominator"])]
             self.assertEqual(q["recommended_duration_seconds"], expected)
             self.assertEqual(a["question"]["recommended_duration_seconds"], expected)
             self.assertEqual((datetime.fromisoformat(started["recommended_end_at"].replace("Z","+00:00")) -
@@ -94,6 +94,26 @@ class FlowTests(TestCase):
             self.assertEqual(replay["playback_plan"], plan)
             version.refresh_from_db()
             self.assertEqual(version.metadata, original)
+
+    def test_publish_v2_preserves_the_old_version_and_attempt_plan(self):
+        old_item=json.loads((settings.CONTENT_ROOT / "catalog-v1.json").read_text(encoding="utf-8"))[0]
+        current=QuestionVersion.objects.get(question_id=old_item["metadata"]["id"],version=2)
+        old=QuestionVersion.objects.create(question=current.question,version=1,metadata=old_item["metadata"],main_path=old_item["main_path"],scale_path=old_item["scale_path"])
+        current.question.current_version=1;current.question.save(update_fields=["current_version"])
+        # The backend container does not include repository docs; keep an equivalent legacy snapshot here.
+        from .playback import make_playback_plan
+        legacy=make_playback_plan(old.metadata)
+        legacy.update(version=3,tempo_bpm=96,instrument_profile_id="sori-piano-v1")
+        legacy.pop("tempo")
+        snapshot=dict(old.metadata); snapshot["recommended_duration_seconds"]=407
+        attempt=Attempt.objects.create(user=self.user,question_version=old,question_snapshot=snapshot,playback_plan=legacy)
+        call_command("seed_questions",verbosity=0)
+        current.question.refresh_from_db();old.refresh_from_db()
+        self.assertEqual(current.question.current_version,2)
+        self.assertEqual(old.metadata,old_item["metadata"])
+        response=self.client.get(f"/api/v1/attempts/{attempt.id}/")
+        self.assertEqual(response.data["playback_plan"],legacy)
+        self.assertEqual(response.data["question"]["version"],1)
 
     def test_three_questions_assets_and_owner_visibility(self):
         response = self.client.get("/api/v1/questions/")
@@ -130,9 +150,36 @@ class FlowTests(TestCase):
         self.assertEqual(response.status_code, 401)
         self.assertEqual(response["Content-Type"], "application/json")
 
+    def test_reference_display_is_authenticated_and_pinned_to_source(self):
+        q = QuestionVersion.objects.order_by("question__order").first().metadata
+        preview = self.client.get(f'/api/v1/questions/{q["id"]}/').data["correct_score"]
+        response = self.client.get(preview["url"], HTTP_ACCEPT="image/png")
+        self.assertEqual(response.status_code,200)
+        data = b"".join(response.streaming_content)
+        self.assertEqual(hashlib.sha256(data).hexdigest(),preview["sha256"])
+        self.assertEqual(len(data),preview["size_bytes"])
+        self.client.credentials()
+        self.assertEqual(self.client.get(preview["url"],HTTP_ACCEPT="image/png").status_code,401)
+
+    def test_submission_freezes_notation_rubric_in_job_and_keeps_note_locations(self):
+        attempt, _, _ = self.submitted()
+        job = claim_job()
+        self.assertEqual(job.prompt_version,"sori-feedback-2-notation-1")
+        self.assertIn("N4 빔과 박 묶음",job.prompt_text)
+        self.assertIn("notation_suggestion",job.prompt_text)
+        value = {"status":"completed","recognized_musicxml":"<score-partwise/>","score":100,"pitch_accuracy":100,"rhythm_accuracy":100,"feedback":{"summary":"음정과 리듬은 맞고 표기를 더 읽기 좋게 해 봐요.","recommendations":[]},"annotations":[{"type":"notation_error","measure":1,"note_index":2,"end_note_index":5,"message":"6/8의 빔을 3개씩 묶어 봐요."},{"type":"notation_suggestion","measure":3,"note_index":1,"end_note_index":None,"message":"권장 제자리표를 적어 봐요."}]}
+        provider = {"response":{"choices":[{"finish_reason":"stop","message":{"content":json.dumps(value)}}]}}
+        with self.settings(OPENROUTER_API_KEY="test-not-a-real-key"), patch("sori.grading.subprocess.run",return_value=subprocess.CompletedProcess([],0,stdout=json.dumps(provider),stderr="")):
+            execute_job(job)
+        job.refresh_from_db()
+        self.assertEqual(job.status,"completed")
+        self.assertEqual(job.score,100)
+        self.assertEqual(job.annotations[0]["end_note_index"],5)
+        self.assertEqual(job.annotations[1]["type"],"notation_suggestion")
+
     def test_repeated_create_upload_submit_never_duplicate(self):
         q = QuestionVersion.objects.first().metadata
-        key = str(uuid.uuid4()); body={"question_id":q["id"], "question_version":1}
+        key = str(uuid.uuid4()); body={"question_id":q["id"], "question_version":q["version"]}
         first=self.post("attempts/",body,key); second=self.post("attempts/",body,key)
         self.assertEqual(first.data,second.data)
         self.assertEqual(Attempt.objects.count(),1)
@@ -185,6 +232,13 @@ class FlowTests(TestCase):
         self.assertEqual(self.client.get("/api/v1/me/").status_code,401)
 
 class ResultValidationTests(SimpleTestCase):
+    def test_invalid_note_ranges_cannot_be_persisted(self):
+        layout = json.loads((settings.CONTENT_ROOT / "catalog.json").read_text(encoding="utf-8"))[0]["metadata"]["sheet_layout"]
+        for note,end,measure in [(0,None,1),(True,None,1),(3,2,1),(None,2,1),(1,None,None),(129,None,1)]:
+            value = {"status":"completed","recognized_musicxml":"","score":100,"pitch_accuracy":100,"rhythm_accuracy":100,"feedback":{"summary":"확인해요.","recommendations":[]},"annotations":[{"type":"notation_error","measure":measure,"note_index":note,"end_note_index":end,"message":"확인해요."}]}
+            with self.subTest(note=note,end=end,measure=measure), self.assertRaises(ValueError):
+                validate_result(value,layout)
+
     def test_uncertain_result_cannot_include_numeric_scores(self):
         value={"status":"needs_review","recognized_musicxml":"","score":80,"pitch_accuracy":None,"rhythm_accuracy":None,"feedback":{"summary":"확인이 필요해요.","recommendations":[]},"annotations":[]}
         with self.assertRaises(ValueError):
