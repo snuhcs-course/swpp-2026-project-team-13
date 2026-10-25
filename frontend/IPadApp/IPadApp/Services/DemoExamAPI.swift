@@ -23,7 +23,7 @@ import Foundation
         return values.map { source in
             var q = source
             if let image = engraving.scores[q.scoreAssets.main.sha256] {
-                q.correctScore = ReferenceImage(url:q.scoreAssets.main.url.deletingLastPathComponent().deletingLastPathComponent().appendingPathComponent("display/"),contentType:image.contentType,sha256:image.sha256,sizeBytes:image.sizeBytes,pixelWidth:image.pixelWidth,pixelHeight:image.pixelHeight,renderer:image.renderer)
+                q.correctScore = ReferenceImage(url:q.scoreAssets.main.url.deletingLastPathComponent().deletingLastPathComponent().appendingPathComponent("display",isDirectory:true),contentType:image.contentType,sha256:image.sha256,sizeBytes:image.sizeBytes,pixelWidth:image.pixelWidth,pixelHeight:image.pixelHeight,renderer:image.renderer)
             }
             q.tempo = TempoDefaults.setting(for:q.timeSignature); q.recommendedDurationSeconds = Int(ceil(PlaybackPlan.exam(meter:q.timeSignature,setting:q.tempo,scaleMeasures:q.scoreAssets.scale.measureCount).nominalDurationSeconds(meter:q.timeSignature))); return q
         }
@@ -102,7 +102,8 @@ import Foundation
         let data: Data
         let values = try catalog()
         if let index = values.firstIndex(where: { url.path.lowercased().contains($0.id.uuidString.lowercased()) }) {
-            if url.path.hasSuffix("/display/") {
+            // Foundation URL.path strips a trailing slash on Apple platforms.
+            if url.lastPathComponent == "display" {
                 let manifest: EngravingManifest = try Bundled.decode("engraving-manifest")
                 guard let item = manifest.scores[values[index].scoreAssets.main.sha256] else { throw SORIError.configuration("정답 이미지가 없습니다.") }
                 let image = try Bundled.data(item.resource,ext:"png")

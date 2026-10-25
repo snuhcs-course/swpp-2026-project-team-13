@@ -150,3 +150,11 @@ PianoAudioGraph는 피아노/예비박 로딩 오류에 파일명을 붙입니�
 - 실행 환경 제한: Docker named pipe는 Access is denied, GitHub raw 다운로드는 DNS 조회 실패. Swift/Xcode 미설치. 따라서 이번 변경의 PostgreSQL 통합 검사·실제 외부 음원 다운로드·AVAudioUnitSampler 소리·iPad UI 빌드/렌더링은 여기서 실행하지 못함.
 - CI에 추가: 고정된 외부 음원/라이선스 다운로드, 네 프리셋의 C3/C4/A4/C6 실제 오프라인 렌더링, iPad 시뮬레이터의 비교 이미지/설정 저장/제출 복구 검사. 실행 결과와 비교 스크린샷은 SORI-comparison-tests artifact에 저장. 아직 이번 변경의 CI 결과를 확인하지 않음.
 - 실제 필기에서 새 규칙이 얼마나 잘 동작하는지는 별도 검증 대상. docs/NOTATION-REVIEW.md의 실제 필기 사례를 확인해야 하며, 이번 작업에서 추가 OpenRouter 호출은 하지 않음.
+
+
+## v0.6.0 첫 CI 실패 보정 (2026-10-25)
+
+- 재현된 해시 오류: Windows 작업 파일의 CRLF 해시 c6986e63...와 Git의 LF 해시 dd2f4368...가 달랐음. 실제 작업 파일을 LF로 바꾼 뒤 MuseScore를 재실행하여 양쪽 manifest를 갱신. PNG/SVG 이미지 바이트는 변경되지 않음. 빌더는 이제 CR 문자가 있는 스타일 입력을 거부함.
+- 프론트 코드의 오류: DemoExamAPI가 URL.path.hasSuffix("/display/")로 정답 이미지 경로를 식별했으나 Foundation URL.path는 끝의 슬래시를 제거함. lastPathComponent == "display"로 변경해 PNG 요청이 MXL로 떨어지는 분기를 수정. 정답 PNG 다운로드를 사용하는 두 실패 테스트의 공통 경로이며 실제 CI 상세 assertion은 아직 확인 전.
+- 새 회귀 검사: 모든 데모 정답 URL의 끝에 슬래시가 있는/없는 형태가 같은 PNG 해시를 반환해야 함. 기존 비교 화면·제출/복구 테스트를 유지함. 시뮬레이터 테스트 로그도 artifact에 포함.
+- 로컬 악보 검사 3개와 AI 결과 검사 4개 통과. Windows에는 Xcode가 없어 iPad 테스트 재실행 결과는 다음 CI에서 확인해야 함.

@@ -32,6 +32,11 @@ class EngravingTests(unittest.TestCase):
                 self.assertEqual(struct.unpack(">II",data[16:24]),(asset["pixel_width"],asset["pixel_height"]))
                 self.assertLess(asset["pixel_height"]/asset["pixel_width"],0.25)
                 self.assertEqual(data,(RESOURCES / (asset["resource"]+".pngdata")).read_bytes())
+    def test_hash_pinned_style_has_the_same_bytes_in_a_linux_checkout(self):
+        data = (ROOT / "scripts/engraving/compact-v1.mss").read_bytes()
+        self.assertNotIn(b"\r",data,"Regenerate manifests from the LF stylesheet stored in Git")
+        self.assertEqual(hashlib.sha256(data).hexdigest(),hashlib.sha256(data.replace(b"\r\n",b"\n")).hexdigest())
+
     def test_display_only_courtesy_natural_preserves_tied_notes_and_musical_content(self):
         score = ET.fromstring('''<score-partwise><part><measure number="1"><note><pitch><step>F</step><alter>1</alter><octave>4</octave></pitch><duration>480</duration><type>quarter</type><accidental>sharp</accidental></note></measure><measure number="2"><note><pitch><step>F</step><octave>4</octave></pitch><duration>480</duration><type>quarter</type></note><note><pitch><step>F</step><octave>4</octave></pitch><duration>480</duration><type>quarter</type></note></measure></part></score-partwise>''')
         signature = module.notes_signature(score)

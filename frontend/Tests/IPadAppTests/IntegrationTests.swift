@@ -5,6 +5,22 @@ import ImageIO
 @testable import IPadApp
 
 @MainActor final class IntegrationTests:XCTestCase {
+    func testDemoReferenceAssetRoutesReturnPinnedPNGWithOrWithoutSlash() async throws {
+        let api = try DemoExamAPI(outcome:"completed")
+        let page = try await api.questions(page:1)
+        for summary in page.results {
+            let q = try await api.question(summary.id)
+            let asset = try XCTUnwrap(q.correctScore)
+            let withoutSlash = asset.url.absoluteString.trimmingCharacters(in:CharacterSet(charactersIn:"/"))
+            for address in [withoutSlash,withoutSlash+"/"] {
+                let url = try XCTUnwrap(URL(string:address))
+                let bytes = try await api.asset(url,authenticated:true,limit:2_097_152)
+                XCTAssertEqual(bytes.prefix(8),Data([137,80,78,71,13,10,26,10]),"Expected PNG for \(address)")
+                XCTAssertEqual(bytes.sha256,asset.sha256)
+                XCTAssertNotNil(UIImage(data:bytes))
+            }
+        }
+    }
     func testReferenceImagesAndCompactAnswerRenderTogether() async throws {
         let api = try DemoExamAPI(outcome:"completed")
         let questions = try await api.questions(page:1)

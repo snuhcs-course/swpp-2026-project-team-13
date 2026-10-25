@@ -66,6 +66,9 @@ def main():
     env = dict(os.environ)
     if os.name != "nt":
         env.setdefault("QT_QPA_PLATFORM", "offscreen")
+    style_data = STYLE.read_bytes()
+    if b"\r" in style_data:
+        parser.error("The hash-pinned stylesheet must use LF line endings; check out compact-v1.mss again before exporting")
     options = {"creationflags": subprocess.CREATE_NO_WINDOW} if os.name == "nt" else {}
     version = subprocess.run([str(executable), "--long-version"], capture_output=True, text=True, env=env, check=True, timeout=30, **options)
     version_text = version.stdout + version.stderr
@@ -85,7 +88,7 @@ def main():
     target = CONTENT / "engraving"
     target.mkdir(exist_ok=True)
     old = json.loads((CONTENT / "catalog-v1.json").read_text(encoding="utf-8"))
-    manifest = {"renderer": "MuseScore Studio 4.6.3", "style": "compact-v1", "style_sha256": hashlib.sha256(STYLE.read_bytes()).hexdigest(), "scores": {}}
+    manifest = {"renderer": "MuseScore Studio 4.6.3", "style": "compact-v1", "style_sha256": hashlib.sha256(style_data).hexdigest(), "scores": {}}
     for index, item in enumerate(catalog, 1):
         name = "excerpt-" + str(index) + "-reference-v1"
         data = (work / ("excerpt-" + str(index) + "-1.png")).read_bytes()
