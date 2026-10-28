@@ -27,14 +27,16 @@ struct ContentView: View {
             NavigationStack {
                 ZStack {
                     SORITheme.background.ignoresSafeArea()
-                    switch model.screen {
+                    if !model.demo && !model.connected && model.screen != .settings {
+                        LoginView(model: model)
+                    } else { switch model.screen {
                     case .home: HomeView(model: model)
                     case .question: QuestionView(model: model)
                     case .exam: ExamView(model: model, drawing: model.drawing, player: model.player)
                     case .result: ResultView(model: model)
                     case .history: HistoryView(model: model)
                     case .settings: SettingsView(model: model)
-                    }
+                    } }
                 }
                 .toolbar {
                     ToolbarItem(placement: .topBarLeading) {
@@ -47,7 +49,7 @@ struct ContentView: View {
                     }
                 }
                 .toolbarBackground(SORITheme.background, for: .navigationBar)
-                .overlay { if model.busy {
+                .overlay { if model.busy || (model.authenticating && model.connected) {
                     ZStack { Color.black.opacity(0.12).ignoresSafeArea(); VStack(spacing: 14) { ProgressView(); Text(model.busyText).font(.subheadline) }.padding(28).background(.regularMaterial, in: RoundedRectangle(cornerRadius: 20)) }
                 } }
             }
@@ -55,6 +57,11 @@ struct ContentView: View {
         .tint(SORITheme.violet).preferredColorScheme(.light)
         .task { await model.connect() }
         .alert("확인이 필요해요", isPresented: Binding(get: { model.error != nil }, set: { if !$0 { model.error = nil } })) { Button("확인") { model.error = nil } } message: { Text(model.error ?? "") }
+        .confirmationDialog("서버 로그아웃을 확인하지 못했어요", isPresented: $model.logoutNeedsConfirmation, titleVisibility: .visible) {
+            Button("서버 로그아웃 재시도") { Task { await model.logout() } }
+            Button("이 기기에서만 로그아웃", role: .destructive) { model.localLogout() }
+            Button("취소", role: .cancel) { }
+        } message: { Text(model.logoutFailure ?? "") }
         .onChange(of: model.screen) { _, screen in visibility = screen == .exam ? .detailOnly : .all }
         .onChange(of: phase) { _, phase in
             if phase == .active { Task { await model.foregroundAgain() } }
@@ -72,6 +79,6 @@ struct ContentView: View {
             Label(title, systemImage: icon).font(.system(size: 15, weight: .semibold)).frame(maxWidth: .infinity, alignment: .leading).padding(15)
                 .foregroundStyle(model.screen == screen ? SORITheme.violet : SORITheme.ink.opacity(0.65))
                 .background(model.screen == screen ? SORITheme.soft : .clear, in: RoundedRectangle(cornerRadius: 12))
-        }.buttonStyle(.plain).disabled(model.busy)
+        }.buttonStyle(.plain).disabled(model.busy || model.authenticating)
     }
 }

@@ -1,5 +1,20 @@
 # 검증 기록
 
+## 2026-10-28: 로그인 계약 v0.7.0
+
+macOS에서 Python 3.14, 고정된 Django 5.2.18 의존성과 테스트 전용 PostgreSQL 17 컨테이너를 사용했습니다. SQLite나 유료 AI 호출은 사용하지 않았습니다.
+
+- Django 시스템 검사·migration 일치 검사 통과, `manage.py test api sori --noinput` 전체 32개 통과.
+- 로그인·로그아웃, 입력·본문 크기 경계, Content-Length 없는 413, 공유 IP/아이디 제한·해제·긴 Retry-After, 동시 로그인·실패, 비밀번호 변경·비활성화 양방향 경합, 늦은 로그아웃의 새 토큰 보존, 계정 생성·비밀번호 설정 명령을 검증했습니다.
+- `swift test --package-path frontend` 전체 44개 통과. 로그인 요청의 인증 헤더 제외·입력 보존·자동 재전송 금지, 본문·Content-Type 없는 204, origin/세대 기반 늦은 로그인·로그아웃·프로필·401 거부를 포함합니다.
+- iPad Pro 13-inch (M5), iPadOS 27.0 시뮬레이터에서 인증 통합 7개와 기존 로컬 제출 복구 1개, 총 8개 통과. 실제 Keychain, 재실행 복구, 계정별 기록 분리, 401 뒤 필기·제출 키 보존, 로그인 대기, 명시적 로컬 로그아웃을 검증했습니다.
+- 시뮬레이터 빌드 통과. Keychain 테스트는 `CODE_SIGNING_ALLOWED=YES CODE_SIGN_IDENTITY=-`의 로컬 임시 서명으로 실행하며 CI에도 반영했습니다.
+- OpenAPI v0.7.0의 인증 경로·보안 선언·204 형식과 로컬 참조 164개 확인, 변경 파일의 진단·공백 검사 통과.
+
+이번 앱 인증 테스트의 HTTP 응답은 URLProtocol fixture입니다. 실제 iPad와 LAN 서버를 연결한 로그인 및 기존 AI 평가·기기 오디오 확인은 별도입니다.
+
+## 이전 검증 기록
+
 2026-10-25, Windows 작업 환경에서 기록합니다. 기능 구현과 실제 실행 확인을 구분합니다.
 
 | 항목 | 상태 |

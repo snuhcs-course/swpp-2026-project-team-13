@@ -16,6 +16,10 @@ backend/.env는 이미 있으면 덮어쓰지 않습니다. 텍스트 편집기�
 
 세 서비스 db, api, worker가 실행되어야 합니다. 브라우저에서 http://localhost:8000/api/health/의 status=ok를 확인합니다. health는 AI 키·DB·제품 기능을 모두 검사하는 엔드포인트가 아닙니다.
 
+관리자가 앱 로그인용 계정을 생성합니다. 비밀번호는 터미널에 숨김 입력하며, 같은 명령은 기존 계정의 비밀번호를 변경하고 토큰을 폐기합니다. 서버 시작 시 개발 토큰을 자동 발급하지 않습니다.
+
+    docker compose --env-file backend/.env exec api python manage.py create_practice_user student01
+
 API·제출·복구 검증을 실행합니다. 이 검증은 AI mock을 사용해 과금하지 않습니다.
 
     docker compose --env-file backend/.env exec -T api python manage.py check
@@ -23,6 +27,8 @@ API·제출·복구 검증을 실행합니다. 이 검증은 AI mock을 사용�
     docker compose --env-file backend/.env exec -T api python manage.py test api sori --noinput 2>&1 | Tee-Object -FilePath backend/.local/backend-checks.log
 
 실제 HTTP·AI 연결은 아래 명령으로 확인할 수 있습니다. 빈 테스트 답안을 한 번 실제 AI에 보내므로 과금이 발생합니다. 같은 상태 파일로 반복 실행하면 이미 제출된 같은 결과를 조회합니다. 필기 인식 정확도를 검사하는 명령은 아닙니다.
+
+이 개발용 검증 스크립트는 별도의 개발 토큰 파일을 사용합니다. 앱 로그인 계정과 별개로 필요할 때만 `docker compose --env-file backend/.env exec -T api python manage.py issue_dev_token`을 명시적으로 실행합니다.
 
     python scripts/verify-live.py --with-ai
 
@@ -41,7 +47,7 @@ API·제출·복구 검증을 실행합니다. 이 검증은 AI mock을 사용�
 1. Windows PC와 iPad를 같은 Wi-Fi/LAN에 연결합니다. 앱 설치 후에는 서버가 실행되는 Windows PC를 켜둡니다.
 2. 앱의 연결 설정에서 로컬 데모를 끕니다.
 3. 서버 주소에 http://<Windows PC의 LAN IPv4>:8000/api/v1/을 입력합니다.
-4. 개발 토큰에 backend/.local/connection.txt의 토큰만 입력하고 연결합니다. OpenRouter 키를 입력하지 않습니다.
+4. 서버 연결을 누르고 관리자가 만든 아이디·비밀번호로 로그인합니다. OpenRouter 키는 앱에 입력하지 않습니다.
 5. 세 문제 중 하나를 선택 → 준비 → 시작 → 청음·필기 → 제출 → AI 평가 결과를 확인합니다.
 
 Windows 방화벽에서 연결을 묻는 경우 개인 네트워크의 서버 접근을 허용해야 합니다. 먼저 iPad Safari에서 http://<Windows IPv4>:8000/api/health/를 확인하면 앱 설정 문제와 네트워크 문제를 나눠 확인할 수 있습니다. localhost는 iPad 자신이므로 서버 주소로 쓰지 않습니다.
@@ -64,7 +70,8 @@ Windows 방화벽에서 연결을 묻는 경우 개인 네트워크의 서버 �
 
 - up 실패: Docker Desktop 엔진과 패키지/이미지 다운로드 연결을 확인합니다.
 - 400 Bad Request: DJANGO_ALLOWED_HOSTS의 실제 PC IP를 확인합니다.
-- 401: 앱의 개발 토큰을 확인합니다. OpenRouter 키와 다릅니다.
+- 401: 관리자가 만든 아이디·비밀번호로 다시 로그인합니다. 비활성 계정은 관리자에게 확인합니다.
+- 429: 화면에 표시된 대기 시간이 지난 뒤 명시적으로 다시 시도합니다.
 - failed / ENGINE_UNAVAILABLE: 서버의 키·모델·외부 연결을 확인합니다.
 - 빌드 실패: GitHub CI의 frontend 로그를 확인합니다. 설치·서명 실패는 Sideloadly의 오류 메시지를 확인합니다.
 

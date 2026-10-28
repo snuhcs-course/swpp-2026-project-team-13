@@ -8,5 +8,5 @@ if ($LASTEXITCODE -ne 0) { throw 'Docker Desktop을 열고 엔진이 Running이 
 docker compose --env-file backend/.env up --build -d
 if ($LASTEXITCODE -ne 0) { throw '서버 시작에 실패했습니다. Docker 로그를 확인해 주세요.' }
 Write-Host '서버 상태: docker compose --env-file backend/.env ps'
-Write-Host 'iPad 개발 토큰: backend/.local/connection.txt (외부 공유 금지)'
+Write-Host '계정 생성: docker compose --env-file backend/.env exec api python manage.py create_practice_user student01'
 Write-Host 'iPad 서버 주소: http://<이 PC의 IPv4 주소>:8000/api/v1/'

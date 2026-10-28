@@ -32,6 +32,11 @@ struct Origin: Equatable {
               let host = url.host?.lowercased(), url.user == nil, url.password == nil else { return nil }
         self.scheme = scheme; self.host = host; port = url.port ?? (scheme == "https" ? 443 : 80)
     }
+    var key: String {
+        var c = URLComponents(); c.scheme = scheme; c.host = host
+        if port != (scheme == "https" ? 443 : 80) { c.port = port }
+        return c.url!.absoluteString
+    }
 }
 
 // Redirects are refused, including redirects of public templates. This also prevents bearer leakage.
@@ -45,11 +50,12 @@ final class NoRedirectDelegate: NSObject, URLSessionTaskDelegate, @unchecked Sen
     let token: String
     let session: URLSession
     let redirectDelegate = NoRedirectDelegate()
-    var scope: String { base.absoluteString }
-    init(base: URL, token: String, session: URLSession? = nil) throws {
+    var isCurrent: () -> Bool = { true }
+    var onUnauthorized: () -> Void = { }
+    var scope: String { Origin(base)!.key + "/api/v1/" }
+    init(base: URL, token: String = "", session: URLSession? = nil) throws {
         guard let origin = Origin(base), base.query == nil, base.fragment == nil,
-              base.absoluteString.hasSuffix("/api/v1/"), !token.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
-              !token.contains("\r"), !token.contains("\n") else { throw SORIError.configuration("서버 주소는 /api/v1/로 끝나야 하며 개발 토큰이 필요합니다.") }
+              URLComponents(url: base, resolvingAgainstBaseURL: false)?.path == "/api/v1/", !token.contains("\r"), !token.contains("\n") else { throw SORIError.configuration("서버 주소는 /api/v1/로 끝나야 합니다.") }
         #if !DEBUG
         guard origin.scheme == "https" else { throw SORIError.configuration("배포 앱은 HTTPS 서버가 필요합니다.") }
         #endif
@@ -65,6 +71,7 @@ final class NoRedirectDelegate: NSObject, URLSessionTaskDelegate, @unchecked Sen
     func request(_ url: URL, method: String = "GET", authenticated: Bool = true, accept: String = "application/json", body: Data? = nil, contentType: String? = nil, key: UUID? = nil) throws -> URLRequest {
         guard let origin = Origin(url), origin.scheme == "https" || Origin(base)?.scheme == "http" else { throw SORIError.configuration("올바르지 않은 자산 주소입니다.") }
         if authenticated && origin != Origin(base) { throw SORIError.configuration("외부 서버에 인증 정보를 보낼 수 없습니다.") }
+        if authenticated && token.isEmpty { throw SORIError.configuration("로그인이 필요합니다.") }
         var r = URLRequest(url: url); r.httpMethod = method; r.httpBody = body; r.timeoutInterval = contentType?.hasPrefix("multipart/") == true ? 60 : 15
         r.cachePolicy = .reloadIgnoringLocalCacheData; r.setValue(accept, forHTTPHeaderField: "Accept")
         if authenticated { r.setValue("Bearer " + token, forHTTPHeaderField: "Authorization") }
@@ -72,11 +79,14 @@ final class NoRedirectDelegate: NSObject, URLSessionTaskDelegate, @unchecked Sen
         if let key { r.setValue(key.uuidString.lowercased(), forHTTPHeaderField: "Idempotency-Key") }
         return r
     }
-    func execute(_ request: URLRequest, limit: Int) async throws -> Data {
+    func execute(_ request: URLRequest, limit: Int, retry retryEnabled: Bool = true, expectsNoContent: Bool = false) async throws -> Data {
         for trial in 0..<3 {
             do {
+                guard isCurrent() else { throw CancellationError() }
                 let (bytes, rawResponse) = try await session.bytes(for: request, delegate: redirectDelegate)
                 guard let response = rawResponse as? HTTPURLResponse else { throw SORIError.transport("잘못된 HTTP 응답입니다.") }
+                guard isCurrent() else { throw CancellationError() }
+                if response.statusCode == 401, request.value(forHTTPHeaderField: "Authorization") != nil { onUnauthorized() }
                 let success = (200...299).contains(response.statusCode)
                 let cap = success ? limit : 256 * 1024
                 guard response.expectedContentLength <= cap else { throw SORIError.transport("서버 파일이 허용 용량을 초과했습니다.") }
@@ -85,7 +95,13 @@ final class NoRedirectDelegate: NSObject, URLSessionTaskDelegate, @unchecked Sen
                     guard data.count < cap else { throw SORIError.transport("서버 파일이 허용 용량을 초과했습니다.") }
                     data.append(byte)
                 }
+                guard isCurrent() else { throw CancellationError() }
                 if success {
+                    // Logout's 204 has neither a JSON body nor a required MIME header.
+                    if expectsNoContent {
+                        guard response.statusCode == 204 else { throw SORIError.transport("로그아웃 응답을 확인하지 못했습니다.") }
+                        return Data()
+                    }
                     let expected = request.value(forHTTPHeaderField: "Accept") ?? ""
                     let actual = response.mimeType?.lowercased() ?? ""
                     guard expected == actual else { throw SORIError.transport("서버의 콘텐츠 형식이 계약과 다릅니다. (\(actual))") }
@@ -97,7 +113,7 @@ final class NoRedirectDelegate: NSObject, URLSessionTaskDelegate, @unchecked Sen
             } catch {
                 try Task.checkCancellation()
                 let retry = Self.retryPolicy(error, trial: trial)
-                guard trial < 2, let delay = retry else { throw error }
+                guard retryEnabled, trial < 2, let delay = retry else { throw error }
                 try await Task.sleep(for: .seconds(delay))
             }
         }
@@ -123,6 +139,16 @@ final class NoRedirectDelegate: NSObject, URLSessionTaskDelegate, @unchecked Sen
         return try ContractJSON.decoder().decode(T.self, from: await execute(request, limit: 2 * 1024 * 1024))
     }
     func profile() async throws -> UserProfile { try await json("me/") }
+    func login(username: String, password: String) async throws -> LoginResponse {
+        let body = try JSONSerialization.data(withJSONObject: ["username": username, "password": password])
+        let r = try request(endpoint("auth/login/"), method: "POST", authenticated: false, body: body, contentType: "application/json")
+        let value = try ContractJSON.decoder().decode(LoginResponse.self, from: await execute(r, limit: 256 * 1024, retry: false))
+        guard value.tokenType == "Bearer", !value.accessToken.isEmpty, !value.accessToken.contains("\r"), !value.accessToken.contains("\n") else { throw SORIError.transport("로그인 응답을 확인해 주세요.") }
+        return value
+    }
+    func logout() async throws {
+        _ = try await execute(request(endpoint("auth/logout/"), method: "POST"), limit: 256 * 1024, retry: false, expectsNoContent: true)
+    }
     func updateGoal(_ goal: String) async throws -> UserProfile { try await json("me/", method: "PATCH", body: JSONSerialization.data(withJSONObject: ["learning_goal": goal])) }
     func questions(page: Int) async throws -> QuestionPage {
         var components = URLComponents(url: endpoint("questions/"), resolvingAgainstBaseURL: false)!

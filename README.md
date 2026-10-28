@@ -19,7 +19,7 @@
                                                    ↓
                                            OpenRouter AI 평가
 
-서버는 PostgreSQL과 API·워커를 Docker Compose로 실행합니다. 앱은 GitHub의 macOS CI에서 실기기용 IPA를 만들고 Windows의 Sideloadly로 서명·설치합니다. 친구의 Mac에서 Xcode로 직접 설치하는 경로도 사용할 수 있습니다. OpenRouter 키는 서버에만 설정하고, 앱에는 사용자별 개발 Bearer 토큰만 넣습니다.
+서버는 PostgreSQL과 API·워커를 Docker Compose로 실행합니다. 앱은 GitHub의 macOS CI에서 실기기용 IPA를 만들고 Windows의 Sideloadly로 서명·설치합니다. 친구의 Mac에서 Xcode로 직접 설치하는 경로도 사용할 수 있습니다. OpenRouter 키는 서버에만 설정하고, 앱에서는 관리자가 만든 아이디·비밀번호로 로그인합니다.
 
 ## Windows 시작
 
@@ -32,7 +32,11 @@
     docker compose --env-file backend/.env up --build -d --wait
     docker compose --env-file backend/.env exec -T api python manage.py test api sori --noinput
 
-개발 토큰은 backend/.local/connection.txt에 저장됩니다. 앱의 연결 설정에서 로컬 데모를 끄고 http://<이 PC의 IPv4>:8000/api/v1/과 이 토큰을 입력합니다. Windows와 iPad는 같은 LAN을 사용합니다.
+관리자가 계정을 생성합니다. 비밀번호는 터미널에서 숨김 입력하며, 같은 명령으로 기존 계정의 비밀번호를 변경할 수도 있습니다.
+
+    docker compose --env-file backend/.env exec api python manage.py create_practice_user student01
+
+앱의 연결 설정에서 로컬 데모를 끄고 http://<이 PC의 IPv4>:8000/api/v1/로 연결한 뒤 해당 아이디·비밀번호로 로그인합니다. Windows와 iPad는 같은 LAN을 사용합니다. 서버 시작 시 개발 토큰을 자동 발급하지 않습니다.
 
 ## 소스와 데이터
 

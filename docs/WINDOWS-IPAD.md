@@ -47,7 +47,7 @@ IPA는 push로 실행한 CI에서 생성하며 보관 기간은 14일입니다. 
 3. iPad Safari에서 http://<Windows PC의 LAN IPv4>:8000/api/health/를 열어 status=ok를 확인합니다.
 4. SORI의 **연결 설정**에서 **로컬 데모 사용**을 끕니다.
 5. API 기준 주소를 http://<Windows PC의 LAN IPv4>:8000/api/v1/로 입력합니다. iPad의 localhost는 Windows 서버가 아닙니다.
-6. 개발용 Bearer 토큰에는 서버 PC의 **sori/backend/.local/connection.txt**에 있는 토큰 값만 입력하고 **서버 연결**을 누릅니다. OpenRouter API 키와는 다른 토큰입니다.
+6. **서버 연결**을 누르고 관리자가 만든 아이디·비밀번호로 로그인합니다. 계정이 없다면 서버 PC에서 `docker compose --env-file backend/.env exec api python manage.py create_practice_user student01`로 비밀번호를 설정합니다. OpenRouter API 키는 앱에 입력하지 않습니다.
 7. 세 문제 중 하나를 준비 → 시작 → 청음·필기 → 제출하고 AI 결과를 확인합니다.
 
 처음에는 데모에서 소리·필기를 확인하고, 서버 연결 후 실제 AI 제출을 한 번 확인합니다. 데모 결과는 예시이고, 실제 서버로 제출하면 OpenRouter 사용량이 발생합니다.
@@ -69,8 +69,9 @@ GitHub 빌드 성공은 실제 iPad의 오디오·필기·서버 제출까지 �
 - 신뢰되지 않은 개발자 / Developer Mode Required: 위 3번의 iPad 설정을 확인합니다.
 - Sideloadly 설치 실패: 오류 메시지와 단계를 확인합니다. 계정 암호나 인증 코드는 공유하지 않습니다.
 - 서버 400: backend/.env의 DJANGO_ALLOWED_HOSTS에 현재 PC IPv4가 있는지 확인합니다.
-- 서버 401: 개발 토큰을 확인합니다.
-- 서버 연결 실패: iPad Safari에서 health 확인 후 앱 주소와 토큰을 확인합니다.
+- 서버 401: 아이디·비밀번호를 확인하고 다시 로그인합니다.
+- 서버 429: 표시된 대기 시간이 지난 뒤 다시 로그인합니다.
+- 서버 연결 실패: iPad Safari에서 health 확인 후 앱 주소를 확인합니다.
 
 공식 자료: [Sideloadly](https://sideloadly.io/), [Sideloadly FAQ](https://sideloadly.io/faq.html), [Apple 개발자 모드](https://developer.apple.com/documentation/xcode/enabling-developer-mode-on-a-device), [GitHub 빌드 파일 다운로드](https://docs.github.com/en/actions/how-tos/manage-workflow-runs/download-workflow-artifacts).
 

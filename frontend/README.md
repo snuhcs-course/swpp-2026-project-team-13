@@ -1,14 +1,16 @@
 # SORI iPad frontend
 
-Native SwiftUI / PencilKit app for the SORI v0.5.0 personal-practice contract. iPadOS 17+, Xcode 16+; no external Swift packages or network-loaded rendering code.
+Native SwiftUI / PencilKit app for the SORI v0.7.0 personal-practice contract. iPadOS 17+, Xcode 16+; no external Swift packages or network-loaded rendering code.
 
 ## Run
 
 Open `IPadApp/IPadApp.xcodeproj`, select the shared `IPadApp` scheme and an iPad simulator, and Run. The default **local demo** works without a server. The app includes the exact API fixtures, staff template, MXL examples, a native notation renderer, and a fixed synthesized piano SoundFont. Demo results are explicitly marked as examples and do not analyze handwriting.
 
-Use **연결 설정** to switch to the backend. Enter an absolute base URL ending `/api/v1/` and a backend-issued Bearer token. The token is stored in this device's Keychain, never UserDefaults or source control. Release requires HTTPS. Debug permits HTTP for local development. For a physical iPad use the backend PC's LAN address; `localhost` on an iPad means the iPad itself. A blank token field reuses the Keychain token for that server.
+Use **연결 설정** to switch to the backend. Enter an absolute base URL ending `/api/v1/`, then log in with an administrator-created username and password. Inputs retain whitespace and case. Only the returned token is stored in this device's Keychain, keyed by server origin; passwords are never persisted. Relaunch verifies the stored token with `/me/`. Release requires HTTPS. Debug permits HTTP for local development. For a physical iPad use the backend PC's LAN address; `localhost` on an iPad means the iPad itself.
 
-The Django backend implements the versioned SORI operations with PostgreSQL and an OpenRouter worker. Follow ../docs/IPAD-SETUP.md to start the server and issue development tokens. Local demo is deliberately separate from live API errors.
+The Django backend implements the versioned SORI operations with PostgreSQL and an OpenRouter worker. Follow ../docs/IPAD-SETUP.md to start the server and create an account. Local demo is deliberately separate from live API errors.
+
+Login requests are never automatically retried, and a 429 disables resubmission until its retry deadline. Authentication operations use origin and generation guards, including when a later login reuses the same token. A current protected 401 clears only its matching Keychain token; network and server failures retain credentials. Logout revokes the shared token on every device. If revocation cannot be confirmed, local logout requires an explicit choice explaining that the server token may remain. Account changes hide the previous user's records without deleting drawings or frozen submission IDs/keys; logging back into that account restores its journal.
 
 For Windows installation without a Mac, follow [the Sideloadly guide](../docs/WINDOWS-IPAD.md). Successful push CI runs publish the unsigned device Debug IPA as **SORI-iPad-install**; signing takes place on the user’s Windows PC.
 
@@ -46,7 +48,7 @@ xcodebuild -project frontend/IPadApp/IPadApp.xcodeproj -scheme IPadApp \
   -derivedDataPath build/DerivedData CODE_SIGNING_ALLOWED=NO build
 xcodebuild -project frontend/IPadApp/IPadApp.xcodeproj -scheme IPadApp \
   -configuration Debug -destination 'platform=iOS Simulator,name=iPad Pro 13-inch (M5)' \
-  -derivedDataPath build/DerivedData CODE_SIGNING_ALLOWED=NO test
+  -derivedDataPath build/DerivedData CODE_SIGNING_ALLOWED=YES CODE_SIGN_IDENTITY=- test
 swift frontend/scripts/check_piano.swift frontend/IPadApp/IPadApp/Resources/sori-piano-v1.sf2
 ```
 

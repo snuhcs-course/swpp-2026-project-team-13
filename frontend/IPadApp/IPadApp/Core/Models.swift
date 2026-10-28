@@ -194,7 +194,10 @@ enum SORIError: LocalizedError {
         switch self {
         case .configuration(let m), .unsupported(let m), .invalidScore(let m), .storage(let m), .transport(let m): return m
         case .server(let status, let envelope, _):
-            if status == 401 { return "인증이 만료되었습니다. 연결 설정에서 토큰을 갱신해 주세요. 필기는 보관되어 있습니다." }
+            if status == 401 {
+                if envelope?.error.code == "INVALID_CREDENTIALS" { return "아이디 또는 비밀번호를 확인해 주세요." }
+                return "인증 정보를 확인할 수 없습니다. 다시 로그인해 주세요. 필기는 보관되어 있습니다."
+            }
             guard let envelope else { return "서버 응답을 확인해 주세요. (HTTP \(status))" }
             let fields = envelope.error.fields.map(\.message).joined(separator: "\n")
             return envelope.error.message + (fields.isEmpty ? "" : "\n" + fields) + "\n요청 ID: " + envelope.requestId

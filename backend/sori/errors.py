@@ -1,3 +1,4 @@
+import io
 import uuid
 from django.http import JsonResponse
 from rest_framework.exceptions import APIException
@@ -21,8 +22,10 @@ def exception_handler(exc, context):
         if exc.retry_after_ms is not None:
             response["Retry-After"] = str(max(1, (exc.retry_after_ms + 999) // 1000))
     elif response is not None:
-        code, message = {401: ("AUTHENTICATION_REQUIRED", "유효한 개발 토큰이 필요합니다."), 403: ("PERMISSION_DENIED", "접근 권한이 없습니다."), 404: ("RESOURCE_NOT_FOUND", "리소스를 찾을 수 없습니다."), 405: ("METHOD_NOT_ALLOWED", "지원하지 않는 요청입니다."), 415: ("UNSUPPORTED_MEDIA_TYPE", "요청 콘텐츠 형식을 확인해 주세요.")}.get(response.status_code, ("VALIDATION_ERROR", "요청 형식을 확인해 주세요."))
+        code, message = {401: ("AUTHENTICATION_REQUIRED", "로그인이 필요합니다."), 403: ("PERMISSION_DENIED", "접근 권한이 없습니다."), 404: ("RESOURCE_NOT_FOUND", "리소스를 찾을 수 없습니다."), 405: ("METHOD_NOT_ALLOWED", "지원하지 않는 요청입니다."), 415: ("UNSUPPORTED_MEDIA_TYPE", "요청 콘텐츠 형식을 확인해 주세요.")}.get(response.status_code, ("VALIDATION_ERROR", "요청 형식을 확인해 주세요."))
         response.data = envelope(request, code, message)
+    if response is not None and response.status_code == 401:
+        response["WWW-Authenticate"] = "Bearer"
     return response
 
 class RequestMiddleware:
@@ -34,7 +37,18 @@ class RequestMiddleware:
             too_large = int(request.META.get("CONTENT_LENGTH") or 0) > 11 * 1024 * 1024
         except ValueError:
             too_large = True
-        if request.path.startswith("/api/v1/") and too_large:
+        if request.path == "/api/v1/auth/login/" and request.method == "POST":
+            # Bound the raw bytes before JSON parsing and attempt accounting.
+            # For lengthless WSGI requests the server supplies the body stream.
+            stream = request.META.get("wsgi.input", request) if not request.META.get("CONTENT_LENGTH") else request
+            body = stream.read(32769)
+            if len(body) > 32768:
+                response = JsonResponse(envelope(request, "REQUEST_TOO_LARGE", "로그인 요청은 32 KiB 이하여야 합니다."), status=413)
+            else:
+                request._body = body
+                request._stream = io.BytesIO(body)
+                response = self.get_response(request)
+        elif request.path.startswith("/api/v1/") and too_large:
             response = JsonResponse(envelope(request, "IMAGE_TOO_LARGE", "업로드 용량을 초과했습니다."), status=413)
         else:
             response = self.get_response(request)
