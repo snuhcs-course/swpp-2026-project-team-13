@@ -11,6 +11,10 @@
 - 실제 검증 상태: [docs/VALIDATION.md](docs/VALIDATION.md)
 - MuseScore 악보와 외부 음원 준비: [docs/ASSETS.md](docs/ASSETS.md)
 
+## 미니게임: 멜로디 런
+
+홈 또는 사이드바의 미니게임에서 **메모리 / 그루브** 모드를 선택해 피아노로 선율을 복원할 수 있습니다. 923개 오프라인 MusicXML 문제, 2·4·8마디 구간, 템포·입력 시간·조기 진행 설정과 마디별 결과 비교를 제공합니다. 설계, XML 추가, 검사 명령과 실기기 검증이 필요한 부분은 [멜로디 런 안내](docs/MELODY-RUN.md)를 확인하세요.
+
 ## 구성
 
     iPad SwiftUI/PencilKit → Django REST API → PostgreSQL + 개인 답안 파일

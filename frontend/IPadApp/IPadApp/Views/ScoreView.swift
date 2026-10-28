@@ -6,34 +6,46 @@ protocol ScoreRenderer {
 
 // Limited native notation renderer. Submitted handwriting keeps an independent coordinate system.
 struct NativeScoreRenderer: ScoreRenderer {
+    var singleMeasure = false
+    var keyFifths = 0
+    var clef = "G"
+    var pending: Set<Int> = []
+    var incorrect: Set<Int> = []
     func render(_ score: MusicScore, context: inout GraphicsContext, size: CGSize) {
         context.scaleBy(x: size.width / 1330, y: size.width / 1330)
-        let bars:[[CGFloat]] = [[54.0,450,725,1000,1276],[54.0,397,690,983,1276]]
+        if singleMeasure { context.translateBy(x:0,y:-80) }
+        let bars:[[CGFloat]] = singleMeasure ? [[54,1276]] : [[54.0,450,725,1000,1276],[54.0,397,690,983,1276]]
+        var ink = Color.black
+        let keyWidth = CGFloat(abs(keyFifths))*15
         func line(_ a: CGPoint, _ b: CGPoint, width: CGFloat = 1.5) {
             var path = Path(); path.move(to:a); path.addLine(to:b)
-            context.stroke(path, with:.color(.black), lineWidth:width)
+            context.stroke(path, with:.color(ink), lineWidth:width)
         }
         func text(_ string:String, x:CGFloat, y:CGFloat, size:CGFloat = 28) {
-            context.draw(Text(string).font(.system(size:size)).foregroundColor(.black), at:CGPoint(x:x,y:y))
+            context.draw(Text(string).font(.system(size:size)).foregroundColor(ink), at:CGPoint(x:x,y:y))
         }
-        for system in 0..<2 {
+        for system in 0..<(singleMeasure ? 1 : 2) {
             let top:CGFloat = system == 0 ? 164.0 : 499.0
             for j in 0..<5 { line(CGPoint(x:54,y:top+CGFloat(j)*12),CGPoint(x:1276,y:top+CGFloat(j)*12)) }
             for x in bars[system] { line(CGPoint(x:x,y:top),CGPoint(x:x,y:top+48)) }
-            text("𝄞",x:84,y:top+23,size:75)
+            text(clef == "F" ? "𝄢" : "𝄞",x:84,y:top+23,size:75)
+            let keyY: [CGFloat] = keyFifths >= 0 ? [0,18,-6,12,30,6,24] : [24,6,30,12,36,18,42]
+            for k in 0..<abs(keyFifths) {
+                text(keyFifths > 0 ? "♯" : "♭",x:116+CGFloat(k)*15,y:top+keyY[k]+(clef == "F" ? 12 : 0),size:27)
+            }
             if system == 0 {
-                text(String(score.timeSignature.numerator),x:126,y:top+13,size:29)
-                text(String(score.timeSignature.denominator),x:126,y:top+37,size:29)
+                text(String(score.timeSignature.numerator),x:126+keyWidth,y:top+13,size:29)
+                text(String(score.timeSignature.denominator),x:126+keyWidth,y:top+37,size:29)
             }
         }
         func position(_ symbol:ScoreSymbol) -> CGPoint {
-            let system = (symbol.measure-1)/4, index = (symbol.measure-1)%4
+            let system = singleMeasure ? 0 : (symbol.measure-1)/4, index = singleMeasure ? 0 : (symbol.measure-1)%4
             let left = bars[system][index], right = bars[system][index+1]
-            let lead:CGFloat = index == 0 ? (system == 0 ? 112.0 : 75.0) : 35.0
+            let lead:CGFloat = index == 0 ? (system == 0 ? 112.0+keyWidth : 75.0+keyWidth) : 35.0
             let fraction = CGFloat(symbol.onset % score.ticksPerMeasure) / CGFloat(score.ticksPerMeasure)
             let diatonic = ["C":0,"D":1,"E":2,"F":3,"G":4,"A":5,"B":6]
             let pitch = symbol.octave*7 + (diatonic[symbol.step ?? "E"] ?? 2)
-            return CGPoint(x:left+lead+(right-left-lead-28)*fraction,y:(system == 0 ? 212.0 : 547.0)-CGFloat(pitch-(4*7+2))*6)
+            return CGPoint(x:left+lead+(right-left-lead-28)*fraction,y:(system == 0 ? 212.0 : 547.0)-CGFloat(pitch-(clef == "F" ? 2*7+4 : 4*7+2))*6)
         }
         // Flat shared beams make every member use the same stem direction and endpoint.
         var groups:[[Int]] = [], current:[Int] = []
@@ -54,6 +66,7 @@ struct NativeScoreRenderer: ScoreRenderer {
         }
         var accidentalState:[String:Int] = [:], previousMeasure = 0
         for (i,n) in score.symbols.enumerated() {
+            ink = pending.contains(i) ? Color.gray.opacity(0.28) : incorrect.contains(i) ? .red : .black
             let p = position(n)
             let bottom:CGFloat = n.measure <= 4 ? 212.0 : 547.0
             let top = bottom-48
@@ -61,47 +74,54 @@ struct NativeScoreRenderer: ScoreRenderer {
             if n.midi == nil {
                 let middle = top+24
                 if n.type == "whole" || n.type == "half" {
-                    context.fill(Path(CGRect(x:p.x-9,y:n.type == "whole" ? middle-12 : middle-6,width:18,height:6)),with:.color(.black))
+                    context.fill(Path(CGRect(x:p.x-9,y:n.type == "whole" ? middle-12 : middle-6,width:18,height:6)),with:.color(ink))
                 } else if n.type == "quarter" {
-                    var rest = Path(); rest.move(to:CGPoint(x:p.x-4,y:middle-20)); rest.addLine(to:CGPoint(x:p.x+6,y:middle-9)); rest.addLine(to:CGPoint(x:p.x-4,y:middle+2)); rest.addLine(to:CGPoint(x:p.x+5,y:middle+12)); rest.addQuadCurve(to:CGPoint(x:p.x-4,y:middle+22),control:CGPoint(x:p.x-14,y:middle+12)); context.stroke(rest,with:.color(.black),lineWidth:4)
+                    var rest = Path(); rest.move(to:CGPoint(x:p.x-4,y:middle-20)); rest.addLine(to:CGPoint(x:p.x+6,y:middle-9)); rest.addLine(to:CGPoint(x:p.x-4,y:middle+2)); rest.addLine(to:CGPoint(x:p.x+5,y:middle+12)); rest.addQuadCurve(to:CGPoint(x:p.x-4,y:middle+22),control:CGPoint(x:p.x-14,y:middle+12)); context.stroke(rest,with:.color(ink),lineWidth:4)
                 } else {
-                    let count = n.type == "16th" ? 2 : 1
-                    for k in 0..<count { context.fill(Path(ellipseIn:CGRect(x:p.x-7-CGFloat(k)*3,y:middle-8+CGFloat(k)*8,width:9,height:8)),with:.color(.black)) }
+                    let count = n.type == "32nd" ? 3 : n.type == "16th" ? 2 : 1
+                    for k in 0..<count { context.fill(Path(ellipseIn:CGRect(x:p.x-7-CGFloat(k)*3,y:middle-8+CGFloat(k)*8,width:9,height:8)),with:.color(ink)) }
                     line(CGPoint(x:p.x+3,y:middle-7),CGPoint(x:p.x-5,y:middle+20),width:3)
                 }
-                for dot in 0..<n.dots { context.fill(Path(ellipseIn:CGRect(x:p.x+13+CGFloat(dot)*7,y:middle-4,width:4,height:4)),with:.color(.black)) }
+                for dot in 0..<n.dots { context.fill(Path(ellipseIn:CGRect(x:p.x+13+CGFloat(dot)*7,y:middle-4,width:4,height:4)),with:.color(ink)) }
                 continue
             }
             if p.y >= bottom+12 { for y in stride(from:bottom+12,through:p.y,by:12) { line(CGPoint(x:p.x-15,y:y),CGPoint(x:p.x+15,y:y)) } }
             if p.y <= top-12 { for y in stride(from:top-12,through:p.y,by:-12) { line(CGPoint(x:p.x-15,y:y),CGPoint(x:p.x+15,y:y)) } }
             let head = Path(ellipseIn:CGRect(x:p.x-10,y:p.y-6,width:20,height:12))
-            if n.type == "whole" || n.type == "half" { context.stroke(head,with:.color(.black),lineWidth:2.5) } else { context.fill(head,with:.color(.black)) }
+            if n.type == "whole" || n.type == "half" { context.stroke(head,with:.color(ink),lineWidth:2.5) } else { context.fill(head,with:.color(ink)) }
             let down = stems[i]?.down ?? (p.y < top+24)
             if n.type != "whole" {
                 let x = p.x+(down ? -9 : 9), end = stems[i]?.end ?? (p.y+(down ? 38 : -38))
                 line(CGPoint(x:x,y:p.y),CGPoint(x:x,y:end),width:2)
                 if stems[i] == nil {
-                    let count = n.type == "16th" ? 2 : n.type == "eighth" ? 1 : 0
+                    let count = n.type == "32nd" ? 3 : n.type == "16th" ? 2 : n.type == "eighth" ? 1 : 0
                     for k in 0..<count {
                         let y = end+CGFloat(k)*(down ? -7 : 7)
-                        var flag = Path(); flag.move(to:CGPoint(x:x,y:y)); flag.addQuadCurve(to:CGPoint(x:x+13,y:y+(down ? -21 : 21)),control:CGPoint(x:x+25,y:y+(down ? -9 : 9))); context.stroke(flag,with:.color(.black),lineWidth:3)
+                        var flag = Path(); flag.move(to:CGPoint(x:x,y:y)); flag.addQuadCurve(to:CGPoint(x:x+13,y:y+(down ? -21 : 21)),control:CGPoint(x:x+25,y:y+(down ? -9 : 9))); context.stroke(flag,with:.color(ink),lineWidth:3)
                     }
                 }
             }
-            let key = "\(n.step ?? "")\(n.octave)", prior = accidentalState[key] ?? 0
-            if n.alter != prior && !n.tieStop { text(n.alter == 0 ? "♮" : n.alter == 1 ? "♯" : n.alter == -1 ? "♭" : n.alter == 2 ? "𝄪" : "𝄫",x:p.x-23,y:p.y,size:28) }
-            accidentalState[key] = n.alter
-            for dot in 0..<n.dots { context.fill(Path(ellipseIn:CGRect(x:p.x+16+CGFloat(dot)*7,y:p.y-5,width:4,height:4)),with:.color(.black)) }
-            if n.tieStart, i+1 < score.symbols.count {
-                let next = position(score.symbols[i+1]); let end = next.x > p.x ? CGPoint(x:next.x-9,y:next.y+12) : CGPoint(x:1270,y:p.y+12)
-                var tie = Path(); tie.move(to:CGPoint(x:p.x+8,y:p.y+12)); tie.addQuadCurve(to:end,control:CGPoint(x:(p.x+end.x)/2,y:p.y+34)); context.stroke(tie,with:.color(.black),lineWidth:2)
+            let key = "\(n.step ?? "")\(n.octave)"
+            let altered = Array((keyFifths >= 0 ? "FCGDAEB" : "BEADGCF").prefix(abs(keyFifths))).map(String.init)
+            let prior = accidentalState[key] ?? (altered.contains(n.step ?? "") ? (keyFifths >= 0 ? 1 : -1) : 0)
+            if n.alter != prior && !n.tieStop && !pending.contains(i) { text(n.alter == 0 ? "♮" : n.alter == 1 ? "♯" : n.alter == -1 ? "♭" : n.alter == 2 ? "𝄪" : "𝄫",x:p.x-23,y:p.y,size:28) }
+            if !pending.contains(i) { accidentalState[key] = n.alter }
+            for dot in 0..<n.dots { context.fill(Path(ellipseIn:CGRect(x:p.x+16+CGFloat(dot)*7,y:p.y-5,width:4,height:4)),with:.color(ink)) }
+            if n.tieStart, i+1 < score.symbols.count || singleMeasure {
+                let next = i+1 < score.symbols.count ? position(score.symbols[i+1]) : CGPoint(x:1270,y:p.y)
+                let end = next.x > p.x ? CGPoint(x:next.x-9,y:next.y+12) : CGPoint(x:1270,y:p.y+12)
+                var tie = Path(); tie.move(to:CGPoint(x:p.x+8,y:p.y+12)); tie.addQuadCurve(to:end,control:CGPoint(x:(p.x+end.x)/2,y:p.y+34)); context.stroke(tie,with:.color(ink),lineWidth:2)
+            }
+            if singleMeasure, n.tieStop, i == 0 {
+                var tie = Path(); tie.move(to:CGPoint(x:p.x-34,y:p.y+12)); tie.addQuadCurve(to:CGPoint(x:p.x-8,y:p.y+12),control:CGPoint(x:p.x-21,y:p.y+25)); context.stroke(tie,with:.color(ink),lineWidth:2)
             }
             if n.tieStop, i > 0, score.symbols[i-1].measure == 4 && n.measure == 5 {
-                var tie = Path(); tie.move(to:CGPoint(x:115,y:p.y+12)); tie.addQuadCurve(to:CGPoint(x:p.x-8,y:p.y+12),control:CGPoint(x:125,y:p.y+32)); context.stroke(tie,with:.color(.black),lineWidth:2)
+                var tie = Path(); tie.move(to:CGPoint(x:115,y:p.y+12)); tie.addQuadCurve(to:CGPoint(x:p.x-8,y:p.y+12),control:CGPoint(x:125,y:p.y+32)); context.stroke(tie,with:.color(ink),lineWidth:2)
             }
         }
         for group in groups {
-            for level in 1...2 {
+            ink = pending.contains(group[0]) ? Color.gray.opacity(0.28) : .black
+            for level in 1...3 {
                 for (offset,index) in group.enumerated() {
                     guard let beam = score.symbols[index].beams[level], let stem = stems[index] else { continue }
                     let p = position(score.symbols[index]); let x = p.x+(stem.down ? -9 : 9), y = stem.end+CGFloat(level-1)*(stem.down ? -7 : 7)
@@ -115,6 +135,7 @@ struct NativeScoreRenderer: ScoreRenderer {
             }
         }
         for (i,n) in score.symbols.enumerated() where n.tupletStart {
+            ink = pending.contains(i) ? Color.gray.opacity(0.28) : .black
             guard let endIndex = (i..<score.symbols.count).first(where:{ score.symbols[$0].measure == n.measure && score.symbols[$0].tupletStop }) else { continue }
             let a = position(n), b = position(score.symbols[endIndex])
             let top:CGFloat = n.measure <= 4 ? 164.0 : 499.0

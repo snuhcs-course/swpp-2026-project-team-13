@@ -22,6 +22,13 @@ struct HomeView: View {
                     Spacer(minLength: 0)
                     Image(systemName: "waveform.path").font(.system(size: 96, weight: .ultraLight)).foregroundStyle(SORITheme.violet.opacity(0.45)).accessibilityHidden(true)
                 }.padding(32).frame(maxWidth: .infinity, alignment: .leading).background(SORITheme.soft, in: RoundedRectangle(cornerRadius: 24))
+                Button { model.navigate(.minigames) } label: {
+                    Card { HStack(spacing:18) {
+                        Image(systemName:"pianokeys").font(.system(size:34)).foregroundStyle(SORITheme.violet)
+                        VStack(alignment:.leading,spacing:6) { Text("멜로디 런 · 미니게임").font(.headline).foregroundStyle(SORITheme.ink); Text("듣고 기억한 멜로디를 건반으로 복원해 보세요").font(.subheadline).foregroundStyle(.secondary) }
+                        Spacer(); Image(systemName:"arrow.up.right").foregroundStyle(SORITheme.violet)
+                    } }
+                }.buttonStyle(.plain)
                 if !model.connected {
                     Card { VStack(alignment: .leading, spacing: 16) {
                         Label("학습 공간에 연결해 주세요", systemImage: "network")

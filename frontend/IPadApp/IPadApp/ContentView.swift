@@ -12,6 +12,7 @@ struct ContentView: View {
                 Text("소리에서 시작하는 음악 공부").font(.caption).foregroundStyle(.secondary).padding(.horizontal, 24)
                 VStack(spacing: 8) {
                     sidebar("나의 연습실", icon: "square.grid.2x2", screen: .home)
+                    sidebar("미니게임", icon: "gamecontroller", screen: .minigames)
                     sidebar("연습 기록", icon: "clock.arrow.circlepath", screen: .history)
                     sidebar("연결 설정", icon: "slider.horizontal.3", screen: .settings)
                 }.padding(.horizontal, 14)
@@ -34,6 +35,7 @@ struct ContentView: View {
                     case .result: ResultView(model: model)
                     case .history: HistoryView(model: model)
                     case .settings: SettingsView(model: model)
+                    case .minigames: MiniGameHubView()
                     }
                 }
                 .toolbar {
