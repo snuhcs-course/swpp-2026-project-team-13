@@ -7,18 +7,22 @@ import AVFoundation
     private var referenceTrack: AVMusicTrack?
     private var held: [Int:Int] = [:]
     private var previousBufferDuration: TimeInterval?
+    private var transportLeadTicks = 0
+    private var noteVelocity: UInt8 = 76
     private(set) var ready = false
-    var tick: Int { Int(((sequencer?.currentPositionInBeats ?? 0)*480).rounded(.down)) }
+    var tick: Int { Int(((sequencer?.currentPositionInBeats ?? 0)*480).rounded(.down))-transportLeadTicks }
     var isRunning: Bool { graph.engine.isRunning }
 
     func prepare() throws {
         stop(); ready = false
         struct Bank: Decodable { var sha256: String; var sizeBytes: Int }
-        guard let bank = Bundle.main.url(forResource:"GeneralUser-GS",withExtension:"sf2"),
+        struct Profile: Decodable { var resource: String; var program: UInt8; var bankMsb: UInt8; var bankLsb: UInt8; var noteVelocity: UInt8; var gainDb: Float }
+        let profile: Profile = try Bundled.decode("melody-piano-profile")
+        guard let bank = Bundle.main.url(forResource:profile.resource,withExtension:nil),
               let click = Bundle.main.url(forResource:"sori-click-v1",withExtension:"wav") else {
             throw SORIError.invalidScore("피아노 음원이 포함된 최신 앱으로 다시 설치해 주세요.")
         }
-        let descriptor: Bank = try Bundled.decode("instrument-bank")
+        let descriptor: Bank = try Bundled.decode("melody-piano-bank")
         let bytes = try Data(contentsOf:bank,options:.mappedIfSafe)
         guard bytes.count == descriptor.sizeBytes, bytes.sha256 == descriptor.sha256 else {
             throw SORIError.invalidScore("피아노 음원 검증에 실패했어요.")
@@ -28,24 +32,26 @@ import AVFoundation
         try session.setCategory(.playback,mode:.default,options:[])
         try session.setPreferredIOBufferDuration(0.0058)
         try session.setActive(true)
-        try graph.rebuild(bank:bank,program:0,bankMSB:121,bankLSB:0,clickURL:click,gain:0.65)
+        noteVelocity = profile.noteVelocity
+        try graph.rebuild(bank:bank,program:profile.program,bankMSB:profile.bankMsb,bankLSB:profile.bankLsb,clickURL:click,gain:pow(10,profile.gainDb/20))
         // Live keys have their own sampler: reference note-offs cannot silence a held key.
         livePiano = AVAudioUnitSampler()
         graph.engine.attach(livePiano)
         graph.engine.connect(livePiano,to:graph.engine.mainMixerNode,format:nil)
-        try livePiano.loadSoundBankInstrument(at:bank,program:0,bankMSB:121,bankLSB:0)
+        try livePiano.loadSoundBankInstrument(at:bank,program:profile.program,bankMSB:profile.bankMsb,bankLSB:profile.bankLsb)
         graph.engine.prepare(); try graph.engine.start(); ready = true
     }
 
     func start(_ timeline: MelodyTimeline, round: MelodyRound, settings: MelodySettings) throws {
         stopClock()
+        transportLeadTicks = MelodyTimeline.ticks(milliseconds:MelodyTimeline.audioLeadMilliseconds,bpm:settings.bpm)
         let seq = AVAudioSequencer(audioEngine:graph.engine)
-        try seq.load(from:timeline.midi(tempo:settings.bpm),options:[])
+        try seq.load(from:timeline.midi(tempo:settings.bpm,leadTicks:transportLeadTicks),options:[])
         guard !seq.tracks.isEmpty else { throw SORIError.invalidScore("게임 오디오 준비 실패") }
         for track in seq.tracks { track.destinationAudioUnit = graph.click }
         let reference = seq.createAndAppendTrack()
         reference.destinationAudioUnit = graph.piano
-        reference.lengthInBeats = Double(timeline.end)/480
+        reference.lengthInBeats = Double(timeline.end+transportLeadTicks)/480
         referenceTrack = reference
         sequencer = seq
         if settings.mode == .memory {
@@ -61,15 +67,15 @@ import AVFoundation
         let events = try round.score.segment(from:window.measure,through:window.measure)
         for event in events {
             guard let midi = event.midi else { continue }
-            let note = AVMIDINoteEvent(channel:0,key:UInt32(midi),velocity:86,duration:Double(event.duration)/480)
-            track.addEvent(note,at:Double(window.start+event.onset)/480)
+            let note = AVMIDINoteEvent(channel:0,key:UInt32(midi),velocity:UInt32(noteVelocity),duration:Double(event.duration)/480)
+            track.addEvent(note,at:Double(window.start+event.onset+transportLeadTicks)/480)
         }
     }
 
     func noteOn(_ midi: Int) {
         guard ready, graph.engine.isRunning, (0...127).contains(midi) else { return }
         held[midi,default:0] += 1
-        livePiano.startNote(UInt8(midi),withVelocity:100,onChannel:0)
+        livePiano.startNote(UInt8(midi),withVelocity:noteVelocity,onChannel:0)
     }
     func noteOff(_ midi: Int) {
         guard let count = held[midi] else { return }
@@ -82,7 +88,7 @@ import AVFoundation
         livePiano.sendController(123,withValue:0,onChannel:0)
     }
     func stopClock() {
-        sequencer?.stop(); sequencer = nil; referenceTrack = nil
+        sequencer?.stop(); sequencer = nil; referenceTrack = nil; transportLeadTicks = 0
         for unit in [graph.piano,graph.click] {
             unit.sendController(120,withValue:0,onChannel:0)
             unit.sendController(123,withValue:0,onChannel:0)
@@ -102,8 +108,10 @@ import AVFoundation
     func replay(events: [MusicEvent], ticks: Int, bpm: Double) throws {
         stopClock(); releaseKeys()
         if !ready { try prepare() }
+        transportLeadTicks = MelodyTimeline.ticks(milliseconds:MelodyTimeline.audioLeadMilliseconds,bpm:bpm)
         let seq = AVAudioSequencer(audioEngine:graph.engine)
-        try seq.load(from:MIDIFile.make(events:events,totalTicks:ticks,tempo:bpm),options:[])
+        let shifted = events.map { MusicEvent(midi:$0.midi,onset:$0.onset+transportLeadTicks,duration:$0.duration) }
+        try seq.load(from:MIDIFile.make(events:shifted,totalTicks:ticks+transportLeadTicks,tempo:bpm,velocity:Int(noteVelocity)),options:[])
         for track in seq.tracks { track.destinationAudioUnit = graph.piano }
         sequencer = seq; seq.currentPositionInBeats = 0; seq.prepareToPlay(); try seq.start()
     }

@@ -150,8 +150,11 @@ def main():
                 filename = filename[:-4]+"-"+hashlib.sha256(original).hexdigest()[:8]+".xml"
             filenames[filename] = identifier
             (RESOURCES/filename).write_bytes(compact(root))
-            key = row.get("key") or f'{root.findtext("part/measure/attributes/key/fifths","0")} fifths'
-            catalog.append(dict(id=identifier,title=identifier,file=filename,key=key,**info,sourceURL=row.get("source_url","")))
+            fifths = int(root.findtext("part/measure/attributes/key/fifths","0"))
+            mode = root.findtext("part/measure/attributes/key/mode","major")
+            tonics = ["Ab","Eb","Bb","F","C","G","D","A","E","B","F#","C#","G#","D#","A#"] if mode == "minor" else ["Cb","Gb","Db","Ab","Eb","Bb","F","C","G","D","A","E","B","F#","C#"]
+            key = row.get("key") or tonics[fifths+7]+" "+mode
+            catalog.append(dict(id=identifier,title=identifier,file=filename,key=key,**info,sourceURL=row.get("source_url",""),fifths=fifths,mode=mode))
             if args.limit and len(catalog) >= args.limit:
                 break
         except (ValueError, ET.ParseError, TypeError) as error:

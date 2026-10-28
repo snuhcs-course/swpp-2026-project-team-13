@@ -15,6 +15,7 @@
 Xcode 16 이상과 iPadOS 17 이상을 대상으로 합니다. 사용 가능한 기기·SDK에 맞게 시뮬레이터를 선택합니다.
 
     python3 scripts/fetch_soundfont.py
+    python3 scripts/fetch_classical_piano.py
     swift test --package-path frontend
     xcodebuild -project frontend/IPadApp/IPadApp.xcodeproj -scheme IPadApp -configuration Debug -destination 'generic/platform=iOS Simulator' -derivedDataPath build/DerivedData CODE_SIGNING_ALLOWED=NO build
 

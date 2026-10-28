@@ -37,12 +37,12 @@ final class MelodyRunTests: XCTestCase {
     }
     func testMemoryTimelineHasConfigurableGapsAndNoTimedInput() throws {
         let round = try MelodyRound(source:source(),start:1,bars:4)
-        var settings = MelodySettings(); settings.gapBeats = 3
+        var settings = MelodySettings(); settings.gapMeasures = 2
         let timeline = MelodyTimeline(round:round,settings:settings)
         XCTAssertEqual(timeline.windows.filter { $0.phase == .listen }.count,4)
-        XCTAssertEqual(timeline.windows.filter { $0.phase == .beat }.map { $0.end-$0.start },[1440,1440,1440,1440])
+        XCTAssertEqual(timeline.windows.filter { $0.phase == .beat }.map { $0.end-$0.start },Array(repeating:2*round.score.ticksPerMeasure,count:4))
         XCTAssertFalse(timeline.windows.contains { $0.phase == .input })
-        XCTAssertEqual(timeline.end,round.score.ticksPerMeasure*5+4*3*480)
+        XCTAssertEqual(timeline.end,round.score.ticksPerMeasure*13)
         for pair in zip(timeline.windows,timeline.windows.dropFirst()) { XCTAssertEqual(pair.0.end,pair.1.start) }
     }
     func testGrooveEarlyCompletionKeepsClockAndNextBeatWithoutOverlappingWindows() throws {
@@ -59,14 +59,55 @@ final class MelodyRunTests: XCTestCase {
         for pair in zip(timeline.windows,timeline.windows.dropFirst()) { XCTAssertEqual(pair.0.end,pair.1.start) }
         XCTAssertFalse(timeline.shortenInput(at:index,now:timeline.windows[index].end-10,lead:96))
     }
-    func testCompoundMeterUsesDottedQuarterPulseAndQuarterBPM() throws {
+    func testCompoundCountInContainsSixNotatedEighthBeats() throws {
         let catalog = try JSONDecoder().decode([MelodyQuestion].self,from:Data(contentsOf:resources.appendingPathComponent("melody-catalog.json")))
         let question = try XCTUnwrap(catalog.first { $0.beats == 6 && $0.beatType == 8 })
-        let source = try source(question.id)
+        let source = try MelodyXMLParser.parse(Data(contentsOf:resources.appendingPathComponent(question.file)))
         let round = try MelodyRound(source:source,start:1,bars:2)
         let timeline = MelodyTimeline(round:round,settings:MelodySettings())
-        XCTAssertEqual(timeline.pulseTicks,720)
+        XCTAssertEqual(timeline.pulseTicks,240)
         XCTAssertEqual(timeline.windows.first?.end,1440)
+        XCTAssertEqual(timeline.clickEvents().filter { $0.onset < 1440 }.count,6)
+    }
+    func testGrooveInputAcceptsEarlyAndOnBeatTouchesAtEveryTempo() throws {
+        let round = try MelodyRound(source:source(),start:1,bars:2)
+        var settings = MelodySettings(); settings.mode = .groove
+        for bpm in [40.0,96,180] {
+            settings.bpm = bpm
+            let timeline = MelodyTimeline(round:round,settings:settings)
+            let index = try XCTUnwrap(timeline.windows.firstIndex { $0.phase == .input })
+            let window = timeline.windows[index]
+            let early = MelodyTimeline.ticks(milliseconds:180,bpm:bpm)
+            XCTAssertNil(timeline.inputIndex(at:window.start-early-1,bpm:bpm))
+            for tick in [window.start-early,window.start-1,window.start,window.end-1] {
+                XCTAssertEqual(timeline.inputIndex(at:tick,bpm:bpm),index)
+            }
+            XCTAssertNil(timeline.inputIndex(at:window.end,bpm:bpm))
+        }
+    }
+    func testEarlyCompletionNeverTruncatesPreparationMeasure() throws {
+        let round = try MelodyRound(source:source(),start:1,bars:2)
+        var settings = MelodySettings(); settings.mode = .groove
+        var timeline = MelodyTimeline(round:round,settings:settings)
+        let index = try XCTUnwrap(timeline.windows.firstIndex { $0.phase == .input })
+        let preparation = timeline.windows[index-1]
+        XCTAssertTrue(timeline.shortenInput(at:index,now:timeline.windows[index].start-100,lead:96))
+        XCTAssertEqual(timeline.windows[index-1],preparation)
+        XCTAssertEqual(timeline.windows[index].end-timeline.windows[index].start,timeline.pulseTicks)
+        let nextPreparation = try XCTUnwrap(timeline.windows.dropFirst(index+1).first { $0.phase == .beat })
+        XCTAssertEqual(timeline.clickEvents().filter { $0.onset >= nextPreparation.start && $0.onset < nextPreparation.end }.count,round.score.timeSignature.numerator)
+    }
+    func testDemoSelectionAgreesWithActualXMLKeys() throws {
+        let catalog = try JSONDecoder().decode([MelodyQuestion].self,from:Data(contentsOf:resources.appendingPathComponent("melody-catalog.json")))
+        let demo = catalog.filter(\.isDemoEligible)
+        XCTAssertFalse(demo.isEmpty)
+        XCTAssertTrue(demo.contains { $0.key == "C major" }); XCTAssertTrue(demo.contains { $0.key == "A minor" })
+        for question in catalog {
+            let parsed = try MelodyXMLParser.parse(Data(contentsOf:resources.appendingPathComponent(question.file)))
+            XCTAssertEqual(question.isDemoEligible,parsed.isDemoEligible,question.id)
+            if question.isDemoEligible { XCTAssertNoThrow(try parsed.validateDemoKey()) }
+            else { XCTAssertThrowsError(try parsed.validateDemoKey()) }
+        }
     }
     func testUndoAcrossMemoryBarsAndNoMutationOfTimedOutGrooveBar() throws {
         let round = try MelodyRound(source:source(),start:1,bars:2)

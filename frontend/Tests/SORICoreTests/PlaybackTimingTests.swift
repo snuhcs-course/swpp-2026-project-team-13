@@ -6,8 +6,7 @@ final class PlaybackTimingTests: XCTestCase {
     func notes(_ data:Data) throws -> [[(tick:Int, midi:Int, velocity:Int)]] {
         let bytes = [UInt8](data)
         guard bytes.count >= 14, Array(bytes[0..<4]) == [0x4d,0x54,0x68,0x64] else { throw SORIError.invalidScore("MIDI header") }
-        XCTAssertEqual(bytes[9],1)
-        XCTAssertEqual(bytes[11],2)
+        XCTAssertTrue([0,1].contains(bytes[9]))
         var offset = 14
         var tracks: [[(tick:Int,midi:Int,velocity:Int)]] = []
         while offset < bytes.count {
@@ -45,7 +44,35 @@ final class PlaybackTimingTests: XCTestCase {
             }
             tracks.append(result)
         }
+        XCTAssertEqual(tracks.count,Int(bytes[10])*256+Int(bytes[11]))
         return tracks
+    }
+    func testMelodyPreparationMIDIMatchesEveryMeterAndRetainsFirstClickAfterWarmStart() throws {
+        let resources = URL(fileURLWithPath:#filePath).deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent().appendingPathComponent("IPadApp/IPadApp/Resources")
+        let catalog = try JSONDecoder().decode([MelodyQuestion].self,from:Data(contentsOf:resources.appendingPathComponent("melody-catalog.json")))
+        let meters = Dictionary(grouping:catalog,by:{"\($0.beats)/\($0.beatType)"})
+        for questions in meters.values {
+            let q = try XCTUnwrap(questions.first)
+            let source = try MelodyXMLParser.parse(Data(contentsOf:resources.appendingPathComponent(q.file)))
+            let round = try MelodyRound(source:source,start:1,bars:2)
+            for mode in MelodyMode.allCases {
+                for gap in [1,2] {
+                    var settings = MelodySettings(); settings.mode = mode; settings.gapMeasures = gap
+                    let timeline = MelodyTimeline(round:round,settings:settings)
+                    let lead = MelodyTimeline.ticks(milliseconds:150,bpm:settings.bpm)
+                    let tracks = try notes(timeline.midi(tempo:settings.bpm,leadTicks:lead))
+                    let clicks = try XCTUnwrap(tracks.first)
+                    XCTAssertEqual(clicks.first?.tick,lead); XCTAssertEqual(clicks.first?.velocity,105)
+                    for window in timeline.windows where window.phase == .countIn || window.phase == .beat {
+                        let inside = clicks.filter { $0.tick >= window.start+lead && $0.tick < window.end+lead }
+                        let measures = (window.end-window.start)/round.score.ticksPerMeasure
+                        XCTAssertEqual(inside.count,measures*q.beats,q.id)
+                        XCTAssertEqual(inside.first?.tick,window.start+lead,q.id)
+                        XCTAssertEqual(inside.last?.tick,window.end+lead-1920/q.beatType,q.id)
+                    }
+                }
+            }
+        }
     }
     func testCountInMatchesAllThreeMetersAndJoinsFirstScoreBeat() throws {
         for (n,d) in [(4,4),(3,4),(6,8)] {

@@ -83,6 +83,18 @@ class MelodyLibraryTests(unittest.TestCase):
         after = ET.fromstring(compact(ET.fromstring(data)))
         self.assertEqual(musical_signature(before),musical_signature(after))
 
+    def test_demo_key_metadata_matches_actual_zero_signature_major_and_minor_scores(self):
+        demo_keys = set()
+        for q in self.catalog:
+            root = ET.fromstring((RES/q["file"]).read_bytes())
+            fifths = int(root.findtext("part/measure/attributes/key/fifths","0"))
+            mode = root.findtext("part/measure/attributes/key/mode","major")
+            self.assertEqual((q["fifths"],q["mode"]),(fifths,mode),q["id"])
+            eligible = q["fifths"] == 0 and q["mode"] in ("major","minor")
+            self.assertEqual(eligible,q["key"] in ("C major","A minor"),q["id"])
+            if eligible: demo_keys.add(q["key"])
+        self.assertEqual(demo_keys,{"C major","A minor"})
+
     def test_append_adds_a_file_without_replacing_existing_questions(self):
         scratch = ROOT/".tmp"
         scratch.mkdir(exist_ok=True)

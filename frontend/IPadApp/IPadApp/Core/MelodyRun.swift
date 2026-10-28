@@ -12,12 +12,12 @@ struct MelodySettings: Equatable {
     var bars = 4
     var startBar = 1
     var bpm = 96.0 // Quarter-note BPM, including compound meters.
-    var gapBeats = 2
+    var gapMeasures = 1
     var inputBars = 2
     var advanceEarly = false
     func validate() throws {
         guard [2,4,8].contains(bars), (1...(9-bars)).contains(startBar),
-              (40...180).contains(bpm), (0...8).contains(gapBeats), (1...4).contains(inputBars) else {
+              (40...180).contains(bpm), (1...4).contains(gapMeasures), (1...4).contains(inputBars) else {
             throw SORIError.invalidScore("멜로디 런 설정을 확인해 주세요.")
         }
     }
@@ -34,6 +34,12 @@ struct MelodyQuestion: Codable, Identifiable, Equatable {
     var lowestMidi: Int
     var highestMidi: Int
     var sourceURL: String
+    var fifths: Int? = nil
+    var mode: String? = nil
+    var isDemoEligible: Bool {
+        if let fifths, let mode { return fifths == 0 && ["major","minor"].contains(mode) }
+        return ["C major","A minor"].contains(key)
+    }
 }
 
 struct MelodySource {
@@ -41,6 +47,10 @@ struct MelodySource {
     var fifths: Int
     var mode: String
     var clef: String
+    var isDemoEligible: Bool { fifths == 0 && ["major","minor"].contains(mode) }
+    func validateDemoKey() throws {
+        guard isDemoEligible else { throw SORIError.invalidScore("현재 데모에서는 조표 없는 다장조·가단조 문제만 사용할 수 있어요.") }
+    }
     var keyLabel: String {
         let names = mode == "minor" ? ["Ab","Eb","Bb","F","C","G","D","A","E","B","F#","C#","G#","D#","A#"] : ["Cb","Gb","Db","Ab","Eb","Bb","F","C","G","D","A","E","B","F#","C#"]
         return names[min(14,max(0,fifths+7))]+" "+mode
@@ -201,14 +211,20 @@ struct MelodyWindow: Equatable {
     var end: Int
 }
 struct MelodyTimeline {
+    static let earlyInputMilliseconds = 180
+    static let audioLeadMilliseconds = 150
+    static func ticks(milliseconds: Int, bpm: Double) -> Int {
+        Int(ceil(Double(milliseconds)/1000*bpm/60*480))
+    }
     var windows: [MelodyWindow]
     let pulseTicks: Int
     let meter: TimeSignature
     var end: Int { windows.last?.end ?? 0 }
     init(round: MelodyRound, settings: MelodySettings, fromMeasure: Int = 1) {
         meter = round.score.timeSignature
-        // Compound meters pulse on dotted quarters. BPM is explicitly shown as quarter BPM.
-        pulseTicks = meter.denominator == 8 && meter.numerator % 3 == 0 ? 720 : 1920/meter.denominator
+        // Count every notated beat: 3/4 = three quarters, 6/8 = six eighths.
+        // All preparation windows contain complete measures, even after an early advance.
+        pulseTicks = 1920/meter.denominator
         var windows: [MelodyWindow] = [], tick = 0
         func append(_ phase: MelodyPhase, _ measure: Int, _ duration: Int) {
             guard duration > 0 else { return }
@@ -217,7 +233,7 @@ struct MelodyTimeline {
         append(.countIn,fromMeasure,meter.ticksPerMeasure)
         for measure in fromMeasure...round.score.measures {
             append(.listen,measure,meter.ticksPerMeasure)
-            if settings.mode == .memory { append(.beat,measure,settings.gapBeats*pulseTicks) }
+            if settings.mode == .memory { append(.beat,measure,settings.gapMeasures*meter.ticksPerMeasure) }
             else {
                 append(.beat,measure,meter.ticksPerMeasure)
                 append(.input,measure,settings.inputBars*meter.ticksPerMeasure)
@@ -226,23 +242,28 @@ struct MelodyTimeline {
         self.windows = windows
     }
     func index(at tick: Int) -> Int? { windows.firstIndex { $0.start <= tick && tick < $0.end } }
+    func inputIndex(at tick: Int, bpm: Double) -> Int? {
+        let early = Self.ticks(milliseconds:Self.earlyInputMilliseconds,bpm:bpm)
+        return windows.firstIndex { $0.phase == .input && $0.start-early <= tick && tick < $0.end }
+    }
+    func clickEvents(leadTicks: Int = 0) -> [MusicEvent] {
+        stride(from:0,to:end,by:pulseTicks).map { MusicEvent(midi:60,onset:$0+leadTicks,duration:30) }
+    }
     // Early completion advances on the next beat with enough audio scheduling lead time.
     // The sequencer clock and click track never restart or seek.
     @discardableResult mutating func shortenInput(at index: Int, now: Int, lead: Int) -> Bool {
         guard windows.indices.contains(index), windows[index].phase == .input else { return false }
-        let boundary = ((now+lead+pulseTicks-1)/pulseTicks)*pulseTicks
+        // Early input must never consume any of the preceding preparation beats.
+        let boundary = max(windows[index].start+pulseTicks,((now+lead+pulseTicks-1)/pulseTicks)*pulseTicks)
         guard boundary < windows[index].end else { return false }
         let removed = windows[index].end-boundary
         windows[index].end = boundary
         for i in (index+1)..<windows.count { windows[i].start -= removed; windows[i].end -= removed }
         return true
     }
-    func midi(tempo: Double) -> Data {
-        let clicks = stride(from:0,to:end,by:pulseTicks).map {
-            MusicEvent(midi:60,onset:$0,duration:30)
-        }
+    func midi(tempo: Double, leadTicks: Int = 0) -> Data {
         // The reference track is explicitly appended by the audio service. Do not rely
         // on a MIDI importer retaining an empty tempo-only track as a music track.
-        return MIDIFile.make(events:clicks,totalTicks:end,tempo:tempo,velocity:65,firstNoteVelocity:100)
+        return MIDIFile.make(events:clickEvents(leadTicks:leadTicks),totalTicks:end+leadTicks,tempo:tempo,velocity:75,firstNoteVelocity:105)
     }
 }

@@ -112,21 +112,22 @@ struct MelodyRunView: View {
                         VStack(alignment:.leading,spacing:18) {
                             HStack { Text("플레이 감각").font(.headline); Spacer(); Text("♩ = \(Int(game.settings.bpm))").font(.title3.bold().monospacedDigit()).foregroundStyle(SORITheme.violet) }
                             Slider(value:$game.settings.bpm,in:40...180,step:2) { Text("BPM") }
-                            Text("BPM은 4분음표 기준이에요. 6/8·9/8·12/8은 점4분음표 비트로 느껴요.").font(.caption).foregroundStyle(.secondary)
+                            Text("BPM은 4분음표 기준이에요. 예비박은 박자표대로 세어요. 3/4는 3박, 4/4는 4박, 6/8은 6박이에요.").font(.caption).foregroundStyle(.secondary)
                             Divider()
                             if game.settings.mode == .memory {
-                                Stepper("마디 사이 \(game.settings.gapBeats)비트",value:$game.settings.gapBeats,in:0...8)
+                                Stepper("마디 사이 예비박 · \(game.settings.gapMeasures)마디",value:$game.settings.gapMeasures,in:1...4)
                                 Text("한 마디씩 모두 들은 뒤 복원해요. 입력 시간은 무제한이고, 마디를 채우면 바로 넘어가요.").font(.subheadline).foregroundStyle(.secondary).lineSpacing(4)
                             } else {
                                 Stepper("입력 시간 · \(game.settings.inputBars)마디",value:$game.settings.inputBars,in:1...4)
                                 Toggle("일찍 완성하면 다음 박에 진행",isOn:$game.settings.advanceEarly)
                                 Text("선율 1마디 → 비트 1마디 → 입력. 정해진 시간이 지나면 미입력 음을 남기고 다음 마디로 이어져요.").font(.subheadline).foregroundStyle(.secondary).lineSpacing(4)
                             }
+                            Text("현재 데모는 조표 없는 다장조·가단조 문제만 제공해요.").font(.caption).foregroundStyle(.secondary)
                         }
                     }
                 }
                 HStack {
-                    VStack(alignment:.leading,spacing:5) { Label("가로 화면 · 양손으로 가볍게",systemImage:"ipad.landscape").font(.subheadline.bold()); Text("건반은 언제나 소리가 나요. 입력 단계에서 누른 음만 기록해요. 붙임줄과 쉼표는 자동으로 채워져요.").font(.caption).foregroundStyle(.secondary) }
+                    VStack(alignment:.leading,spacing:5) { Label("가로 화면 · 양손으로 가볍게",systemImage:"ipad.landscape").font(.subheadline.bold()); Text("건반은 언제나 소리가 나요. 입력 표시가 켜지면 음을 기록해요. 붙임줄과 쉼표는 자동으로 채워져요.").font(.caption).foregroundStyle(.secondary) }
                     Spacer()
                     Button { Task { await game.start() } } label: { Label("\(game.settings.mode.title) 시작",systemImage:"play.fill") }.buttonStyle(PrimaryButton()).disabled(game.questions.isEmpty || game.working)
                 }
@@ -159,7 +160,7 @@ struct MelodyRunView: View {
                 HStack(spacing:12) {
                     phasePill("듣기",icon:"ear",active:game.phase == .listen)
                     phasePill("비트",icon:"waveform",active:game.phase == .beat || game.phase == .countIn)
-                    phasePill("입력",icon:"pianokeys",active:game.phase == .input)
+                    phasePill("입력",icon:"pianokeys",active:game.canEnter)
                     Spacer()
                     if game.round != nil {
                         ForEach(0..<game.beatsPerBar,id:\.self) { index in
@@ -200,7 +201,7 @@ struct MelodyRunView: View {
                         }
                     }
                     Spacer()
-                    Text(game.phase == .input ? "회색 음표는 아직 비어 있어요" : "지금은 듣는 시간 · 건반은 연습만 돼요").font(.caption).foregroundStyle(.secondary)
+                    Text(game.canEnter ? "회색 음표는 아직 비어 있어요" : "입력 표시가 켜지면 음을 기록해요").font(.caption).foregroundStyle(.secondary)
                 }
                 MelodyPianoView(range:game.round?.keyboardRange ?? 60...84,enabled:!game.paused && !game.working,onDown:game.keyDown,onUp:game.keyUp)
                     .frame(height:max(190,min(290,geometry.size.height*0.34)))
@@ -287,6 +288,14 @@ struct MelodyRunView: View {
     }
     private var attribution: some View {
         VStack(alignment:.leading,spacing:6) {
+            HStack {
+                Text("피아노: YDP Grand Piano · Zenph Studios / Roberto · CC BY 3.0").font(.caption)
+                Link("음원 출처",destination:URL(string:"https://freepats.zenvoid.org/Piano/acoustic-grand-piano.html")!).font(.caption)
+                Link("음원 라이선스",destination:URL(string:"https://creativecommons.org/licenses/by/3.0/")!).font(.caption)
+            }
+            DisclosureGroup("피아노 음원 제작자와 이용조건") {
+                if let url = Bundle.main.url(forResource:"melody-piano-license",withExtension:"txt"), let text = try? String(contentsOf:url,encoding:.utf8) { Text(text).font(.caption2).textSelection(.enabled).padding(.top,6) }
+            }.font(.caption)
             HStack {
                 Text("문제: The Trained Ear · Andre Mount · CC BY-SA 4.0").font(.caption)
                 if let raw = game.question?.sourceURL, let url = URL(string:raw), url.scheme == "https" { Link("문제 출처",destination:url).font(.caption) }

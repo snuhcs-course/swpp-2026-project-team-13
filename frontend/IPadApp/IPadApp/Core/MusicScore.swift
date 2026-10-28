@@ -256,11 +256,12 @@ enum MIDIFile {
         while n > 0 { bytes.insert(UInt8(n & 127) | 128, at: 0); n >>= 7 }; return bytes
     }
     static func make(events: [MusicEvent], totalTicks: Int, tempo: Double, velocity: Int = 80, firstNoteVelocity: Int? = nil) -> Data {
+        let firstOnset = events.filter { $0.midi != nil }.map(\.onset).min()
         let micros = Int((60_000_000 / tempo).rounded())
         var track: [UInt8] = [0,0xff,0x51,3, UInt8((micros >> 16) & 255), UInt8((micros >> 8) & 255), UInt8(micros & 255)]
         var messages: [(Int,Int,[UInt8])] = []
         for e in events { if let midi = e.midi {
-            messages.append((e.onset,1,[0x90,UInt8(midi),UInt8((e.onset == 0 ? firstNoteVelocity : nil) ?? velocity)]))
+            messages.append((e.onset,1,[0x90,UInt8(midi),UInt8((e.onset == firstOnset ? firstNoteVelocity : nil) ?? velocity)]))
             messages.append((e.onset+e.duration,0,[0x80,UInt8(midi),0]))
         } }
         messages.sort { $0.0 == $1.0 ? $0.1 < $1.1 : $0.0 < $1.0 }

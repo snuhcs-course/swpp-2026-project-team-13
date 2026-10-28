@@ -1,0 +1,15 @@
+{
+  "id": "melody-ydp-grand-20160804-v1",
+  "title": "클래식 그랜드 피아노",
+  "resource": "melody-classical-piano.sf2",
+  "source_url": "https://freepats.zenvoid.org/Piano/YDP-GrandPiano/YDP-GrandPiano-SF2-20160804.tar.bz2",
+  "source_page": "https://freepats.zenvoid.org/Piano/acoustic-grand-piano.html",
+  "author": "Zenph Studios / Mikhail Krishtal and team; SoundFont by Roberto for FreePats",
+  "license": "CC-BY-3.0",
+  "license_url": "https://creativecommons.org/licenses/by/3.0/",
+  "program": 0,
+  "bank_msb": 121,
+  "bank_lsb": 0,
+  "note_velocity": 76,
+  "gain_db": -3
+}

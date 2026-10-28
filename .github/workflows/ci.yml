@@ -49,6 +49,7 @@ jobs:
       - run: python ../scripts/test_playback.py
       - run: python ../scripts/test_audio_assets.py
       - run: python ../scripts/test_melody_library.py
+      - run: python ../scripts/test_classical_piano.py
       - run: python manage.py test api sori --noinput
 
   frontend:
@@ -57,6 +58,16 @@ jobs:
       - uses: actions/checkout@v4
       - name: Fetch pinned external instrument bank and license
         run: python3 scripts/fetch_soundfont.py
+      - name: Cache versioned classical grand piano
+        uses: actions/cache@v4
+        with:
+          path: |
+            frontend/IPadApp/IPadApp/Resources/melody-classical-piano.sf2
+            frontend/IPadApp/IPadApp/Resources/melody-piano-bank.json
+            frontend/IPadApp/IPadApp/Resources/melody-piano-license.txt
+          key: melody-ydp-grand-20160804-v1
+      - name: Fetch and verify classical grand piano
+        run: python3 scripts/fetch_classical_piano.py
       - name: Test SORI API, MusicXML and transport contracts
         run: swift test --package-path frontend
       - name: Verify bundled piano audio

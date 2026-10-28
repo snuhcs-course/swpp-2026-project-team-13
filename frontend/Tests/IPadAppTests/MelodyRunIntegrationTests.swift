@@ -7,7 +7,7 @@ import SwiftUI
         let game = MelodyRunModel()
         game.selection = "Batchellor-Charmbury-1884a_1-1-018"
         game.settings.mode = mode; game.settings.bars = 2; game.settings.bpm = 180
-        game.settings.gapBeats = 0; game.settings.inputBars = 1; game.settings.advanceEarly = early
+        game.settings.gapMeasures = 1; game.settings.inputBars = 1; game.settings.advanceEarly = early
         return game
     }
     private func waitUntil(_ predicate: ()->Bool, seconds: Double = 15) async throws {
@@ -50,6 +50,22 @@ import SwiftUI
         game.resume(); XCTAssertNil(game.error); XCTAssertFalse(game.paused)
         XCTAssertEqual(game.answers?.pitches,before)
         game.undo(); XCTAssertNil(game.answers?.pitches.first ?? nil)
+    }
+    func testFinalPreparationBeatAlreadyAcceptsGrooveInput() async throws {
+        let game = makeGame(mode:.groove)
+        defer { game.stop() }
+        await game.start(); XCTAssertNil(game.error)
+        try await waitUntil({game.inputReady && game.phase == .beat})
+        XCTAssertTrue(game.canEnter)
+        let pitch = try XCTUnwrap(game.round?.targets.first?.midi)
+        game.keyDown(pitch); game.keyUp(pitch)
+        XCTAssertEqual(game.answers?.pitches.first ?? nil,pitch)
+    }
+    func testDemoPickerOnlyContainsCmajorAndAminor() {
+        let game = MelodyRunModel()
+        XCTAssertFalse(game.questions.isEmpty)
+        XCTAssertTrue(game.questions.allSatisfy { $0.isDemoEligible })
+        XCTAssertTrue(game.questions.allSatisfy { ["C major","A minor"].contains($0.key) })
     }
     func testMiniGameDoesNotReplacePreparedExamAttempt() async throws {
         let exam = AppModel(); exam.demo = true

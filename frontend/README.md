@@ -67,3 +67,5 @@ The drawing canvas installs one UIPencilInteraction and respects the system doub
 
 
 Before building on a Mac, run `python3 scripts/fetch_soundfont.py` from the repository root to install the pinned GeneralUser GS bank and original license. CI performs this automatically. See [asset provenance and regeneration](../docs/ASSETS.md) and [notation review cases](../docs/NOTATION-REVIEW.md).
+
+Melody Run also requires `python3 scripts/fetch_classical_piano.py` before building (automatic in CI). It installs the versioned FreePats YDP Grand Piano and original credits. The mini-game uses medium velocity 76, complete meter-based count-ins (3/4: 3 clicks; 4/4: 4; 6/8: 6), and a 180 ms early-input window in Groove. The current demo offers 197 C-major/A-minor exercises. See [Melody Run](../docs/MELODY-RUN.md).

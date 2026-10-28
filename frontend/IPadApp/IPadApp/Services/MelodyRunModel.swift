@@ -13,6 +13,7 @@ import SwiftUI
     @Published private(set) var progress = 0.0
     @Published private(set) var pulse = 0
     @Published private(set) var remainingSeconds = 0.0
+    @Published private(set) var inputReady = false
     @Published private(set) var paused = false
     @Published private(set) var working = false
     @Published private(set) var replaying: String?
@@ -26,7 +27,7 @@ import SwiftUI
     private var freeRecall = false
     private var lastWindow: Int?
     var question: MelodyQuestion? { questions.first { $0.id == selection } }
-    var canEnter: Bool { page == .playing && !paused && !working && phase == .input }
+    var canEnter: Bool { page == .playing && !paused && !working && (freeRecall || inputReady) }
     var allEntered: Bool { answers?.pitches.allSatisfy { $0 != nil } == true }
     var currentCount: Int {
         guard let round, let answers else { return 0 }
@@ -36,8 +37,7 @@ import SwiftUI
     var beatsPerBar: Int {
         guard let round else { return 4 }
         let meter = round.score.timeSignature
-        let pulse = meter.denominator == 8 && meter.numerator % 3 == 0 ? 720 : 1920/meter.denominator
-        return max(1,meter.ticksPerMeasure/pulse)
+        return meter.numerator
     }
     var completedBars: Int {
         guard let round, let answers else { return 0 }
@@ -45,6 +45,7 @@ import SwiftUI
     }
     var label: String {
         if paused { return "잠시 쉬는 중" }
+        if inputReady, phase == .beat { return "미리 입력해도 좋아요" }
         switch phase {
         case .countIn: return "비트를 느껴 보세요"
         case .listen: return "귀에 담아요"
@@ -58,7 +59,7 @@ import SwiftUI
             guard let url = Bundle.main.url(forResource:"melody-catalog",withExtension:"json") else {
                 throw SORIError.invalidScore("미니게임 문제 목록이 없어요.")
             }
-            questions = try JSONDecoder().decode([MelodyQuestion].self,from:Data(contentsOf:url))
+            questions = try JSONDecoder().decode([MelodyQuestion].self,from:Data(contentsOf:url)).filter(\.isDemoEligible)
             try loadLocalQuestions()
             selection = questions.first?.id ?? ""
         } catch { self.error = error.localizedDescription }
@@ -79,13 +80,14 @@ import SwiftUI
         }
     }
     private func addLocal(_ url: URL, source: MelodySource) {
+        guard source.isDemoEligible else { return }
         let id = "local:"+url.lastPathComponent
         let pitches = source.score.symbols.compactMap(\.midi)
         questions.removeAll { $0.id == id }
         questions.insert(MelodyQuestion(id:id,title:url.deletingPathExtension().lastPathComponent,file:url.lastPathComponent,
             key:source.keyLabel,beats:source.score.timeSignature.numerator,beatType:source.score.timeSignature.denominator,
             noteCount:source.score.symbols.filter { $0.midi != nil && !$0.tieStop }.count,
-            lowestMidi:pitches.min() ?? 60,highestMidi:pitches.max() ?? 72,sourceURL:""),at:0)
+            lowestMidi:pitches.min() ?? 60,highestMidi:pitches.max() ?? 72,sourceURL:"",fifths:source.fifths,mode:source.mode),at:0)
         localURLs[id] = url
     }
     func importFiles(_ urls: [URL]) {
@@ -96,6 +98,7 @@ import SwiftUI
             do {
                 let data = try Data(contentsOf:url,options:.mappedIfSafe)
                 let source = try MelodyXMLParser.parse(data)
+                try source.validateDemoKey()
                 let destination = try localDirectory().appendingPathComponent(String(data.sha256.prefix(12))+"-"+url.lastPathComponent)
                 try data.write(to:destination,options:.atomic)
                 addLocal(destination,source:source); selection = "local:"+destination.lastPathComponent; imported += 1
@@ -116,6 +119,7 @@ import SwiftUI
             let url = localURLs[question.id] ?? Bundle.main.url(forResource:question.file,withExtension:nil)
             guard let url else { throw SORIError.invalidScore("문제 XML을 찾지 못했어요.") }
             let source = try MelodyXMLParser.parse(Data(contentsOf:url))
+            try source.validateDemoKey()
             let value = try MelodyRound(source:source,start:settings.startBar,bars:settings.bars)
             runner?.cancel(); audio.stop()
             round = value; answers = MelodyAnswers(round:value); measure = 1; freeRecall = false
@@ -127,7 +131,7 @@ import SwiftUI
     private func beginClock(from measure: Int) throws {
         guard let round else { return }
         let value = MelodyTimeline(round:round,settings:settings,fromMeasure:measure)
-        timeline = value; phase = .countIn; lastWindow = nil
+        timeline = value; phase = .countIn; lastWindow = nil; inputReady = false; pulse = -1
         scheduled = settings.mode == .memory ? Set(measure...round.score.measures) : [measure]
         try audio.start(value,round:round,settings:settings)
         runner?.cancel()
@@ -143,10 +147,13 @@ import SwiftUI
     private func updateClock() {
         guard let value = timeline, let round else { return }
         let tick = audio.tick
-        let nextPulse = (tick/value.pulseTicks) % max(1,round.score.ticksPerMeasure/value.pulseTicks)
-        if pulse != nextPulse { pulse = nextPulse }
+        guard tick >= 0 else { return }
+        let inputIndex = settings.mode == .groove ? value.inputIndex(at:tick,bpm:settings.bpm) : nil
+        if inputReady != (inputIndex != nil) { inputReady = inputIndex != nil }
         if let index = value.index(at:tick) {
             let window = value.windows[index]
+            let nextPulse = ((tick-window.start)/value.pulseTicks) % round.score.timeSignature.numerator
+            if pulse != nextPulse { pulse = nextPulse }
             if lastWindow != index {
                 // Stop held live keys before the next reference phrase starts.
                 if window.phase == .listen { audio.releaseKeys() }
@@ -156,14 +163,15 @@ import SwiftUI
             if abs(progress-nextProgress) >= 0.008 { progress = nextProgress }
             let remaining = (Double(max(0,window.end-tick))/480*60/settings.bpm*10).rounded(.up)/10
             if remainingSeconds != remaining { remainingSeconds = remaining }
-            if settings.mode == .groove, window.phase == .input {
-                if answers?.complete(measure) == true, settings.advanceEarly { armNext(after:index,early:true) }
-                else if tick+leadTicks >= window.end { armNext(after:index,early:false) }
+            if let inputIndex {
+                let input = value.windows[inputIndex]
+                if answers?.complete(input.measure) == true, settings.advanceEarly { armNext(after:inputIndex,early:true) }
+                else if tick+leadTicks >= input.end { armNext(after:inputIndex,early:false) }
             }
         } else if tick >= value.end {
             audio.stopClock(); runner?.cancel(); runner = nil
             if settings.mode == .memory {
-                freeRecall = true; phase = .input; measure = 1; progress = 0
+                freeRecall = true; phase = .input; measure = 1; progress = 0; pulse = -1
                 advanceMemory()
             } else { finish() }
         }
@@ -189,7 +197,7 @@ import SwiftUI
         guard canEnter else { return }
         guard answers?.enter(midi,measure:measure) == true else { return }
         if freeRecall { advanceMemory() }
-        else if settings.advanceEarly, let value = timeline, let index = value.index(at:audio.tick), answers?.complete(measure) == true {
+        else if settings.advanceEarly, let value = timeline, let index = value.inputIndex(at:audio.tick,bpm:settings.bpm), answers?.complete(measure) == true {
             armNext(after:index,early:true)
         }
     }

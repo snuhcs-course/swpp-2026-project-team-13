@@ -13,10 +13,10 @@ let graph = PianoAudioGraph()
 let format = AVAudioFormat(standardFormatWithSampleRate:44100,channels:2)!
 let clickURL = resources.appendingPathComponent("sori-click-v1.wav")
 
-func render(_ unit:AVAudioUnitSampler,note:UInt8) throws -> [Float] {
+func render(_ unit:AVAudioUnitSampler,note:UInt8,velocity:UInt8 = 100) throws -> [Float] {
     if !graph.engine.isRunning { try graph.engine.start() }
     let buffer = AVAudioPCMBuffer(pcmFormat:graph.engine.manualRenderingFormat,frameCapacity:4096)!
-    unit.startNote(note,withVelocity:100,onChannel:0)
+    unit.startNote(note,withVelocity:velocity,onChannel:0)
     var samples:[Float]=[]
     var attempts=0
     while samples.count < 22050 && attempts < 200 {
@@ -72,6 +72,15 @@ do {
         log("PASS external preset \(id): C3, C4, A4, C6 and count-in are audible")
         graph.engine.pause()
     }
+    log("CHECK classical YDP Grand Piano at the game's medium velocity")
+    try graph.rebuild(bank:resources.appendingPathComponent("melody-classical-piano.sf2"),program:0,bankMSB:121,bankLSB:0,clickURL:clickURL,gain:0.7,offlineFormat:format)
+    for pitch in [UInt8(24),48,60,69,84,96,108] {
+        graph.piano.sendController(120,withValue:0,onChannel:0)
+        _ = try render(graph.piano,note:pitch,velocity:76)
+    }
+    graph.piano.sendController(120,withValue:0,onChannel:0)
+    _ = try render(graph.click,note:60)
+    log("PASS YDP Grand Piano: audible C1–C8 at velocity 76, and count-in")
     graph.engine.stop()
 } catch {
     graph.engine.stop()
