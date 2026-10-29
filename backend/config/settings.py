@@ -44,6 +44,7 @@ MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
 ROOT_URLCONF = "config.urls"
+DEFAULT_EXCEPTION_REPORTER_FILTER = "sori.exception_filters.AuthenticationExceptionReporterFilter"
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",

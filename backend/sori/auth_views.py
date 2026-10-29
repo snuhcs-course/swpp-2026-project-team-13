@@ -47,7 +47,10 @@ def username_from_body(request):
     try:
         data = json.loads(request.body)
         value = data.get("username") if isinstance(data, dict) else None
-        return value if isinstance(value, str) and 1 <= len(value) <= 150 else None
+        if not isinstance(value, str) or not 1 <= len(value) <= 150:
+            return None
+        value.encode("utf-8")
+        return value
     except (ValueError, UnicodeError):
         return None
 

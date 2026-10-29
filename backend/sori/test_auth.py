@@ -1,5 +1,7 @@
 import io
 import json
+import sys
+import uuid
 from concurrent.futures import ThreadPoolExecutor
 from datetime import timedelta
 from threading import Event
@@ -9,18 +11,44 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.hashers import make_password
 from django.core.management import call_command
 from django.db import close_old_connections, connection, transaction
-from django.test import RequestFactory, TestCase, TransactionTestCase, override_settings
+from django.test import RequestFactory, SimpleTestCase, TestCase, TransactionTestCase, override_settings
 from django.utils import timezone
+from django.views.debug import ExceptionReporter
 from rest_framework.authtoken.models import Token
 from rest_framework.test import APIClient
 
-from .auth_views import LogoutView, throttle_key
+from .auth_views import LogoutView, login, throttle_key
 from .errors import RequestMiddleware
 from .models import LoginThrottle, UserProfile
 
 LOGIN = "/api/v1/auth/login/"
 LOGOUT = "/api/v1/auth/logout/"
 FAST_HASHERS = ["django.contrib.auth.hashers.MD5PasswordHasher"]
+
+
+class ExceptionReportTests(SimpleTestCase):
+    def test_authentication_post_parameters_are_hidden_before_view_decorators(self):
+        for debug in (False, True):
+            with self.subTest(debug=debug), override_settings(DEBUG=debug):
+                secret = uuid.uuid4().hex
+                request = RequestFactory().post(LOGIN, {"password": secret})
+                try:
+                    raise RuntimeError("failure before the authentication view")
+                except RuntimeError:
+                    reporter = ExceptionReporter(request, *sys.exc_info())
+                    for report in (reporter.get_traceback_html(), reporter.get_traceback_text()):
+                        self.assertFalse(secret in report, "A POST credential was exposed in an exception report.")
+
+    @override_settings(DEBUG=True)
+    def test_other_endpoints_keep_their_debug_context(self):
+        note = uuid.uuid4().hex
+        request = RequestFactory().post("/api/health/", {"note": note})
+        try:
+            raise RuntimeError("ordinary endpoint failure")
+        except RuntimeError:
+            reporter = ExceptionReporter(request, *sys.exc_info())
+            for report in (reporter.get_traceback_html(), reporter.get_traceback_text()):
+                self.assertIn(note, report)
 
 
 @override_settings(PASSWORD_HASHERS=FAST_HASHERS)
@@ -82,6 +110,50 @@ class LoginTests(TestCase):
         self.assertEqual(response.data["error"]["fields"][0]["code"], "required")
         self.assert_error(self.client.generic("POST", LOGIN, b'{"broken":', content_type="application/json"), 400, "VALIDATION_ERROR")
         self.assert_error(self.client.post(LOGIN, {"username": "x"}), 415, "UNSUPPORTED_MEDIA_TYPE")
+        self.assertEqual(self.login().status_code, 200)
+
+    def test_exception_reports_hide_login_secrets_in_debug_and_production(self):
+        password = uuid.uuid4().hex
+        self.user.set_password(password)
+        self.user.save(update_fields=["password"])
+        token = Token.objects.create(user=self.user)
+        stages = (
+            "rest_framework.parsers.JSONParser.parse",
+            "sori.auth_views.check_password",
+            "sori.auth_views.UserProfile.objects.get_or_create",
+        )
+        for debug in (False, True):
+            for stage in stages:
+                with self.subTest(debug=debug, stage=stage), override_settings(DEBUG=debug):
+                    request = RequestFactory().post(
+                        LOGIN, json.dumps({"username": self.user.username, "password": password}),
+                        content_type="application/json", HTTP_AUTHORIZATION="Bearer " + token.key,
+                    )
+                    with patch(stage, side_effect=RuntimeError("injected login failure")):
+                        try:
+                            RequestMiddleware(login)(request)
+                        except RuntimeError:
+                            reporter = ExceptionReporter(request, *sys.exc_info())
+                            for report in (reporter.get_traceback_html(), reporter.get_traceback_text()):
+                                self.assertFalse(
+                                    password in report or token.key in report,
+                                    "An authentication secret was exposed in an exception report.",
+                                )
+                                self.assertIn("injected login failure", report)
+                                self.assertIn("auth_views.py", report)
+                        else:
+                            self.fail("The injected login exception did not reach the reporter.")
+
+    def test_unencodable_fields_return_validation_errors_before_ip_limit(self):
+        with patch("sori.auth_views.check_password") as verify:
+            for field in ("username", "password"):
+                for value in ("\ud800", "\udfff"):
+                    with self.subTest(field=field, value=repr(value)):
+                        data = {"username": self.user.username, "password": " password ", field: value}
+                        response = self.client.generic("POST", LOGIN, json.dumps(data), content_type="application/json")
+                        detail = self.assert_error(response, 400, "VALIDATION_ERROR")
+                        self.assertEqual([(e["field"], e["code"]) for e in detail["fields"]], [(field, "invalid")])
+            verify.assert_not_called()
         self.assertEqual(self.login().status_code, 200)
 
     def test_body_size_boundary_and_lengthless_requests_precede_throttling(self):
@@ -160,6 +232,41 @@ class LoginTests(TestCase):
             self.assertEqual(response["Retry-After"], "11")
             response = self.client.generic("POST", LOGIN, b" " * 32769, content_type="application/json")
             self.assert_error(response, 413, "REQUEST_TOO_LARGE")
+
+    def test_ip_limit_handles_unencodable_usernames_without_changing_counters(self):
+        now = timezone.now()
+        LoginThrottle.objects.create(key=throttle_key("ip", "127.0.0.1"), events=[now.timestamp()] * 30)
+        LoginThrottle.objects.create(
+            key=throttle_key("username", self.user.username), events=[now.timestamp()] * 5,
+            blocked_until=now + timedelta(seconds=600),
+        )
+        before = list(LoginThrottle.objects.order_by("key").values())
+        with patch("sori.auth_views.timezone.now", return_value=now), patch("sori.auth_views.check_password") as verify:
+            for username in ("\ud800", "\udfff", "student\ud80001"):
+                with self.subTest(username=repr(username)):
+                    body = json.dumps({"username": username, "password": " password "})
+                    response = self.client.generic("POST", LOGIN, body, content_type="application/json")
+                    detail = self.assert_error(response, 429, "RATE_LIMITED")
+                    self.assertEqual(detail["fields"], [])
+                    self.assertEqual(detail["retry_after_ms"], 300000)
+                    self.assertEqual(response["Retry-After"], "300")
+            verify.assert_not_called()
+        self.assertEqual(before, list(LoginThrottle.objects.order_by("key").values()))
+
+    def test_ip_limit_reads_unicode_username_block_without_normalizing(self):
+        now = timezone.now()
+        username = " 학습자🎵 "
+        LoginThrottle.objects.create(key=throttle_key("ip", "127.0.0.1"), events=[now.timestamp()] * 30)
+        LoginThrottle.objects.create(
+            key=throttle_key("username", username), events=[],
+            blocked_until=now + timedelta(seconds=600, milliseconds=1),
+        )
+        with patch("sori.auth_views.timezone.now", return_value=now), patch("sori.auth_views.check_password") as verify:
+            response = self.login(username=username)
+            detail = self.assert_error(response, 429, "RATE_LIMITED")
+            self.assertEqual(detail["retry_after_ms"], 600001)
+            self.assertEqual(response["Retry-After"], "601")
+            verify.assert_not_called()
 
     def test_logout_revokes_only_token_and_preserves_user_data(self):
         first = self.login().data
