@@ -21,7 +21,9 @@ import Foundation
         let practice: [Question] = try Bundled.decode("practice-catalog")
         let classical: [Question] = try Bundled.decode("classical-catalog")
         let additional: [Question] = try Bundled.decode("additional-practice-catalog")
-        let values = practice + classical + additional
+        let revisions: [Question] = try Bundled.decode("sheet-revisions")
+        let current = Dictionary(uniqueKeysWithValues:revisions.map { ($0.id,$0) })
+        let values = (practice + classical + additional).map { current[$0.id] ?? $0 }
         let engraving: EngravingManifest = try Bundled.decode("engraving-manifest")
         return values.map { source in
             var q = source
@@ -125,11 +127,14 @@ import Foundation
             } else if values[index].difficulty != nil {
                 data = try Bundled.data("practice-\(values[index].id.uuidString.lowercased())-\(kind)",ext:"mxl")
             } else {
-                let version = url.path.contains("/versions/2/") ? "-v2" : ""
+                let version = url.path.contains("/versions/1/") && index < 3 ? "" : "-v2"
                 data = try Bundled.data("excerpt-\(index+1)\(version)-\(kind)", ext:"mxl")
             }
         } else if let q = values.first(where: { $0.sheetLayout.templatePngUrl == url }) {
             data = try Bundled.data(q.sheetLayout.id, ext:"png")
+        } else if url.path.hasPrefix("/assets/sheets/") && SheetLayout.supports(url.deletingPathExtension().lastPathComponent) {
+            // Previous immutable attempt snapshots may still need an old sheet.
+            data = try Bundled.data(url.deletingPathExtension().lastPathComponent,ext:"png")
         } else { throw SORIError.configuration("데모 자산을 찾을 수 없습니다.") }
         guard data.count <= limit else { throw SORIError.storage("자산 용량 초과") }; return data
     }

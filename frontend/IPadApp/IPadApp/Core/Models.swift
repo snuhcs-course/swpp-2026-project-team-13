@@ -34,10 +34,13 @@ struct SheetLayout: Codable, Equatable {
     var logicalWidth: Int; var logicalHeight: Int; var exportScale: Int
     var pixelWidth: Int; var pixelHeight: Int
     var templatePngUrl: URL; var templateSha256: String; var systems: [SheetSystem]
+    var displayHeight: Int? = nil
     static func supports(_ id: String) -> Bool {
         if ["staff-8bars-v1", "staff-8bars-4-4-v2", "staff-8bars-3-4-v2", "staff-8bars-6-8-v2", "staff-8bars-2-4-v2", "staff-8bars-7-8-v2", "staff-8bars-9-8-v2", "staff-8bars-12-8-v2"].contains(id) { return true }
         for meter in [(2,2),(2,4),(3,4),(4,4),(3,8),(6,8),(7,8),(9,8),(12,8)] {
-            for fifths in -7...7 where id == "staff-8bars-\(meter.0)-\(meter.1)-key\(fifths)-v3" { return true }
+            for fifths in -7...7 {
+                if [3,4].contains(where: { id == "staff-8bars-\(meter.0)-\(meter.1)-key\(fifths)-v\($0)" }) { return true }
+            }
         }
         return false
     }
@@ -46,6 +49,12 @@ struct SheetLayout: Codable, Equatable {
               exportScale == 2, pixelWidth == 2660, pixelHeight == 1692,
               systems.count == 2, systems.allSatisfy({ $0.staffLineY.count == 5 && $0.barlineX.count == 5 }) else {
             throw SORIError.unsupported("지원하지 않는 오선 템플릿입니다.")
+        }
+        if id.hasSuffix("-v4") {
+            guard displayHeight == 620, systems[0].staffLineY == [164,176,188,200,212],
+                  systems[1].staffLineY == [386,398,410,422,434] else { throw SORIError.unsupported("새 오선의 필기 좌표가 일치하지 않습니다.") }
+        } else if displayHeight != nil && displayHeight != logicalHeight {
+            throw SORIError.unsupported("이전 오선의 표시 크기를 변경할 수 없습니다.")
         }
     }
 }
@@ -85,9 +94,9 @@ struct Question: Codable, Identifiable, Equatable {
               timeSignature.supported, measureCount == 8,
               timePolicy == "advisory", clef == "treble", contentPolicy == "client_readable_practice",
               scoreVisibility == "after_submission" else { throw SORIError.unsupported("지원하지 않는 문제 형식입니다.") }
-        if collection == "classical" || keySignature.fifths != 0 || keySignature.mode == "minor" {
-            guard sheetLayout.id == "staff-8bars-\(timeSignature.numerator)-\(timeSignature.denominator)-key\(keySignature.fifths)-v3"
-            else { throw SORIError.unsupported("클래식 문제의 조표·오선이 일치하지 않습니다.") }
+        if collection == "classical" || keySignature.fifths != 0 || keySignature.mode == "minor" || sheetLayout.id.hasSuffix("-v4") {
+            guard [3,4].contains(where: { sheetLayout.id == "staff-8bars-\(timeSignature.numerator)-\(timeSignature.denominator)-key\(keySignature.fifths)-v\($0)" })
+            else { throw SORIError.unsupported("문제의 조표·오선이 일치하지 않습니다.") }
         }
         if collection == "classical" {
             guard composer?.isEmpty == false, ["major","minor"].contains(keySignature.mode), scoreAssets.main.profile == "sori-monophonic-v4"

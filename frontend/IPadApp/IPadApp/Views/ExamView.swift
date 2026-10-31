@@ -27,7 +27,7 @@ struct ExamView: View {
                 }.font(.subheadline).padding(.horizontal, 28).padding(.vertical, 14).background(.white).disabled(model.isLocked)
                 ScrollView([.horizontal, .vertical]) {
                     if let template = model.template {
-                        AnswerCanvas(template: template, drawing: drawing)
+                        AnswerCanvas(template: template, drawing: drawing, layout:model.session?.attempt.question.sheetLayout)
                             .frame(width: max(540, proxy.size.width - 56) * zoom)
                             .shadow(color: .black.opacity(0.04), radius: 12, y: 4).padding(28)
                     } else {
@@ -82,6 +82,12 @@ struct ExamView: View {
         } else if model.session?.attempt.status == "in_progress" {
             if player.cursor.index <= 11 && model.session?.frozen != true {
                 Button { player.isPlaying ? player.pause() : player.resume() } label: { Label(player.isPlaying ? "일시 정지" : "재생 계속", systemImage: player.isPlaying ? "pause.fill" : "play.fill") }.buttonStyle(.bordered)
+            }
+            if player.cursor.phase == "gap", (1...10).contains(player.cursor.index), model.session?.frozen != true {
+                Button { player.skipWritingWait() } label: {
+                    Label(player.cursor.shortenedGap == true ? "다음 재생 준비 중" : "대기 건너뛰기",systemImage:"forward.end.fill")
+                }.buttonStyle(.bordered).disabled(!player.canSkipWritingWait || model.isLocked || model.busy)
+                    .help("3초 준비 후 다음 구간을 재생합니다.").accessibilityIdentifier("skip-writing-wait")
             }
             if model.isLocked && model.session?.frozen != true { Button("필기 저장 재시도") { model.retryDrawingSave() }.buttonStyle(.bordered) }
             Button { if model.session?.frozen == true { Task { await model.submit() } } else { confirmSubmit = true } } label: { Label(model.session?.frozen == true ? "제출 복구" : "답안 제출", systemImage: "arrow.up.doc") }.buttonStyle(PrimaryButton()).disabled(model.drawingMissing)

@@ -48,6 +48,7 @@ struct PencilSurface: UIViewRepresentable {
 struct AnswerCanvas: View {
     let template: UIImage
     @ObservedObject var drawing: DrawingController
+    var layout: SheetLayout? = nil
     var body: some View {
         GeometryReader { proxy in
             let ratio = proxy.size.width / 1330
@@ -57,7 +58,10 @@ struct AnswerCanvas: View {
             }
             .frame(width: 1330, height: 846).scaleEffect(ratio, anchor: .topLeading)
         }
-        .aspectRatio(1330.0 / 846, contentMode: .fit)
+        // Keep canonical PencilKit/export coordinates. The new sheet only
+        // crops its unused bottom margin from the interactive presentation.
+        .aspectRatio(1330.0 / Double(layout?.displayHeight ?? 846), contentMode: .fit)
+        .contentShape(Rectangle())
         .background(.white).clipShape(RoundedRectangle(cornerRadius: 16))
         .accessibilityLabel("8마디 답안 오선, Apple Pencil로 필기하세요")
     }

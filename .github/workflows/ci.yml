@@ -52,6 +52,7 @@ jobs:
       - run: python ../scripts/test_classical_piano.py
       - run: python ../scripts/test_classical_questions.py
       - run: python ../scripts/test_practice_import.py
+      - run: python ../scripts/test_sheet_revisions.py
       - run: python manage.py test api sori --noinput
 
   frontend:
@@ -92,7 +93,7 @@ jobs:
         run: |
           SIM_ID=$(xcrun simctl list devices available -j | python3 -c 'import json,sys; d=json.load(sys.stdin); print(next(x["udid"] for group in d["devices"].values() for x in group if x["name"].startswith("iPad")))')
           set -o pipefail
-          xcodebuild -project frontend/IPadApp/IPadApp.xcodeproj -scheme IPadApp -configuration Debug -destination "platform=iOS Simulator,id=$SIM_ID" -derivedDataPath build/DerivedData -resultBundlePath build/Comparison.xcresult CODE_SIGNING_ALLOWED=NO -only-testing:IPadAppTests/IntegrationTests/testDemoReferenceAssetRoutesReturnPinnedPNGWithOrWithoutSlash -only-testing:IPadAppTests/IntegrationTests/testReferenceImagesAndCompactAnswerRenderTogether -only-testing:IPadAppTests/IntegrationTests/testVoiceSelectionPersistsAndCanPrepareNextProblem -only-testing:IPadAppTests/IntegrationTests/testRealAppFlowPrepareStartSubmitAndRestoreResult -only-testing:IPadAppTests/MelodyRunIntegrationTests -only-testing:IPadAppTests/ClassicalIntegrationTests -only-testing:IPadAppTests/PracticeLibraryIntegrationTests test 2>&1 | tee build/ipad-tests.log
+          xcodebuild -project frontend/IPadApp/IPadApp.xcodeproj -scheme IPadApp -configuration Debug -destination "platform=iOS Simulator,id=$SIM_ID" -derivedDataPath build/DerivedData -resultBundlePath build/Comparison.xcresult CODE_SIGNING_ALLOWED=NO -only-testing:IPadAppTests/IntegrationTests/testDemoReferenceAssetRoutesReturnPinnedPNGWithOrWithoutSlash -only-testing:IPadAppTests/IntegrationTests/testReferenceImagesAndCompactAnswerRenderTogether -only-testing:IPadAppTests/IntegrationTests/testVoiceSelectionPersistsAndCanPrepareNextProblem -only-testing:IPadAppTests/IntegrationTests/testRealAppFlowPrepareStartSubmitAndRestoreResult -only-testing:IPadAppTests/MelodyRunIntegrationTests -only-testing:IPadAppTests/ClassicalIntegrationTests -only-testing:IPadAppTests/PracticeLibraryIntegrationTests -only-testing:IPadAppTests/ExamControlsIntegrationTests test 2>&1 | tee build/ipad-tests.log
       - name: Upload comparison screenshots and test results
         if: always()
         uses: actions/upload-artifact@v4

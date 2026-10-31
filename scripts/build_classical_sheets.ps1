@@ -1,6 +1,6 @@
 # Same logical sheet and four-plus-four geometry as the existing handwriting canvas.
 # Draw the clef, fixed key signature on both systems, and numeric meter on the first.
-param([string]$Repository = (Split-Path $PSScriptRoot -Parent))
+param([string]$Repository = (Split-Path $PSScriptRoot -Parent), [switch]$Compact)
 $ErrorActionPreference = 'Stop'
 Add-Type -AssemblyName System.Drawing
 $sheetRoot = Join-Path $Repository 'backend/content/sheets'
@@ -21,6 +21,14 @@ if (Test-Path -LiteralPath $practiceSource) {
     foreach ($item in $practice.accepted) {
         $n,$d = $item.meter
         $combinations["$n-$d-$($item.key.fifths)"] = @([int]$n,[int]$d,[int]$item.key.fifths)
+    }
+}
+if ($Compact) {
+    $baseCatalog = Get-Content -Raw -LiteralPath (Join-Path $Repository 'backend/content/catalog.json') | ConvertFrom-Json
+    foreach ($item in $baseCatalog) {
+        $n = [int]$item.metadata.time_signature.numerator; $d = [int]$item.metadata.time_signature.denominator
+        $fifths = [int]$item.metadata.key_signature.fifths
+        $combinations["$n-$d-$fifths"] = @($n,$d,$fifths)
     }
 }
 $symbolFamily = New-Object System.Drawing.FontFamily('Segoe UI Symbol')
@@ -56,7 +64,8 @@ function Draw-Glyph($graphics, [string]$text, $family, [int]$style, [single]$siz
 }
 foreach ($entry in $combinations.Values) {
     $n,$d,$fifths = $entry
-    $id = "staff-8bars-$n-$d-key$fifths-v3"
+    $version = if ($Compact) { 4 } else { 3 }
+    $id = "staff-8bars-$n-$d-key$fifths-v$version"
     # Existing immutable templates must not be re-rendered by a later import.
     if (Test-Path -LiteralPath (Join-Path $sheetRoot "$id.png")) { continue }
     $bitmap = New-Object System.Drawing.Bitmap(2660,1692,[System.Drawing.Imaging.PixelFormat]::Format24bppRgb)
@@ -68,10 +77,17 @@ foreach ($entry in $combinations.Values) {
     $svg = [System.Collections.Generic.List[string]]::new()
     $svg.Add('<svg xmlns="http://www.w3.org/2000/svg" width="2660" height="1692" viewBox="0 0 1330 846"><rect width="1330" height="846" fill="white"/>')
     foreach ($system in @(0,1)) {
-        $top = @(164,499)[$system]
+        $secondTop = if ($Compact) { 386 } else { 499 }
+        $top = @(164,$secondTop)[$system]
         foreach ($j in 0..4) { $y=$top+$j*12; $graphics.DrawLine($pen,54,$y,1276,$y); $svg.Add("<path d='M54 ${y}H1276' stroke='black' stroke-width='1.5'/>") }
         $bars = if ($system -eq 0) { @(54,450,725,1000,1276) } else { @(54,397,690,983,1276) }
         foreach ($x in $bars) { $graphics.DrawLine($pen,$x,$top,$x,($top+48)); $svg.Add("<path d='M$x ${top}v48' stroke='black' stroke-width='1.5'/>") }
+        if ($Compact -and $system -eq 1) {
+            $graphics.DrawLine($pen,1267,$top,1267,($top+48))
+            $finalPen = [System.Drawing.Pen]::new([System.Drawing.Color]::Black,4.5)
+            $graphics.DrawLine($finalPen,1276,$top,1276,($top+48)); $finalPen.Dispose()
+            $svg.Add("<path class='FinalBarline' data-system='1' d='M1267 ${top}v48' stroke='black' stroke-width='1.5'/><path class='FinalBarline' data-system='1' d='M1276 ${top}v48' stroke='black' stroke-width='4.5'/>")
+        }
         Draw-Glyph $graphics ([char]::ConvertFromUtf32(0x1D11E)) $symbolFamily 0 75 84 ($top+44)
         $svg.Add("<text x='84' y='$($top+44)' text-anchor='middle' font-family='Segoe UI Symbol' font-size='75'>&#x1D11E;</text>")
         $keyY = if ($fifths -gt 0) { @(0,18,-6,12,30,6,24) } else { @(24,6,30,12,36,18,42) }

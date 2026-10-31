@@ -2,11 +2,6 @@ import Foundation
 import PencilKit
 import Security
 
-struct PlaybackCursor: Codable, Equatable {
-    var index = 0 // 0 = scale, 1...11 = main, 12 = finished
-    var phase = "initial" // initial, segment, gap; legacy saved phases still decode
-    var remainingWaitMs: Int? = nil
-}
 struct SessionRecord: Codable, Identifiable {
     var id: UUID { attempt.id }
     var attempt: Attempt

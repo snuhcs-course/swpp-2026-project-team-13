@@ -3,7 +3,6 @@ import SwiftUI
 struct SettingsView: View {
     @ObservedObject var model:AppModel
     @State private var token=""
-    @State private var useDemo = true
     @State private var address = ""
     @State private var outcome = "completed"
     @State private var showSoundLicense = false
@@ -13,8 +12,8 @@ struct SettingsView: View {
         ScrollView { VStack(alignment:.leading,spacing:28) {
             SectionCaption(eyebrow:"CONNECTION & PREFERENCES",title:"연결 설정",subtitle:"로컬 데모 또는 개발 중인 Django 서버에 연결하세요.")
             Card { VStack(alignment:.leading,spacing:20) {
-                Toggle("로컬 데모 사용",isOn:$useDemo).font(.headline)
-                if useDemo {
+                Toggle("로컬 데모 사용",isOn:Binding(get:{model.demo},set:{ value in Task { await model.setDemoMode(value) } })).font(.headline).disabled(model.busy).accessibilityIdentifier("use-local-demo")
+                if model.demo {
                     Text("인터넷 없이 실제 오선·MXL·악기 음색·필기·제출 흐름을 확인할 수 있어요. 결과는 API 예시이며 필기를 인식하지 않습니다.").font(.subheadline).foregroundStyle(.secondary).lineSpacing(5)
                     Picker("데모 결과",selection:$outcome) { Text("완료 · 예시 81점").tag("completed"); Text("필기 확인 필요").tag("needs-review"); Text("분석 실패 · 재시도 가능").tag("failed") }
                 } else {
@@ -28,11 +27,11 @@ struct SettingsView: View {
                     Text("실제 iPad에서는 서버 PC의 LAN IP 주소를 사용해 주세요.").font(.caption).foregroundStyle(.secondary)
                 }
                 Button { Task {
-                    model.demo=useDemo; model.server=address.trimmingCharacters(in:.whitespacesAndNewlines); model.demoOutcome=outcome
+                    model.server=address.trimmingCharacters(in:.whitespacesAndNewlines); model.demoOutcome=outcome
                     model.rememberToken=rememberToken
                     await model.connect(token:token.trimmingCharacters(in:.whitespacesAndNewlines).isEmpty ? nil : token); token=""
                     updateSavedStatus()
-                } } label: { Label(useDemo ? "데모 시작" : "서버 연결",systemImage:"arrow.right.circle") }.buttonStyle(PrimaryButton())
+                } } label: { Label(model.demo ? "데모 시작" : "서버 연결",systemImage:"arrow.right.circle") }.buttonStyle(PrimaryButton())
             } }
             Card { VStack(alignment:.leading,spacing:16) {
                 Label("악기 음색",systemImage:"pianokeys").font(.headline)
@@ -65,7 +64,7 @@ struct SettingsView: View {
                     .toolbar { ToolbarItem(placement:.confirmationAction) { Button("닫기") { showSoundLicense = false } } }
             }
         }
-        .onAppear { useDemo=model.demo; address=model.server; outcome=model.demoOutcome; rememberToken=model.rememberToken; updateSavedStatus() }
+        .onAppear { address=model.server; outcome=model.demoOutcome; rememberToken=model.rememberToken; updateSavedStatus() }
         .onChange(of:address) { _,_ in updateSavedStatus() }
         .onChange(of:rememberToken) { _,value in model.setRememberToken(value,server:address); updateSavedStatus() }
     }

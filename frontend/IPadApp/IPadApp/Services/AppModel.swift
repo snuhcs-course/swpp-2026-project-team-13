@@ -81,8 +81,9 @@ import PencilKit
         defer { busy = false }
         do { try await operation() } catch { report(error) }
     }
-    func connect(token: String? = nil) async {
+    func connect(token: String? = nil, destination: Screen = .home) async {
         await run("학습 공간을 불러오는 중") {
+            self.error = nil
             self.player.pause(); self.prepared = false; self.connected = false
             self.api = nil; self.store = nil; self.profile = nil; self.questions = []; self.history = []; self.session = nil
             self.classicalQuestions = []; self.classicalLoaded = false; self.classicalPage = 0; self.classicalHasNextPage = false; self.selectedComposer = nil
@@ -113,11 +114,20 @@ import PencilKit
             self.api = candidate; self.store = local; self.profile = user; self.history = records
             self.questions = list.questions; self.page = list.lastPage; self.hasNextPage = false
             self.session = nil; self.template = nil; self.submittedImage = nil; self.mainScore = nil; self.correctScoreImage = nil; self.correctScoreError = nil
-            self.connected = true; self.screen = .home
+            self.connected = true; self.screen = destination
             let defaults = UserDefaults.standard
             defaults.set(self.demo, forKey: "sori.demo"); defaults.set(self.server, forKey: "sori.server"); defaults.set(self.demoOutcome, forKey: "sori.demoOutcome")
             defaults.set(self.rememberToken,forKey:"sori.rememberToken")
         }
+    }
+    func setDemoMode(_ enabled: Bool) async {
+        guard !busy, enabled != demo else { return }
+        if !isLocked { saveDrawing(drawing.canvas.drawing) }
+        demo = enabled
+        // Persist the actual selection immediately, including when a live
+        // connection still needs a server/token. Never keep the old API active.
+        UserDefaults.standard.set(enabled,forKey:"sori.demo")
+        await connect(destination:.settings)
     }
     func loadMore() async {
         await run("문제 목록을 불러오는 중") {

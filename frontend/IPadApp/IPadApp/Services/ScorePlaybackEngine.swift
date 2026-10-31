@@ -36,6 +36,20 @@ import AudioToolbox
     private var bankLSB: UInt8 = 0
     private var outputGain: Float = 1
     private var noteVelocity = 80
+    var canSkipWritingWait: Bool { prepared && isPlaying && cursor.canShortenWritingWait }
+
+    func skipWritingWait() {
+        guard prepared, isPlaying else { return }
+        checkpointWait()
+        guard cursor.shortenWritingWait() else { return }
+        // Keep the existing runner and segment index. Only move this wait's
+        // deadline; cancelling/restarting audio could duplicate the next notes.
+        waitInitialMs = PlaybackCursor.nextSegmentLeadMs
+        waitAnchor = ProcessInfo.processInfo.systemUptime
+        message = "다음 재생 준비 · 3초"
+        do { try onCursor?(cursor) }
+        catch { pause(); onError?(error) }
+    }
 
     func prepare(main: MusicScore, scale: MusicScore, plan: PlaybackPlan) throws {
         prepared = false; pause()
@@ -127,7 +141,7 @@ import AudioToolbox
         while (cursor.remainingWaitMs ?? 0) > 0 {
             try Task.checkCancellation()
             let remaining = cursor.remainingWaitMs ?? 0
-            message = "\(label) · \((remaining+999)/1000)초"
+            message = "\(cursor.shortenedGap == true ? "다음 재생 준비" : label) · \((remaining+999)/1000)초"
             // Natural piano release occupies the beginning of the prescribed pause, not extra time.
             if !released, remaining <= waitInitialMs-min(plan?.releaseTailMs ?? 0,waitInitialMs) {
                 silence(); released = true
@@ -182,12 +196,12 @@ import AudioToolbox
                         seq.stop()
                         sampler.sendController(123,withValue:0,onChannel:0)
                         metronome.sendController(123,withValue:0,onChannel:0)
-                        cursor.phase = "gap"; cursor.remainingWaitMs = nil; try onCursor?(cursor)
+                        cursor.phase = "gap"; cursor.remainingWaitMs = nil; cursor.shortenedGap = nil; try onCursor?(cursor)
                     }
                     let gap = index == 0 ? plan.pauseAfterScaleMs : plan.steps[index-1].pauseAfterMs
                     let label = index == 0 ? "예비박까지" : index == 11 ? "마지막 필기 시간" : "필기 시간"
                     try await wait(gap,label:label,releaseTail:true)
-                    cursor.index += 1; cursor.phase = "segment"; try onCursor?(cursor)
+                    cursor.index += 1; cursor.phase = "segment"; cursor.shortenedGap = nil; try onCursor?(cursor)
                 }
                 message = "필기 시간 종료 · 답안을 제출해 주세요"
                 isPlaying = false; engine.pause()
