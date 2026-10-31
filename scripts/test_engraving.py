@@ -19,11 +19,11 @@ class EngravingTests(unittest.TestCase):
         manifest = json.loads((CONTENT / "engraving/manifest.json").read_text(encoding="utf-8"))
         self.assertEqual(manifest, json.loads((RESOURCES / "engraving-manifest.json").read_text(encoding="utf-8")))
         self.assertEqual(manifest["style_sha256"],hashlib.sha256((ROOT / "scripts/engraving/compact-v1.mss").read_bytes()).hexdigest())
-        expected = {i["metadata"]["score_assets"]["main"]["sha256"] for filename in ("catalog.json","catalog-v1.json","classical-catalog.json") for i in json.loads((CONTENT / filename).read_text(encoding="utf-8"))}
+        expected = {i["metadata"]["score_assets"]["main"]["sha256"] for filename in ("catalog.json","catalog-v1.json","classical-catalog.json","additional-practice-catalog.json") for i in json.loads((CONTENT / filename).read_text(encoding="utf-8"))}
         self.assertEqual(set(manifest["scores"]),expected)
         style = ET.parse(ROOT / "scripts/engraving/compact-v1.mss")
         self.assertEqual(style.findtext("Style/showMeasureNumber"),"0")
-        for version in ("catalog.json","catalog-v1.json","classical-catalog.json"):
+        for version in ("catalog.json","catalog-v1.json","classical-catalog.json","additional-practice-catalog.json"):
             for item in json.loads((CONTENT / version).read_text(encoding="utf-8")):
                 asset = manifest["scores"][item["metadata"]["score_assets"]["main"]["sha256"]]
                 data = (CONTENT / "engraving" / (asset["resource"]+".png")).read_bytes()

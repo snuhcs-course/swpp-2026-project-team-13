@@ -25,7 +25,7 @@ from .errors import ContractError
 from .idempotency import run_idempotent, uuid_value
 from .models import Answer, Attempt, GradingJob, Question, QuestionVersion, UserProfile
 from .presentation import absolute, answer_json, attempt_json, grading_json, question_json
-from .catalogs import shipped_questions
+from .catalogs import shipped_questions, practice_difficulty
 
 GOALS = {"arts_school_entrance", "arts_school_student", "college_entrance", "teacher_exam", "other"}
 
@@ -81,6 +81,9 @@ def questions(request):
         metadata = timed_question(version.metadata)
         summary = {k: metadata[k] for k in ("id", "version", "title", "source", "key_signature", "time_signature", "measure_count", "recommended_duration_seconds", "tempo")}
         summary.update({k: metadata[k] for k in ("collection", "composer") if k in metadata})
+        difficulty = practice_difficulty(metadata)
+        if difficulty is not None:
+            summary["difficulty"] = difficulty
         result.append(summary)
     def url(p):
         return absolute(request, f"/api/v1/questions/?page={p}&page_size={size}&collection={collection}")

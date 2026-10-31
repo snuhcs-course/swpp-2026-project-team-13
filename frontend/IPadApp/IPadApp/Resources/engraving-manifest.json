@@ -659,6 +659,465 @@
       "pixel_width": 2600,
       "pixel_height": 419,
       "renderer": "MuseScore Studio 4.6.3"
+    },
+    "74e0f4cf6de5fd070ad0915e04a2ae4d7fdbfcb2d45167e1cbeb40746be3af82": {
+      "resource": "practice-pages-1-2-01-reference-v1",
+      "content_type": "image/png",
+      "sha256": "00c898a8ab0bf9be3865085c7b0992f22ba63c84d108a82c2be4886722590ac4",
+      "size_bytes": 72682,
+      "pixel_width": 2600,
+      "pixel_height": 421,
+      "renderer": "MuseScore Studio 4.6.3"
+    },
+    "0043af878ef2169613d6d4f3338bdae09ac24360a478a8574db3314e8210d792": {
+      "resource": "practice-pages-1-2-02-reference-v1",
+      "content_type": "image/png",
+      "sha256": "bdca56591c30f702f3ebdf160e2043b518b38e8ff869e0303c61d9f40dc3cad8",
+      "size_bytes": 79631,
+      "pixel_width": 2600,
+      "pixel_height": 429,
+      "renderer": "MuseScore Studio 4.6.3"
+    },
+    "d4183909fc10b4bda71cb97cc5488370da1c1ae4eac94e7c8abbadcaa4c30fee": {
+      "resource": "practice-pages-1-2-03-reference-v1",
+      "content_type": "image/png",
+      "sha256": "d4e9afcc1a541989e96c47a9818bbaf4c55a196bbd456e39aa77458008df1913",
+      "size_bytes": 72301,
+      "pixel_width": 2600,
+      "pixel_height": 463,
+      "renderer": "MuseScore Studio 4.6.3"
+    },
+    "a96baebc308185d335f2e9b842b1eb6de1fbd908880d9f6ce44724a709c8eec9": {
+      "resource": "practice-pages-1-2-04-reference-v1",
+      "content_type": "image/png",
+      "sha256": "934bf8d9c14df93018dfb5ec355f9adc4a0a3828364b7c88af5f12a5d13b361b",
+      "size_bytes": 75980,
+      "pixel_width": 2600,
+      "pixel_height": 437,
+      "renderer": "MuseScore Studio 4.6.3"
+    },
+    "6b9a75b01d1d1dc2d6e557262e8cf42484e289dc403ef31b047daafb2850fb5f": {
+      "resource": "practice-pages-1-2-05-reference-v1",
+      "content_type": "image/png",
+      "sha256": "f597be7894d7150c8f6196663872c7b6e6654b043efcf28a424a12fd4b7fa239",
+      "size_bytes": 64720,
+      "pixel_width": 2600,
+      "pixel_height": 437,
+      "renderer": "MuseScore Studio 4.6.3"
+    },
+    "0fc6df92b05f7a9f462095ee82ce058ce1436eed8571d1709b07fce4f76f8d74": {
+      "resource": "practice-pages-1-2-07-reference-v1",
+      "content_type": "image/png",
+      "sha256": "7165a84a9a2b346462a37c083241fd3841b85c1942377785d0e46dc21381aead",
+      "size_bytes": 91715,
+      "pixel_width": 2600,
+      "pixel_height": 422,
+      "renderer": "MuseScore Studio 4.6.3"
+    },
+    "fd737f6976f14cd8809282bcb52798916c289efe5e661a7c5fec195b713a1808": {
+      "resource": "practice-pages-1-2-08-reference-v1",
+      "content_type": "image/png",
+      "sha256": "4a97ecf0214eafc42ad3dbc9f84a04156dca66fc02eba7dccd01137af6b5b5ab",
+      "size_bytes": 87810,
+      "pixel_width": 2600,
+      "pixel_height": 438,
+      "renderer": "MuseScore Studio 4.6.3"
+    },
+    "66db30d090ef656e115ca0b339d0f91d703d5a56601b73fb9f728b9a3c447fa2": {
+      "resource": "practice-pages-1-2-09-reference-v1",
+      "content_type": "image/png",
+      "sha256": "36ef0cb0034b3775296b5f393ae4c14c4e05ed56a726d58b578a0bba8bb1bba7",
+      "size_bytes": 68865,
+      "pixel_width": 2600,
+      "pixel_height": 441,
+      "renderer": "MuseScore Studio 4.6.3"
+    },
+    "987a36bdf9862e11dae6ea4755edd5cd1b83e249a58847201b09cd5ece9c1756": {
+      "resource": "practice-pages-1-2-10-reference-v1",
+      "content_type": "image/png",
+      "sha256": "c30b3f8278a968ea5f8063ab48decf18d76d230b1187c65b3baed720ca16f5bb",
+      "size_bytes": 73733,
+      "pixel_width": 2600,
+      "pixel_height": 426,
+      "renderer": "MuseScore Studio 4.6.3"
+    },
+    "1a939ef024e19aa922225de7ee227dfcc9afa3484d749fe58aab59b5f96114e5": {
+      "resource": "practice-pages-1-2-11-reference-v1",
+      "content_type": "image/png",
+      "sha256": "f6d66dda8781ecc6bb675e535c3f329a966847bdd8ceb64e6bb1181692b55ead",
+      "size_bytes": 97537,
+      "pixel_width": 2600,
+      "pixel_height": 455,
+      "renderer": "MuseScore Studio 4.6.3"
+    },
+    "2ba158f9c3586c2762e886f2768485a7d421e083b2e3b78e66406b6ca4ff97d9": {
+      "resource": "practice-pages-1-2-12-reference-v1",
+      "content_type": "image/png",
+      "sha256": "a1c576d2a91b96fb590400f4ae8b83f86f0c64c5e6359f42598f060dcd101b31",
+      "size_bytes": 83675,
+      "pixel_width": 2600,
+      "pixel_height": 432,
+      "renderer": "MuseScore Studio 4.6.3"
+    },
+    "6b992bdc9b3950fea59262d4bbb3a0f6845d28f1944ea2c149619fb776ee5d68": {
+      "resource": "practice-trained-ear-Cole-Lewis-1904_2-05-147-reference-v1",
+      "content_type": "image/png",
+      "sha256": "1c63e21d661b9eca6343d8c0023d0c9ca00155b4454916c8b7597bacf4d75bb0",
+      "size_bytes": 52670,
+      "pixel_width": 2600,
+      "pixel_height": 419,
+      "renderer": "MuseScore Studio 4.6.3"
+    },
+    "d5d85030e2ef100facfc7571898638c51b6d9579fafd324c74a5f6c0c9027e99": {
+      "resource": "practice-trained-ear-Batchellor-Charmbury-1884a_1-1-084-reference-v1",
+      "content_type": "image/png",
+      "sha256": "f9e4111754de964f031c6d952bfd5e6d8d3d248993958d1997b7774e82c83fa9",
+      "size_bytes": 49894,
+      "pixel_width": 2600,
+      "pixel_height": 419,
+      "renderer": "MuseScore Studio 4.6.3"
+    },
+    "d1fd8da82466d5f3a67d98561e91200e1b8db5752bd6e5f8c709150c5ace0d83": {
+      "resource": "practice-trained-ear-Hollis-1915_46-01-reference-v1",
+      "content_type": "image/png",
+      "sha256": "6ab9c2cdf920b8dab98e16c0bd3567f912552710e77c0613600741b466e3991f",
+      "size_bytes": 51560,
+      "pixel_width": 2600,
+      "pixel_height": 419,
+      "renderer": "MuseScore Studio 4.6.3"
+    },
+    "2f6d208dee5be9a155a894dad79e58c85814d7642e6e6e4a813bca713caae04e": {
+      "resource": "practice-trained-ear-Hollis-1915_42-02-reference-v1",
+      "content_type": "image/png",
+      "sha256": "e3a3c6a9a34a43c5dcfccc515a186ec38e2e379b4fe7d23c43bf43b3eeb7d9f0",
+      "size_bytes": 44767,
+      "pixel_width": 2600,
+      "pixel_height": 419,
+      "renderer": "MuseScore Studio 4.6.3"
+    },
+    "d4dac8c7cceee2edd8f706ac982a329d8280dd9fc55b610253792099d476dffb": {
+      "resource": "practice-trained-ear-Hollis-1915_59-02-reference-v1",
+      "content_type": "image/png",
+      "sha256": "2a2536e87bcd256a4780d4507e4a5f380a0497dae3d2ba68318d341461599c1b",
+      "size_bytes": 52783,
+      "pixel_width": 2600,
+      "pixel_height": 419,
+      "renderer": "MuseScore Studio 4.6.3"
+    },
+    "3e83316425e29e7143cfd837fba40e236c32db8c7a127ac988641d2491370957": {
+      "resource": "practice-trained-ear-Batchellor-Charmbury-1884b_2-1-007-reference-v1",
+      "content_type": "image/png",
+      "sha256": "55f5b386b7ece395556da779be090d6bfb955db79c59757148e5e69410fcc6b2",
+      "size_bytes": 38869,
+      "pixel_width": 2600,
+      "pixel_height": 419,
+      "renderer": "MuseScore Studio 4.6.3"
+    },
+    "a8bc965e59ee2262b4b2b1ca9d69c29fdd3ce84535e7163501edd9b9bedc3974": {
+      "resource": "practice-trained-ear-Hollis-1915_47-02-reference-v1",
+      "content_type": "image/png",
+      "sha256": "87bfc28f66d33121af8f9ee9570739f18879230cfdccdc424fa2e043a2998e82",
+      "size_bytes": 42097,
+      "pixel_width": 2600,
+      "pixel_height": 419,
+      "renderer": "MuseScore Studio 4.6.3"
+    },
+    "b79689f6e99eb03eb1fe5901bbda68b2cebf9410cfb54aa52c4c3846408147f2": {
+      "resource": "practice-trained-ear-Hollis-1915_56-02-reference-v1",
+      "content_type": "image/png",
+      "sha256": "2ef905a2adaf85b2d5499e5eb3f94b8770d4e3aa66863dd2157e2bbfa67dd24c",
+      "size_bytes": 41062,
+      "pixel_width": 2600,
+      "pixel_height": 419,
+      "renderer": "MuseScore Studio 4.6.3"
+    },
+    "1a11d22d98c96a00251e640b74c32b90aee4cc497b8cb33f787f6b206ed97c95": {
+      "resource": "practice-trained-ear-Sullivan_04-03-01_01-reference-v1",
+      "content_type": "image/png",
+      "sha256": "0d6c113eb1751e04b83078d6b21723b52caefbb21929f4849bb1b552e52e134e",
+      "size_bytes": 49145,
+      "pixel_width": 2600,
+      "pixel_height": 419,
+      "renderer": "MuseScore Studio 4.6.3"
+    },
+    "8807d1419135d1c04052c215c00bb05e43df6a37bdd6ca932233334b4b83d27b": {
+      "resource": "practice-trained-ear-Crowell-2004_139-reference-v1",
+      "content_type": "image/png",
+      "sha256": "6c5c64af721f4c5511cc58eca129312c25e392a7b451043988bcd1e3b4b1c6a8",
+      "size_bytes": 43168,
+      "pixel_width": 2600,
+      "pixel_height": 419,
+      "renderer": "MuseScore Studio 4.6.3"
+    },
+    "9c77e4f53733d6e8b17d13ea24f6adb7e3af0586c36bc37042a8353b06bf1ba3": {
+      "resource": "practice-trained-ear-Somervell-1911_438-reference-v1",
+      "content_type": "image/png",
+      "sha256": "34fac96c2f869a9d1c03864d50b8f43e0b435e551b8835f148c010518c0fe60c",
+      "size_bytes": 50687,
+      "pixel_width": 2600,
+      "pixel_height": 419,
+      "renderer": "MuseScore Studio 4.6.3"
+    },
+    "7492fbd63beab6997d5c536d04eb83054d3d761f8701b4998bf551b6799a024f": {
+      "resource": "practice-trained-ear-Crowell-2004_198-reference-v1",
+      "content_type": "image/png",
+      "sha256": "a09af4d0c136b163e4501529c3313ac3d4efc2f9422d6993ab7cd22953bf00ce",
+      "size_bytes": 48032,
+      "pixel_width": 2600,
+      "pixel_height": 419,
+      "renderer": "MuseScore Studio 4.6.3"
+    },
+    "8e03931683c46d8ace19e8dd1e3024d7ea246434727c60deb5ed55c6f56d2e8b": {
+      "resource": "practice-trained-ear-Crowell-2004_203-reference-v1",
+      "content_type": "image/png",
+      "sha256": "9a1a253f96387d748e64aec779a4e349a59435eabf731d1561a7ee27c895168a",
+      "size_bytes": 52546,
+      "pixel_width": 2600,
+      "pixel_height": 419,
+      "renderer": "MuseScore Studio 4.6.3"
+    },
+    "5c0a5ad5b07b45c0e9783fb50f2cfd81a7c43c2bffc60b1ec98ac46414d9e60f": {
+      "resource": "practice-trained-ear-Somervell-1911_221-reference-v1",
+      "content_type": "image/png",
+      "sha256": "3a0991cb9c49be29a759c514399b511eede854408251b5de85972c8852a2d07b",
+      "size_bytes": 45432,
+      "pixel_width": 2600,
+      "pixel_height": 432,
+      "renderer": "MuseScore Studio 4.6.3"
+    },
+    "c207ac51727fc7f3de3d00e93cda0cd1050d4d70d42f2662eff849b5387a3102": {
+      "resource": "practice-trained-ear-Batchellor-Charmbury-1884a_1-1-080-reference-v1",
+      "content_type": "image/png",
+      "sha256": "b5ad5e426228f8d9ed91a955733ffcd6c12e99a89ea8d7f36370b81f53c39439",
+      "size_bytes": 36634,
+      "pixel_width": 2600,
+      "pixel_height": 419,
+      "renderer": "MuseScore Studio 4.6.3"
+    },
+    "833e5e690b601705909c3688daa62426312e8def9bb0f9ce1e9818bfd9dd9216": {
+      "resource": "practice-trained-ear-Somervell-1911_209-reference-v1",
+      "content_type": "image/png",
+      "sha256": "ebcf8ed17d9609a70d64cb099248678465f58805f95041bfd43d890a77628c16",
+      "size_bytes": 52965,
+      "pixel_width": 2600,
+      "pixel_height": 419,
+      "renderer": "MuseScore Studio 4.6.3"
+    },
+    "f8c1bf1edcc77ff09478a8b5c797e497ea40a2f19ca1037f6939124ba747d7a6": {
+      "resource": "practice-trained-ear-Somervell-1911_211-reference-v1",
+      "content_type": "image/png",
+      "sha256": "0e3ef06fbf60d57c735bcf7d6ebf465e06922df8d0ec0087954ca6121ba1685f",
+      "size_bytes": 44479,
+      "pixel_width": 2600,
+      "pixel_height": 422,
+      "renderer": "MuseScore Studio 4.6.3"
+    },
+    "a89844b8d09693a6a94235d6def00b6f286ed31e2f58e19afe70651b91700ea3": {
+      "resource": "practice-trained-ear-Cole-Lewis-1904_2-05-201-reference-v1",
+      "content_type": "image/png",
+      "sha256": "9c53a8fb2e109c1cf15eab6f3e64723442f5e39bd29edbe99a5742e90e8c6c18",
+      "size_bytes": 46255,
+      "pixel_width": 2600,
+      "pixel_height": 419,
+      "renderer": "MuseScore Studio 4.6.3"
+    },
+    "e36b15a1edd0905d6223af0d91c7eba95b4b16f1d9613ade1df5dc1c28c3c0c6": {
+      "resource": "practice-trained-ear-Hollis-1915_55-01-reference-v1",
+      "content_type": "image/png",
+      "sha256": "ac608ef20cd88a1685e84f490b142a64240bcc1ac969408651bdd9e080dcfa36",
+      "size_bytes": 48596,
+      "pixel_width": 2600,
+      "pixel_height": 419,
+      "renderer": "MuseScore Studio 4.6.3"
+    },
+    "3332ea24881c08f3004830a1de0b72f6d23ebb0523268e27da867d422092e05d": {
+      "resource": "practice-trained-ear-Crowell-2004_200-reference-v1",
+      "content_type": "image/png",
+      "sha256": "7e4ecc19e54f465887d113da3e27a28c99d3c87c959d13f783125e2c675cb5a9",
+      "size_bytes": 51736,
+      "pixel_width": 2600,
+      "pixel_height": 419,
+      "renderer": "MuseScore Studio 4.6.3"
+    },
+    "27d00439e670a275d14fe5c08621f0481531f5bafd99e97fb51e48f7a42c99e4": {
+      "resource": "practice-trained-ear-Somervell-1911_175-reference-v1",
+      "content_type": "image/png",
+      "sha256": "222337b8d34beff3efcd1e03a2183b7e3ea18a2528ddf0067a36899e9f8096e2",
+      "size_bytes": 45275,
+      "pixel_width": 2600,
+      "pixel_height": 419,
+      "renderer": "MuseScore Studio 4.6.3"
+    },
+    "0d08dd80b172cd55d0287ac92b1249cefb34e4e01685e70af340272a40cb78db": {
+      "resource": "practice-trained-ear-Batchellor-Charmbury-1884a_1-1-106-reference-v1",
+      "content_type": "image/png",
+      "sha256": "13a9a6e82bb719c0967d86ffa7fd2c9cf72fdf1dfc93afe4cfa528c6949c31ea",
+      "size_bytes": 51090,
+      "pixel_width": 2600,
+      "pixel_height": 419,
+      "renderer": "MuseScore Studio 4.6.3"
+    },
+    "98fb2a90104f5ed60f9a05496d0050c26d5c04b21ec209874d182f7ae5775d1b": {
+      "resource": "practice-trained-ear-Batchellor-Charmbury-1884b_2-1-024-reference-v1",
+      "content_type": "image/png",
+      "sha256": "00cb765f04b96a5ac918a03a565655a204f40689e8ac2722c2d65e5466fb70a9",
+      "size_bytes": 47488,
+      "pixel_width": 2600,
+      "pixel_height": 419,
+      "renderer": "MuseScore Studio 4.6.3"
+    },
+    "98a92c5d0179616f83384836045356ef542fc9c6eacecb4a194c0f3803550f4a": {
+      "resource": "practice-trained-ear-Batchellor-Charmbury-1884b_2-1-051-reference-v1",
+      "content_type": "image/png",
+      "sha256": "9f0d5d963a0bd363eff20233389138618a7d572d8b875f729e85cc976bdecd7b",
+      "size_bytes": 54826,
+      "pixel_width": 2600,
+      "pixel_height": 419,
+      "renderer": "MuseScore Studio 4.6.3"
+    },
+    "f71a75ae16058fa593656a364534ac53b6d7a81caaee8dc4b3a8130a4fba31d0": {
+      "resource": "practice-trained-ear-Cole-Lewis-1904_2-03-186-reference-v1",
+      "content_type": "image/png",
+      "sha256": "ce8637578f5a7717ced6027d24405528c127922b95a2501d723347bf55bb23dd",
+      "size_bytes": 50519,
+      "pixel_width": 2600,
+      "pixel_height": 419,
+      "renderer": "MuseScore Studio 4.6.3"
+    },
+    "2a4e37ededd747cc195844b5efa64922ca7e3afeb84dcb9ffec103fce0cecb93": {
+      "resource": "practice-trained-ear-Somervell-1911_217-reference-v1",
+      "content_type": "image/png",
+      "sha256": "3df39ee968127985b8e215e350745f39eb03295f8b326db98a3638f0519ba621",
+      "size_bytes": 43475,
+      "pixel_width": 2600,
+      "pixel_height": 419,
+      "renderer": "MuseScore Studio 4.6.3"
+    },
+    "b8b9779c2e2e1ec9092e091d72f0a9574143f0efae1f3d70b05976aab07a51e1": {
+      "resource": "practice-trained-ear-Cringan-1901_092-reference-v1",
+      "content_type": "image/png",
+      "sha256": "5bf199a00c8c7869481458e054812abc8c66fc662006411a15bdca55534eb049",
+      "size_bytes": 43697,
+      "pixel_width": 2600,
+      "pixel_height": 419,
+      "renderer": "MuseScore Studio 4.6.3"
+    },
+    "ef63d0f4756d351fadadd3ba8316ca2214f70ca477b321d38fcdda092378ef3c": {
+      "resource": "practice-trained-ear-Batchellor-Charmbury-1887a_4-1-045-reference-v1",
+      "content_type": "image/png",
+      "sha256": "757e9d7cf024ce31e59af1eece2a31f4883a130ed40529b5892439e91fa16061",
+      "size_bytes": 57510,
+      "pixel_width": 2600,
+      "pixel_height": 419,
+      "renderer": "MuseScore Studio 4.6.3"
+    },
+    "408b20420eb7f9583523ff85d3daa61cf5b7571f48adcdaa1517c8de99496bae": {
+      "resource": "practice-trained-ear-Batchellor-Charmbury-1887a_4-3-001-reference-v1",
+      "content_type": "image/png",
+      "sha256": "e582303a5268f2a99445751c5a0ca604dba9cb4094615161fcba96e0ed096210",
+      "size_bytes": 47190,
+      "pixel_width": 2600,
+      "pixel_height": 426,
+      "renderer": "MuseScore Studio 4.6.3"
+    },
+    "1aa78018d081194f97d2f99d837c8881e1d46d53fdbf8d8f00683a423c424e95": {
+      "resource": "practice-trained-ear-Sullivan_04-02-04_01-reference-v1",
+      "content_type": "image/png",
+      "sha256": "45ceb9aca80eae32da860963038428751e1325ef8fa0095ad1db5e891ba5bda3",
+      "size_bytes": 59089,
+      "pixel_width": 2600,
+      "pixel_height": 419,
+      "renderer": "MuseScore Studio 4.6.3"
+    },
+    "b08c2fc47d5dea49c0cb75e6e896ad5cbe88459868f47aa1f8a834f65decf287": {
+      "resource": "practice-trained-ear-Crowell-2004_066-reference-v1",
+      "content_type": "image/png",
+      "sha256": "562d979cfea83e0f971a30d07abd4ad2fbdcd5d04f1dac5c3f341fe5f0da2ed6",
+      "size_bytes": 57729,
+      "pixel_width": 2600,
+      "pixel_height": 422,
+      "renderer": "MuseScore Studio 4.6.3"
+    },
+    "68c6bb42fce49a3b5efdc732b0e8d1e17d601604c68b58405ad9cfd66fddb3b9": {
+      "resource": "practice-trained-ear-Cole-Lewis-1904_1-01-177-reference-v1",
+      "content_type": "image/png",
+      "sha256": "dbf16674d7310956cec6e875000114e9c0d1d412a92b6db395bfdbb400cd8c06",
+      "size_bytes": 47229,
+      "pixel_width": 2600,
+      "pixel_height": 419,
+      "renderer": "MuseScore Studio 4.6.3"
+    },
+    "98de9074ee89add90d0cbd10ab55ab5d871fc10f6cd373a46e65afb2a275300c": {
+      "resource": "practice-trained-ear-Somervell-1911_334-reference-v1",
+      "content_type": "image/png",
+      "sha256": "8b1712159eb00e8900ff0595b0adbff831ef0ef715d97381b109114705685f7f",
+      "size_bytes": 54625,
+      "pixel_width": 2600,
+      "pixel_height": 419,
+      "renderer": "MuseScore Studio 4.6.3"
+    },
+    "4c18e9dc44f0fcf055dd43e5b3bd0e7b14e84c7043e00118d645438fce12291a": {
+      "resource": "practice-trained-ear-Cringan-1901_061-reference-v1",
+      "content_type": "image/png",
+      "sha256": "9c6ce61329fb2d2ef6aac0fc217eb298f8fac5b9db70c277a7d5d0b3f7c19309",
+      "size_bytes": 58350,
+      "pixel_width": 2600,
+      "pixel_height": 419,
+      "renderer": "MuseScore Studio 4.6.3"
+    },
+    "f239d57013c37a98b21aaedb40e042a3cff08448e76507b7ae388269a42e4fa0": {
+      "resource": "practice-trained-ear-Cringan-1901_062-reference-v1",
+      "content_type": "image/png",
+      "sha256": "b9d48fb7c4d0ac67fc3347a7133abdd7604c78a771c89351737bc08efbfd3722",
+      "size_bytes": 61613,
+      "pixel_width": 2600,
+      "pixel_height": 419,
+      "renderer": "MuseScore Studio 4.6.3"
+    },
+    "4454bcac0b8aa20d07ea40fe38519d8658afd619e1800e6101b06edc7686dd66": {
+      "resource": "practice-trained-ear-Crowell-2004_043-reference-v1",
+      "content_type": "image/png",
+      "sha256": "f242a8447b30c1e8004e34dae14a12c82f486ba0f27381f4b5ceb57f96c4f497",
+      "size_bytes": 55647,
+      "pixel_width": 2600,
+      "pixel_height": 419,
+      "renderer": "MuseScore Studio 4.6.3"
+    },
+    "0804d1b1a6584e8de26914b997b0d7fc617ee01634bbe58d28e046c8dd93d124": {
+      "resource": "practice-trained-ear-Cole-Lewis-1904_1-01-156-reference-v1",
+      "content_type": "image/png",
+      "sha256": "52e685534b7b207bd5504b6a7937951f2eb805f79844adc28ba2a605f3cbde9f",
+      "size_bytes": 50962,
+      "pixel_width": 2600,
+      "pixel_height": 419,
+      "renderer": "MuseScore Studio 4.6.3"
+    },
+    "5997232c3d62c5aa80911bfdf5448c9ed76bfa910a3a7b8e7fbebc0b16a45736": {
+      "resource": "practice-trained-ear-Cringan-1901_059-reference-v1",
+      "content_type": "image/png",
+      "sha256": "2a8ec1cf88b1e68958fd83968a0c347df55b02791f5e32917f70a8b84bbfe0d7",
+      "size_bytes": 61028,
+      "pixel_width": 2600,
+      "pixel_height": 432,
+      "renderer": "MuseScore Studio 4.6.3"
+    },
+    "aa0d5f7417c7ab6cdecef96de6c0e40e40f0ef84e5333a95555a0fa11d574b36": {
+      "resource": "practice-trained-ear-Cringan-1901_060-reference-v1",
+      "content_type": "image/png",
+      "sha256": "25891e6a4b6843e6123880d61a0afb2799dbb59751a39b247b44e446f900ac74",
+      "size_bytes": 55960,
+      "pixel_width": 2600,
+      "pixel_height": 432,
+      "renderer": "MuseScore Studio 4.6.3"
+    },
+    "6f0d5f2ff3c692b9bf0ef2383207bf6398263cb9f82885313c479686c97e1708": {
+      "resource": "practice-trained-ear-Cole-Lewis-1904_1-01-254-reference-v1",
+      "content_type": "image/png",
+      "sha256": "1370c2745647527c2a9e545da3d4da468b7418f96cd9a8eaf83b8d239bb09ba5",
+      "size_bytes": 59132,
+      "pixel_width": 2600,
+      "pixel_height": 419,
+      "renderer": "MuseScore Studio 4.6.3"
     }
   }
 }

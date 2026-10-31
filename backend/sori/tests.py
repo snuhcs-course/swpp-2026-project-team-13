@@ -73,7 +73,7 @@ class FlowTests(TestCase):
     def test_classical_collection_is_separate_and_paginates_with_composer_and_key(self):
         from urllib.parse import urlsplit
         practice = self.client.get("/api/v1/questions/")
-        self.assertEqual(practice.data["count"],62)
+        self.assertEqual(practice.data["count"],113)
         url = "/api/v1/questions/?collection=classical&page_size=3"
         results = []
         while url:
@@ -129,7 +129,7 @@ class FlowTests(TestCase):
             self.assertEqual(plan["count_in"]["beat_unit"], q["time_signature"]["denominator"])
             self.assertEqual([s["pause_after_ms"] for s in plan["steps"]], [20000]*10+[120000])
             started = self.post(f'attempts/{a["id"]}/start/').data
-            expected = {(4,4):456,(3,4):426,(6,8):423,(2,4):393,(7,8):443,(9,8):468,(12,8):516}[(q["time_signature"]["numerator"],q["time_signature"]["denominator"])]
+            expected = {(2,2):434,(4,4):456,(3,4):426,(6,8):423,(2,4):393,(7,8):443,(9,8):468,(12,8):516}[(q["time_signature"]["numerator"],q["time_signature"]["denominator"])]
             self.assertEqual(q["recommended_duration_seconds"], expected)
             self.assertEqual(a["question"]["recommended_duration_seconds"], expected)
             self.assertEqual((datetime.fromisoformat(started["recommended_end_at"].replace("Z","+00:00")) -
@@ -162,16 +162,18 @@ class FlowTests(TestCase):
     def test_full_catalog_pagination_and_owner_visibility(self):
         response = self.client.get("/api/v1/questions/")
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.data["count"], 62)
+        self.assertEqual(response.data["count"], 113)
         self.assertEqual([(q["time_signature"]["numerator"], q["time_signature"]["denominator"]) for q in response.data["results"][:3]], [(6,8),(4,4),(3,4)])
         results=list(response.data["results"])
         while response.data["next"]:
             response=self.client.get(response.data["next"])
             self.assertEqual(response.status_code,200)
             results.extend(response.data["results"])
-        self.assertEqual(len(results),62)
-        self.assertEqual(len({q["id"] for q in results}),62)
-        self.assertTrue(all(q["title"].startswith("고난도 청음") for q in results[3:]))
+        self.assertEqual(len(results),113)
+        self.assertEqual(len({q["id"] for q in results}),113)
+        self.assertTrue(all(q["title"].startswith("고난도 청음") for q in results[3:62]))
+        from collections import Counter
+        self.assertEqual(Counter(q["difficulty"] for q in results),{"beginner":40,"intermediate":14,"advanced":59})
         # Every new problem resolves its authenticated score and final answer image.
         for summary in results[3:]:
             q=self.client.get(f'/api/v1/questions/{summary["id"]}/').data

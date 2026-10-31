@@ -66,6 +66,7 @@ def main():
         _,me=request("/api/v1/me/")
         _,page=request("/api/v1/questions/")
         expected=json.loads((ROOT / "backend/content/catalog.json").read_text(encoding="utf-8"))
+        expected.extend(json.loads((ROOT / "backend/content/additional-practice-catalog.json").read_text(encoding="utf-8")))
         check("full practice catalog",page["count"]==len(expected))
         summaries=list(page["results"])
         while page["next"]:

@@ -61,19 +61,38 @@ final class LocalStore {
 enum TokenVault {
     static let service = "org.snuhcs.team13.sori.development-token"
     static func read(server: String) throws -> String {
+        try storage().read(server:server)
+    }
+    static func save(_ value: String, server: String) throws {
+        try storage().save(value,server:server)
+    }
+    static func delete(server: String) throws {
+        try storage().delete(server:server)
+    }
+    private static func storage() throws -> SavedTokenStore {
+        let app = try FileManager.default.url(for:.applicationSupportDirectory,in:.userDomainMask,appropriateFor:nil,create:true)
+        return SavedTokenStore(directory:app.appendingPathComponent("SORI/ConnectionCredentials",isDirectory:true),
+            secureRead:{ try readKeychain(server:$0) },secureSave:{ try saveKeychain($0,server:$1) },secureDelete:{ try deleteKeychain(server:$0) })
+    }
+    private static func readKeychain(server: String) throws -> String {
         let query: [String: Any] = [kSecClass as String: kSecClassGenericPassword, kSecAttrService as String: service, kSecAttrAccount as String: server, kSecReturnData as String: true, kSecMatchLimit as String: kSecMatchLimitOne]
         var result: CFTypeRef?
         let status = SecItemCopyMatching(query as CFDictionary, &result)
         if status == errSecItemNotFound { return "" }
         guard status == errSecSuccess, let data = result as? Data, let value = String(data: data, encoding: .utf8) else { throw SORIError.storage("Keychain에서 토큰을 읽을 수 없습니다.") }; return value
     }
-    static func save(_ value: String, server: String) throws {
+    private static func saveKeychain(_ value: String, server: String) throws {
         let query: [String: Any] = [kSecClass as String: kSecClassGenericPassword, kSecAttrService as String: service, kSecAttrAccount as String: server]
         let attributes: [String: Any] = [kSecValueData as String: Data(value.utf8), kSecAttrAccessible as String: kSecAttrAccessibleWhenUnlockedThisDeviceOnly]
         let result = SecItemUpdate(query as CFDictionary, attributes as CFDictionary)
         if result == errSecItemNotFound {
             guard SecItemAdd(query.merging(attributes) { _, new in new } as CFDictionary, nil) == errSecSuccess else { throw SORIError.storage("Keychain에 토큰을 저장하지 못했습니다.") }
         } else if result != errSecSuccess { throw SORIError.storage("Keychain의 토큰을 갱신하지 못했습니다.") }
+    }
+    private static func deleteKeychain(server: String) throws {
+        let query: [String:Any] = [kSecClass as String:kSecClassGenericPassword,kSecAttrService as String:service,kSecAttrAccount as String:server]
+        let status = SecItemDelete(query as CFDictionary)
+        guard status == errSecSuccess || status == errSecItemNotFound else { throw SORIError.storage("저장된 토큰을 삭제하지 못했습니다.") }
     }
 }
 

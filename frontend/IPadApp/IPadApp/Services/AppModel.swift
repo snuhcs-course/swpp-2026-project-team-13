@@ -6,6 +6,7 @@ import PencilKit
     @Published var screen: Screen = .home
     @Published var profile: UserProfile?
     @Published var questions: [QuestionSummary] = []
+    @Published var selectedPracticeLevel: PracticeLevel?
     @Published var classicalQuestions: [QuestionSummary] = []
     @Published var classicalLoaded = false
     @Published var classicalHasNextPage = false
@@ -33,6 +34,7 @@ import PencilKit
     @Published var demo: Bool
     @Published var server: String
     @Published var demoOutcome: String
+    @Published var rememberToken: Bool
     @Published private(set) var instrumentVoices: [InstrumentVoice] = []
     @Published private(set) var selectedVoice = "grand-piano"
     let drawing = DrawingController()
@@ -40,6 +42,8 @@ import PencilKit
     private var api: (any ExamAPI)?
     private var store: LocalStore?
     private var clock = AdvisoryClock()
+    private var connectionToken: String?
+    private var connectionTokenServer: String?
     @Published private var saveFailed = false
     var isLocked: Bool { session?.frozen == true || session?.attempt.status != "in_progress" || drawingMissing || saveFailed }
     var remaining: Int { clock.remaining() }
@@ -50,6 +54,7 @@ import PencilKit
         demo = d.object(forKey: "sori.demo") as? Bool ?? true
         server = d.string(forKey: "sori.server") ?? Self.defaultServer
         demoOutcome = d.string(forKey: "sori.demoOutcome") ?? "completed"
+        rememberToken = d.object(forKey:"sori.rememberToken") as? Bool ?? true
         if let choices: InstrumentChoices = try? Bundled.decode("instruments") {
             instrumentVoices = choices.voices
             let saved = d.string(forKey:"sori.voice") ?? choices.defaultVoice
@@ -81,24 +86,37 @@ import PencilKit
             self.player.pause(); self.prepared = false; self.connected = false
             self.api = nil; self.store = nil; self.profile = nil; self.questions = []; self.history = []; self.session = nil
             self.classicalQuestions = []; self.classicalLoaded = false; self.classicalPage = 0; self.classicalHasNextPage = false; self.selectedComposer = nil
+            self.selectedPracticeLevel = nil
             let candidate: any ExamAPI
+            var activeToken: String?
             if self.demo { candidate = try DemoExamAPI(outcome: self.demoOutcome) }
             else {
                 guard let url = URL(string: self.server) else { throw SORIError.configuration("API 주소를 확인해 주세요.") }
-                let value = try token ?? TokenVault.read(server: self.server)
+                let memoryToken = self.connectionTokenServer == SavedTokenStore.account(self.server) ? self.connectionToken : nil
+                let value: String
+                if let token { value = token.trimmingCharacters(in:.whitespacesAndNewlines) }
+                else if let memoryToken { value = memoryToken }
+                else if self.rememberToken { value = try TokenVault.read(server:self.server) }
+                else { value = "" }
                 candidate = try HTTPExamAPI(base: url, token: value)
+                activeToken = value
             }
             let user = try await candidate.profile()
-            if !self.demo, let token { try TokenVault.save(token, server: self.server) }
+            if let value = activeToken {
+                if self.rememberToken { try TokenVault.save(value,server:self.server) }
+                else { try TokenVault.delete(server:self.server) }
+                self.connectionToken = value; self.connectionTokenServer = SavedTokenStore.account(self.server)
+            }
             let local = try LocalStore(scope: candidate.scope + ":" + user.id.uuidString)
             let records = try local.all()
-            let page = try await candidate.questions(page: 1)
+            let list = try await PracticeQuestionList.load { try await candidate.questions(page:$0) }
             self.api = candidate; self.store = local; self.profile = user; self.history = records
-            self.questions = page.results; self.page = 1; self.hasNextPage = page.next != nil
+            self.questions = list.questions; self.page = list.lastPage; self.hasNextPage = false
             self.session = nil; self.template = nil; self.submittedImage = nil; self.mainScore = nil; self.correctScoreImage = nil; self.correctScoreError = nil
             self.connected = true; self.screen = .home
             let defaults = UserDefaults.standard
             defaults.set(self.demo, forKey: "sori.demo"); defaults.set(self.server, forKey: "sori.server"); defaults.set(self.demoOutcome, forKey: "sori.demoOutcome")
+            defaults.set(self.rememberToken,forKey:"sori.rememberToken")
         }
     }
     func loadMore() async {
@@ -114,6 +132,16 @@ import PencilKit
         player.stopForPreparation(); prepared = false
         selectedVoice = id; player.voiceId = id
         UserDefaults.standard.set(id,forKey:"sori.voice")
+    }
+    func setRememberToken(_ enabled: Bool, server: String) {
+        do {
+            if !enabled { try TokenVault.delete(server:server) }
+            else if connectionTokenServer == SavedTokenStore.account(server), let value = connectionToken {
+                try TokenVault.save(value,server:server)
+            }
+            rememberToken = enabled
+            UserDefaults.standard.set(enabled,forKey:"sori.rememberToken")
+        } catch { report(error) }
     }
     func loadClassical(reset: Bool = false) async {
         await run("클래식 문제를 불러오는 중") {
@@ -171,6 +199,7 @@ import PencilKit
     private func activate(_ record: SessionRecord) async throws {
         selectedQuestion = record.attempt.question
         if record.attempt.question.collection == "classical" { selectedComposer = record.attempt.question.composer }
+        else { selectedPracticeLevel = record.attempt.question.practiceLevel }
         player.stopForPreparation(); prepared = false; drawingMissing = false; saveFailed = false; mainScore = nil; submittedImage = nil; template = nil; correctScoreImage = nil; correctScoreError = nil
         guard let store else { return }
         clock.sync(record.attempt)

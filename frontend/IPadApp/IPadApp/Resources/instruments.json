@@ -3,7 +3,7 @@
   "voices": [
     {
       "id": "grand-piano",
-      "title": "클래식 그랜드 피아노 · 미니게임 공통",
+      "title": "클래식 그랜드 피아노",
       "program": 0,
       "gain_db": -3
     },

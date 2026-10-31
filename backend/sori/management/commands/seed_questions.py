@@ -6,7 +6,7 @@ from sori.models import Question, QuestionVersion
 from sori.catalogs import shipped_questions
 
 class Command(BaseCommand):
-    help = "Register all immutable problem versions shipped in the practice catalog."
+    help = "Register immutable versions from all shipped practice and classical catalogs."
     @transaction.atomic
     def handle(self, *args, **options):
         catalog = shipped_questions()

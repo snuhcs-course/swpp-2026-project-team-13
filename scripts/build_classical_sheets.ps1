@@ -15,6 +15,14 @@ foreach ($item in $source.accepted) {
 # Exercise the new meter templates even when a candidate in that meter is excluded.
 $combinations['2-2-0'] = @(2,2,0)
 $combinations['3-8-0'] = @(3,8,0)
+$practiceSource = Join-Path $Repository 'backend/content/source/practice-import/provenance.json'
+if (Test-Path -LiteralPath $practiceSource) {
+    $practice = Get-Content -Raw -LiteralPath $practiceSource | ConvertFrom-Json
+    foreach ($item in $practice.accepted) {
+        $n,$d = $item.meter
+        $combinations["$n-$d-$($item.key.fifths)"] = @([int]$n,[int]$d,[int]$item.key.fifths)
+    }
+}
 $symbolFamily = New-Object System.Drawing.FontFamily('Segoe UI Symbol')
 $numberFamily = New-Object System.Drawing.FontFamily('Times New Roman')
 $keyPaths = Get-Content -Raw -LiteralPath (Join-Path $Repository 'scripts/engraving/key-signature-paths.json') | ConvertFrom-Json
@@ -49,6 +57,8 @@ function Draw-Glyph($graphics, [string]$text, $family, [int]$style, [single]$siz
 foreach ($entry in $combinations.Values) {
     $n,$d,$fifths = $entry
     $id = "staff-8bars-$n-$d-key$fifths-v3"
+    # Existing immutable templates must not be re-rendered by a later import.
+    if (Test-Path -LiteralPath (Join-Path $sheetRoot "$id.png")) { continue }
     $bitmap = New-Object System.Drawing.Bitmap(2660,1692,[System.Drawing.Imaging.PixelFormat]::Format24bppRgb)
     $graphics = [System.Drawing.Graphics]::FromImage($bitmap)
     $graphics.Clear([System.Drawing.Color]::White)

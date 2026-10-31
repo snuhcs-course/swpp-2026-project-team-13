@@ -7,6 +7,8 @@ struct SettingsView: View {
     @State private var address = ""
     @State private var outcome = "completed"
     @State private var showSoundLicense = false
+    @State private var rememberToken = true
+    @State private var hasSavedToken = false
     var body: some View {
         ScrollView { VStack(alignment:.leading,spacing:28) {
             SectionCaption(eyebrow:"CONNECTION & PREFERENCES",title:"연결 설정",subtitle:"로컬 데모 또는 개발 중인 Django 서버에 연결하세요.")
@@ -19,12 +21,17 @@ struct SettingsView: View {
                     Text("API 기준 주소").font(.subheadline.bold())
                     TextField("https://server/api/v1/",text:$address).textInputAutocapitalization(.never).autocorrectionDisabled().keyboardType(.URL).textFieldStyle(.roundedBorder).accessibilityIdentifier("api-base-url")
                     Text("개발용 Bearer 토큰").font(.subheadline.bold())
-                    SecureField("새 토큰 입력 · 비워두면 저장된 토큰 사용",text:$token).textInputAutocapitalization(.never).autocorrectionDisabled().textFieldStyle(.roundedBorder)
-                    Text("토큰은 이 기기의 Keychain에 저장됩니다. 실제 iPad에서 로컬 서버에 접속할 때는 서버를 실행하는 PC의 LAN IP 주소를 사용해 주세요.").font(.caption).foregroundStyle(.secondary)
+                    SecureField(hasSavedToken ? "저장된 토큰 사용 · 변경할 때만 입력" : "개발 토큰 입력",text:$token).textInputAutocapitalization(.never).autocorrectionDisabled().textFieldStyle(.roundedBorder).accessibilityIdentifier("development-token")
+                    Toggle("이 서버의 토큰을 기기에 저장",isOn:$rememberToken).toggleStyle(TokenCheckboxStyle()).accessibilityIdentifier("remember-development-token")
+                    if hasSavedToken && rememberToken { Label("저장된 토큰이 있어요. 비워 두고 연결해도 됩니다.",systemImage:"checkmark.shield.fill").font(.caption).foregroundStyle(.green).accessibilityIdentifier("saved-token-status") }
+                    Text("저장을 선택하면 다음 앱 업데이트에도 토큰을 다시 사용할 수 있어요. 체크를 해제하면 이 서버에 저장한 토큰을 지웁니다.").font(.caption).foregroundStyle(.secondary)
+                    Text("실제 iPad에서는 서버 PC의 LAN IP 주소를 사용해 주세요.").font(.caption).foregroundStyle(.secondary)
                 }
                 Button { Task {
                     model.demo=useDemo; model.server=address.trimmingCharacters(in:.whitespacesAndNewlines); model.demoOutcome=outcome
-                    await model.connect(token:token.isEmpty ? nil : token); token=""
+                    model.rememberToken=rememberToken
+                    await model.connect(token:token.trimmingCharacters(in:.whitespacesAndNewlines).isEmpty ? nil : token); token=""
+                    updateSavedStatus()
                 } } label: { Label(useDemo ? "데모 시작" : "서버 연결",systemImage:"arrow.right.circle") }.buttonStyle(PrimaryButton())
             } }
             Card { VStack(alignment:.leading,spacing:16) {
@@ -58,6 +65,20 @@ struct SettingsView: View {
                     .toolbar { ToolbarItem(placement:.confirmationAction) { Button("닫기") { showSoundLicense = false } } }
             }
         }
-        .onAppear { useDemo=model.demo; address=model.server; outcome=model.demoOutcome }
+        .onAppear { useDemo=model.demo; address=model.server; outcome=model.demoOutcome; rememberToken=model.rememberToken; updateSavedStatus() }
+        .onChange(of:address) { _,_ in updateSavedStatus() }
+        .onChange(of:rememberToken) { _,value in model.setRememberToken(value,server:address); updateSavedStatus() }
+    }
+    private func updateSavedStatus() { hasSavedToken = !((try? TokenVault.read(server:address)) ?? "").isEmpty }
+}
+
+private struct TokenCheckboxStyle: ToggleStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        Button { configuration.isOn.toggle() } label: {
+            HStack(spacing:12) {
+                Image(systemName:configuration.isOn ? "checkmark.square.fill" : "square").font(.title2).foregroundStyle(SORITheme.violet)
+                configuration.label.foregroundStyle(.primary)
+            }.frame(maxWidth:.infinity,alignment:.leading).contentShape(Rectangle())
+        }.buttonStyle(.plain).accessibilityValue(configuration.isOn ? "선택됨" : "선택 안 됨")
     }
 }

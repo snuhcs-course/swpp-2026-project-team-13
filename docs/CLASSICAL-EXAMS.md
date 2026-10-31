@@ -32,7 +32,7 @@
 
 `backend/content/catalog.json`과 iPad `Resources/practice-catalog.json`은 기존 3+59문제를 그대로 유지한다. 클래식은 별도 `classical-catalog.json`에 저장하고 `seed_questions`가 두 목록을 함께 등록한다. ID·자산 이름·순서가 기존 문제와 겹치지 않는다. 기존 문제 버전과 기존 응시 스냅샷은 수정하지 않는다.
 
-기본 `GET /api/v1/questions/`는 기존 62문제다. `?collection=classical`은 클래식 문제이며 `composer`, `collection`을 반환한다. 페이지 이동에도 분류를 유지한다. 로컬 데모도 같은 분류와 시험 자산을 사용한다.
+기본 `GET /api/v1/questions/`는 기존 62개와 별도 추가 51개를 합친 연습실 113문제다. [초급·중급·고급 분류](PRACTICE-LEVELS.md)를 참고한다. `?collection=classical`은 클래식 11문제이며 `composer`, `collection`을 반환한다. 페이지 이동에도 분류를 유지한다. 로컬 데모도 같은 분류와 시험 자산을 사용한다.
 
 ## 오선·조성·박자
 
@@ -54,7 +54,7 @@ MusicXML 파서는 고정 조표 −7…+7, 장·단조를 지원하며 중간 �
 
 ```powershell
 cd C:\Users\123wh\Desktop\solfege\sori
-docker compose up -d --build api worker
+docker compose --env-file backend/.env up -d --build --wait api worker
 ```
 
 현재 Compose의 `api` 시작 과정은 자동으로 마이그레이션과 두 문제 목록 등록을 수행한다. 이미 새 이미지로 실행 중인 서버에 등록 명령만 다시 적용하려면 `docker compose exec api python manage.py seed_questions`를 사용한다. 등록은 같은 버전에 대해 반복 가능하다.

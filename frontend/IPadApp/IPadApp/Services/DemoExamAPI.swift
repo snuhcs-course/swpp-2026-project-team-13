@@ -20,7 +20,8 @@ import Foundation
     private func catalog() throws -> [Question] {
         let practice: [Question] = try Bundled.decode("practice-catalog")
         let classical: [Question] = try Bundled.decode("classical-catalog")
-        let values = practice + classical
+        let additional: [Question] = try Bundled.decode("additional-practice-catalog")
+        let values = practice + classical + additional
         let engraving: EngravingManifest = try Bundled.decode("engraving-manifest")
         return values.map { source in
             var q = source
@@ -32,7 +33,7 @@ import Foundation
     }
     func questions(page: Int) async throws -> QuestionPage {
         let values = try catalog().filter { $0.collection != "classical" }
-        return QuestionPage(count: values.count, next: nil, previous: nil, results: values.map { q in QuestionSummary(id:q.id,version:q.version,title:q.title,source:q.source,keySignature:q.keySignature,timeSignature:q.timeSignature,measureCount:q.measureCount,recommendedDurationSeconds:q.recommendedDurationSeconds) })
+        return QuestionPage(count: values.count, next: nil, previous: nil, results: values.map { q in QuestionSummary(id:q.id,version:q.version,title:q.title,source:q.source,keySignature:q.keySignature,timeSignature:q.timeSignature,measureCount:q.measureCount,recommendedDurationSeconds:q.recommendedDurationSeconds,tempo:q.tempo,difficulty:q.practiceLevel.rawValue) })
     }
     func classicalQuestions(page: Int) async throws -> QuestionPage {
         let values = try catalog().filter { $0.collection == "classical" }
@@ -121,6 +122,8 @@ import Foundation
             let kind = url.path.contains("/scores/scale") ? "scale" : "main"
             if values[index].collection == "classical" {
                 data = try Bundled.data("classical-\(values[index].id.uuidString.lowercased())-\(kind)",ext:"mxl")
+            } else if values[index].difficulty != nil {
+                data = try Bundled.data("practice-\(values[index].id.uuidString.lowercased())-\(kind)",ext:"mxl")
             } else {
                 let version = url.path.contains("/versions/2/") ? "-v2" : ""
                 data = try Bundled.data("excerpt-\(index+1)\(version)-\(kind)", ext:"mxl")

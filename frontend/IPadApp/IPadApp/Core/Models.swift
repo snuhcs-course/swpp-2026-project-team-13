@@ -66,6 +66,7 @@ struct QuestionSummary: Codable, Identifiable, Equatable {
     var tempo: TempoSetting? = nil
     var collection: String? = nil
     var composer: String? = nil
+    var difficulty: String? = nil
 }
 struct Question: Codable, Identifiable, Equatable {
     var id: UUID; var version: Int; var title: String; var source: String
@@ -77,6 +78,7 @@ struct Question: Codable, Identifiable, Equatable {
     var correctScore: ReferenceImage? = nil
     var collection: String? = nil
     var composer: String? = nil
+    var difficulty: String? = nil
     func validate() throws {
         try sheetLayout.validate()
         guard source == "practice", keySignature.supported,

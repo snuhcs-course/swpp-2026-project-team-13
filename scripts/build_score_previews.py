@@ -94,7 +94,7 @@ def main():
     old = json.loads((CONTENT / "catalog-v1.json").read_text(encoding="utf-8"))
     existing_path = target / "manifest.json"
     existing = json.loads(existing_path.read_text(encoding="utf-8")) if existing_path.exists() else {"scores": {}}
-    classical = {key: value for key, value in existing["scores"].items() if value["resource"].startswith("classical-")}
+    classical = {key: value for key, value in existing["scores"].items() if value["resource"].startswith(("classical-","practice-"))}
     manifest = {"renderer": "MuseScore Studio 4.6.3", "style": "compact-v1", "style_sha256": hashlib.sha256(style_data).hexdigest(), "scores": classical}
     for index, item in enumerate(catalog, 1):
         name = "excerpt-" + str(index) + "-reference-v1"

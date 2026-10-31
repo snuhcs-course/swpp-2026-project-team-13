@@ -1,0 +1,1690 @@
+{
+  "pages_source": "User supplied Melodic Exercises - Pages 1-2.musicxml; user verified transcription.",
+  "beginner_selection": {
+    "selected": 40,
+    "eligible": 197,
+    "exact_sources": 961,
+    "pickups_excluded": 86,
+    "excluded": {
+      "too_simple": 243,
+      "more_than_three_key_accidentals": 117,
+      "beyond_beginner": 176,
+      "unsupported_rhythm": 19,
+      "repeat_or_multiple_voices": 7,
+      "unsupported_source_notation": 52,
+      "unsupported_note_type": 7,
+      "bass_clef": 138,
+      "chord_or_grace": 2,
+      "unsupported_clef": 1,
+      "inconsistent_rhythm": 2
+    },
+    "criteria": "At least 20 notes, 5 pitches, a perfect-fifth span and 2 rhythms; at most 48 notes, 19 semitones, 3 key accidentals, eighth-note minimum, 2 chromatic notes, 6 tuplet notes, octave maximum leap; diversify books, meters and keys."
+  },
+  "accepted": [
+    {
+      "kind": "pages",
+      "source_id": "pages-1-2-01",
+      "file": "pages-1-2.musicxml",
+      "sha256": "d1d2835510ecc709b5ade46812d4637355dc774121f1d960102fbddcf890210d",
+      "measures": [
+        1,
+        8
+      ],
+      "block": 1,
+      "difficulty": "intermediate",
+      "meter": [
+        6,
+        8
+      ],
+      "key": {
+        "tonic": "C",
+        "mode": "major",
+        "fifths": 0
+      },
+      "review": "User confirmed the complete transcription; only the silent eight-bar exercise is excluded.",
+      "features": {
+        "notes": 47,
+        "pitch_count": 14,
+        "span": 17,
+        "rhythms": 6,
+        "shortest": 80,
+        "rests": 0,
+        "chromatic": 3,
+        "triplets": 3,
+        "max_leap": 9
+      },
+      "question_id": "5f82d6e0-b52e-5812-b14c-b4f8dd0dfb1f"
+    },
+    {
+      "kind": "pages",
+      "source_id": "pages-1-2-02",
+      "file": "pages-1-2.musicxml",
+      "sha256": "d1d2835510ecc709b5ade46812d4637355dc774121f1d960102fbddcf890210d",
+      "measures": [
+        9,
+        16
+      ],
+      "block": 2,
+      "difficulty": "intermediate",
+      "meter": [
+        4,
+        4
+      ],
+      "key": {
+        "tonic": "C",
+        "mode": "major",
+        "fifths": 0
+      },
+      "review": "User confirmed the complete transcription; only the silent eight-bar exercise is excluded.",
+      "features": {
+        "notes": 52,
+        "pitch_count": 16,
+        "span": 18,
+        "rhythms": 6,
+        "shortest": 120,
+        "rests": 1,
+        "chromatic": 4,
+        "triplets": 9,
+        "max_leap": 12
+      },
+      "question_id": "dda9f8e8-9b74-54a8-8cdf-4df97f49f878"
+    },
+    {
+      "kind": "pages",
+      "source_id": "pages-1-2-03",
+      "file": "pages-1-2.musicxml",
+      "sha256": "d1d2835510ecc709b5ade46812d4637355dc774121f1d960102fbddcf890210d",
+      "measures": [
+        17,
+        24
+      ],
+      "block": 3,
+      "difficulty": "intermediate",
+      "meter": [
+        3,
+        4
+      ],
+      "key": {
+        "tonic": "C",
+        "mode": "major",
+        "fifths": 0
+      },
+      "review": "User confirmed the complete transcription; only the silent eight-bar exercise is excluded.",
+      "features": {
+        "notes": 41,
+        "pitch_count": 17,
+        "span": 21,
+        "rhythms": 5,
+        "shortest": 120,
+        "rests": 2,
+        "chromatic": 6,
+        "triplets": 3,
+        "max_leap": 12
+      },
+      "question_id": "a935ed61-be86-569b-bbdd-b9c6cdeba215"
+    },
+    {
+      "kind": "pages",
+      "source_id": "pages-1-2-04",
+      "file": "pages-1-2.musicxml",
+      "sha256": "d1d2835510ecc709b5ade46812d4637355dc774121f1d960102fbddcf890210d",
+      "measures": [
+        25,
+        32
+      ],
+      "block": 4,
+      "difficulty": "intermediate",
+      "meter": [
+        6,
+        8
+      ],
+      "key": {
+        "tonic": "C",
+        "mode": "major",
+        "fifths": 0
+      },
+      "review": "User confirmed the complete transcription; only the silent eight-bar exercise is excluded.",
+      "features": {
+        "notes": 45,
+        "pitch_count": 16,
+        "span": 20,
+        "rhythms": 5,
+        "shortest": 120,
+        "rests": 1,
+        "chromatic": 4,
+        "triplets": 0,
+        "max_leap": 12
+      },
+      "question_id": "4f216359-d5ad-5a98-8637-980c82e4664a"
+    },
+    {
+      "kind": "pages",
+      "source_id": "pages-1-2-05",
+      "file": "pages-1-2.musicxml",
+      "sha256": "d1d2835510ecc709b5ade46812d4637355dc774121f1d960102fbddcf890210d",
+      "measures": [
+        33,
+        40
+      ],
+      "block": 5,
+      "difficulty": "intermediate",
+      "meter": [
+        4,
+        4
+      ],
+      "key": {
+        "tonic": "C",
+        "mode": "major",
+        "fifths": 0
+      },
+      "review": "User confirmed the complete transcription; only the silent eight-bar exercise is excluded.",
+      "features": {
+        "notes": 45,
+        "pitch_count": 14,
+        "span": 20,
+        "rhythms": 7,
+        "shortest": 120,
+        "rests": 0,
+        "chromatic": 4,
+        "triplets": 3,
+        "max_leap": 12
+      },
+      "question_id": "3ad21d16-6eb7-5159-9127-3526462488be"
+    },
+    {
+      "kind": "pages",
+      "source_id": "pages-1-2-07",
+      "file": "pages-1-2.musicxml",
+      "sha256": "d1d2835510ecc709b5ade46812d4637355dc774121f1d960102fbddcf890210d",
+      "measures": [
+        49,
+        56
+      ],
+      "block": 7,
+      "difficulty": "intermediate",
+      "meter": [
+        4,
+        4
+      ],
+      "key": {
+        "tonic": "C",
+        "mode": "major",
+        "fifths": 0
+      },
+      "review": "User confirmed the complete transcription; only the silent eight-bar exercise is excluded.",
+      "features": {
+        "notes": 51,
+        "pitch_count": 17,
+        "span": 17,
+        "rhythms": 6,
+        "shortest": 120,
+        "rests": 5,
+        "chromatic": 10,
+        "triplets": 6,
+        "max_leap": 12
+      },
+      "question_id": "3c2b6536-b0ba-55ad-b747-95cac55137e7"
+    },
+    {
+      "kind": "pages",
+      "source_id": "pages-1-2-08",
+      "file": "pages-1-2.musicxml",
+      "sha256": "d1d2835510ecc709b5ade46812d4637355dc774121f1d960102fbddcf890210d",
+      "measures": [
+        57,
+        64
+      ],
+      "block": 8,
+      "difficulty": "intermediate",
+      "meter": [
+        4,
+        4
+      ],
+      "key": {
+        "tonic": "C",
+        "mode": "major",
+        "fifths": 0
+      },
+      "review": "User confirmed the complete transcription; only the silent eight-bar exercise is excluded.",
+      "features": {
+        "notes": 48,
+        "pitch_count": 17,
+        "span": 17,
+        "rhythms": 6,
+        "shortest": 120,
+        "rests": 5,
+        "chromatic": 10,
+        "triplets": 3,
+        "max_leap": 9
+      },
+      "question_id": "4e18a07d-6ab2-5b35-83be-1ff7c696c481"
+    },
+    {
+      "kind": "pages",
+      "source_id": "pages-1-2-09",
+      "file": "pages-1-2.musicxml",
+      "sha256": "d1d2835510ecc709b5ade46812d4637355dc774121f1d960102fbddcf890210d",
+      "measures": [
+        65,
+        72
+      ],
+      "block": 9,
+      "difficulty": "intermediate",
+      "meter": [
+        6,
+        8
+      ],
+      "key": {
+        "tonic": "C",
+        "mode": "major",
+        "fifths": 0
+      },
+      "review": "User confirmed the complete transcription; only the silent eight-bar exercise is excluded.",
+      "features": {
+        "notes": 35,
+        "pitch_count": 14,
+        "span": 16,
+        "rhythms": 5,
+        "shortest": 120,
+        "rests": 0,
+        "chromatic": 5,
+        "triplets": 0,
+        "max_leap": 12
+      },
+      "question_id": "7c7462f1-cffc-59d7-baf5-1a083f947d43"
+    },
+    {
+      "kind": "pages",
+      "source_id": "pages-1-2-10",
+      "file": "pages-1-2.musicxml",
+      "sha256": "d1d2835510ecc709b5ade46812d4637355dc774121f1d960102fbddcf890210d",
+      "measures": [
+        73,
+        80
+      ],
+      "block": 10,
+      "difficulty": "intermediate",
+      "meter": [
+        4,
+        4
+      ],
+      "key": {
+        "tonic": "C",
+        "mode": "major",
+        "fifths": 0
+      },
+      "review": "User confirmed the complete transcription; only the silent eight-bar exercise is excluded.",
+      "features": {
+        "notes": 47,
+        "pitch_count": 12,
+        "span": 13,
+        "rhythms": 6,
+        "shortest": 120,
+        "rests": 3,
+        "chromatic": 3,
+        "triplets": 12,
+        "max_leap": 8
+      },
+      "question_id": "41be71b1-c023-59aa-ba44-eb0825053de8"
+    },
+    {
+      "kind": "pages",
+      "source_id": "pages-1-2-11",
+      "file": "pages-1-2.musicxml",
+      "sha256": "d1d2835510ecc709b5ade46812d4637355dc774121f1d960102fbddcf890210d",
+      "measures": [
+        81,
+        88
+      ],
+      "block": 11,
+      "difficulty": "intermediate",
+      "meter": [
+        4,
+        4
+      ],
+      "key": {
+        "tonic": "C",
+        "mode": "major",
+        "fifths": 0
+      },
+      "review": "User confirmed the complete transcription; only the silent eight-bar exercise is excluded.",
+      "features": {
+        "notes": 53,
+        "pitch_count": 15,
+        "span": 19,
+        "rhythms": 6,
+        "shortest": 120,
+        "rests": 3,
+        "chromatic": 10,
+        "triplets": 9,
+        "max_leap": 10
+      },
+      "question_id": "3f217539-8928-59fd-8e62-4eb65f18f77d"
+    },
+    {
+      "kind": "pages",
+      "source_id": "pages-1-2-12",
+      "file": "pages-1-2.musicxml",
+      "sha256": "d1d2835510ecc709b5ade46812d4637355dc774121f1d960102fbddcf890210d",
+      "measures": [
+        89,
+        96
+      ],
+      "block": 12,
+      "difficulty": "intermediate",
+      "meter": [
+        4,
+        4
+      ],
+      "key": {
+        "tonic": "C",
+        "mode": "major",
+        "fifths": 0
+      },
+      "review": "User confirmed the complete transcription; only the silent eight-bar exercise is excluded.",
+      "features": {
+        "notes": 43,
+        "pitch_count": 18,
+        "span": 22,
+        "rhythms": 5,
+        "shortest": 120,
+        "rests": 5,
+        "chromatic": 7,
+        "triplets": 3,
+        "max_leap": 10
+      },
+      "question_id": "10537bff-5960-5cbe-aa30-e306a8a9d3a3"
+    },
+    {
+      "kind": "trained-ear",
+      "source_id": "trained-ear-Cole-Lewis-1904_2-05-147",
+      "file": "Cole-Lewis-1904_2-05-147.xml",
+      "sha256": "40cdf42c587733cf96eeafcf516de34a6c7a252438830c1ffa316ec48e8c9e17",
+      "difficulty": "beginner",
+      "number": 1,
+      "meter": [
+        2,
+        2
+      ],
+      "key": {
+        "tonic": "Bb",
+        "mode": "major",
+        "fifths": -2
+      },
+      "features": {
+        "notes": 21,
+        "pitch_count": 11,
+        "span": 16,
+        "rhythms": 5,
+        "shortest": 240,
+        "rests": 2,
+        "chromatic": 1,
+        "triplets": 0,
+        "max_leap": 5
+      },
+      "book": "Cole-Lewis-1904",
+      "source_url": "https://www.trainedear.net/",
+      "license": "CC BY-SA 4.0",
+      "question_id": "80aeca13-bb69-5352-9496-539f185a8d49"
+    },
+    {
+      "kind": "trained-ear",
+      "source_id": "trained-ear-Batchellor-Charmbury-1884a_1-1-084",
+      "file": "Batchellor-Charmbury-1884a_1-1-084.xml",
+      "sha256": "6b3059bad042d2f25526886ac2e3c9d3ad73aea5d987a6a400cc4e69b0fbcf1b",
+      "difficulty": "beginner",
+      "number": 2,
+      "meter": [
+        2,
+        4
+      ],
+      "key": {
+        "tonic": "Eb",
+        "mode": "major",
+        "fifths": -3
+      },
+      "features": {
+        "notes": 31,
+        "pitch_count": 5,
+        "span": 8,
+        "rhythms": 2,
+        "shortest": 240,
+        "rests": 0,
+        "chromatic": 0,
+        "triplets": 0,
+        "max_leap": 8
+      },
+      "book": "Batchellor-Charmbury-1884a",
+      "source_url": "https://www.trainedear.net/",
+      "license": "CC BY-SA 4.0",
+      "question_id": "6a7bb4e2-e33b-59b9-84fd-f55758ac8bb0"
+    },
+    {
+      "kind": "trained-ear",
+      "source_id": "trained-ear-Hollis-1915_46-01",
+      "file": "Hollis-1915_46-01.xml",
+      "sha256": "0908fa90e1623f65b9fc3d618d93d62b5d994612e0347938836ebfa74a2878ce",
+      "difficulty": "beginner",
+      "number": 3,
+      "meter": [
+        2,
+        4
+      ],
+      "key": {
+        "tonic": "Eb",
+        "mode": "major",
+        "fifths": -3
+      },
+      "features": {
+        "notes": 30,
+        "pitch_count": 10,
+        "span": 15,
+        "rhythms": 2,
+        "shortest": 240,
+        "rests": 0,
+        "chromatic": 0,
+        "triplets": 0,
+        "max_leap": 4
+      },
+      "book": "Hollis-1915",
+      "source_url": "https://www.trainedear.net/",
+      "license": "CC BY-SA 4.0",
+      "question_id": "9daa5b49-a89d-5f6a-bf59-27cc0c0593e1"
+    },
+    {
+      "kind": "trained-ear",
+      "source_id": "trained-ear-Hollis-1915_42-02",
+      "file": "Hollis-1915_42-02.xml",
+      "sha256": "e3002df2d908ea782f90506a1347c44b6cf959d704702c20409b98a94485e5a4",
+      "difficulty": "beginner",
+      "number": 4,
+      "meter": [
+        2,
+        4
+      ],
+      "key": {
+        "tonic": "F",
+        "mode": "major",
+        "fifths": -1
+      },
+      "features": {
+        "notes": 29,
+        "pitch_count": 8,
+        "span": 12,
+        "rhythms": 2,
+        "shortest": 240,
+        "rests": 0,
+        "chromatic": 0,
+        "triplets": 0,
+        "max_leap": 2
+      },
+      "book": "Hollis-1915",
+      "source_url": "https://www.trainedear.net/",
+      "license": "CC BY-SA 4.0",
+      "question_id": "19976692-c070-50f9-9b1d-5e900cd000f9"
+    },
+    {
+      "kind": "trained-ear",
+      "source_id": "trained-ear-Hollis-1915_59-02",
+      "file": "Hollis-1915_59-02.xml",
+      "sha256": "91e7eb29f2ba33dc20e5d70730af965873c8dde39ff0da497ec637c5d69b60d9",
+      "difficulty": "beginner",
+      "number": 5,
+      "meter": [
+        2,
+        4
+      ],
+      "key": {
+        "tonic": "F",
+        "mode": "major",
+        "fifths": -1
+      },
+      "features": {
+        "notes": 26,
+        "pitch_count": 8,
+        "span": 12,
+        "rhythms": 2,
+        "shortest": 240,
+        "rests": 2,
+        "chromatic": 0,
+        "triplets": 0,
+        "max_leap": 4
+      },
+      "book": "Hollis-1915",
+      "source_url": "https://www.trainedear.net/",
+      "license": "CC BY-SA 4.0",
+      "question_id": "7034a4c5-7889-5767-9568-379b39f0b4a2"
+    },
+    {
+      "kind": "trained-ear",
+      "source_id": "trained-ear-Batchellor-Charmbury-1884b_2-1-007",
+      "file": "Batchellor-Charmbury-1884b_2-1-007.xml",
+      "sha256": "661234d9f5bb1382eee952c89f63c7c98cebf1babd59dc9293b68e450ee3c117",
+      "difficulty": "beginner",
+      "number": 6,
+      "meter": [
+        2,
+        4
+      ],
+      "key": {
+        "tonic": "C",
+        "mode": "major",
+        "fifths": 0
+      },
+      "features": {
+        "notes": 20,
+        "pitch_count": 8,
+        "span": 14,
+        "rhythms": 3,
+        "shortest": 240,
+        "rests": 0,
+        "chromatic": 0,
+        "triplets": 0,
+        "max_leap": 8
+      },
+      "book": "Batchellor-Charmbury-1884b",
+      "source_url": "https://www.trainedear.net/",
+      "license": "CC BY-SA 4.0",
+      "question_id": "4d0fd99b-6ea0-5f99-9ece-8f0f09aaef1d"
+    },
+    {
+      "kind": "trained-ear",
+      "source_id": "trained-ear-Hollis-1915_47-02",
+      "file": "Hollis-1915_47-02.xml",
+      "sha256": "8611e96b407c1078013166531dafb61419613832725b74c62606fffd675ea2ec",
+      "difficulty": "beginner",
+      "number": 7,
+      "meter": [
+        2,
+        4
+      ],
+      "key": {
+        "tonic": "C",
+        "mode": "major",
+        "fifths": 0
+      },
+      "features": {
+        "notes": 24,
+        "pitch_count": 7,
+        "span": 13,
+        "rhythms": 3,
+        "shortest": 240,
+        "rests": 1,
+        "chromatic": 0,
+        "triplets": 0,
+        "max_leap": 5
+      },
+      "book": "Hollis-1915",
+      "source_url": "https://www.trainedear.net/",
+      "license": "CC BY-SA 4.0",
+      "question_id": "44ca8c67-03f4-556e-819f-a6294906321a"
+    },
+    {
+      "kind": "trained-ear",
+      "source_id": "trained-ear-Hollis-1915_56-02",
+      "file": "Hollis-1915_56-02.xml",
+      "sha256": "8103496c5f38708483bfd028fb69fdef9d5a06b9b483da74bb5cc6f96cb92fee",
+      "difficulty": "beginner",
+      "number": 8,
+      "meter": [
+        2,
+        4
+      ],
+      "key": {
+        "tonic": "G",
+        "mode": "major",
+        "fifths": 1
+      },
+      "features": {
+        "notes": 26,
+        "pitch_count": 6,
+        "span": 8,
+        "rhythms": 2,
+        "shortest": 240,
+        "rests": 0,
+        "chromatic": 0,
+        "triplets": 0,
+        "max_leap": 4
+      },
+      "book": "Hollis-1915",
+      "source_url": "https://www.trainedear.net/",
+      "license": "CC BY-SA 4.0",
+      "question_id": "748cb582-c874-5f84-b82f-5225318151ba"
+    },
+    {
+      "kind": "trained-ear",
+      "source_id": "trained-ear-Sullivan_04-03-01_01",
+      "file": "Sullivan_04-03-01_01.xml",
+      "sha256": "311976528f6e3973b527c2ad68eaf82ce5da63d7cc7385b5c8dd93a235cee63b",
+      "difficulty": "beginner",
+      "number": 9,
+      "meter": [
+        2,
+        4
+      ],
+      "key": {
+        "tonic": "D",
+        "mode": "major",
+        "fifths": 2
+      },
+      "features": {
+        "notes": 24,
+        "pitch_count": 11,
+        "span": 16,
+        "rhythms": 3,
+        "shortest": 240,
+        "rests": 0,
+        "chromatic": 2,
+        "triplets": 0,
+        "max_leap": 10
+      },
+      "book": "Sullivan",
+      "source_url": "https://www.trainedear.net/",
+      "license": "CC BY-SA 4.0",
+      "question_id": "6bb7cac1-a248-5b4e-9a64-edd7d7a89752"
+    },
+    {
+      "kind": "trained-ear",
+      "source_id": "trained-ear-Crowell-2004_139",
+      "file": "Crowell-2004_139.xml",
+      "sha256": "0543c82fd67489433479bfd85d690d06f2ed94ed5d8772be6321cd1d375e59d9",
+      "difficulty": "beginner",
+      "number": 10,
+      "meter": [
+        2,
+        4
+      ],
+      "key": {
+        "tonic": "A",
+        "mode": "major",
+        "fifths": 3
+      },
+      "features": {
+        "notes": 24,
+        "pitch_count": 5,
+        "span": 9,
+        "rhythms": 2,
+        "shortest": 240,
+        "rests": 0,
+        "chromatic": 0,
+        "triplets": 0,
+        "max_leap": 7
+      },
+      "book": "Crowell-2004",
+      "source_url": "https://www.trainedear.net/",
+      "license": "CC BY-SA 4.0",
+      "question_id": "776afc03-96ed-5f23-b015-915e31e4eaf1"
+    },
+    {
+      "kind": "trained-ear",
+      "source_id": "trained-ear-Somervell-1911_438",
+      "file": "Somervell-1911_438.xml",
+      "sha256": "e442aad5bfd58c3c13aedf3bd60cd4760c84f358903a6d5d8d7513f08af619cb",
+      "difficulty": "beginner",
+      "number": 11,
+      "meter": [
+        3,
+        4
+      ],
+      "key": {
+        "tonic": "C",
+        "mode": "minor",
+        "fifths": -3
+      },
+      "features": {
+        "notes": 30,
+        "pitch_count": 10,
+        "span": 12,
+        "rhythms": 2,
+        "shortest": 240,
+        "rests": 1,
+        "chromatic": 2,
+        "triplets": 0,
+        "max_leap": 7
+      },
+      "book": "Somervell-1911",
+      "source_url": "https://www.trainedear.net/",
+      "license": "CC BY-SA 4.0",
+      "question_id": "d17156b5-f671-5f6c-bd82-ad8f9166435f"
+    },
+    {
+      "kind": "trained-ear",
+      "source_id": "trained-ear-Crowell-2004_198",
+      "file": "Crowell-2004_198.xml",
+      "sha256": "129e8ab09ba6b81e989df9b22f0326c67b84b97dff0f12b7c0c95f3bc2b8a17f",
+      "difficulty": "beginner",
+      "number": 12,
+      "meter": [
+        3,
+        4
+      ],
+      "key": {
+        "tonic": "G",
+        "mode": "minor",
+        "fifths": -2
+      },
+      "features": {
+        "notes": 28,
+        "pitch_count": 7,
+        "span": 9,
+        "rhythms": 3,
+        "shortest": 240,
+        "rests": 0,
+        "chromatic": 2,
+        "triplets": 0,
+        "max_leap": 7
+      },
+      "book": "Crowell-2004",
+      "source_url": "https://www.trainedear.net/",
+      "license": "CC BY-SA 4.0",
+      "question_id": "84ee97f9-3d79-5874-99a6-0848323dfeef"
+    },
+    {
+      "kind": "trained-ear",
+      "source_id": "trained-ear-Crowell-2004_203",
+      "file": "Crowell-2004_203.xml",
+      "sha256": "9238cbad58ecae7765aa8cdad60920f54f5116b22ec7a49ef054b7453ff8a5b8",
+      "difficulty": "beginner",
+      "number": 13,
+      "meter": [
+        3,
+        4
+      ],
+      "key": {
+        "tonic": "G",
+        "mode": "minor",
+        "fifths": -2
+      },
+      "features": {
+        "notes": 32,
+        "pitch_count": 9,
+        "span": 15,
+        "rhythms": 3,
+        "shortest": 240,
+        "rests": 0,
+        "chromatic": 0,
+        "triplets": 0,
+        "max_leap": 12
+      },
+      "book": "Crowell-2004",
+      "source_url": "https://www.trainedear.net/",
+      "license": "CC BY-SA 4.0",
+      "question_id": "c772514b-2e1a-57ad-b6e5-85136ea2c795"
+    },
+    {
+      "kind": "trained-ear",
+      "source_id": "trained-ear-Somervell-1911_221",
+      "file": "Somervell-1911_221.xml",
+      "sha256": "46400a0efe9cd715b237b835d6b792c1ff009b111e657affc43d5a5bc1c70d67",
+      "difficulty": "beginner",
+      "number": 14,
+      "meter": [
+        3,
+        4
+      ],
+      "key": {
+        "tonic": "D",
+        "mode": "minor",
+        "fifths": -1
+      },
+      "features": {
+        "notes": 25,
+        "pitch_count": 11,
+        "span": 15,
+        "rhythms": 4,
+        "shortest": 240,
+        "rests": 1,
+        "chromatic": 2,
+        "triplets": 0,
+        "max_leap": 12
+      },
+      "book": "Somervell-1911",
+      "source_url": "https://www.trainedear.net/",
+      "license": "CC BY-SA 4.0",
+      "question_id": "969187fd-0578-5e49-a2e7-8c7278e3eb21"
+    },
+    {
+      "kind": "trained-ear",
+      "source_id": "trained-ear-Batchellor-Charmbury-1884a_1-1-080",
+      "file": "Batchellor-Charmbury-1884a_1-1-080.xml",
+      "sha256": "fead5756565e0189d36f2934a3756fbb3389a87932bbafa8065a40e72657a986",
+      "difficulty": "beginner",
+      "number": 15,
+      "meter": [
+        3,
+        4
+      ],
+      "key": {
+        "tonic": "C",
+        "mode": "major",
+        "fifths": 0
+      },
+      "features": {
+        "notes": 20,
+        "pitch_count": 7,
+        "span": 16,
+        "rhythms": 2,
+        "shortest": 480,
+        "rests": 0,
+        "chromatic": 0,
+        "triplets": 0,
+        "max_leap": 5
+      },
+      "book": "Batchellor-Charmbury-1884a",
+      "source_url": "https://www.trainedear.net/",
+      "license": "CC BY-SA 4.0",
+      "question_id": "d35d76f4-dc07-5d9b-ad45-f334fe24fdab"
+    },
+    {
+      "kind": "trained-ear",
+      "source_id": "trained-ear-Somervell-1911_209",
+      "file": "Somervell-1911_209.xml",
+      "sha256": "79dc33e38199a69cbd79bd39cfab6c5a544f560511757152feee3af5abfcda40",
+      "difficulty": "beginner",
+      "number": 16,
+      "meter": [
+        3,
+        4
+      ],
+      "key": {
+        "tonic": "E",
+        "mode": "minor",
+        "fifths": 1
+      },
+      "features": {
+        "notes": 35,
+        "pitch_count": 8,
+        "span": 12,
+        "rhythms": 4,
+        "shortest": 240,
+        "rests": 1,
+        "chromatic": 0,
+        "triplets": 0,
+        "max_leap": 12
+      },
+      "book": "Somervell-1911",
+      "source_url": "https://www.trainedear.net/",
+      "license": "CC BY-SA 4.0",
+      "question_id": "1d3e82eb-2bb8-5f9a-8812-6d16b1492e86"
+    },
+    {
+      "kind": "trained-ear",
+      "source_id": "trained-ear-Somervell-1911_211",
+      "file": "Somervell-1911_211.xml",
+      "sha256": "6335ae48a2eeeb97efc28e24765180ac315751d5844240dfe9019f86f52ee6af",
+      "difficulty": "beginner",
+      "number": 17,
+      "meter": [
+        3,
+        4
+      ],
+      "key": {
+        "tonic": "E",
+        "mode": "minor",
+        "fifths": 1
+      },
+      "features": {
+        "notes": 22,
+        "pitch_count": 9,
+        "span": 13,
+        "rhythms": 5,
+        "shortest": 240,
+        "rests": 1,
+        "chromatic": 1,
+        "triplets": 0,
+        "max_leap": 12
+      },
+      "book": "Somervell-1911",
+      "source_url": "https://www.trainedear.net/",
+      "license": "CC BY-SA 4.0",
+      "question_id": "32021b55-d296-502e-aef0-2053635e3bef"
+    },
+    {
+      "kind": "trained-ear",
+      "source_id": "trained-ear-Cole-Lewis-1904_2-05-201",
+      "file": "Cole-Lewis-1904_2-05-201.xml",
+      "sha256": "abeb473623ec8c75596bffec832db5596f7a169fc2767c7b73136f813cc1862d",
+      "difficulty": "beginner",
+      "number": 18,
+      "meter": [
+        3,
+        4
+      ],
+      "key": {
+        "tonic": "F#",
+        "mode": "minor",
+        "fifths": 3
+      },
+      "features": {
+        "notes": 22,
+        "pitch_count": 7,
+        "span": 13,
+        "rhythms": 5,
+        "shortest": 240,
+        "rests": 2,
+        "chromatic": 0,
+        "triplets": 0,
+        "max_leap": 8
+      },
+      "book": "Cole-Lewis-1904",
+      "source_url": "https://www.trainedear.net/",
+      "license": "CC BY-SA 4.0",
+      "question_id": "2d8a4a82-b2a2-5b4d-9f19-b734a1530ce8"
+    },
+    {
+      "kind": "trained-ear",
+      "source_id": "trained-ear-Hollis-1915_55-01",
+      "file": "Hollis-1915_55-01.xml",
+      "sha256": "edaedb1f0b62ed0114a3454fb40e08b080309201e66f7c4b0da6342279998bbf",
+      "difficulty": "beginner",
+      "number": 19,
+      "meter": [
+        3,
+        4
+      ],
+      "key": {
+        "tonic": "A",
+        "mode": "major",
+        "fifths": 3
+      },
+      "features": {
+        "notes": 29,
+        "pitch_count": 9,
+        "span": 14,
+        "rhythms": 3,
+        "shortest": 240,
+        "rests": 0,
+        "chromatic": 0,
+        "triplets": 0,
+        "max_leap": 7
+      },
+      "book": "Hollis-1915",
+      "source_url": "https://www.trainedear.net/",
+      "license": "CC BY-SA 4.0",
+      "question_id": "5ce30096-a49d-575a-b165-4df172880e96"
+    },
+    {
+      "kind": "trained-ear",
+      "source_id": "trained-ear-Crowell-2004_200",
+      "file": "Crowell-2004_200.xml",
+      "sha256": "a56cb100d5433e66df182c7415e62a8657e131b825f3200ddb34636769fbe0e8",
+      "difficulty": "beginner",
+      "number": 20,
+      "meter": [
+        4,
+        4
+      ],
+      "key": {
+        "tonic": "G",
+        "mode": "minor",
+        "fifths": -2
+      },
+      "features": {
+        "notes": 32,
+        "pitch_count": 9,
+        "span": 14,
+        "rhythms": 4,
+        "shortest": 240,
+        "rests": 0,
+        "chromatic": 2,
+        "triplets": 0,
+        "max_leap": 8
+      },
+      "book": "Crowell-2004",
+      "source_url": "https://www.trainedear.net/",
+      "license": "CC BY-SA 4.0",
+      "question_id": "35150db1-9a55-5fd0-abc7-5f8e9dd8d7a9"
+    },
+    {
+      "kind": "trained-ear",
+      "source_id": "trained-ear-Somervell-1911_175",
+      "file": "Somervell-1911_175.xml",
+      "sha256": "fb5edc4c831266bbf077f07ce7b852b541f04b6ef72d979d60b2a8615c3b2263",
+      "difficulty": "beginner",
+      "number": 21,
+      "meter": [
+        4,
+        4
+      ],
+      "key": {
+        "tonic": "G",
+        "mode": "minor",
+        "fifths": -2
+      },
+      "features": {
+        "notes": 28,
+        "pitch_count": 7,
+        "span": 12,
+        "rhythms": 2,
+        "shortest": 480,
+        "rests": 0,
+        "chromatic": 0,
+        "triplets": 0,
+        "max_leap": 8
+      },
+      "book": "Somervell-1911",
+      "source_url": "https://www.trainedear.net/",
+      "license": "CC BY-SA 4.0",
+      "question_id": "16b67631-636f-538f-a523-6019cb449fc9"
+    },
+    {
+      "kind": "trained-ear",
+      "source_id": "trained-ear-Batchellor-Charmbury-1884a_1-1-106",
+      "file": "Batchellor-Charmbury-1884a_1-1-106.xml",
+      "sha256": "d87e4a80ce30faf0a2027a26ad9fefc58784466007066838de9921f581566275",
+      "difficulty": "beginner",
+      "number": 22,
+      "meter": [
+        4,
+        4
+      ],
+      "key": {
+        "tonic": "F",
+        "mode": "major",
+        "fifths": -1
+      },
+      "features": {
+        "notes": 30,
+        "pitch_count": 6,
+        "span": 12,
+        "rhythms": 4,
+        "shortest": 240,
+        "rests": 5,
+        "chromatic": 0,
+        "triplets": 0,
+        "max_leap": 12
+      },
+      "book": "Batchellor-Charmbury-1884a",
+      "source_url": "https://www.trainedear.net/",
+      "license": "CC BY-SA 4.0",
+      "question_id": "d15aafec-1fc4-5619-afd5-205a1021eb77"
+    },
+    {
+      "kind": "trained-ear",
+      "source_id": "trained-ear-Batchellor-Charmbury-1884b_2-1-024",
+      "file": "Batchellor-Charmbury-1884b_2-1-024.xml",
+      "sha256": "50576b1e7892b5b197a1bec07a7c7a2b48c4c4652e159d8ce474097e2666d314",
+      "difficulty": "beginner",
+      "number": 23,
+      "meter": [
+        4,
+        4
+      ],
+      "key": {
+        "tonic": "F",
+        "mode": "major",
+        "fifths": -1
+      },
+      "features": {
+        "notes": 28,
+        "pitch_count": 9,
+        "span": 14,
+        "rhythms": 4,
+        "shortest": 240,
+        "rests": 2,
+        "chromatic": 0,
+        "triplets": 0,
+        "max_leap": 5
+      },
+      "book": "Batchellor-Charmbury-1884b",
+      "source_url": "https://www.trainedear.net/",
+      "license": "CC BY-SA 4.0",
+      "question_id": "fd729e7e-4f6a-57f2-abda-6ade7da10d41"
+    },
+    {
+      "kind": "trained-ear",
+      "source_id": "trained-ear-Batchellor-Charmbury-1884b_2-1-051",
+      "file": "Batchellor-Charmbury-1884b_2-1-051.xml",
+      "sha256": "4cc670a82e1c25bed2c9c00f5bad9246c95d70a2552862c9dd62148e701fb824",
+      "difficulty": "beginner",
+      "number": 24,
+      "meter": [
+        4,
+        4
+      ],
+      "key": {
+        "tonic": "F",
+        "mode": "major",
+        "fifths": -1
+      },
+      "features": {
+        "notes": 36,
+        "pitch_count": 7,
+        "span": 10,
+        "rhythms": 4,
+        "shortest": 240,
+        "rests": 0,
+        "chromatic": 0,
+        "triplets": 0,
+        "max_leap": 4
+      },
+      "book": "Batchellor-Charmbury-1884b",
+      "source_url": "https://www.trainedear.net/",
+      "license": "CC BY-SA 4.0",
+      "question_id": "a37f9cd9-75ad-5357-902c-49ce31b6be5a"
+    },
+    {
+      "kind": "trained-ear",
+      "source_id": "trained-ear-Cole-Lewis-1904_2-03-186",
+      "file": "Cole-Lewis-1904_2-03-186.xml",
+      "sha256": "6546d1a66d23c9cda7c2184dc2158958517782e4f6dcdf8e2b283d52dc9e1b08",
+      "difficulty": "beginner",
+      "number": 25,
+      "meter": [
+        4,
+        4
+      ],
+      "key": {
+        "tonic": "D",
+        "mode": "minor",
+        "fifths": -1
+      },
+      "features": {
+        "notes": 29,
+        "pitch_count": 10,
+        "span": 12,
+        "rhythms": 3,
+        "shortest": 240,
+        "rests": 3,
+        "chromatic": 2,
+        "triplets": 0,
+        "max_leap": 2
+      },
+      "book": "Cole-Lewis-1904",
+      "source_url": "https://www.trainedear.net/",
+      "license": "CC BY-SA 4.0",
+      "question_id": "4e232236-dcd1-5d2e-ad8a-9fcf25f333e8"
+    },
+    {
+      "kind": "trained-ear",
+      "source_id": "trained-ear-Somervell-1911_217",
+      "file": "Somervell-1911_217.xml",
+      "sha256": "cf8edbb3c1255552f73d300a6528b9fab7e721b58ab6f5c8ea80b8daece958e1",
+      "difficulty": "beginner",
+      "number": 26,
+      "meter": [
+        4,
+        4
+      ],
+      "key": {
+        "tonic": "D",
+        "mode": "minor",
+        "fifths": -1
+      },
+      "features": {
+        "notes": 26,
+        "pitch_count": 9,
+        "span": 12,
+        "rhythms": 3,
+        "shortest": 480,
+        "rests": 1,
+        "chromatic": 2,
+        "triplets": 0,
+        "max_leap": 5
+      },
+      "book": "Somervell-1911",
+      "source_url": "https://www.trainedear.net/",
+      "license": "CC BY-SA 4.0",
+      "question_id": "1dd3151d-5c09-5b38-af10-0e49557a236a"
+    },
+    {
+      "kind": "trained-ear",
+      "source_id": "trained-ear-Cringan-1901_092",
+      "file": "Cringan-1901_092.xml",
+      "sha256": "250561674286d2b407cd5006891aa79a458825df7e835a714c8189e8ca9b493d",
+      "difficulty": "beginner",
+      "number": 27,
+      "meter": [
+        4,
+        4
+      ],
+      "key": {
+        "tonic": "C",
+        "mode": "major",
+        "fifths": 0
+      },
+      "features": {
+        "notes": 27,
+        "pitch_count": 8,
+        "span": 10,
+        "rhythms": 3,
+        "shortest": 480,
+        "rests": 1,
+        "chromatic": 2,
+        "triplets": 0,
+        "max_leap": 7
+      },
+      "book": "Cringan-1901",
+      "source_url": "https://www.trainedear.net/",
+      "license": "CC BY-SA 4.0",
+      "question_id": "f0624670-8d06-59b5-94a8-03601d539ed6"
+    },
+    {
+      "kind": "trained-ear",
+      "source_id": "trained-ear-Batchellor-Charmbury-1887a_4-1-045",
+      "file": "Batchellor-Charmbury-1887a_4-1-045.xml",
+      "sha256": "b35927d01268c71bcc456d63b21cb8cfbfda0000cfdf691af347cce6fedc87d1",
+      "difficulty": "beginner",
+      "number": 28,
+      "meter": [
+        4,
+        4
+      ],
+      "key": {
+        "tonic": "G",
+        "mode": "major",
+        "fifths": 1
+      },
+      "features": {
+        "notes": 37,
+        "pitch_count": 9,
+        "span": 12,
+        "rhythms": 3,
+        "shortest": 240,
+        "rests": 2,
+        "chromatic": 1,
+        "triplets": 0,
+        "max_leap": 5
+      },
+      "book": "Batchellor-Charmbury-1887a",
+      "source_url": "https://www.trainedear.net/",
+      "license": "CC BY-SA 4.0",
+      "question_id": "4e53893c-b3e5-5729-957b-97956e82d596"
+    },
+    {
+      "kind": "trained-ear",
+      "source_id": "trained-ear-Batchellor-Charmbury-1887a_4-3-001",
+      "file": "Batchellor-Charmbury-1887a_4-3-001.xml",
+      "sha256": "f577bb7bf5773c5f62cd53e86468c6f32af4924a6fb85daa768037695a15350d",
+      "difficulty": "beginner",
+      "number": 29,
+      "meter": [
+        4,
+        4
+      ],
+      "key": {
+        "tonic": "E",
+        "mode": "minor",
+        "fifths": 1
+      },
+      "features": {
+        "notes": 31,
+        "pitch_count": 8,
+        "span": 17,
+        "rhythms": 5,
+        "shortest": 240,
+        "rests": 1,
+        "chromatic": 0,
+        "triplets": 0,
+        "max_leap": 9
+      },
+      "book": "Batchellor-Charmbury-1887a",
+      "source_url": "https://www.trainedear.net/",
+      "license": "CC BY-SA 4.0",
+      "question_id": "5b43a391-d32c-5585-b696-52372ad14a62"
+    },
+    {
+      "kind": "trained-ear",
+      "source_id": "trained-ear-Sullivan_04-02-04_01",
+      "file": "Sullivan_04-02-04_01.xml",
+      "sha256": "30859961c10c4aa2bf7443aa93e45979617c9249af88bf62d142fe1b0b8c2ea2",
+      "difficulty": "beginner",
+      "number": 30,
+      "meter": [
+        4,
+        4
+      ],
+      "key": {
+        "tonic": "D",
+        "mode": "major",
+        "fifths": 2
+      },
+      "features": {
+        "notes": 45,
+        "pitch_count": 11,
+        "span": 17,
+        "rhythms": 4,
+        "shortest": 240,
+        "rests": 0,
+        "chromatic": 0,
+        "triplets": 0,
+        "max_leap": 5
+      },
+      "book": "Sullivan",
+      "source_url": "https://www.trainedear.net/",
+      "license": "CC BY-SA 4.0",
+      "question_id": "da76f1d6-1d65-57c3-84ad-17e0a27d05fa"
+    },
+    {
+      "kind": "trained-ear",
+      "source_id": "trained-ear-Crowell-2004_066",
+      "file": "Crowell-2004_066.xml",
+      "sha256": "4bf96cb04d219d4c9098fe41ae710d7b8857ee6b4d70c2d1cb345b47b1a168cf",
+      "difficulty": "beginner",
+      "number": 31,
+      "meter": [
+        6,
+        8
+      ],
+      "key": {
+        "tonic": "Eb",
+        "mode": "major",
+        "fifths": -3
+      },
+      "features": {
+        "notes": 25,
+        "pitch_count": 8,
+        "span": 12,
+        "rhythms": 3,
+        "shortest": 240,
+        "rests": 0,
+        "chromatic": 0,
+        "triplets": 0,
+        "max_leap": 5
+      },
+      "book": "Crowell-2004",
+      "source_url": "https://www.trainedear.net/",
+      "license": "CC BY-SA 4.0",
+      "question_id": "ed72a148-d26c-52b5-90c1-58fa004b9cfa"
+    },
+    {
+      "kind": "trained-ear",
+      "source_id": "trained-ear-Cole-Lewis-1904_1-01-177",
+      "file": "Cole-Lewis-1904_1-01-177.xml",
+      "sha256": "2a9b4220313de4138131e71a77afbc87d665ec632904fa1c2f44f54316d964ae",
+      "difficulty": "beginner",
+      "number": 32,
+      "meter": [
+        6,
+        8
+      ],
+      "key": {
+        "tonic": "Bb",
+        "mode": "major",
+        "fifths": -2
+      },
+      "features": {
+        "notes": 25,
+        "pitch_count": 7,
+        "span": 10,
+        "rhythms": 4,
+        "shortest": 240,
+        "rests": 0,
+        "chromatic": 0,
+        "triplets": 0,
+        "max_leap": 2
+      },
+      "book": "Cole-Lewis-1904",
+      "source_url": "https://www.trainedear.net/",
+      "license": "CC BY-SA 4.0",
+      "question_id": "ec099d45-bc32-50d1-8a97-b6eb22fdcd2e"
+    },
+    {
+      "kind": "trained-ear",
+      "source_id": "trained-ear-Somervell-1911_334",
+      "file": "Somervell-1911_334.xml",
+      "sha256": "48fc2bae2bf4a265b8301c2ab6226dd8d329391d43953c9effb408a491e777aa",
+      "difficulty": "beginner",
+      "number": 33,
+      "meter": [
+        6,
+        8
+      ],
+      "key": {
+        "tonic": "Bb",
+        "mode": "major",
+        "fifths": -2
+      },
+      "features": {
+        "notes": 27,
+        "pitch_count": 8,
+        "span": 12,
+        "rhythms": 3,
+        "shortest": 240,
+        "rests": 2,
+        "chromatic": 0,
+        "triplets": 0,
+        "max_leap": 12
+      },
+      "book": "Somervell-1911",
+      "source_url": "https://www.trainedear.net/",
+      "license": "CC BY-SA 4.0",
+      "question_id": "ba3a5402-e116-5018-94ef-ee11834ef9e3"
+    },
+    {
+      "kind": "trained-ear",
+      "source_id": "trained-ear-Cringan-1901_061",
+      "file": "Cringan-1901_061.xml",
+      "sha256": "7db1472a7e9c4016a5a1577eb4890a5b999da1b3f579a696177e380a7ba1e95e",
+      "difficulty": "beginner",
+      "number": 34,
+      "meter": [
+        6,
+        8
+      ],
+      "key": {
+        "tonic": "G",
+        "mode": "major",
+        "fifths": 1
+      },
+      "features": {
+        "notes": 31,
+        "pitch_count": 7,
+        "span": 10,
+        "rhythms": 3,
+        "shortest": 240,
+        "rests": 0,
+        "chromatic": 0,
+        "triplets": 0,
+        "max_leap": 7
+      },
+      "book": "Cringan-1901",
+      "source_url": "https://www.trainedear.net/",
+      "license": "CC BY-SA 4.0",
+      "question_id": "52405b76-1808-519f-b968-475f372bacbb"
+    },
+    {
+      "kind": "trained-ear",
+      "source_id": "trained-ear-Cringan-1901_062",
+      "file": "Cringan-1901_062.xml",
+      "sha256": "d19d267c09123b77ca45c82e196e628335d8500d99f05d77e5d0c9e4e10c409b",
+      "difficulty": "beginner",
+      "number": 35,
+      "meter": [
+        6,
+        8
+      ],
+      "key": {
+        "tonic": "G",
+        "mode": "major",
+        "fifths": 1
+      },
+      "features": {
+        "notes": 33,
+        "pitch_count": 8,
+        "span": 14,
+        "rhythms": 3,
+        "shortest": 240,
+        "rests": 0,
+        "chromatic": 0,
+        "triplets": 0,
+        "max_leap": 9
+      },
+      "book": "Cringan-1901",
+      "source_url": "https://www.trainedear.net/",
+      "license": "CC BY-SA 4.0",
+      "question_id": "e67eeee4-b55a-5548-8827-160fab40d373"
+    },
+    {
+      "kind": "trained-ear",
+      "source_id": "trained-ear-Crowell-2004_043",
+      "file": "Crowell-2004_043.xml",
+      "sha256": "439c14255988239e3c0e877c4f184ad49cde0a87a85d8ce1921e05a6ade5a1f5",
+      "difficulty": "beginner",
+      "number": 36,
+      "meter": [
+        6,
+        8
+      ],
+      "key": {
+        "tonic": "G",
+        "mode": "major",
+        "fifths": 1
+      },
+      "features": {
+        "notes": 26,
+        "pitch_count": 9,
+        "span": 13,
+        "rhythms": 3,
+        "shortest": 240,
+        "rests": 1,
+        "chromatic": 0,
+        "triplets": 0,
+        "max_leap": 2
+      },
+      "book": "Crowell-2004",
+      "source_url": "https://www.trainedear.net/",
+      "license": "CC BY-SA 4.0",
+      "question_id": "bebdd02b-4822-5795-aa7e-9630a6317ca4"
+    },
+    {
+      "kind": "trained-ear",
+      "source_id": "trained-ear-Cole-Lewis-1904_1-01-156",
+      "file": "Cole-Lewis-1904_1-01-156.xml",
+      "sha256": "6a1db9908235ea6d68cc101bf56a7f003f0536be6217dd89364a38840596c31a",
+      "difficulty": "beginner",
+      "number": 37,
+      "meter": [
+        6,
+        8
+      ],
+      "key": {
+        "tonic": "D",
+        "mode": "major",
+        "fifths": 2
+      },
+      "features": {
+        "notes": 28,
+        "pitch_count": 8,
+        "span": 12,
+        "rhythms": 4,
+        "shortest": 240,
+        "rests": 0,
+        "chromatic": 0,
+        "triplets": 0,
+        "max_leap": 2
+      },
+      "book": "Cole-Lewis-1904",
+      "source_url": "https://www.trainedear.net/",
+      "license": "CC BY-SA 4.0",
+      "question_id": "f03d89aa-66f7-5d24-8ef4-29b822bc1935"
+    },
+    {
+      "kind": "trained-ear",
+      "source_id": "trained-ear-Cringan-1901_059",
+      "file": "Cringan-1901_059.xml",
+      "sha256": "5112355c9abbf07925f0b173e745aeae851a681f5cc4c369fe6a813960051d79",
+      "difficulty": "beginner",
+      "number": 38,
+      "meter": [
+        6,
+        8
+      ],
+      "key": {
+        "tonic": "D",
+        "mode": "major",
+        "fifths": 2
+      },
+      "features": {
+        "notes": 31,
+        "pitch_count": 7,
+        "span": 10,
+        "rhythms": 3,
+        "shortest": 240,
+        "rests": 0,
+        "chromatic": 0,
+        "triplets": 0,
+        "max_leap": 8
+      },
+      "book": "Cringan-1901",
+      "source_url": "https://www.trainedear.net/",
+      "license": "CC BY-SA 4.0",
+      "question_id": "1dae4725-4598-5351-bf6f-a180de024121"
+    },
+    {
+      "kind": "trained-ear",
+      "source_id": "trained-ear-Cringan-1901_060",
+      "file": "Cringan-1901_060.xml",
+      "sha256": "9efe3da27a919da2efc27f09c6bbe5de8dda833362e601c750e5ddc0c9a9a0ed",
+      "difficulty": "beginner",
+      "number": 39,
+      "meter": [
+        6,
+        8
+      ],
+      "key": {
+        "tonic": "D",
+        "mode": "major",
+        "fifths": 2
+      },
+      "features": {
+        "notes": 27,
+        "pitch_count": 7,
+        "span": 10,
+        "rhythms": 3,
+        "shortest": 240,
+        "rests": 0,
+        "chromatic": 0,
+        "triplets": 0,
+        "max_leap": 7
+      },
+      "book": "Cringan-1901",
+      "source_url": "https://www.trainedear.net/",
+      "license": "CC BY-SA 4.0",
+      "question_id": "2116e321-0bd8-599e-97ee-b7015c0c6754"
+    },
+    {
+      "kind": "trained-ear",
+      "source_id": "trained-ear-Cole-Lewis-1904_1-01-254",
+      "file": "Cole-Lewis-1904_1-01-254.xml",
+      "sha256": "e31975ccb9b30b76728b5632239d8ff8537e0b0ffb6a2593f8f7ddbb878264fe",
+      "difficulty": "beginner",
+      "number": 40,
+      "meter": [
+        6,
+        8
+      ],
+      "key": {
+        "tonic": "A",
+        "mode": "major",
+        "fifths": 3
+      },
+      "features": {
+        "notes": 28,
+        "pitch_count": 7,
+        "span": 10,
+        "rhythms": 3,
+        "shortest": 240,
+        "rests": 6,
+        "chromatic": 0,
+        "triplets": 0,
+        "max_leap": 2
+      },
+      "book": "Cole-Lewis-1904",
+      "source_url": "https://www.trainedear.net/",
+      "license": "CC BY-SA 4.0",
+      "question_id": "2eb72f02-22dd-5d33-a82c-0862d5cbc719"
+    }
+  ],
+  "excluded": [
+    {
+      "kind": "pages",
+      "block": 6,
+      "measures": [
+        41,
+        48
+      ],
+      "reason": "eight_bars_of_rests"
+    }
+  ]
+}

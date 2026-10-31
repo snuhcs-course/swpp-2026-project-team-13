@@ -6,13 +6,14 @@ struct HomeView: View {
         ScrollView {
             VStack(alignment: .leading, spacing: 28) {
                 HStack(alignment: .top) {
-                    SectionCaption(eyebrow: "MY PRACTICE ROOM", title: "나의 연습실", subtitle: "오늘도 소리에 귀 기울여 볼까요?")
+                    SectionCaption(eyebrow: "MY PRACTICE ROOM", title: model.selectedPracticeLevel.map { "나의 연습실 · \($0.title)" } ?? "나의 연습실", subtitle: model.selectedPracticeLevel?.subtitle ?? "오늘도 소리에 귀 기울여 볼까요?")
                     Spacer()
                     if let profile = model.profile {
                         Menu { ForEach(SORITheme.goals, id: \.0) { key, title in Button(title) { Task { await model.updateGoal(key) } } } } label: { Pill(text: SORITheme.goal(profile.learningGoal), icon: "scope") }
                     }
                 }
-                HStack(spacing: 20) {
+                if model.selectedPracticeLevel == nil {
+                  HStack(spacing: 20) {
                     VStack(alignment: .leading, spacing: 16) {
                         Text("MELODIC DICTATION").font(.caption.weight(.bold)).tracking(2).foregroundStyle(SORITheme.violet)
                         Text("소리를 듣고,\n음악을 기록하세요.").font(.system(size: 34, weight: .bold, design: .rounded)).lineSpacing(5).fixedSize(horizontal: false, vertical: true)
@@ -29,6 +30,7 @@ struct HomeView: View {
                         Spacer(); Image(systemName:"arrow.up.right").foregroundStyle(SORITheme.violet)
                     } }
                 }.buttonStyle(.plain)
+                }
                 if !model.connected {
                     Card { VStack(alignment: .leading, spacing: 16) {
                         Label("학습 공간에 연결해 주세요", systemImage: "network")
@@ -43,9 +45,21 @@ struct HomeView: View {
                             Spacer(); Button("계속하기") { Task { await model.open(unfinished) } }.buttonStyle(PrimaryButton(compact: true))
                         } }
                     }
-                    HStack { Text("청음 연습").font(.title2.bold()); Spacer(); Text("\(model.questions.count)개 문제").font(.subheadline).foregroundStyle(.secondary) }
+                    if model.selectedPracticeLevel != nil {
+                        Button { withAnimation { model.selectedPracticeLevel = nil } } label: { Label("난이도 선택",systemImage:"chevron.left") }.buttonStyle(.bordered)
+                    }
+                    HStack { Text(model.selectedPracticeLevel.map { "\($0.title) 청음 연습" } ?? "난이도를 골라보세요").font(.title2.bold()); Spacer(); Text("\(visibleQuestions.count)개 문제").font(.subheadline).foregroundStyle(.secondary) }
                     if model.questions.isEmpty { ContentUnavailableView("아직 등록된 문제가 없어요", systemImage: "music.note", description: Text("문제가 게시되면 이곳에서 연습을 시작할 수 있어요.")) }
-                    ForEach(Array(model.questions.enumerated()), id: \.element.id) { index, q in
+                    if model.selectedPracticeLevel == nil {
+                        LazyVGrid(columns:[GridItem(.adaptive(minimum:260),spacing:20)],spacing:20) {
+                            ForEach(PracticeLevel.allCases) { level in
+                                Button { withAnimation { model.selectedPracticeLevel = level } } label: {
+                                    levelCard(level,count:model.questions.filter { $0.practiceLevel == level }.count)
+                                }.buttonStyle(.plain).accessibilityIdentifier("practice-level-\(level.rawValue)")
+                            }
+                        }
+                    } else {
+                    ForEach(Array(visibleQuestions.enumerated()), id: \.element.id) { index, q in
                         Button { Task { await model.choose(q.id) } } label: {
                             Card { HStack(spacing: 20) {
                                 Text(String(format: "%02d", index+1)).font(.system(size: 29, weight: .light, design: .rounded)).foregroundStyle(SORITheme.violet).frame(width: 48)
@@ -54,13 +68,32 @@ struct HomeView: View {
                                 }
                                 Spacer(); Image(systemName: "arrow.up.right").font(.title3).foregroundStyle(SORITheme.violet).padding(14).background(SORITheme.soft, in: Circle())
                             } }
-                        }.buttonStyle(.plain)
+                        }.buttonStyle(.plain).accessibilityIdentifier("practice-question-\(q.id.uuidString.lowercased())")
+                    }
+                    if visibleQuestions.isEmpty { ContentUnavailableView("등록된 문제가 없어요",systemImage:"music.note") }
                     }
                     if model.hasNextPage { Button("문제 더 보기") { Task { await model.loadMore() } }.frame(maxWidth: .infinity) }
                     if model.demo { DemoBadge() }
                 }
             }.padding(32).frame(maxWidth: 1150, alignment: .leading).frame(maxWidth: .infinity)
-        }.refreshable { await model.connect() }
+        }.refreshable { let level = model.selectedPracticeLevel; await model.connect(); model.selectedPracticeLevel = level }
+    }
+    private var visibleQuestions: [QuestionSummary] {
+        guard let level = model.selectedPracticeLevel else { return model.questions }
+        return model.questions.filter { $0.practiceLevel == level }
+    }
+    private func levelCard(_ level: PracticeLevel, count: Int) -> some View {
+        let color: Color = level == .beginner ? .teal : level == .intermediate ? SORITheme.violet : .orange
+        return ZStack(alignment:.bottomLeading) {
+            LinearGradient(colors:[color.opacity(0.1),color.opacity(0.2)],startPoint:.topLeading,endPoint:.bottomTrailing)
+            Image(systemName:level.symbol).font(.system(size:140,weight:.ultraLight)).foregroundStyle(color.opacity(0.15)).frame(maxWidth:.infinity,maxHeight:.infinity,alignment:.topTrailing).padding(22).accessibilityHidden(true)
+            VStack(alignment:.leading,spacing:14) {
+                Text(level.rawValue.uppercased()).font(.caption.weight(.bold)).tracking(2).foregroundStyle(color)
+                HStack { Text(level.title).font(.system(size:38,weight:.bold,design:.rounded)); Spacer(); Image(systemName:"arrow.up.right").font(.title2).foregroundStyle(color) }
+                Text(level.subtitle).font(.subheadline).foregroundStyle(.secondary).multilineTextAlignment(.leading).fixedSize(horizontal:false,vertical:true)
+                Text("\(count)개 문제 · 8마디").font(.caption.weight(.semibold)).foregroundStyle(color)
+            }.padding(28)
+        }.foregroundStyle(SORITheme.ink).frame(minHeight:280).clipShape(RoundedRectangle(cornerRadius:24))
     }
 }
 struct QuestionView: View {

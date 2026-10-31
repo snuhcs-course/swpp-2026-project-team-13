@@ -7,6 +7,8 @@
 *.mxl binary
 backend/content/source/naver/*.musicxml binary
 backend/content/source/classical/*.xml binary
+backend/content/source/practice-import/*.xml binary
+backend/content/source/practice-import/*.musicxml binary
 *.jpg binary
 *.png binary
 *.pngdata binary
