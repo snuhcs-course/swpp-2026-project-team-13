@@ -13,20 +13,20 @@ const document={getElementById:id=>{assert(nodes[id],`Missing element ${id}`);re
 const context=vm.createContext({document,window:{AudioContext,devicePixelRatio:1,addEventListener:(name,f)=>{events['window:'+name]=f}},localStorage:{getItem:()=>null,setItem(){}},Blob,URL,Set,console,setTimeout:(f,ms)=>{assert(ms>=0);timers.set(++nextTimer,{f,ms});return nextTimer},clearTimeout:id=>timers.delete(id),requestAnimationFrame:()=>1,cancelAnimationFrame(){}});
 vm.runInContext(code,context);
 async function main(){
- const items=vm.runInContext('D.items',context);assert.equal(items.length,39);assert.equal(items.filter(x=>x.ready).length,32);
+ const items=vm.runInContext('D.items',context);assert.equal(items.length,11);assert.equal(items.filter(x=>x.ready).length,11);assert(items.every(x=>x.originalMeasures===8&&!x.external));
  for(const item of items.filter(x=>!x.external)){
   vm.runInContext(`pick(${JSON.stringify(item.id)})`,context);await vm.runInContext('play()',context);
   assert(vm.runInContext('playing',context));assert(vm.runInContext('voices.length > 0',context));
   assert.equal(nodes.download.disabled,!item.ready);vm.runInContext('stop()',context);assert(!vm.runInContext('playing',context));assert.equal(timers.size,0);
  }
- vm.runInContext("composer='말러';renderNav();renderTracks()",context);assert(nodes.tracks.innerHTML.includes('교향곡 1번'));assert(!nodes.tracks.innerHTML.includes('피터와 늑대'));
- vm.runInContext("composer='쇼스타코비치';renderTracks()",context);assert(nodes.tracks.innerHTML.includes('XML 미확보'));assert(!nodes.tracks.innerHTML.includes('data-play='));
+ vm.runInContext("composer='차이콥스키';renderNav();renderTracks()",context);assert(nodes.tracks.innerHTML.includes('백조의 호수'));assert(!nodes.tracks.innerHTML.includes('피터와 늑대'));
+ vm.runInContext("composer='쇼스타코비치';renderTracks()",context);assert(nodes.tracks.innerHTML.includes('조건에 맞는 곡이 없어요'));assert(!nodes.tracks.innerHTML.includes('data-play='));
  nodes['ready-only'].checked=true;vm.runInContext('renderTracks()',context);assert(nodes.tracks.innerHTML.includes('조건에 맞는 곡이 없어요'));nodes['ready-only'].checked=false;
  vm.runInContext("pick('classical-gttm-189')",context);const pending=vm.runInContext('play()',context);vm.runInContext('stop()',context);await pending;assert.equal(vm.runInContext('voices.length',context),0,'stop while audio is resuming must cancel scheduling');
  nodes.loop.checked=true;await vm.runInContext('play()',context);assert.equal(timers.size,1);const finish=[...timers.values()][0].f;finish();await new Promise(setImmediate);assert(vm.runInContext('playing',context));vm.runInContext('stop()',context);
  nodes.speed.value='0.65';await vm.runInContext('play()',context);const slow=vm.runInContext('seconds',context);nodes.speed.value='1.2';await vm.runInContext('play()',context);assert(vm.runInContext('seconds',context)<slow);
  document.hidden=true;events['document:visibilitychange']();assert(!vm.runInContext('playing',context));assert.equal(vm.runInContext('voices.length',context),0);
- const report={localMelodies:36,eightBarFiles:32,externalLinks:3,audioSchedule:'passed (simulated Web Audio)',stopDuringResume:'passed',loopAndTempo:'passed',composerFilters:'passed',backgroundStops:'passed',browserVisualAndRealAudio:'not run'};
+ const report={localMelodies:items.length,eightBarFiles:items.filter(x=>x.ready).length,externalLinks:0,audioSchedule:'passed (simulated Web Audio)',stopDuringResume:'passed',loopAndTempo:'passed',composerFilters:'passed',backgroundStops:'passed',browserVisualAndRealAudio:'not run'};
  fs.writeFileSync(path.join(__dirname,'player-checks.json'),JSON.stringify(report,null,2));console.log(report);
 }
 main().catch(e=>{console.error(e);process.exitCode=1});

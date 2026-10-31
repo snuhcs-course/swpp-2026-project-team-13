@@ -9,6 +9,7 @@ import FoundationNetworking
     func profile() async throws -> UserProfile
     func updateGoal(_ goal: String) async throws -> UserProfile
     func questions(page: Int) async throws -> QuestionPage
+    func classicalQuestions(page: Int) async throws -> QuestionPage
     func question(_ id: UUID) async throws -> Question
     func createAttempt(question: Question, key: UUID) async throws -> Attempt
     func attempt(_ id: UUID) async throws -> Attempt
@@ -19,6 +20,12 @@ import FoundationNetworking
     func result(_ id: UUID) async throws -> Grading
     func retryGrading(_ id: UUID, key: UUID) async throws -> Grading
     func asset(_ url: URL, authenticated: Bool, limit: Int) async throws -> Data
+}
+
+extension ExamAPI {
+    func classicalQuestions(page: Int) async throws -> QuestionPage {
+        QuestionPage(count:0,next:nil,previous:nil,results:[])
+    }
 }
 
 extension Data {
@@ -125,8 +132,14 @@ final class NoRedirectDelegate: NSObject, URLSessionTaskDelegate, @unchecked Sen
     func profile() async throws -> UserProfile { try await json("me/") }
     func updateGoal(_ goal: String) async throws -> UserProfile { try await json("me/", method: "PATCH", body: JSONSerialization.data(withJSONObject: ["learning_goal": goal])) }
     func questions(page: Int) async throws -> QuestionPage {
+        try await questionPage(page:page,collection:"practice")
+    }
+    func classicalQuestions(page: Int) async throws -> QuestionPage {
+        try await questionPage(page:page,collection:"classical")
+    }
+    private func questionPage(page: Int, collection: String) async throws -> QuestionPage {
         var components = URLComponents(url: endpoint("questions/"), resolvingAgainstBaseURL: false)!
-        components.queryItems = [URLQueryItem(name: "page", value: String(page)), URLQueryItem(name: "page_size", value: "20")]
+        components.queryItems = [URLQueryItem(name: "page", value: String(page)), URLQueryItem(name: "page_size", value: "20"), URLQueryItem(name:"collection",value:collection)]
         let data = try await execute(request(components.url!), limit: 2 * 1024 * 1024)
         return try ContractJSON.decoder().decode(QuestionPage.self, from: data)
     }
@@ -137,7 +150,7 @@ final class NoRedirectDelegate: NSObject, URLSessionTaskDelegate, @unchecked Sen
     func attempt(_ id: UUID) async throws -> Attempt { try await json("attempts/\(id.uuidString.lowercased())/") }
     func start(_ id: UUID) async throws -> Attempt { try await json("attempts/\(id.uuidString.lowercased())/start/", method: "POST") }
     static func multipart(png: Data, clientId: UUID, layout: String, boundary: String) throws -> Data {
-        guard png.count <= 10 * 1024 * 1024, ["staff-8bars-v1", "staff-8bars-4-4-v2", "staff-8bars-3-4-v2", "staff-8bars-6-8-v2"].contains(layout) else { throw SORIError.configuration("답안 이미지의 규격을 확인해 주세요.") }
+        guard png.count <= 10 * 1024 * 1024, SheetLayout.supports(layout) else { throw SORIError.configuration("답안 이미지의 규격을 확인해 주세요.") }
         var body = Data()
         func append(_ text: String) { body.append(Data(text.utf8)) }
         for (name, value) in [("client_answer_id", clientId.uuidString.lowercased()), ("answer_format_version", "1"), ("sheet_layout_id", layout)] {

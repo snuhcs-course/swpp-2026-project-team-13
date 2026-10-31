@@ -1,0 +1,1135 @@
+[
+  {
+    "order": 1001,
+    "metadata": {
+      "id": "76006a58-d8d6-5459-bb52-eedb49632079",
+      "version": 1,
+      "title": "피터와 늑대 · Op.67",
+      "source": "practice",
+      "collection": "classical",
+      "composer": "프로코피예프",
+      "key_signature": {
+        "tonic": "C",
+        "mode": "major",
+        "fifths": 0
+      },
+      "time_signature": {
+        "numerator": 4,
+        "denominator": 4
+      },
+      "measure_count": 8,
+      "recommended_duration_seconds": 300,
+      "description": "클래식 선율 발췌본입니다. 음계와 선율을 듣고 표시된 조표에 맞춰 8마디를 적어보세요. 제출 후 정답 악보와 평가를 확인할 수 있어요.",
+      "time_policy": "advisory",
+      "clef": "treble",
+      "sheet_layout": {
+        "id": "staff-8bars-4-4-key0-v3",
+        "logical_width": 1330,
+        "logical_height": 846,
+        "export_scale": 2,
+        "pixel_width": 2660,
+        "pixel_height": 1692,
+        "template_png_url": "https://api.sori.example/assets/sheets/staff-8bars-4-4-key0-v3.png",
+        "template_sha256": "e8cdf60e3a541558882223d96f64b6f1cc7b01f56a4a739f069614e414a76029",
+        "systems": [
+          {
+            "index": 1,
+            "first_measure": 1,
+            "last_measure": 4,
+            "staff_line_y": [
+              164,
+              176,
+              188,
+              200,
+              212
+            ],
+            "barline_x": [
+              54,
+              450,
+              725,
+              1000,
+              1276
+            ]
+          },
+          {
+            "index": 2,
+            "first_measure": 5,
+            "last_measure": 8,
+            "staff_line_y": [
+              499,
+              511,
+              523,
+              535,
+              547
+            ],
+            "barline_x": [
+              54,
+              397,
+              690,
+              983,
+              1276
+            ]
+          }
+        ]
+      },
+      "content_policy": "client_readable_practice",
+      "score_visibility": "after_submission",
+      "score_assets": {
+        "main": {
+          "url": "https://api.sori.example/api/v1/questions/76006a58-d8d6-5459-bb52-eedb49632079/versions/1/scores/main/",
+          "content_type": "application/vnd.recordare.musicxml",
+          "sha256": "2ea00638832a100618ba8d590269e86c1ca3f565ba5b6c17f21de96e899f3c05",
+          "size_bytes": 1549,
+          "musicxml_version": "4.0",
+          "profile": "sori-monophonic-v4",
+          "part_id": "P1",
+          "measure_count": 8,
+          "source_tempo_bpm": 96
+        },
+        "scale": {
+          "url": "https://api.sori.example/api/v1/questions/76006a58-d8d6-5459-bb52-eedb49632079/versions/1/scores/scale/",
+          "content_type": "application/vnd.recordare.musicxml",
+          "sha256": "62f0fcb38817db86b8ace040a34eaa681ba18d1051544608e9dcb455b184dc76",
+          "size_bytes": 1072,
+          "musicxml_version": "4.0",
+          "profile": "sori-monophonic-v4",
+          "part_id": "P1",
+          "measure_count": 2,
+          "source_tempo_bpm": 96
+        }
+      }
+    },
+    "main_path": "questions/classical-gttm-189/v1/main.mxl",
+    "scale_path": "questions/classical-gttm-189/v1/scale.mxl"
+  },
+  {
+    "order": 1002,
+    "metadata": {
+      "id": "875f5168-068a-5e58-be5a-54b9f25394d8",
+      "version": 1,
+      "title": "백조의 호수 · Op.20 · No.9",
+      "source": "practice",
+      "collection": "classical",
+      "composer": "차이콥스키",
+      "key_signature": {
+        "tonic": "B",
+        "mode": "minor",
+        "fifths": 2
+      },
+      "time_signature": {
+        "numerator": 4,
+        "denominator": 4
+      },
+      "measure_count": 8,
+      "recommended_duration_seconds": 300,
+      "description": "클래식 선율 발췌본입니다. 음계와 선율을 듣고 표시된 조표에 맞춰 8마디를 적어보세요. 제출 후 정답 악보와 평가를 확인할 수 있어요.",
+      "time_policy": "advisory",
+      "clef": "treble",
+      "sheet_layout": {
+        "id": "staff-8bars-4-4-key2-v3",
+        "logical_width": 1330,
+        "logical_height": 846,
+        "export_scale": 2,
+        "pixel_width": 2660,
+        "pixel_height": 1692,
+        "template_png_url": "https://api.sori.example/assets/sheets/staff-8bars-4-4-key2-v3.png",
+        "template_sha256": "658f5b9d901c7b87bd1225d7ef2288efe7ec63fc6baab6e0e334612e1e79492b",
+        "systems": [
+          {
+            "index": 1,
+            "first_measure": 1,
+            "last_measure": 4,
+            "staff_line_y": [
+              164,
+              176,
+              188,
+              200,
+              212
+            ],
+            "barline_x": [
+              54,
+              450,
+              725,
+              1000,
+              1276
+            ]
+          },
+          {
+            "index": 2,
+            "first_measure": 5,
+            "last_measure": 8,
+            "staff_line_y": [
+              499,
+              511,
+              523,
+              535,
+              547
+            ],
+            "barline_x": [
+              54,
+              397,
+              690,
+              983,
+              1276
+            ]
+          }
+        ]
+      },
+      "content_policy": "client_readable_practice",
+      "score_visibility": "after_submission",
+      "score_assets": {
+        "main": {
+          "url": "https://api.sori.example/api/v1/questions/875f5168-068a-5e58-be5a-54b9f25394d8/versions/1/scores/main/",
+          "content_type": "application/vnd.recordare.musicxml",
+          "sha256": "6177e7274889bd0b98e97baa2c5c59d12b69873496629d0d645747815070110f",
+          "size_bytes": 1404,
+          "musicxml_version": "4.0",
+          "profile": "sori-monophonic-v4",
+          "part_id": "P1",
+          "measure_count": 8,
+          "source_tempo_bpm": 96
+        },
+        "scale": {
+          "url": "https://api.sori.example/api/v1/questions/875f5168-068a-5e58-be5a-54b9f25394d8/versions/1/scores/scale/",
+          "content_type": "application/vnd.recordare.musicxml",
+          "sha256": "a6bffe3eded6a38b0b03dc29fa04c49690b692f2778006d34ef6079d9b8c7ca9",
+          "size_bytes": 1088,
+          "musicxml_version": "4.0",
+          "profile": "sori-monophonic-v4",
+          "part_id": "P1",
+          "measure_count": 2,
+          "source_tempo_bpm": 96
+        }
+      }
+    },
+    "main_path": "questions/classical-gttm-033/v1/main.mxl",
+    "scale_path": "questions/classical-gttm-033/v1/scale.mxl"
+  },
+  {
+    "order": 1003,
+    "metadata": {
+      "id": "0f8cc9b3-c20a-58ac-98ee-08fb9bd24a88",
+      "version": 1,
+      "title": "나폴리의 노래 · 어린이 앨범 · Op.39 No.18",
+      "source": "practice",
+      "collection": "classical",
+      "composer": "차이콥스키",
+      "key_signature": {
+        "tonic": "Eb",
+        "mode": "major",
+        "fifths": -3
+      },
+      "time_signature": {
+        "numerator": 2,
+        "denominator": 4
+      },
+      "measure_count": 8,
+      "recommended_duration_seconds": 300,
+      "description": "클래식 선율 발췌본입니다. 음계와 선율을 듣고 표시된 조표에 맞춰 8마디를 적어보세요. 제출 후 정답 악보와 평가를 확인할 수 있어요.",
+      "time_policy": "advisory",
+      "clef": "treble",
+      "sheet_layout": {
+        "id": "staff-8bars-2-4-key-3-v3",
+        "logical_width": 1330,
+        "logical_height": 846,
+        "export_scale": 2,
+        "pixel_width": 2660,
+        "pixel_height": 1692,
+        "template_png_url": "https://api.sori.example/assets/sheets/staff-8bars-2-4-key-3-v3.png",
+        "template_sha256": "3aa9e102e43cbf613922739c491cb44c47e0daa0ae610c37328bdecdddc6c8f8",
+        "systems": [
+          {
+            "index": 1,
+            "first_measure": 1,
+            "last_measure": 4,
+            "staff_line_y": [
+              164,
+              176,
+              188,
+              200,
+              212
+            ],
+            "barline_x": [
+              54,
+              450,
+              725,
+              1000,
+              1276
+            ]
+          },
+          {
+            "index": 2,
+            "first_measure": 5,
+            "last_measure": 8,
+            "staff_line_y": [
+              499,
+              511,
+              523,
+              535,
+              547
+            ],
+            "barline_x": [
+              54,
+              397,
+              690,
+              983,
+              1276
+            ]
+          }
+        ]
+      },
+      "content_policy": "client_readable_practice",
+      "score_visibility": "after_submission",
+      "score_assets": {
+        "main": {
+          "url": "https://api.sori.example/api/v1/questions/0f8cc9b3-c20a-58ac-98ee-08fb9bd24a88/versions/1/scores/main/",
+          "content_type": "application/vnd.recordare.musicxml",
+          "sha256": "c42ec5a10b687152b191d6204c94d4405d0f61d0dec7fb3e64f7b153a3514637",
+          "size_bytes": 1466,
+          "musicxml_version": "4.0",
+          "profile": "sori-monophonic-v4",
+          "part_id": "P1",
+          "measure_count": 8,
+          "source_tempo_bpm": 96
+        },
+        "scale": {
+          "url": "https://api.sori.example/api/v1/questions/0f8cc9b3-c20a-58ac-98ee-08fb9bd24a88/versions/1/scores/scale/",
+          "content_type": "application/vnd.recordare.musicxml",
+          "sha256": "48ad30150717c59aaceaf006894a5bad7ca7bef470b16f874efa6df60a371445",
+          "size_bytes": 1109,
+          "musicxml_version": "4.0",
+          "profile": "sori-monophonic-v4",
+          "part_id": "P1",
+          "measure_count": 4,
+          "source_tempo_bpm": 96
+        }
+      }
+    },
+    "main_path": "questions/classical-gttm-041/v1/main.mxl",
+    "scale_path": "questions/classical-gttm-041/v1/scale.mxl"
+  },
+  {
+    "order": 1004,
+    "metadata": {
+      "id": "0b353d96-a50d-5cb6-8a83-655526a4f616",
+      "version": 1,
+      "title": "왈츠 · 어린이 앨범 · Op.39 No.9",
+      "source": "practice",
+      "collection": "classical",
+      "composer": "차이콥스키",
+      "key_signature": {
+        "tonic": "Eb",
+        "mode": "major",
+        "fifths": -3
+      },
+      "time_signature": {
+        "numerator": 3,
+        "denominator": 4
+      },
+      "measure_count": 8,
+      "recommended_duration_seconds": 300,
+      "description": "클래식 선율 발췌본입니다. 음계와 선율을 듣고 표시된 조표에 맞춰 8마디를 적어보세요. 제출 후 정답 악보와 평가를 확인할 수 있어요.",
+      "time_policy": "advisory",
+      "clef": "treble",
+      "sheet_layout": {
+        "id": "staff-8bars-3-4-key-3-v3",
+        "logical_width": 1330,
+        "logical_height": 846,
+        "export_scale": 2,
+        "pixel_width": 2660,
+        "pixel_height": 1692,
+        "template_png_url": "https://api.sori.example/assets/sheets/staff-8bars-3-4-key-3-v3.png",
+        "template_sha256": "e937104234dbc22b1744d9401a149045c241c2e7bc6cc46f566e58c6297b0225",
+        "systems": [
+          {
+            "index": 1,
+            "first_measure": 1,
+            "last_measure": 4,
+            "staff_line_y": [
+              164,
+              176,
+              188,
+              200,
+              212
+            ],
+            "barline_x": [
+              54,
+              450,
+              725,
+              1000,
+              1276
+            ]
+          },
+          {
+            "index": 2,
+            "first_measure": 5,
+            "last_measure": 8,
+            "staff_line_y": [
+              499,
+              511,
+              523,
+              535,
+              547
+            ],
+            "barline_x": [
+              54,
+              397,
+              690,
+              983,
+              1276
+            ]
+          }
+        ]
+      },
+      "content_policy": "client_readable_practice",
+      "score_visibility": "after_submission",
+      "score_assets": {
+        "main": {
+          "url": "https://api.sori.example/api/v1/questions/0b353d96-a50d-5cb6-8a83-655526a4f616/versions/1/scores/main/",
+          "content_type": "application/vnd.recordare.musicxml",
+          "sha256": "0e5b8c47afabe3dd5c5a1a3e627ede0a0af5b90ef1b0c7d1a690cc08a87b02e6",
+          "size_bytes": 1298,
+          "musicxml_version": "4.0",
+          "profile": "sori-monophonic-v4",
+          "part_id": "P1",
+          "measure_count": 8,
+          "source_tempo_bpm": 96
+        },
+        "scale": {
+          "url": "https://api.sori.example/api/v1/questions/0b353d96-a50d-5cb6-8a83-655526a4f616/versions/1/scores/scale/",
+          "content_type": "application/vnd.recordare.musicxml",
+          "sha256": "ec40eb25f55e3eda26478d427c9f7eac12a71dc9233cbbdcebf30e1f15883b49",
+          "size_bytes": 1104,
+          "musicxml_version": "4.0",
+          "profile": "sori-monophonic-v4",
+          "part_id": "P1",
+          "measure_count": 3,
+          "source_tempo_bpm": 96
+        }
+      }
+    },
+    "main_path": "questions/classical-gttm-042/v1/main.mxl",
+    "scale_path": "questions/classical-gttm-042/v1/scale.mxl"
+  },
+  {
+    "order": 1005,
+    "metadata": {
+      "id": "67dc7c81-cb27-5af6-ba8b-79741c476889",
+      "version": 1,
+      "title": "교향곡 9번: 환희의 송가 · Op.125 · 4악장",
+      "source": "practice",
+      "collection": "classical",
+      "composer": "베토벤",
+      "key_signature": {
+        "tonic": "D",
+        "mode": "major",
+        "fifths": 2
+      },
+      "time_signature": {
+        "numerator": 4,
+        "denominator": 4
+      },
+      "measure_count": 8,
+      "recommended_duration_seconds": 300,
+      "description": "클래식 선율 발췌본입니다. 음계와 선율을 듣고 표시된 조표에 맞춰 8마디를 적어보세요. 제출 후 정답 악보와 평가를 확인할 수 있어요.",
+      "time_policy": "advisory",
+      "clef": "treble",
+      "sheet_layout": {
+        "id": "staff-8bars-4-4-key2-v3",
+        "logical_width": 1330,
+        "logical_height": 846,
+        "export_scale": 2,
+        "pixel_width": 2660,
+        "pixel_height": 1692,
+        "template_png_url": "https://api.sori.example/assets/sheets/staff-8bars-4-4-key2-v3.png",
+        "template_sha256": "658f5b9d901c7b87bd1225d7ef2288efe7ec63fc6baab6e0e334612e1e79492b",
+        "systems": [
+          {
+            "index": 1,
+            "first_measure": 1,
+            "last_measure": 4,
+            "staff_line_y": [
+              164,
+              176,
+              188,
+              200,
+              212
+            ],
+            "barline_x": [
+              54,
+              450,
+              725,
+              1000,
+              1276
+            ]
+          },
+          {
+            "index": 2,
+            "first_measure": 5,
+            "last_measure": 8,
+            "staff_line_y": [
+              499,
+              511,
+              523,
+              535,
+              547
+            ],
+            "barline_x": [
+              54,
+              397,
+              690,
+              983,
+              1276
+            ]
+          }
+        ]
+      },
+      "content_policy": "client_readable_practice",
+      "score_visibility": "after_submission",
+      "score_assets": {
+        "main": {
+          "url": "https://api.sori.example/api/v1/questions/67dc7c81-cb27-5af6-ba8b-79741c476889/versions/1/scores/main/",
+          "content_type": "application/vnd.recordare.musicxml",
+          "sha256": "948242d1e864ff3e2cf17a5aaa9d17dcb66d1ad2d0e7b8ed7bd769a1b8f2da81",
+          "size_bytes": 1284,
+          "musicxml_version": "4.0",
+          "profile": "sori-monophonic-v4",
+          "part_id": "P1",
+          "measure_count": 8,
+          "source_tempo_bpm": 96
+        },
+        "scale": {
+          "url": "https://api.sori.example/api/v1/questions/67dc7c81-cb27-5af6-ba8b-79741c476889/versions/1/scores/scale/",
+          "content_type": "application/vnd.recordare.musicxml",
+          "sha256": "54b22c9bd188940d615e189f8f26c48e44d462741e96d12c294364861a95f433",
+          "size_bytes": 1088,
+          "musicxml_version": "4.0",
+          "profile": "sori-monophonic-v4",
+          "part_id": "P1",
+          "measure_count": 2,
+          "source_tempo_bpm": 96
+        }
+      }
+    },
+    "main_path": "questions/classical-gttm-031/v1/main.mxl",
+    "scale_path": "questions/classical-gttm-031/v1/scale.mxl"
+  },
+  {
+    "order": 1006,
+    "metadata": {
+      "id": "674f4d3b-1121-5932-bdbc-00abb48d0f9a",
+      "version": 1,
+      "title": "비창 소나타 · Op.13 · 2악장",
+      "source": "practice",
+      "collection": "classical",
+      "composer": "베토벤",
+      "key_signature": {
+        "tonic": "Ab",
+        "mode": "major",
+        "fifths": -4
+      },
+      "time_signature": {
+        "numerator": 2,
+        "denominator": 4
+      },
+      "measure_count": 8,
+      "recommended_duration_seconds": 300,
+      "description": "클래식 선율 발췌본입니다. 음계와 선율을 듣고 표시된 조표에 맞춰 8마디를 적어보세요. 제출 후 정답 악보와 평가를 확인할 수 있어요.",
+      "time_policy": "advisory",
+      "clef": "treble",
+      "sheet_layout": {
+        "id": "staff-8bars-2-4-key-4-v3",
+        "logical_width": 1330,
+        "logical_height": 846,
+        "export_scale": 2,
+        "pixel_width": 2660,
+        "pixel_height": 1692,
+        "template_png_url": "https://api.sori.example/assets/sheets/staff-8bars-2-4-key-4-v3.png",
+        "template_sha256": "364955a418182f77683c3de1f4d9b653405120093266d32162619e8027f33bdf",
+        "systems": [
+          {
+            "index": 1,
+            "first_measure": 1,
+            "last_measure": 4,
+            "staff_line_y": [
+              164,
+              176,
+              188,
+              200,
+              212
+            ],
+            "barline_x": [
+              54,
+              450,
+              725,
+              1000,
+              1276
+            ]
+          },
+          {
+            "index": 2,
+            "first_measure": 5,
+            "last_measure": 8,
+            "staff_line_y": [
+              499,
+              511,
+              523,
+              535,
+              547
+            ],
+            "barline_x": [
+              54,
+              397,
+              690,
+              983,
+              1276
+            ]
+          }
+        ]
+      },
+      "content_policy": "client_readable_practice",
+      "score_visibility": "after_submission",
+      "score_assets": {
+        "main": {
+          "url": "https://api.sori.example/api/v1/questions/674f4d3b-1121-5932-bdbc-00abb48d0f9a/versions/1/scores/main/",
+          "content_type": "application/vnd.recordare.musicxml",
+          "sha256": "e523ac3ec24e2e66091d52f0044258f38ce2ed14824e9e2ee5885cd2a6d8f2f2",
+          "size_bytes": 1395,
+          "musicxml_version": "4.0",
+          "profile": "sori-monophonic-v4",
+          "part_id": "P1",
+          "measure_count": 8,
+          "source_tempo_bpm": 96
+        },
+        "scale": {
+          "url": "https://api.sori.example/api/v1/questions/674f4d3b-1121-5932-bdbc-00abb48d0f9a/versions/1/scores/scale/",
+          "content_type": "application/vnd.recordare.musicxml",
+          "sha256": "eff8d4728c6f33d6ef9cfffd63fd8de5c12ca79617c67c6755a9221714e7a2c9",
+          "size_bytes": 1110,
+          "musicxml_version": "4.0",
+          "profile": "sori-monophonic-v4",
+          "part_id": "P1",
+          "measure_count": 4,
+          "source_tempo_bpm": 96
+        }
+      }
+    },
+    "main_path": "questions/classical-gttm-098/v1/main.mxl",
+    "scale_path": "questions/classical-gttm-098/v1/scale.mxl"
+  },
+  {
+    "order": 1007,
+    "metadata": {
+      "id": "e50457cd-4da3-5f93-bda8-e916c7dd4fde",
+      "version": 1,
+      "title": "아침의 기분 · 페르 귄트 · Op.46",
+      "source": "practice",
+      "collection": "classical",
+      "composer": "그리그",
+      "key_signature": {
+        "tonic": "F",
+        "mode": "major",
+        "fifths": -1
+      },
+      "time_signature": {
+        "numerator": 6,
+        "denominator": 8
+      },
+      "measure_count": 8,
+      "recommended_duration_seconds": 300,
+      "description": "클래식 선율 발췌본입니다. 음계와 선율을 듣고 표시된 조표에 맞춰 8마디를 적어보세요. 제출 후 정답 악보와 평가를 확인할 수 있어요.",
+      "time_policy": "advisory",
+      "clef": "treble",
+      "sheet_layout": {
+        "id": "staff-8bars-6-8-key-1-v3",
+        "logical_width": 1330,
+        "logical_height": 846,
+        "export_scale": 2,
+        "pixel_width": 2660,
+        "pixel_height": 1692,
+        "template_png_url": "https://api.sori.example/assets/sheets/staff-8bars-6-8-key-1-v3.png",
+        "template_sha256": "0aa0f81c336e745d6f39b07fee0e771752b0baebe36b3e37cfa3ec6eb4be13e2",
+        "systems": [
+          {
+            "index": 1,
+            "first_measure": 1,
+            "last_measure": 4,
+            "staff_line_y": [
+              164,
+              176,
+              188,
+              200,
+              212
+            ],
+            "barline_x": [
+              54,
+              450,
+              725,
+              1000,
+              1276
+            ]
+          },
+          {
+            "index": 2,
+            "first_measure": 5,
+            "last_measure": 8,
+            "staff_line_y": [
+              499,
+              511,
+              523,
+              535,
+              547
+            ],
+            "barline_x": [
+              54,
+              397,
+              690,
+              983,
+              1276
+            ]
+          }
+        ]
+      },
+      "content_policy": "client_readable_practice",
+      "score_visibility": "after_submission",
+      "score_assets": {
+        "main": {
+          "url": "https://api.sori.example/api/v1/questions/e50457cd-4da3-5f93-bda8-e916c7dd4fde/versions/1/scores/main/",
+          "content_type": "application/vnd.recordare.musicxml",
+          "sha256": "0a698f3d16470bf6518718897261c510183bbe8676c13137827b73abe2dc4f53",
+          "size_bytes": 1439,
+          "musicxml_version": "4.0",
+          "profile": "sori-monophonic-v4",
+          "part_id": "P1",
+          "measure_count": 8,
+          "source_tempo_bpm": 96
+        },
+        "scale": {
+          "url": "https://api.sori.example/api/v1/questions/e50457cd-4da3-5f93-bda8-e916c7dd4fde/versions/1/scores/scale/",
+          "content_type": "application/vnd.recordare.musicxml",
+          "sha256": "51eb2d4ae5e81a513349c424086c91160b201b2019828b23d5e4e1f1219fc128",
+          "size_bytes": 1099,
+          "musicxml_version": "4.0",
+          "profile": "sori-monophonic-v4",
+          "part_id": "P1",
+          "measure_count": 3,
+          "source_tempo_bpm": 96
+        }
+      }
+    },
+    "main_path": "questions/classical-gttm-027/v1/main.mxl",
+    "scale_path": "questions/classical-gttm-027/v1/scale.mxl"
+  },
+  {
+    "order": 1008,
+    "metadata": {
+      "id": "244e7301-ab54-500d-8745-676dbc5af60a",
+      "version": 1,
+      "title": "백조 · 동물의 사육제",
+      "source": "practice",
+      "collection": "classical",
+      "composer": "생상스",
+      "key_signature": {
+        "tonic": "G",
+        "mode": "major",
+        "fifths": 1
+      },
+      "time_signature": {
+        "numerator": 3,
+        "denominator": 4
+      },
+      "measure_count": 8,
+      "recommended_duration_seconds": 300,
+      "description": "클래식 선율 발췌본입니다. 음계와 선율을 듣고 표시된 조표에 맞춰 8마디를 적어보세요. 제출 후 정답 악보와 평가를 확인할 수 있어요.",
+      "time_policy": "advisory",
+      "clef": "treble",
+      "sheet_layout": {
+        "id": "staff-8bars-3-4-key1-v3",
+        "logical_width": 1330,
+        "logical_height": 846,
+        "export_scale": 2,
+        "pixel_width": 2660,
+        "pixel_height": 1692,
+        "template_png_url": "https://api.sori.example/assets/sheets/staff-8bars-3-4-key1-v3.png",
+        "template_sha256": "a4032738d155e875d27fcb84ec17e088ee9046cb905a48f77473a91ed451550a",
+        "systems": [
+          {
+            "index": 1,
+            "first_measure": 1,
+            "last_measure": 4,
+            "staff_line_y": [
+              164,
+              176,
+              188,
+              200,
+              212
+            ],
+            "barline_x": [
+              54,
+              450,
+              725,
+              1000,
+              1276
+            ]
+          },
+          {
+            "index": 2,
+            "first_measure": 5,
+            "last_measure": 8,
+            "staff_line_y": [
+              499,
+              511,
+              523,
+              535,
+              547
+            ],
+            "barline_x": [
+              54,
+              397,
+              690,
+              983,
+              1276
+            ]
+          }
+        ]
+      },
+      "content_policy": "client_readable_practice",
+      "score_visibility": "after_submission",
+      "score_assets": {
+        "main": {
+          "url": "https://api.sori.example/api/v1/questions/244e7301-ab54-500d-8745-676dbc5af60a/versions/1/scores/main/",
+          "content_type": "application/vnd.recordare.musicxml",
+          "sha256": "55c30e7e933f5f56147f31348c6349198359ef5d0953c13b950869fdab58995f",
+          "size_bytes": 1349,
+          "musicxml_version": "4.0",
+          "profile": "sori-monophonic-v4",
+          "part_id": "P1",
+          "measure_count": 8,
+          "source_tempo_bpm": 96
+        },
+        "scale": {
+          "url": "https://api.sori.example/api/v1/questions/244e7301-ab54-500d-8745-676dbc5af60a/versions/1/scores/scale/",
+          "content_type": "application/vnd.recordare.musicxml",
+          "sha256": "0b77a42984b4c0455343cb0ea7aba42081220f1f69112050ed0c01230f748ca5",
+          "size_bytes": 1096,
+          "musicxml_version": "4.0",
+          "profile": "sori-monophonic-v4",
+          "part_id": "P1",
+          "measure_count": 3,
+          "source_tempo_bpm": 96
+        }
+      }
+    },
+    "main_path": "questions/classical-gttm-028/v1/main.mxl",
+    "scale_path": "questions/classical-gttm-028/v1/scale.mxl"
+  },
+  {
+    "order": 1009,
+    "metadata": {
+      "id": "9e600680-6511-5dd0-b8cc-6102621f66a3",
+      "version": 1,
+      "title": "짐노페디 1번",
+      "source": "practice",
+      "collection": "classical",
+      "composer": "사티",
+      "key_signature": {
+        "tonic": "D",
+        "mode": "major",
+        "fifths": 2
+      },
+      "time_signature": {
+        "numerator": 3,
+        "denominator": 4
+      },
+      "measure_count": 8,
+      "recommended_duration_seconds": 300,
+      "description": "클래식 선율 발췌본입니다. 음계와 선율을 듣고 표시된 조표에 맞춰 8마디를 적어보세요. 제출 후 정답 악보와 평가를 확인할 수 있어요.",
+      "time_policy": "advisory",
+      "clef": "treble",
+      "sheet_layout": {
+        "id": "staff-8bars-3-4-key2-v3",
+        "logical_width": 1330,
+        "logical_height": 846,
+        "export_scale": 2,
+        "pixel_width": 2660,
+        "pixel_height": 1692,
+        "template_png_url": "https://api.sori.example/assets/sheets/staff-8bars-3-4-key2-v3.png",
+        "template_sha256": "99cf6ade261d4711b7ec5b89fa714d735efdd7a7c23f9ca4f0148f11b3cc219a",
+        "systems": [
+          {
+            "index": 1,
+            "first_measure": 1,
+            "last_measure": 4,
+            "staff_line_y": [
+              164,
+              176,
+              188,
+              200,
+              212
+            ],
+            "barline_x": [
+              54,
+              450,
+              725,
+              1000,
+              1276
+            ]
+          },
+          {
+            "index": 2,
+            "first_measure": 5,
+            "last_measure": 8,
+            "staff_line_y": [
+              499,
+              511,
+              523,
+              535,
+              547
+            ],
+            "barline_x": [
+              54,
+              397,
+              690,
+              983,
+              1276
+            ]
+          }
+        ]
+      },
+      "content_policy": "client_readable_practice",
+      "score_visibility": "after_submission",
+      "score_assets": {
+        "main": {
+          "url": "https://api.sori.example/api/v1/questions/9e600680-6511-5dd0-b8cc-6102621f66a3/versions/1/scores/main/",
+          "content_type": "application/vnd.recordare.musicxml",
+          "sha256": "382449b3ce5dccd9867b6952caa72519d7edc90c1e97edf1d8b7b8150e97f33b",
+          "size_bytes": 1228,
+          "musicxml_version": "4.0",
+          "profile": "sori-monophonic-v4",
+          "part_id": "P1",
+          "measure_count": 8,
+          "source_tempo_bpm": 96
+        },
+        "scale": {
+          "url": "https://api.sori.example/api/v1/questions/9e600680-6511-5dd0-b8cc-6102621f66a3/versions/1/scores/scale/",
+          "content_type": "application/vnd.recordare.musicxml",
+          "sha256": "cb3c05c8b7ca5ccfb08c8133ebf0e68108291c6d91f40e165dad6e138ca166c5",
+          "size_bytes": 1099,
+          "musicxml_version": "4.0",
+          "profile": "sori-monophonic-v4",
+          "part_id": "P1",
+          "measure_count": 3,
+          "source_tempo_bpm": 96
+        }
+      }
+    },
+    "main_path": "questions/classical-gttm-030/v1/main.mxl",
+    "scale_path": "questions/classical-gttm-030/v1/scale.mxl"
+  },
+  {
+    "order": 1010,
+    "metadata": {
+      "id": "e9dc82c3-e60e-5809-913d-26c8c766db37",
+      "version": 1,
+      "title": "유모레스크 · Op.101 No.7",
+      "source": "practice",
+      "collection": "classical",
+      "composer": "드보르자크",
+      "key_signature": {
+        "tonic": "G",
+        "mode": "major",
+        "fifths": 1
+      },
+      "time_signature": {
+        "numerator": 2,
+        "denominator": 4
+      },
+      "measure_count": 8,
+      "recommended_duration_seconds": 300,
+      "description": "클래식 선율 발췌본입니다. 음계와 선율을 듣고 표시된 조표에 맞춰 8마디를 적어보세요. 제출 후 정답 악보와 평가를 확인할 수 있어요.",
+      "time_policy": "advisory",
+      "clef": "treble",
+      "sheet_layout": {
+        "id": "staff-8bars-2-4-key1-v3",
+        "logical_width": 1330,
+        "logical_height": 846,
+        "export_scale": 2,
+        "pixel_width": 2660,
+        "pixel_height": 1692,
+        "template_png_url": "https://api.sori.example/assets/sheets/staff-8bars-2-4-key1-v3.png",
+        "template_sha256": "8d5690c158ce37f24ed6dcaa234746a940118c91d546729e19605fde3d593272",
+        "systems": [
+          {
+            "index": 1,
+            "first_measure": 1,
+            "last_measure": 4,
+            "staff_line_y": [
+              164,
+              176,
+              188,
+              200,
+              212
+            ],
+            "barline_x": [
+              54,
+              450,
+              725,
+              1000,
+              1276
+            ]
+          },
+          {
+            "index": 2,
+            "first_measure": 5,
+            "last_measure": 8,
+            "staff_line_y": [
+              499,
+              511,
+              523,
+              535,
+              547
+            ],
+            "barline_x": [
+              54,
+              397,
+              690,
+              983,
+              1276
+            ]
+          }
+        ]
+      },
+      "content_policy": "client_readable_practice",
+      "score_visibility": "after_submission",
+      "score_assets": {
+        "main": {
+          "url": "https://api.sori.example/api/v1/questions/e9dc82c3-e60e-5809-913d-26c8c766db37/versions/1/scores/main/",
+          "content_type": "application/vnd.recordare.musicxml",
+          "sha256": "aabc6e7c5b27c33aeb383c87ed0f35483f9b17168d7c4b8a3c35b15742c80925",
+          "size_bytes": 1587,
+          "musicxml_version": "4.0",
+          "profile": "sori-monophonic-v4",
+          "part_id": "P1",
+          "measure_count": 8,
+          "source_tempo_bpm": 96
+        },
+        "scale": {
+          "url": "https://api.sori.example/api/v1/questions/e9dc82c3-e60e-5809-913d-26c8c766db37/versions/1/scores/scale/",
+          "content_type": "application/vnd.recordare.musicxml",
+          "sha256": "bd098df0734b1f931b636a6faed1894f2c1f279e2f77251746844eef5f112433",
+          "size_bytes": 1099,
+          "musicxml_version": "4.0",
+          "profile": "sori-monophonic-v4",
+          "part_id": "P1",
+          "measure_count": 4,
+          "source_tempo_bpm": 96
+        }
+      }
+    },
+    "main_path": "questions/classical-gttm-074/v1/main.mxl",
+    "scale_path": "questions/classical-gttm-074/v1/scale.mxl"
+  },
+  {
+    "order": 1011,
+    "metadata": {
+      "id": "9d950dcb-f8e9-54f3-b7d5-4796ce3b0479",
+      "version": 1,
+      "title": "신세계 교향곡 · Op.95 · 2악장",
+      "source": "practice",
+      "collection": "classical",
+      "composer": "드보르자크",
+      "key_signature": {
+        "tonic": "D",
+        "mode": "major",
+        "fifths": 2
+      },
+      "time_signature": {
+        "numerator": 4,
+        "denominator": 4
+      },
+      "measure_count": 8,
+      "recommended_duration_seconds": 300,
+      "description": "클래식 선율 발췌본입니다. 음계와 선율을 듣고 표시된 조표에 맞춰 8마디를 적어보세요. 제출 후 정답 악보와 평가를 확인할 수 있어요.",
+      "time_policy": "advisory",
+      "clef": "treble",
+      "sheet_layout": {
+        "id": "staff-8bars-4-4-key2-v3",
+        "logical_width": 1330,
+        "logical_height": 846,
+        "export_scale": 2,
+        "pixel_width": 2660,
+        "pixel_height": 1692,
+        "template_png_url": "https://api.sori.example/assets/sheets/staff-8bars-4-4-key2-v3.png",
+        "template_sha256": "658f5b9d901c7b87bd1225d7ef2288efe7ec63fc6baab6e0e334612e1e79492b",
+        "systems": [
+          {
+            "index": 1,
+            "first_measure": 1,
+            "last_measure": 4,
+            "staff_line_y": [
+              164,
+              176,
+              188,
+              200,
+              212
+            ],
+            "barline_x": [
+              54,
+              450,
+              725,
+              1000,
+              1276
+            ]
+          },
+          {
+            "index": 2,
+            "first_measure": 5,
+            "last_measure": 8,
+            "staff_line_y": [
+              499,
+              511,
+              523,
+              535,
+              547
+            ],
+            "barline_x": [
+              54,
+              397,
+              690,
+              983,
+              1276
+            ]
+          }
+        ]
+      },
+      "content_policy": "client_readable_practice",
+      "score_visibility": "after_submission",
+      "score_assets": {
+        "main": {
+          "url": "https://api.sori.example/api/v1/questions/9d950dcb-f8e9-54f3-b7d5-4796ce3b0479/versions/1/scores/main/",
+          "content_type": "application/vnd.recordare.musicxml",
+          "sha256": "444dc06ff5b96cb4ba59f8b4e605e0a8dd09414c263647170da51ade7edff55e",
+          "size_bytes": 1436,
+          "musicxml_version": "4.0",
+          "profile": "sori-monophonic-v4",
+          "part_id": "P1",
+          "measure_count": 8,
+          "source_tempo_bpm": 96
+        },
+        "scale": {
+          "url": "https://api.sori.example/api/v1/questions/9d950dcb-f8e9-54f3-b7d5-4796ce3b0479/versions/1/scores/scale/",
+          "content_type": "application/vnd.recordare.musicxml",
+          "sha256": "54b22c9bd188940d615e189f8f26c48e44d462741e96d12c294364861a95f433",
+          "size_bytes": 1088,
+          "musicxml_version": "4.0",
+          "profile": "sori-monophonic-v4",
+          "part_id": "P1",
+          "measure_count": 2,
+          "source_tempo_bpm": 96
+        }
+      }
+    },
+    "main_path": "questions/classical-gttm-081/v1/main.mxl",
+    "scale_path": "questions/classical-gttm-081/v1/scale.mxl"
+  }
+]

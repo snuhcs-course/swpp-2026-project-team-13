@@ -1,7 +1,7 @@
 {
-  "localMelodies": 36,
-  "eightBarFiles": 32,
-  "externalLinks": 3,
+  "localMelodies": 11,
+  "eightBarFiles": 11,
+  "externalLinks": 0,
   "audioSchedule": "passed (simulated Web Audio)",
   "stopDuringResume": "passed",
   "loopAndTempo": "passed",

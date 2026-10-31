@@ -560,6 +560,105 @@
       "pixel_width": 3200,
       "pixel_height": 640,
       "renderer": "Supplied final transcription / 2026-10-29"
+    },
+    "2ea00638832a100618ba8d590269e86c1ca3f565ba5b6c17f21de96e899f3c05": {
+      "resource": "classical-gttm-189-reference-v1",
+      "content_type": "image/png",
+      "sha256": "6da4c504743b634bc6bff28808b6dc6d960b72e91c6927f03098dfdd788c3360",
+      "size_bytes": 69700,
+      "pixel_width": 2600,
+      "pixel_height": 419,
+      "renderer": "MuseScore Studio 4.6.3"
+    },
+    "6177e7274889bd0b98e97baa2c5c59d12b69873496629d0d645747815070110f": {
+      "resource": "classical-gttm-033-reference-v1",
+      "content_type": "image/png",
+      "sha256": "0185a68c1470861225fd92f4c8f043fbc22ccc17c91e6ab279a38ddfc1a9b778",
+      "size_bytes": 62263,
+      "pixel_width": 2600,
+      "pixel_height": 421,
+      "renderer": "MuseScore Studio 4.6.3"
+    },
+    "c42ec5a10b687152b191d6204c94d4405d0f61d0dec7fb3e64f7b153a3514637": {
+      "resource": "classical-gttm-041-reference-v1",
+      "content_type": "image/png",
+      "sha256": "86eb67a4776cd1a6e747ebe01f92ed553fe404e277476cd85c963a1d0c13075e",
+      "size_bytes": 70298,
+      "pixel_width": 2600,
+      "pixel_height": 427,
+      "renderer": "MuseScore Studio 4.6.3"
+    },
+    "0e5b8c47afabe3dd5c5a1a3e627ede0a0af5b90ef1b0c7d1a690cc08a87b02e6": {
+      "resource": "classical-gttm-042-reference-v1",
+      "content_type": "image/png",
+      "sha256": "ca170839998212f1921ff1ecccc602ce7744c86dfe2558015efb01f0da06e16f",
+      "size_bytes": 51897,
+      "pixel_width": 2600,
+      "pixel_height": 419,
+      "renderer": "MuseScore Studio 4.6.3"
+    },
+    "948242d1e864ff3e2cf17a5aaa9d17dcb66d1ad2d0e7b8ed7bd769a1b8f2da81": {
+      "resource": "classical-gttm-031-reference-v1",
+      "content_type": "image/png",
+      "sha256": "dabf836cffcefef9f797067db27b29d071d9b1d1150e1700e52f813126d70430",
+      "size_bytes": 46826,
+      "pixel_width": 2600,
+      "pixel_height": 419,
+      "renderer": "MuseScore Studio 4.6.3"
+    },
+    "e523ac3ec24e2e66091d52f0044258f38ce2ed14824e9e2ee5885cd2a6d8f2f2": {
+      "resource": "classical-gttm-098-reference-v1",
+      "content_type": "image/png",
+      "sha256": "54ff51e4fe55542a67006c056329f38dfb1ca43b0daae536acc96932c2f2ba87",
+      "size_bytes": 53074,
+      "pixel_width": 2600,
+      "pixel_height": 453,
+      "renderer": "MuseScore Studio 4.6.3"
+    },
+    "0a698f3d16470bf6518718897261c510183bbe8676c13137827b73abe2dc4f53": {
+      "resource": "classical-gttm-027-reference-v1",
+      "content_type": "image/png",
+      "sha256": "9733e010ac4da524b20472a747c087b507816b972daabd8e952caf53d0c69baf",
+      "size_bytes": 87786,
+      "pixel_width": 2600,
+      "pixel_height": 419,
+      "renderer": "MuseScore Studio 4.6.3"
+    },
+    "55c30e7e933f5f56147f31348c6349198359ef5d0953c13b950869fdab58995f": {
+      "resource": "classical-gttm-028-reference-v1",
+      "content_type": "image/png",
+      "sha256": "ebf2e4e01805cf8040a1e5d48c4e3214dab87583f207c5f42f26b180ba0b6700",
+      "size_bytes": 49593,
+      "pixel_width": 2600,
+      "pixel_height": 419,
+      "renderer": "MuseScore Studio 4.6.3"
+    },
+    "382449b3ce5dccd9867b6952caa72519d7edc90c1e97edf1d8b7b8150e97f33b": {
+      "resource": "classical-gttm-030-reference-v1",
+      "content_type": "image/png",
+      "sha256": "1da3e1dde2048ec7a7a20069696009b3e0df85e0dbb8605c5c53c3dbe5321784",
+      "size_bytes": 49455,
+      "pixel_width": 2600,
+      "pixel_height": 422,
+      "renderer": "MuseScore Studio 4.6.3"
+    },
+    "aabc6e7c5b27c33aeb383c87ed0f35483f9b17168d7c4b8a3c35b15742c80925": {
+      "resource": "classical-gttm-074-reference-v1",
+      "content_type": "image/png",
+      "sha256": "a479b0f3b75bbc030eee1fc9df9d0dd557979f5675a418f4f02f976b51c7f580",
+      "size_bytes": 106196,
+      "pixel_width": 2600,
+      "pixel_height": 441,
+      "renderer": "MuseScore Studio 4.6.3"
+    },
+    "444dc06ff5b96cb4ba59f8b4e605e0a8dd09414c263647170da51ade7edff55e": {
+      "resource": "classical-gttm-081-reference-v1",
+      "content_type": "image/png",
+      "sha256": "a1b37434878fb105d8860882520bfda0faa1583d014c0e54e3d1f8a914ce89e8",
+      "size_bytes": 58688,
+      "pixel_width": 2600,
+      "pixel_height": 419,
+      "renderer": "MuseScore Studio 4.6.3"
     }
   }
 }

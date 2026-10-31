@@ -70,6 +70,50 @@ class FlowTests(TestCase):
         return attempt, answer.data, response.data
 
 
+    def test_classical_collection_is_separate_and_paginates_with_composer_and_key(self):
+        from urllib.parse import urlsplit
+        practice = self.client.get("/api/v1/questions/")
+        self.assertEqual(practice.data["count"],62)
+        url = "/api/v1/questions/?collection=classical&page_size=3"
+        results = []
+        while url:
+            response = self.client.get(url)
+            self.assertEqual(response.status_code,200,response.data)
+            self.assertEqual(response.data["count"],11)
+            results.extend(response.data["results"])
+            next_url = response.data["next"]
+            if next_url:
+                self.assertIn("collection=classical",next_url)
+                parts = urlsplit(next_url); url = parts.path+"?"+parts.query
+            else: url = None
+        self.assertEqual(len({q["id"] for q in results}),11)
+        self.assertEqual(len({q["composer"] for q in results}),7)
+        for summary in results:
+            self.assertEqual(summary["collection"],"classical")
+            q = self.client.get(f'/api/v1/questions/{summary["id"]}/').data
+            self.assertEqual(q["key_signature"],summary["key_signature"])
+            template = self.client.get(urlsplit(q["sheet_layout"]["template_png_url"]).path)
+            self.assertEqual(template.status_code,200)
+            data = b"".join(template.streaming_content)
+            self.assertEqual(hashlib.sha256(data).hexdigest(),q["sheet_layout"]["template_sha256"])
+            self.assertEqual(q["correct_score"]["renderer"],"MuseScore Studio 4.6.3")
+        self.assertEqual(self.client.get("/api/v1/questions/?collection=unknown").status_code,400)
+
+    def test_classical_uses_the_same_immutable_attempt_upload_and_submission_flow(self):
+        q = self.client.get("/api/v1/questions/?collection=classical").data["results"][0]
+        response = self.post("attempts/",{"question_id":q["id"],"question_version":q["version"]})
+        self.assertEqual(response.status_code,201,response.data)
+        attempt = response.data
+        self.assertEqual(attempt["question"]["collection"],"classical")
+        self.assertEqual(self.post(f'attempts/{attempt["id"]}/start/').status_code,200)
+        answer = self.upload(attempt)
+        self.assertEqual(answer.status_code,201,answer.data)
+        submitted = self.post(f'attempts/{attempt["id"]}/submit/',{"answer_id":answer.data["id"]})
+        self.assertEqual(submitted.status_code,202,submitted.data)
+        restored = self.client.get(f'/api/v1/attempts/{attempt["id"]}/').data
+        self.assertEqual(restored["status"],"submitted")
+        self.assertEqual(restored["question"]["key_signature"],q["key_signature"])
+
     def test_exam_plan_countins_waits_and_timer_match_all_catalog_meters(self):
         from datetime import datetime
         for version in QuestionVersion.objects.order_by("question__order"):

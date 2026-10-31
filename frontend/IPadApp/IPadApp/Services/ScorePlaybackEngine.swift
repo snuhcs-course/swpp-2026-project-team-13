@@ -35,6 +35,7 @@ import AudioToolbox
     private var bankMSB: UInt8 = 121
     private var bankLSB: UInt8 = 0
     private var outputGain: Float = 1
+    private var noteVelocity = 80
 
     func prepare(main: MusicScore, scale: MusicScore, plan: PlaybackPlan) throws {
         prepared = false; pause()
@@ -46,15 +47,21 @@ import AudioToolbox
         }
         struct Bank: Decodable { var sha256:String; var sizeBytes:Int }
         let choices: InstrumentChoices = try Bundled.decode("instruments")
-        guard let voice = choices.voices.first(where: { $0.id == voiceId }),
-              let url = Bundle.main.url(forResource:"GeneralUser-GS",withExtension:"sf2") else {
+        guard let voice = choices.voices.first(where: { $0.id == voiceId }) else {
             throw SORIError.invalidScore("음원 리소스가 없습니다. 음원이 포함된 최신 앱으로 설치해 주세요.")
         }
-        let bank: Bank = try Bundled.decode("instrument-bank")
-        let data = try Data(contentsOf:url)
-        guard data.count == bank.sizeBytes, data.sha256 == bank.sha256 else { throw SORIError.invalidScore("SOUND_BANK_UNAVAILABLE: 음원 리소스가 손상되었습니다.") }
-        instrumentURL = url; instrumentProgram = voice.program; bankMSB = 121; bankLSB = 0
-        outputGain = pow(10,voice.gainDb / 20)
+        if voiceId == "grand-piano" {
+            let piano = try ClassicalPiano.load()
+            instrumentURL = piano.url; instrumentProgram = piano.program; bankMSB = piano.bankMsb; bankLSB = piano.bankLsb
+            outputGain = pow(10,piano.gainDb/20); noteVelocity = Int(piano.noteVelocity)
+        } else {
+            guard let url = Bundle.main.url(forResource:"GeneralUser-GS",withExtension:"sf2") else { throw SORIError.invalidScore("음원 리소스가 없습니다.") }
+            let bank: Bank = try Bundled.decode("instrument-bank")
+            let data = try Data(contentsOf:url)
+            guard data.count == bank.sizeBytes, data.sha256 == bank.sha256 else { throw SORIError.invalidScore("SOUND_BANK_UNAVAILABLE: 음원 리소스가 손상되었습니다.") }
+            instrumentURL = url; instrumentProgram = voice.program; bankMSB = 121; bankLSB = 0
+            outputGain = pow(10,voice.gainDb / 20); noteVelocity = plan.velocity
+        }
         clickURL = nil
         if let count = plan.countIn {
             guard let url = Bundle.main.url(forResource:count.profileId,withExtension:"wav") else { throw SORIError.invalidScore("예비박 소리 리소스가 없습니다.") }
@@ -98,8 +105,8 @@ import AudioToolbox
         let through = index == 0 ? plan.scale.toMeasure : plan.steps[index-1].toMeasure
         let events = try score.segment(from:from,through:through)
         let ticks = (through-from+1)*score.ticksPerMeasure
-        if let count = countIn(index:index) { return MIDIFile.withCountIn(events:events,totalTicks:ticks,tempo:plan.tempoBpm,countIn:count) }
-        return MIDIFile.make(events:events,totalTicks:ticks,tempo:plan.tempoBpm)
+        if let count = countIn(index:index) { return MIDIFile.withCountIn(events:events,totalTicks:ticks,tempo:plan.tempoBpm,countIn:count,velocity:noteVelocity) }
+        return MIDIFile.make(events:events,totalTicks:ticks,tempo:plan.tempoBpm,velocity:noteVelocity)
     }
     private func route(_ seq:AVAudioSequencer,index:Int) {
         for (trackIndex,track) in seq.tracks.enumerated() {

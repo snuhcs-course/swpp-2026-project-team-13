@@ -30,6 +30,8 @@ def prepare(score):
             score.remove(element)
     for part in score.findall("part"):
         previous = {}
+        fifths = int(part.findtext("measure/attributes/key/fifths", "0"))
+        defaults = {step: str(1 if fifths > 0 else -1) for step in ("FCGDAEB" if fifths > 0 else "BEADGCF")[:abs(fifths)]}
         for number, measure in enumerate(part.findall("measure"), 1):
             for direction in list(measure.findall("direction")):
                 measure.remove(direction)
@@ -42,9 +44,10 @@ def prepare(score):
                 key = (note.findtext("pitch/step"), note.findtext("pitch/octave"))
                 alter = note.findtext("pitch/alter", "0")
                 tied = any(t.get("type") == "stop" for t in note.findall("tie"))
-                if key not in seen and previous.get(key, "0") != "0" and alter == "0" and not tied and note.find("accidental") is None:
+                baseline = defaults.get(key[0], "0")
+                if key not in seen and previous.get(key, baseline) != baseline and alter == baseline and not tied and note.find("accidental") is None:
                     accidental = ET.Element("accidental", {"cautionary": "yes"})
-                    accidental.text = "natural"
+                    accidental.text = {"0":"natural", "1":"sharp", "-1":"flat"}[baseline]
                     # MusicXML order: after type/dots, before stem/beams/notations.
                     insert = next((i for i, e in enumerate(note) if e.tag in ("time-modification", "stem", "notehead", "staff", "beam", "notations")), len(note))
                     note.insert(insert, accidental)
@@ -89,7 +92,10 @@ def main():
     target = CONTENT / "engraving"
     target.mkdir(exist_ok=True)
     old = json.loads((CONTENT / "catalog-v1.json").read_text(encoding="utf-8"))
-    manifest = {"renderer": "MuseScore Studio 4.6.3", "style": "compact-v1", "style_sha256": hashlib.sha256(style_data).hexdigest(), "scores": {}}
+    existing_path = target / "manifest.json"
+    existing = json.loads(existing_path.read_text(encoding="utf-8")) if existing_path.exists() else {"scores": {}}
+    classical = {key: value for key, value in existing["scores"].items() if value["resource"].startswith("classical-")}
+    manifest = {"renderer": "MuseScore Studio 4.6.3", "style": "compact-v1", "style_sha256": hashlib.sha256(style_data).hexdigest(), "scores": classical}
     for index, item in enumerate(catalog, 1):
         name = "excerpt-" + str(index) + "-reference-v1"
         data = (work / ("excerpt-" + str(index) + "-1.png")).read_bytes()

@@ -1,0 +1,80 @@
+[
+  {
+    "id": "prokofiev",
+    "name": "프로코피예프",
+    "english_name": "Sergei Prokofiev",
+    "years": "1891–1953",
+    "resource": "composer-prokofiev",
+    "source": "https://commons.wikimedia.org/wiki/File:Sergei_Prokofiev_02.jpg",
+    "credit": "1918년경 사진 · Bain / Library of Congress · Wikimedia Commons에 공개 영역으로 표시",
+    "download_source": "https://github.com/LiviuLvu/composers-list/blob/gh-pages/img/sergej-prokofiew.jpg",
+    "git_blob_sha": "475aa3bc0d9b63cfcba968b26996d846144ae89e"
+  },
+  {
+    "id": "tchaikovsky",
+    "name": "차이콥스키",
+    "english_name": "Pyotr Ilyich Tchaikovsky",
+    "years": "1840–1893",
+    "resource": "composer-tchaikovsky",
+    "source": "https://commons.wikimedia.org/wiki/File:Portr%C3%A4t_des_Komponisten_Pjotr_I._Tschaikowski_(1840-1893).jpg",
+    "credit": "니콜라이 쿠즈네초프, 1893년 초상화 · 공개 영역",
+    "download_source": "https://github.com/LiviuLvu/composers-list/blob/gh-pages/img/piotr-illitch-tcha%C3%AFkovsky.jpg",
+    "git_blob_sha": "37cf33df1f1eaa21485f9fdaa197a6634a4107f4"
+  },
+  {
+    "id": "beethoven",
+    "name": "베토벤",
+    "english_name": "Ludwig van Beethoven",
+    "years": "1770–1827",
+    "resource": "composer-beethoven",
+    "source": "https://commons.wikimedia.org/wiki/File:Beethoven.jpg",
+    "credit": "요제프 카를 슈틸러, 1820년 초상화 · 공개 영역",
+    "download_source": "https://github.com/LiviuLvu/composers-list/blob/gh-pages/img/ludwig-van-beethoven.jpg",
+    "git_blob_sha": "965486c08e3ad5c6a6f48c1d9752e8370150e5bb"
+  },
+  {
+    "id": "dvorak",
+    "name": "드보르자크",
+    "english_name": "Antonín Dvořák",
+    "years": "1841–1904",
+    "resource": "composer-dvorak",
+    "source": "https://commons.wikimedia.org/wiki/Category:Portrait_photographs_of_Anton%C3%ADn_Dvo%C5%99%C3%A1k",
+    "credit": "19세기 초상 사진 · 공개 영역 원작의 축소본",
+    "download_source": "https://github.com/LiviuLvu/composers-list/blob/gh-pages/img/anton%C3%ADn-dvor%C3%A1k.jpg",
+    "git_blob_sha": "47eb24a1d52de6c81a4fe16cee8453d5ee58d23f"
+  },
+  {
+    "id": "grieg",
+    "name": "그리그",
+    "english_name": "Edvard Grieg",
+    "years": "1843–1907",
+    "resource": "composer-grieg",
+    "source": "https://commons.wikimedia.org/wiki/Category:Portraits_of_Edvard_Grieg",
+    "credit": "20세기 초 초상 사진 · 공개 영역 원작의 축소본",
+    "download_source": "https://github.com/LiviuLvu/composers-list/blob/gh-pages/img/edvard-grieg.jpg",
+    "git_blob_sha": "5def52452ba3be4a5a50c71d45c24e60f638d0c5"
+  },
+  {
+    "id": "saint-saens",
+    "name": "생상스",
+    "english_name": "Camille Saint-Saëns",
+    "years": "1835–1921",
+    "resource": "composer-saint-saens",
+    "source": "https://commons.wikimedia.org/wiki/Category:Photographs_of_Camille_Saint-Sa%C3%ABns",
+    "credit": "피아노 앞에 앉은 생상스 · 20세기 초 사진의 축소본",
+    "download_source": "https://github.com/LiviuLvu/composers-list/blob/gh-pages/img/camille-saint-sa%C3%ABns.jpg",
+    "git_blob_sha": "882703b7e7819be02da3d5d0ebb4141fee260dd9"
+  },
+  {
+    "id": "satie",
+    "name": "사티",
+    "english_name": "Erik Satie",
+    "years": "1866–1925",
+    "resource": "composer-satie",
+    "source": "https://commons.wikimedia.org/wiki/File:Erik_Satie_portrait.jpg",
+    "credit": "Studio Hamelle, 1914년경 · 프랑스 국립도서관 / Wikimedia Commons · CC0",
+    "remote": "https://commons.wikimedia.org/wiki/Special:FilePath/Erik_Satie_portrait.jpg",
+    "sha1": "0ce0bfc9fb58e9d34516019cf402ae3eda2499d9",
+    "size_bytes": 108385
+  }
+]

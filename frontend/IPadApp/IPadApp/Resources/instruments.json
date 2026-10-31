@@ -3,9 +3,9 @@
   "voices": [
     {
       "id": "grand-piano",
-      "title": "그랜드 피아노",
+      "title": "클래식 그랜드 피아노 · 미니게임 공통",
       "program": 0,
-      "gain_db": -4
+      "gain_db": -3
     },
     {
       "id": "electric-piano",

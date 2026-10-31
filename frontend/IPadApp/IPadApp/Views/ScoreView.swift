@@ -148,5 +148,5 @@ struct NativeScoreRenderer: ScoreRenderer {
 }
 struct ScoreView: View {
     let score:MusicScore
-    var body: some View { Canvas { context,size in NativeScoreRenderer().render(score,context:&context,size:size) }.aspectRatio(1330.0/846,contentMode:.fit).background(.white).accessibilityLabel("제출 후 확인하는 정답 악보, 8마디") }
+    var body: some View { Canvas { context,size in NativeScoreRenderer(keyFifths:score.keySignature.fifths).render(score,context:&context,size:size) }.aspectRatio(1330.0/846,contentMode:.fit).background(.white).accessibilityLabel("제출 후 확인하는 정답 악보, 8마디") }
 }

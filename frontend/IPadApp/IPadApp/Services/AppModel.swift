@@ -6,6 +6,11 @@ import PencilKit
     @Published var screen: Screen = .home
     @Published var profile: UserProfile?
     @Published var questions: [QuestionSummary] = []
+    @Published var classicalQuestions: [QuestionSummary] = []
+    @Published var classicalLoaded = false
+    @Published var classicalHasNextPage = false
+    private var classicalPage = 0
+    @Published var selectedComposer: String?
     @Published var selectedQuestion: Question?
     @Published var session: SessionRecord?
     @Published var history: [SessionRecord] = []
@@ -75,6 +80,7 @@ import PencilKit
         await run("학습 공간을 불러오는 중") {
             self.player.pause(); self.prepared = false; self.connected = false
             self.api = nil; self.store = nil; self.profile = nil; self.questions = []; self.history = []; self.session = nil
+            self.classicalQuestions = []; self.classicalLoaded = false; self.classicalPage = 0; self.classicalHasNextPage = false; self.selectedComposer = nil
             let candidate: any ExamAPI
             if self.demo { candidate = try DemoExamAPI(outcome: self.demoOutcome) }
             else {
@@ -108,6 +114,17 @@ import PencilKit
         player.stopForPreparation(); prepared = false
         selectedVoice = id; player.voiceId = id
         UserDefaults.standard.set(id,forKey:"sori.voice")
+    }
+    func loadClassical(reset: Bool = false) async {
+        await run("클래식 문제를 불러오는 중") {
+            guard let api = self.api else { return }
+            if self.classicalLoaded && !self.classicalHasNextPage && !reset { return }
+            let number = reset ? 1 : self.classicalPage+1
+            let value = try await api.classicalQuestions(page:number)
+            if reset { self.classicalQuestions = [] }
+            self.classicalQuestions.append(contentsOf:value.results.filter { q in !self.classicalQuestions.contains(where: { $0.id == q.id }) })
+            self.classicalPage = number; self.classicalHasNextPage = value.next != nil; self.classicalLoaded = true
+        }
     }
     func updateGoal(_ goal: String) async {
         await run("목표를 저장하는 중") { guard let api = self.api else { return }; self.profile = try await api.updateGoal(goal) }
@@ -152,6 +169,8 @@ import PencilKit
         }
     }
     private func activate(_ record: SessionRecord) async throws {
+        selectedQuestion = record.attempt.question
+        if record.attempt.question.collection == "classical" { selectedComposer = record.attempt.question.composer }
         player.stopForPreparation(); prepared = false; drawingMissing = false; saveFailed = false; mainScore = nil; submittedImage = nil; template = nil; correctScoreImage = nil; correctScoreError = nil
         guard let store else { return }
         clock.sync(record.attempt)
@@ -182,7 +201,11 @@ import PencilKit
         let scaleData = try await cached("scale.mxl", url: q.scoreAssets.scale.url, authenticated: true, sha: q.scoreAssets.scale.sha256, limit: 1_048_576, id: record.id)
         let main = try MusicXMLParser.parseMXL(mainData, asset: q.scoreAssets.main)
         let scale = try MusicXMLParser.parseMXL(scaleData, asset: q.scoreAssets.scale)
-        guard main.timeSignature == q.timeSignature else { throw SORIError.invalidScore("문제 안내와 악보의 박자가 다릅니다.") }
+        guard main.timeSignature == q.timeSignature, scale.timeSignature == q.timeSignature,
+              main.keySignature == q.keySignature,
+              scale.keySignature.fifths == q.keySignature.fifths,
+              q.keySignature.mode == "unspecified" || scale.keySignature == q.keySignature
+        else { throw SORIError.invalidScore("문제 안내·선율·음계의 조성이나 박자가 다릅니다.") }
         self.template = try AnswerExporter.validateTemplate(imageData, layout: q.sheetLayout); self.mainScore = main
         try player.prepare(main: main, scale: scale, plan: plan); player.restore(record.cursor)
         self.prepared = true

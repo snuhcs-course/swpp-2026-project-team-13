@@ -15,17 +15,10 @@ import AVFoundation
 
     func prepare() throws {
         stop(); ready = false
-        struct Bank: Decodable { var sha256: String; var sizeBytes: Int }
-        struct Profile: Decodable { var resource: String; var program: UInt8; var bankMsb: UInt8; var bankLsb: UInt8; var noteVelocity: UInt8; var gainDb: Float }
-        let profile: Profile = try Bundled.decode("melody-piano-profile")
-        guard let bank = Bundle.main.url(forResource:profile.resource,withExtension:nil),
-              let click = Bundle.main.url(forResource:"sori-click-v1",withExtension:"wav") else {
+        let profile = try ClassicalPiano.load()
+        let bank = profile.url
+        guard let click = Bundle.main.url(forResource:"sori-click-v1",withExtension:"wav") else {
             throw SORIError.invalidScore("피아노 음원이 포함된 최신 앱으로 다시 설치해 주세요.")
-        }
-        let descriptor: Bank = try Bundled.decode("melody-piano-bank")
-        let bytes = try Data(contentsOf:bank,options:.mappedIfSafe)
-        guard bytes.count == descriptor.sizeBytes, bytes.sha256 == descriptor.sha256 else {
-            throw SORIError.invalidScore("피아노 음원 검증에 실패했어요.")
         }
         let session = AVAudioSession.sharedInstance()
         previousBufferDuration = session.preferredIOBufferDuration > 0 ? session.preferredIOBufferDuration : session.ioBufferDuration

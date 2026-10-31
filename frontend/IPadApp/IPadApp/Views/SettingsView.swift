@@ -32,8 +32,8 @@ struct SettingsView: View {
                 Picker("재생 악기",selection:Binding(get:{model.selectedVoice},set:{model.selectVoice($0)})) {
                     ForEach(model.instrumentVoices) { voice in Text(voice.title).tag(voice.id) }
                 }
-                Text("선택한 음색은 이 기기에 저장되며, 다음 재생부터 스케일과 문제에 함께 적용돼요. 예비박 소리와 템포는 그대로예요.").font(.subheadline).foregroundStyle(.secondary)
-                Text("GeneralUser GS · S. Christian Collins").font(.caption).foregroundStyle(.secondary)
+                Text("클래식 그랜드 피아노는 미니게임과 청음 시험에서 같은 소리로 재생돼요. 선택한 음색은 다음 연습의 음계와 선율에 함께 적용됩니다.").font(.subheadline).foregroundStyle(.secondary)
+                Text("YDP Grand Piano · FreePats / 그 외 악기: GeneralUser GS").font(.caption).foregroundStyle(.secondary)
                 Button("음원 출처와 이용 조건") { showSoundLicense = true }.font(.caption)
             } }
             if let user=model.profile {
@@ -50,8 +50,11 @@ struct SettingsView: View {
         }.padding(32).frame(maxWidth:900).frame(maxWidth:.infinity) }
         .sheet(isPresented:$showSoundLicense) {
             NavigationStack {
-                ScrollView { Text((try? String(data:Bundled.data("generaluser-license",ext:"txt"),encoding:.utf8)) ?? "음원 라이선스를 불러오지 못했습니다.").font(.footnote).textSelection(.enabled).padding() }
-                    .navigationTitle("GeneralUser GS")
+                ScrollView { VStack(alignment:.leading,spacing:24) {
+                    Text((try? String(data:Bundled.data("melody-piano-license",ext:"txt"),encoding:.utf8)) ?? "클래식 피아노 라이선스를 불러오지 못했습니다.")
+                    Text((try? String(data:Bundled.data("generaluser-license",ext:"txt"),encoding:.utf8)) ?? "GeneralUser GS 라이선스를 불러오지 못했습니다.")
+                }.font(.footnote).textSelection(.enabled).padding() }
+                    .navigationTitle("음원 출처와 이용 조건")
                     .toolbar { ToolbarItem(placement:.confirmationAction) { Button("닫기") { showSoundLicense = false } } }
             }
         }

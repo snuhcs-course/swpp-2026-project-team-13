@@ -19,7 +19,7 @@ def resolve_tempo(meter, selected_bpm=None):
 
 
 def quarter_bpm(tempo):
-    return tempo["bpm"] * (1.5 if tempo["beat_unit"] == "dotted_quarter" else 1)
+    return tempo["bpm"] * (2 if tempo["beat_unit"] == "half" else 1.5 if tempo["beat_unit"] == "dotted_quarter" else 1)
 
 
 def make_playback_plan(metadata, selected_bpm=None):

@@ -128,6 +128,15 @@ final class PlaybackTimingTests: XCTestCase {
         XCTAssertEqual(plan.nominalDurationSeconds(meter:meter),422.1818181818182,accuracy:0.0001)
         var invalid=plan; invalid.tempoBpm=83; XCTAssertThrowsError(try invalid.validate())
     }
+    func testExamPianoVelocityMatchesMelodyRunWithoutChangingCountIn() throws {
+        let plan = PlaybackPlan.exam(meter:TimeSignature(numerator:4,denominator:4))
+        let events = [MusicEvent(midi:60,onset:0,duration:480),MusicEvent(midi:64,onset:480,duration:480)]
+        let tracks = try notes(MIDIFile.withCountIn(events:events,totalTicks:1920,tempo:plan.tempoBpm,countIn:try XCTUnwrap(plan.countIn),velocity:76))
+        XCTAssertEqual(tracks.count,2)
+        XCTAssertEqual(tracks[0].map(\.velocity),[76,76])
+        XCTAssertEqual(tracks[0].map(\.tick),[1920,2400])
+        XCTAssertEqual(tracks[1].map(\.velocity),[110,70,70,70])
+    }
     func testScoreTempoIsIndependentOfTheSelectedPlaybackTempo() throws {
         let resources=URL(fileURLWithPath:#filePath).deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent().appendingPathComponent("IPadApp/IPadApp/Resources")
         let questions=try ContractJSON.decoder().decode([Question].self,from:Data(contentsOf:resources.appendingPathComponent("practice-catalog.json")))

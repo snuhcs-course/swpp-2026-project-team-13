@@ -18,6 +18,7 @@ struct ScoreSymbol: Equatable {
 struct MusicScore: Equatable {
     var tempo: Double; var measures: Int; var events: [MusicEvent]; var symbols: [ScoreSymbol]
     var timeSignature = TimeSignature(numerator: 4, denominator: 4)
+    var keySignature = KeySignature(tonic:"C",mode:"major",fifths:0)
     var ticksPerMeasure: Int { timeSignature.ticksPerMeasure }
     var totalTicks: Int { measures * ticksPerMeasure }
     func segment(from: Int, through: Int) throws -> [MusicEvent] {
@@ -128,12 +129,16 @@ final class SafeXML: NSObject, XMLParserDelegate {
 }
 
 enum MusicXMLParser {
-    static let version = "sori-parser-4"
+    static let version = "sori-parser-5"
     static func parseMXL(_ data: Data, asset: ScoreAsset, tempo: Double? = nil) throws -> MusicScore {
         guard data.count == asset.sizeBytes, data.sha256 == asset.sha256 else { throw SORIError.invalidScore("SCORE_HASH_MISMATCH: 악보의 해시 또는 크기가 다릅니다.") }
-        guard ["sori-monophonic-v1", "sori-monophonic-v2", "sori-monophonic-v3"].contains(asset.profile), asset.musicxmlVersion == "4.0", asset.partId == "P1", asset.contentType == "application/vnd.recordare.musicxml" else { throw SORIError.unsupported("UNSUPPORTED_SCORE_PROFILE: 악보 형식을 확인해 주세요.") }
+        guard ["sori-monophonic-v1", "sori-monophonic-v2", "sori-monophonic-v3", "sori-monophonic-v4"].contains(asset.profile), asset.musicxmlVersion == "4.0", asset.partId == "P1", asset.contentType == "application/vnd.recordare.musicxml" else { throw SORIError.unsupported("UNSUPPORTED_SCORE_PROFILE: 악보 형식을 확인해 주세요.") }
         let files = try MXLContainer.entries(data)
-        return try parseXML(files["score.xml"]!, measures: asset.measureCount, tempo: tempo ?? asset.sourceTempoBpm ?? 96)
+        let score = try parseXML(files["score.xml"]!, measures: asset.measureCount, tempo: tempo ?? asset.sourceTempoBpm ?? 96)
+        if asset.profile != "sori-monophonic-v4" {
+            guard score.keySignature.fifths == 0, ["major","unspecified"].contains(score.keySignature.mode) else { throw SORIError.invalidScore("구버전 악보 프로필의 조표가 다릅니다.") }
+        }
+        return score
     }
     static func parseXML(_ data: Data, measures: Int, tempo: Double) throws -> MusicScore {
         let root = try SafeXML.parse(data)
@@ -166,7 +171,7 @@ enum MusicXMLParser {
             for child in node.children { try validate(child) }
         }
         try validate(root)
-        guard root.name == "score-partwise", root.attributes["version"] == "4.0", [1,2,3,4,8].contains(measures),
+        guard root.name == "score-partwise", root.attributes["version"] == "4.0", [1,2,3,4,5,8].contains(measures),
               root.children(named: "part").count == 1, let part = root.one("part"), part.attributes["id"] == "P1",
               let partList = root.one("part-list"), partList.children(named: "score-part").count == 1,
               partList.one("score-part")?.attributes["id"] == "P1", (40...200).contains(tempo) else { throw fail("파트·버전·마디 수를 확인해 주세요.") }
@@ -178,16 +183,20 @@ enum MusicXMLParser {
         guard let time = bars.first?.one("attributes")?.one("time"), let beats = Int(time.value("beats") ?? ""), let beatType = Int(time.value("beat-type") ?? "") else { throw fail("박자표 누락") }
         let meter = TimeSignature(numerator: beats, denominator: beatType)
         guard meter.supported else { throw fail("지원하지 않는 박자표입니다.") }
+        guard let key = bars.first?.one("attributes")?.one("key"), let fifths = Int(key.value("fifths") ?? ""), (-7...7).contains(fifths),
+              let mode = key.value("mode"), ["major","minor","none"].contains(mode), mode != "none" || fifths == 0 else { throw fail("조표·장단조 정보") }
+        let tonics = mode == "minor" ? ["Ab","Eb","Bb","F","C","G","D","A","E","B","F#","C#","G#","D#","A#"] : ["Cb","Gb","Db","Ab","Eb","Bb","F","C","G","D","A","E","B","F#","C#"]
+        let signature = KeySignature(tonic:tonics[fifths+7],mode:mode == "none" ? "unspecified" : mode,fifths:fifths)
         let barTicks = meter.ticksPerMeasure
         var events: [MusicEvent] = [], symbols: [ScoreSymbol] = [], openTie: Int?, sawTempo = false
         for (barIndex, bar) in bars.enumerated() {
             guard bar.attributes["number"] == String(barIndex+1), bar.attributes["implicit"] != "yes" else { throw fail("마디 번호·못갖춘마디") }
             let attrs = bar.children(named: "attributes")
             if barIndex == 0 {
-                guard attrs.count == 1, let a = attrs.first, a.value("divisions") == "480", a.one("key")?.value("fifths") == "0",
-                      ["major", "none"].contains(a.one("key")?.value("mode") ?? ""), a.one("time")?.value("beats") == String(beats), a.one("time")?.value("beat-type") == String(beatType),
+                guard attrs.count == 1, let a = attrs.first, a.value("divisions") == "480", a.one("key")?.value("fifths") == String(fifths),
+                      a.one("key")?.value("mode") == mode, a.one("time")?.value("beats") == String(beats), a.one("time")?.value("beat-type") == String(beatType),
                       a.one("clef")?.value("sign") == "G", a.one("clef")?.value("line") == "2",
-                      a.value("staves") == nil || a.value("staves") == "1" else { throw fail("조표 없음·지원 박자·높은음자리표·divisions 480 필요") }
+                      a.value("staves") == nil || a.value("staves") == "1" else { throw fail("고정 조표·지원 박자·높은음자리표·divisions 480 필요") }
             } else if !attrs.isEmpty { throw fail("중간 속성 변경") }
             for direction in bar.children(named: "direction") {
                 let sounds = direction.children(named: "sound")
@@ -245,7 +254,7 @@ enum MusicXMLParser {
             guard offset == barTicks else { throw fail("마디 길이와 박자표가 다릅니다.") }
         }
         guard sawTempo, openTie == nil else { throw fail("템포 또는 붙임줄 끝 누락") }
-        return MusicScore(tempo: tempo, measures: measures, events: events, symbols: symbols, timeSignature: meter)
+        return MusicScore(tempo: tempo, measures: measures, events: events, symbols: symbols, timeSignature: meter, keySignature: signature)
     }
 }
 
@@ -276,10 +285,10 @@ enum MIDIFile {
 
     // A single tempo clock schedules the count-in and first score onset; no separate audio starts.
     // Track 0 is piano, track 1 is the short click sample. No clicks continue into the score.
-    static func withCountIn(events: [MusicEvent], totalTicks: Int, tempo: Double, countIn: CountInPlayback) -> Data {
+    static func withCountIn(events: [MusicEvent], totalTicks: Int, tempo: Double, countIn: CountInPlayback, velocity: Int = 80) -> Data {
         let prefix = countIn.totalTicks
         let piano = make(events:events.map { MusicEvent(midi:$0.midi,onset:$0.onset+prefix,duration:$0.duration) },
-                         totalTicks:totalTicks+prefix,tempo:tempo)
+                         totalTicks:totalTicks+prefix,tempo:tempo,velocity:velocity)
         let clicks = (0..<(countIn.measures*countIn.beatsPerMeasure)).map {
             MusicEvent(midi:60,onset:$0*countIn.ticksPerBeat,duration:min(40,countIn.ticksPerBeat))
         }

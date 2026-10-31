@@ -2,6 +2,18 @@
   "version": 1,
   "id": "sori-tempo-1",
   "meters": {
+    "2/2": {
+      "beat_unit": "half",
+      "default_bpm": 48,
+      "minimum_bpm": 40,
+      "maximum_bpm": 66
+    },
+    "3/8": {
+      "beat_unit": "dotted_quarter",
+      "default_bpm": 55,
+      "minimum_bpm": 48,
+      "maximum_bpm": 66
+    },
     "4/4": {
       "beat_unit": "quarter",
       "default_bpm": 80,

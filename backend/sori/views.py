@@ -8,7 +8,7 @@ from django.conf import settings
 from django.core.files.base import ContentFile
 from django.core.files.storage import default_storage
 from django.db import transaction
-from django.db.models import Max
+from django.db.models import Max, F, Q
 from django.http import FileResponse
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
@@ -25,6 +25,7 @@ from .errors import ContractError
 from .idempotency import run_idempotent, uuid_value
 from .models import Answer, Attempt, GradingJob, Question, QuestionVersion, UserProfile
 from .presentation import absolute, answer_json, attempt_json, grading_json, question_json
+from .catalogs import shipped_questions
 
 GOALS = {"arts_school_entrance", "arts_school_student", "college_entrance", "teacher_exam", "other"}
 
@@ -65,18 +66,24 @@ def questions(request):
             raise ValueError
     except ValueError:
         raise ContractError("INVALID_PAGE", "페이지 범위를 확인해 주세요.") from None
-    items = Question.objects.filter(published=True)
+    collection = request.query_params.get("collection", "practice")
+    if collection not in ("practice", "classical"):
+        raise ContractError("VALIDATION_ERROR", "문제 분류를 확인해 주세요.")
+    items = QuestionVersion.objects.filter(question__published=True, version=F("question__current_version"))
+    items = items.filter(metadata__collection="classical") if collection == "classical" else items.filter(Q(metadata__collection__isnull=True) | ~Q(metadata__collection="classical"))
+    items = items.order_by("question__order", "question_id")
     count = items.count()
     if page > max(1, (count + size - 1) // size):
         raise ContractError("INVALID_PAGE", "없는 페이지입니다.")
     # Select exactly the advertised current version, even when old versions remain for existing attempts.
     result = []
-    for question in items[(page - 1) * size:page * size]:
-        version = QuestionVersion.objects.get(question=question, version=question.current_version)
+    for version in items[(page - 1) * size:page * size]:
         metadata = timed_question(version.metadata)
-        result.append({k: metadata[k] for k in ("id", "version", "title", "source", "key_signature", "time_signature", "measure_count", "recommended_duration_seconds", "tempo")})
+        summary = {k: metadata[k] for k in ("id", "version", "title", "source", "key_signature", "time_signature", "measure_count", "recommended_duration_seconds", "tempo")}
+        summary.update({k: metadata[k] for k in ("collection", "composer") if k in metadata})
+        result.append(summary)
     def url(p):
-        return absolute(request, f"/api/v1/questions/?page={p}&page_size={size}")
+        return absolute(request, f"/api/v1/questions/?page={p}&page_size={size}&collection={collection}")
     return Response({"count": count, "next": url(page + 1) if page * size < count else None, "previous": url(page - 1) if page > 1 else None, "results": result})
 
 @api_view(["GET"])
@@ -251,7 +258,7 @@ def score_asset(request, question_id, version, kind):
 def sheet_asset(request, layout_id):
     # Names come from a fixed manifest, never from a filesystem path supplied by the client.
     import json
-    manifest = json.loads((settings.CONTENT_ROOT / "catalog.json").read_text(encoding="utf-8"))
+    manifest = shipped_questions()
     allowed = {item["metadata"]["sheet_layout"]["id"] for item in manifest}
     if layout_id not in allowed:
         raise ContractError("RESOURCE_NOT_FOUND", "오선 템플릿을 찾을 수 없습니다.", 404)

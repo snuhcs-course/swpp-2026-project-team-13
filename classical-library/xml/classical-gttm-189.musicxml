@@ -1,15 +1,18 @@
 <?xml version='1.0' encoding='utf-8'?>
 <score-partwise version="4.0">
   <work>
-    <work-title>피터와 늑대</work-title>
+    <work-title>피터와 늑대 · Op.67</work-title>
   </work>
-  <identification>
-    <creator type="composer">프로코피예프</creator>
-    <rights>Private study excerpt; retain the source and edition licence in the accompanying catalog.</rights>
-  </identification>
   <part-list>
     <score-part id="P1">
-      <part-name>Piano melody</part-name>
+      <part-name>Piano</part-name>
+      <score-instrument id="I1">
+        <instrument-name>Piano</instrument-name>
+      </score-instrument>
+      <midi-instrument id="I1">
+        <midi-channel>1</midi-channel>
+        <midi-program>1</midi-program>
+      </midi-instrument>
     </score-part>
   </part-list>
   <part id="P1">
@@ -29,13 +32,24 @@
           <line>2</line>
         </clef>
       </attributes>
+      <direction>
+        <direction-type>
+          <metronome>
+            <beat-unit>quarter</beat-unit>
+            <per-minute>96</per-minute>
+          </metronome>
+        </direction-type>
+        <sound tempo="96" />
+      </direction>
       <note>
         <pitch>
           <step>G</step>
           <octave>4</octave>
         </pitch>
         <duration>480</duration>
+        <voice>1</voice>
         <type>quarter</type>
+        <stem>up</stem>
       </note>
       <note>
         <pitch>
@@ -43,8 +57,10 @@
           <octave>5</octave>
         </pitch>
         <duration>360</duration>
+        <voice>1</voice>
         <type>eighth</type>
         <dot />
+        <stem>down</stem>
         <beam number="1">begin</beam>
       </note>
       <note>
@@ -53,7 +69,9 @@
           <octave>5</octave>
         </pitch>
         <duration>120</duration>
+        <voice>1</voice>
         <type>16th</type>
+        <stem>down</stem>
         <beam number="1">end</beam>
         <beam number="2">backward hook</beam>
       </note>
@@ -63,7 +81,9 @@
           <octave>5</octave>
         </pitch>
         <duration>240</duration>
+        <voice>1</voice>
         <type>eighth</type>
+        <stem>down</stem>
         <beam number="1">begin</beam>
         <notations>
           </notations>
@@ -74,7 +94,9 @@
           <octave>5</octave>
         </pitch>
         <duration>240</duration>
+        <voice>1</voice>
         <type>eighth</type>
+        <stem>down</stem>
         <beam number="1">end</beam>
         <notations>
           </notations>
@@ -85,8 +107,10 @@
           <octave>5</octave>
         </pitch>
         <duration>360</duration>
+        <voice>1</voice>
         <type>eighth</type>
         <dot />
+        <stem>down</stem>
         <beam number="1">begin</beam>
       </note>
       <note>
@@ -95,7 +119,9 @@
           <octave>5</octave>
         </pitch>
         <duration>120</duration>
+        <voice>1</voice>
         <type>16th</type>
+        <stem>down</stem>
         <beam number="1">end</beam>
         <beam number="2">backward hook</beam>
       </note>
@@ -107,7 +133,9 @@
           <octave>5</octave>
         </pitch>
         <duration>240</duration>
+        <voice>1</voice>
         <type>eighth</type>
+        <stem>down</stem>
         <beam number="1">begin</beam>
         <notations>
           </notations>
@@ -118,7 +146,9 @@
           <octave>5</octave>
         </pitch>
         <duration>240</duration>
+        <voice>1</voice>
         <type>eighth</type>
+        <stem>down</stem>
         <beam number="1">end</beam>
         <notations>
           </notations>
@@ -129,8 +159,10 @@
           <octave>5</octave>
         </pitch>
         <duration>360</duration>
+        <voice>1</voice>
         <type>eighth</type>
         <dot />
+        <stem>down</stem>
         <beam number="1">begin</beam>
       </note>
       <note>
@@ -139,7 +171,9 @@
           <octave>6</octave>
         </pitch>
         <duration>120</duration>
+        <voice>1</voice>
         <type>16th</type>
+        <stem>down</stem>
         <beam number="1">end</beam>
         <beam number="2">backward hook</beam>
       </note>
@@ -149,7 +183,9 @@
           <octave>5</octave>
         </pitch>
         <duration>240</duration>
+        <voice>1</voice>
         <type>eighth</type>
+        <stem>down</stem>
         <beam number="1">begin</beam>
         <notations>
           </notations>
@@ -160,7 +196,9 @@
           <octave>5</octave>
         </pitch>
         <duration>240</duration>
+        <voice>1</voice>
         <type>eighth</type>
+        <stem>down</stem>
         <beam number="1">continue</beam>
         <notations>
           </notations>
@@ -171,7 +209,9 @@
           <octave>5</octave>
         </pitch>
         <duration>240</duration>
+        <voice>1</voice>
         <type>eighth</type>
+        <stem>down</stem>
         <beam number="1">continue</beam>
         <notations>
           </notations>
@@ -182,7 +222,9 @@
           <octave>5</octave>
         </pitch>
         <duration>240</duration>
+        <voice>1</voice>
         <type>eighth</type>
+        <stem>down</stem>
         <beam number="1">end</beam>
         <notations>
           </notations>
@@ -196,8 +238,10 @@
           <octave>5</octave>
         </pitch>
         <duration>480</duration>
+        <voice>1</voice>
         <type>quarter</type>
         <accidental>flat</accidental>
+        <stem>down</stem>
       </note>
       <note>
         <pitch>
@@ -206,7 +250,9 @@
           <octave>5</octave>
         </pitch>
         <duration>240</duration>
+        <voice>1</voice>
         <type>eighth</type>
+        <stem>down</stem>
         <beam number="1">begin</beam>
       </note>
       <note>
@@ -215,7 +261,9 @@
           <octave>5</octave>
         </pitch>
         <duration>240</duration>
+        <voice>1</voice>
         <type>eighth</type>
+        <stem>down</stem>
         <beam number="1">end</beam>
       </note>
       <note>
@@ -225,7 +273,9 @@
           <octave>5</octave>
         </pitch>
         <duration>480</duration>
+        <voice>1</voice>
         <type>quarter</type>
+        <stem>down</stem>
       </note>
       <note>
         <pitch>
@@ -234,7 +284,9 @@
           <octave>5</octave>
         </pitch>
         <duration>240</duration>
+        <voice>1</voice>
         <type>eighth</type>
+        <stem>down</stem>
         <beam number="1">begin</beam>
       </note>
       <note>
@@ -243,7 +295,9 @@
           <octave>5</octave>
         </pitch>
         <duration>240</duration>
+        <voice>1</voice>
         <type>eighth</type>
+        <stem>down</stem>
         <beam number="1">end</beam>
       </note>
     </measure>
@@ -255,8 +309,10 @@
           <octave>5</octave>
         </pitch>
         <duration>480</duration>
+        <voice>1</voice>
         <type>quarter</type>
         <accidental>flat</accidental>
+        <stem>down</stem>
         <notations>
           </notations>
       </note>
@@ -267,8 +323,10 @@
           <octave>4</octave>
         </pitch>
         <duration>480</duration>
+        <voice>1</voice>
         <type>quarter</type>
         <accidental>flat</accidental>
+        <stem>down</stem>
         <notations>
           </notations>
       </note>
@@ -279,8 +337,10 @@
           <octave>4</octave>
         </pitch>
         <duration>720</duration>
+        <voice>1</voice>
         <type>quarter</type>
         <dot />
+        <stem>down</stem>
       </note>
       <note>
         <pitch>
@@ -288,7 +348,9 @@
           <octave>4</octave>
         </pitch>
         <duration>240</duration>
+        <voice>1</voice>
         <type>eighth</type>
+        <stem>up</stem>
       </note>
     </measure>
     <measure number="5">
@@ -299,8 +361,10 @@
           <octave>4</octave>
         </pitch>
         <duration>480</duration>
+        <voice>1</voice>
         <type>quarter</type>
         <accidental>flat</accidental>
+        <stem>down</stem>
       </note>
       <note>
         <pitch>
@@ -309,9 +373,11 @@
           <octave>5</octave>
         </pitch>
         <duration>360</duration>
+        <voice>1</voice>
         <type>eighth</type>
         <dot />
         <accidental>flat</accidental>
+        <stem>down</stem>
         <beam number="1">begin</beam>
       </note>
       <note>
@@ -320,7 +386,9 @@
           <octave>5</octave>
         </pitch>
         <duration>120</duration>
+        <voice>1</voice>
         <type>16th</type>
+        <stem>down</stem>
         <beam number="1">end</beam>
         <beam number="2">backward hook</beam>
       </note>
@@ -331,8 +399,10 @@
           <octave>5</octave>
         </pitch>
         <duration>240</duration>
+        <voice>1</voice>
         <type>eighth</type>
         <accidental>flat</accidental>
+        <stem>down</stem>
         <beam number="1">begin</beam>
         <notations>
           </notations>
@@ -343,7 +413,9 @@
           <octave>6</octave>
         </pitch>
         <duration>240</duration>
+        <voice>1</voice>
         <type>eighth</type>
+        <stem>down</stem>
         <beam number="1">end</beam>
         <notations>
           </notations>
@@ -355,8 +427,10 @@
           <octave>5</octave>
         </pitch>
         <duration>360</duration>
+        <voice>1</voice>
         <type>eighth</type>
         <dot />
+        <stem>down</stem>
         <beam number="1">begin</beam>
       </note>
       <note>
@@ -365,7 +439,9 @@
           <octave>5</octave>
         </pitch>
         <duration>120</duration>
+        <voice>1</voice>
         <type>16th</type>
+        <stem>down</stem>
         <beam number="1">end</beam>
         <beam number="2">backward hook</beam>
       </note>
@@ -378,8 +454,10 @@
           <octave>5</octave>
         </pitch>
         <duration>240</duration>
+        <voice>1</voice>
         <type>eighth</type>
         <accidental>flat</accidental>
+        <stem>down</stem>
         <beam number="1">begin</beam>
         <notations>
           </notations>
@@ -390,7 +468,9 @@
           <octave>6</octave>
         </pitch>
         <duration>240</duration>
+        <voice>1</voice>
         <type>eighth</type>
+        <stem>down</stem>
         <beam number="1">end</beam>
         <notations>
           </notations>
@@ -401,8 +481,10 @@
           <octave>6</octave>
         </pitch>
         <duration>360</duration>
+        <voice>1</voice>
         <type>eighth</type>
         <dot />
+        <stem>down</stem>
         <beam number="1">begin</beam>
       </note>
       <note>
@@ -412,8 +494,10 @@
           <octave>6</octave>
         </pitch>
         <duration>120</duration>
+        <voice>1</voice>
         <type>16th</type>
         <accidental>flat</accidental>
+        <stem>down</stem>
         <beam number="1">end</beam>
         <beam number="2">backward hook</beam>
       </note>
@@ -424,7 +508,9 @@
           <octave>5</octave>
         </pitch>
         <duration>240</duration>
+        <voice>1</voice>
         <type>eighth</type>
+        <stem>down</stem>
         <beam number="1">begin</beam>
         <notations>
           </notations>
@@ -435,7 +521,9 @@
           <octave>5</octave>
         </pitch>
         <duration>240</duration>
+        <voice>1</voice>
         <type>eighth</type>
+        <stem>down</stem>
         <beam number="1">continue</beam>
         <notations>
           </notations>
@@ -447,8 +535,10 @@
           <octave>5</octave>
         </pitch>
         <duration>240</duration>
+        <voice>1</voice>
         <type>eighth</type>
         <accidental>flat</accidental>
+        <stem>down</stem>
         <beam number="1">continue</beam>
         <notations>
           </notations>
@@ -459,7 +549,9 @@
           <octave>5</octave>
         </pitch>
         <duration>240</duration>
+        <voice>1</voice>
         <type>eighth</type>
+        <stem>down</stem>
         <beam number="1">end</beam>
         <notations>
           </notations>
@@ -473,8 +565,10 @@
           <octave>5</octave>
         </pitch>
         <duration>480</duration>
+        <voice>1</voice>
         <type>quarter</type>
         <accidental>sharp</accidental>
+        <stem>down</stem>
       </note>
       <note>
         <pitch>
@@ -483,7 +577,9 @@
           <octave>5</octave>
         </pitch>
         <duration>240</duration>
+        <voice>1</voice>
         <type>eighth</type>
+        <stem>down</stem>
         <beam number="1">begin</beam>
       </note>
       <note>
@@ -492,7 +588,9 @@
           <octave>6</octave>
         </pitch>
         <duration>240</duration>
+        <voice>1</voice>
         <type>eighth</type>
+        <stem>down</stem>
         <beam number="1">end</beam>
       </note>
       <note>
@@ -502,7 +600,9 @@
           <octave>5</octave>
         </pitch>
         <duration>480</duration>
+        <voice>1</voice>
         <type>quarter</type>
+        <stem>down</stem>
       </note>
       <note>
         <pitch>
@@ -511,7 +611,9 @@
           <octave>5</octave>
         </pitch>
         <duration>240</duration>
+        <voice>1</voice>
         <type>eighth</type>
+        <stem>down</stem>
         <beam number="1">begin</beam>
       </note>
       <note>
@@ -520,7 +622,9 @@
           <octave>6</octave>
         </pitch>
         <duration>240</duration>
+        <voice>1</voice>
         <type>eighth</type>
+        <stem>down</stem>
         <beam number="1">end</beam>
       </note>
     </measure>
@@ -531,7 +635,9 @@
           <octave>5</octave>
         </pitch>
         <duration>480</duration>
+        <voice>1</voice>
         <type>quarter</type>
+        <stem>down</stem>
         <notations>
           </notations>
       </note>
@@ -541,7 +647,9 @@
           <octave>4</octave>
         </pitch>
         <duration>480</duration>
+        <voice>1</voice>
         <type>quarter</type>
+        <stem>up</stem>
         <notations>
           </notations>
       </note>
@@ -551,12 +659,15 @@
           <octave>4</octave>
         </pitch>
         <duration>720</duration>
+        <voice>1</voice>
         <type>quarter</type>
         <dot />
+        <stem>up</stem>
       </note>
       <note>
         <rest />
         <duration>240</duration>
+        <voice>1</voice>
         <type>eighth</type>
       </note>
     </measure>

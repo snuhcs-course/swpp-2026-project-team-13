@@ -37,6 +37,8 @@ Server enum fields decode as strings and branch explicitly. Added unknown values
 
 The practice catalog now contains 62 exercises (3 originals and 59 advanced Naver transcriptions). The `sori-monophonic-v3` extension adds 2/4, 7/8, 9/8, 12/8, thirty-second notes, three beam levels and MIDI pitches through B6. Scores with unconfirmed tonality display “조표 없음”. See [import and deployment notes](../docs/NAVER-QUESTIONS.md).
 
+The separate classical collection adds 11 originally complete eight-bar excerpts, composer portrait cards, key-specific answer sheets and reference scales, and pre-rendered MuseScore answers. It uses the existing exam/submit/history flow and a separate catalog; the 62 exercise IDs and assets are unchanged. The v4 score profile adds fixed major/minor signatures; the parser and tempo/count-in policy also support 2/2 and 3/8. See [classical exams](../docs/CLASSICAL-EXAMS.md). Before building, run `python3 scripts/fetch_composer_portraits.py` and `python3 scripts/fetch_classical_piano.py` (automatic in CI). All grand-piano playback shares Melody Run's YDP bank, velocity 76 and gain −3 dB.
+
 ## Validation
 
 From the repository root:

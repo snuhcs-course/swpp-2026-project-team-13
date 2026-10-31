@@ -18,7 +18,9 @@ import Foundation
     private struct EngravingManifest: Decodable { var scores: [String: ImageEntry] }
     private struct ImageEntry: Decodable { var resource:String; var contentType:String; var sha256:String; var sizeBytes:Int; var pixelWidth:Int; var pixelHeight:Int; var renderer:String }
     private func catalog() throws -> [Question] {
-        let values: [Question] = try Bundled.decode("practice-catalog")
+        let practice: [Question] = try Bundled.decode("practice-catalog")
+        let classical: [Question] = try Bundled.decode("classical-catalog")
+        let values = practice + classical
         let engraving: EngravingManifest = try Bundled.decode("engraving-manifest")
         return values.map { source in
             var q = source
@@ -29,8 +31,14 @@ import Foundation
         }
     }
     func questions(page: Int) async throws -> QuestionPage {
-        let values = try catalog()
+        let values = try catalog().filter { $0.collection != "classical" }
         return QuestionPage(count: values.count, next: nil, previous: nil, results: values.map { q in QuestionSummary(id:q.id,version:q.version,title:q.title,source:q.source,keySignature:q.keySignature,timeSignature:q.timeSignature,measureCount:q.measureCount,recommendedDurationSeconds:q.recommendedDurationSeconds) })
+    }
+    func classicalQuestions(page: Int) async throws -> QuestionPage {
+        let values = try catalog().filter { $0.collection == "classical" }
+        return QuestionPage(count:values.count,next:nil,previous:nil,results:values.map { q in
+            QuestionSummary(id:q.id,version:q.version,title:q.title,source:q.source,keySignature:q.keySignature,timeSignature:q.timeSignature,measureCount:q.measureCount,recommendedDurationSeconds:q.recommendedDurationSeconds,tempo:q.tempo,collection:q.collection,composer:q.composer)
+        })
     }
     func question(_ id: UUID) async throws -> Question {
         guard let q = try catalog().first(where: { $0.id == id }) else { throw SORIError.configuration("데모 문제를 찾을 수 없습니다.") }; return q
@@ -111,8 +119,12 @@ import Foundation
                 return image
             }
             let kind = url.path.contains("/scores/scale") ? "scale" : "main"
-            let version = url.path.contains("/versions/2/") ? "-v2" : ""
-            data = try Bundled.data("excerpt-\(index+1)\(version)-\(kind)", ext:"mxl")
+            if values[index].collection == "classical" {
+                data = try Bundled.data("classical-\(values[index].id.uuidString.lowercased())-\(kind)",ext:"mxl")
+            } else {
+                let version = url.path.contains("/versions/2/") ? "-v2" : ""
+                data = try Bundled.data("excerpt-\(index+1)\(version)-\(kind)", ext:"mxl")
+            }
         } else if let q = values.first(where: { $0.sheetLayout.templatePngUrl == url }) {
             data = try Bundled.data(q.sheetLayout.id, ext:"png")
         } else { throw SORIError.configuration("데모 자산을 찾을 수 없습니다.") }

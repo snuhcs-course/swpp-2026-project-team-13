@@ -37,13 +37,13 @@ struct ContentView: View {
                     case .history: HistoryView(model: model)
                     case .settings: SettingsView(model: model)
                     case .minigames: MiniGameHubView()
-                    case .classical: ClassicalLibraryView()
+                    case .classical: ClassicalExamLibraryView(model:model)
                     }
                 }
                 .toolbar {
                     ToolbarItem(placement: .topBarLeading) {
                         if [.question,.exam,.result].contains(model.screen) {
-                            Button { model.navigate(.home) } label: { Label("연습실", systemImage: "chevron.left") }
+                            Button { model.navigate(model.selectedQuestion?.collection == "classical" ? .classical : .home) } label: { Label(model.selectedQuestion?.collection == "classical" ? "클래식" : "연습실", systemImage: "chevron.left") }
                         }
                     }
                     ToolbarItem(placement: .topBarTrailing) {

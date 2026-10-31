@@ -2,6 +2,8 @@
 
 기본 연습 3개와 고난도 청음 59개, 총 62문제를 듣고 Apple Pencil로 작성한 뒤, Django 서버를 통해 AI 평가와 한국어 피드백을 받는 개인 연습용 앱입니다. 기본 로컬 데모에서도 같은 62문제의 재생·필기를 서버 없이 확인할 수 있으며, 예시 결과임을 표시합니다. 출처·박자·재생성·반영 방법은 [고난도 문제 안내](docs/NAVER-QUESTIONS.md)를 확인하세요.
 
+별도의 **클래식 탭**에서 작곡가를 고르고 같은 형식의 청음 시험을 볼 수 있습니다. 원본부터 완전한 8마디인 7명·11개 선율만 수록하며, 조성별 빈 오선·음계와 MuseScore 정답 악보를 제공합니다. 기본 그랜드 피아노는 일반 청음·클래식·미니게임에서 같은 YDP Grand Piano를 사용합니다. [클래식 수록·서버 반영·검증 안내](docs/CLASSICAL-EXAMS.md), [HTML 미리듣기](classical-library/CLASSICAL.html)를 확인하세요.
+
 ## 먼저 확인할 문서
 
 - Windows에서 iPad 앱 설치: [docs/WINDOWS-IPAD.md](docs/WINDOWS-IPAD.md)
