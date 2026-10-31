@@ -1,6 +1,6 @@
 # SORI — iPad 청음 연습
 
-세 문제(6/8·4/4·3/4)를 듣고 Apple Pencil로 작성한 뒤, Django 서버를 통해 AI 평가와 한국어 피드백을 받는 개인 연습용 앱입니다. 기본 로컬 데모에서는 같은 세 문제의 재생·필기를 서버 없이 확인할 수 있으며, 예시 결과임을 표시합니다.
+기본 연습 3개와 고난도 청음 59개, 총 62문제를 듣고 Apple Pencil로 작성한 뒤, Django 서버를 통해 AI 평가와 한국어 피드백을 받는 개인 연습용 앱입니다. 기본 로컬 데모에서도 같은 62문제의 재생·필기를 서버 없이 확인할 수 있으며, 예시 결과임을 표시합니다. 출처·박자·재생성·반영 방법은 [고난도 문제 안내](docs/NAVER-QUESTIONS.md)를 확인하세요.
 
 ## 먼저 확인할 문서
 
@@ -42,7 +42,7 @@
 
 - frontend/: 기존 앱을 확장한 SwiftUI·PencilKit 코드와 원본 피아노 리소스
 - backend/: Django API, PostgreSQL 모델·migration, 별도 AI 워커
-- backend/content/source/: 사용자가 제공한 정답 XML 3개
+- backend/content/source/: 기본 정답 XML 3개와 Naver 최종 채보 XML 59개·출처 기록
 - backend/content/questions/: 앱·채점이 공유하는 버전 고정 MXL
 - docs/: 공유 API와 설치·검증 안내
 - scripts/: 데이터 확인과 실행·전달 도구

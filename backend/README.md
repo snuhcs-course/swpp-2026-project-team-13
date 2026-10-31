@@ -28,6 +28,8 @@ Python 3.14와 PostgreSQL이 필요합니다. backend 디렉터리에서 가상�
 
 macOS/Linux에서는 실행 경로를 .venv/bin/python으로 바꿉니다. 개발 토큰은 backend/.local/connection.txt에 기록하며 OpenRouter 키와 다릅니다.
 
+카탈로그에는 기본 3개와 고난도 59개, 총 62문항이 포함됩니다. 컨테이너 시작 시 기존 문제 버전을 유지하면서 새 문항을 등록합니다. 데이터와 앱 재설치는 [고난도 문제 안내](../docs/NAVER-QUESTIONS.md)를 확인하세요.
+
 ## 확인
 
     python manage.py check

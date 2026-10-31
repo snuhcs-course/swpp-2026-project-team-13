@@ -19,6 +19,30 @@
       "default_bpm": 55,
       "minimum_bpm": 48,
       "maximum_bpm": 66
+    },
+    "2/4": {
+      "beat_unit": "quarter",
+      "default_bpm": 80,
+      "minimum_bpm": 72,
+      "maximum_bpm": 96
+    },
+    "7/8": {
+      "beat_unit": "quarter",
+      "default_bpm": 80,
+      "minimum_bpm": 72,
+      "maximum_bpm": 96
+    },
+    "9/8": {
+      "beat_unit": "dotted_quarter",
+      "default_bpm": 55,
+      "minimum_bpm": 48,
+      "maximum_bpm": 66
+    },
+    "12/8": {
+      "beat_unit": "dotted_quarter",
+      "default_bpm": 55,
+      "minimum_bpm": 48,
+      "maximum_bpm": 66
     }
   }
 }

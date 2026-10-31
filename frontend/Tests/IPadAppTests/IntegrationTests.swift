@@ -10,6 +10,12 @@ import ImageIO
         let page = try await api.questions(page:1)
         for summary in page.results {
             let q = try await api.question(summary.id)
+            try q.validate()
+            for scoreAsset in [q.scoreAssets.main,q.scoreAssets.scale] {
+                let bytes = try await api.asset(scoreAsset.url,authenticated:true,limit:1_048_576)
+                _ = try MusicXMLParser.parseMXL(bytes,asset:scoreAsset)
+            }
+            _ = try AnswerExporter.validateTemplate(Bundled.data(q.sheetLayout.id,ext:"png"),layout:q.sheetLayout)
             let asset = try XCTUnwrap(q.correctScore)
             let withoutSlash = asset.url.absoluteString.trimmingCharacters(in:CharacterSet(charactersIn:"/"))
             for address in [withoutSlash,withoutSlash+"/"] {

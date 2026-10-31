@@ -5,6 +5,10 @@ enum TempoDefaults {
         case (4,4): return TempoSetting(policyId:"sori-tempo-1",beatUnit:"quarter",bpm:80,minimumBpm:72,maximumBpm:96)
         case (3,4): return TempoSetting(policyId:"sori-tempo-1",beatUnit:"quarter",bpm:80,minimumBpm:72,maximumBpm:96)
         case (6,8): return TempoSetting(policyId:"sori-tempo-1",beatUnit:"dotted_quarter",bpm:55,minimumBpm:48,maximumBpm:66)
+        case (2,4): return TempoSetting(policyId:"sori-tempo-1",beatUnit:"quarter",bpm:80,minimumBpm:72,maximumBpm:96)
+        case (7,8): return TempoSetting(policyId:"sori-tempo-1",beatUnit:"quarter",bpm:80,minimumBpm:72,maximumBpm:96)
+        case (9,8): return TempoSetting(policyId:"sori-tempo-1",beatUnit:"dotted_quarter",bpm:55,minimumBpm:48,maximumBpm:66)
+        case (12,8): return TempoSetting(policyId:"sori-tempo-1",beatUnit:"dotted_quarter",bpm:55,minimumBpm:48,maximumBpm:66)
         default: return setting(for:TimeSignature(numerator:4,denominator:4))
         }
     }

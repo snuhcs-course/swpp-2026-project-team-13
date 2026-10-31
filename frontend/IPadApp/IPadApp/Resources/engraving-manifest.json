@@ -29,6 +29,537 @@
       "pixel_width": 2600,
       "pixel_height": 463,
       "renderer": "MuseScore Studio 4.6.3"
+    },
+    "0882bcdcadc55c51c46e122a917f1a2372c31dbe76ab82108ad51bdbec894b4f": {
+      "resource": "naver-001-reference-v1",
+      "content_type": "image/png",
+      "sha256": "0325cf0447e4ca96d5904d3bac662227e4acaca6579ab52c0388f49d4db73cd0",
+      "size_bytes": 109953,
+      "pixel_width": 3200,
+      "pixel_height": 740,
+      "renderer": "Supplied final transcription / 2026-10-29"
+    },
+    "1f4a0042ff10684bf3889b5ec46dad57b3db6f2be54192ae0cd4dbbf91ed748b": {
+      "resource": "naver-002-reference-v1",
+      "content_type": "image/png",
+      "sha256": "311d94387921e8a0a33fb712f1c93a64172c118c9e255274553202ee6a0efdc9",
+      "size_bytes": 113112,
+      "pixel_width": 3200,
+      "pixel_height": 753,
+      "renderer": "Supplied final transcription / 2026-10-29"
+    },
+    "1089755dcce10b55c0e5407d336c8cc0d5db7eb912cc92894f8d50621d3566da": {
+      "resource": "naver-003-reference-v1",
+      "content_type": "image/png",
+      "sha256": "f892e346ff2944fe71d996ae661c7eac0c1e4920330563bd5285953008884100",
+      "size_bytes": 126974,
+      "pixel_width": 3200,
+      "pixel_height": 764,
+      "renderer": "Supplied final transcription / 2026-10-29"
+    },
+    "52dd926b7200d841621056f78d3e63eb398b2c90f2014a42e74b433a45e10eb4": {
+      "resource": "naver-004-reference-v1",
+      "content_type": "image/png",
+      "sha256": "5b29d71252ebd1a7842859f48c74e3c2d1aef4aa208cb92a75457a0bf2e16bbf",
+      "size_bytes": 119786,
+      "pixel_width": 3200,
+      "pixel_height": 749,
+      "renderer": "Supplied final transcription / 2026-10-29"
+    },
+    "fcb5ba0404e241a5dfb316d67418cb245613c66353c6ec0cb82509f842043bfb": {
+      "resource": "naver-005-reference-v1",
+      "content_type": "image/png",
+      "sha256": "5d6eeebe77af825062c502c43dd1ec74f530d24259b1e25a8620c4971f714c0d",
+      "size_bytes": 108596,
+      "pixel_width": 3200,
+      "pixel_height": 740,
+      "renderer": "Supplied final transcription / 2026-10-29"
+    },
+    "5ee531b4cc7f815651cac3556fbc5438af33fe94f3f59672a00d79ccfe7a3c59": {
+      "resource": "naver-006-reference-v1",
+      "content_type": "image/png",
+      "sha256": "4e7d7be1968698f6b055de9d31d376d4c0b69099857fa37ef8d01ee03541e5cb",
+      "size_bytes": 127831,
+      "pixel_width": 3200,
+      "pixel_height": 749,
+      "renderer": "Supplied final transcription / 2026-10-29"
+    },
+    "05d5ca2086253e88ea6472a5bf13935f3391e29839458cc109ebbb729d73646b": {
+      "resource": "naver-007-reference-v1",
+      "content_type": "image/png",
+      "sha256": "e0612ce9da9c73776b4bbc7b5a177ef8afe77bf85d8bd0ffe6f988c1c2f206db",
+      "size_bytes": 113728,
+      "pixel_width": 3200,
+      "pixel_height": 755,
+      "renderer": "Supplied final transcription / 2026-10-29"
+    },
+    "5c09e3c335998c7455096dbab42cf1e25515597427a1167d58372ea52277783f": {
+      "resource": "naver-008-reference-v1",
+      "content_type": "image/png",
+      "sha256": "f8956e85fc70f899d5abf09dd27c306029669f34f742cdd6ea46592a77c8f78c",
+      "size_bytes": 106617,
+      "pixel_width": 3200,
+      "pixel_height": 740,
+      "renderer": "Supplied final transcription / 2026-10-29"
+    },
+    "2614f4f0e3d0a8b6507fff97cd050d00cb7577aa76d0b301d10d500a2067925c": {
+      "resource": "naver-009-reference-v1",
+      "content_type": "image/png",
+      "sha256": "3dd278dae084a4f2bd79b20f6e6ecb3015d275cb66dcd096793a360cf2438bea",
+      "size_bytes": 116899,
+      "pixel_width": 3200,
+      "pixel_height": 749,
+      "renderer": "Supplied final transcription / 2026-10-29"
+    },
+    "23c9c6f3b515bce22308cc6d243222286af96146abc2d9c38c1c421ca82024e0": {
+      "resource": "naver-010-reference-v1",
+      "content_type": "image/png",
+      "sha256": "9b051c71421397ad951ed5b3e1c94bad9f72ebef472b28cd6f03d10f8200277d",
+      "size_bytes": 109797,
+      "pixel_width": 3200,
+      "pixel_height": 753,
+      "renderer": "Supplied final transcription / 2026-10-29"
+    },
+    "efbf89eecc6a367b023b21165f09a5883b3b02d087be6bcbbbb5d2a44d6793e5": {
+      "resource": "naver-011-reference-v1",
+      "content_type": "image/png",
+      "sha256": "e66e980bbdd6ad5371f79a28c6ce5948dcfad06899d512204b9b00843f4a0124",
+      "size_bytes": 113484,
+      "pixel_width": 3200,
+      "pixel_height": 745,
+      "renderer": "Supplied final transcription / 2026-10-29"
+    },
+    "af9b9672f0155f3e1d018819bc50ea443f1eda94f1b79e3395ab0bc2ddfa87d0": {
+      "resource": "naver-012-reference-v1",
+      "content_type": "image/png",
+      "sha256": "86355a14b5e76ea416265589008129ad8e5ddc07109f177812fbe1d9e09fa938",
+      "size_bytes": 119154,
+      "pixel_width": 3200,
+      "pixel_height": 791,
+      "renderer": "Supplied final transcription / 2026-10-29"
+    },
+    "63df0c936ce0da106795167d8f65f31b39e34319d12e5917e6e92d306f61e349": {
+      "resource": "naver-013-reference-v1",
+      "content_type": "image/png",
+      "sha256": "accc511848d474ca2f94aea7771e40035cf49850e6d299051d18ae7bcb191572",
+      "size_bytes": 119975,
+      "pixel_width": 3200,
+      "pixel_height": 764,
+      "renderer": "Supplied final transcription / 2026-10-29"
+    },
+    "ed2fd1b204ba0fb1541d619179e09d65aca3249acf5554098b169b55bbe92e52": {
+      "resource": "naver-014-reference-v1",
+      "content_type": "image/png",
+      "sha256": "1f931e9460902b57148b00e39587923017c3bb51b9003a9c2698bf0a78b7768c",
+      "size_bytes": 114266,
+      "pixel_width": 3200,
+      "pixel_height": 744,
+      "renderer": "Supplied final transcription / 2026-10-29"
+    },
+    "74506987d21483d5da0bd4fb1716f488e0fa84c53f77da7f12080bef9d060581": {
+      "resource": "naver-015-reference-v1",
+      "content_type": "image/png",
+      "sha256": "c46e1f55b562c098004da82433129958ee84c89eca05ff87fa88f6e5e8a54e70",
+      "size_bytes": 113144,
+      "pixel_width": 3200,
+      "pixel_height": 740,
+      "renderer": "Supplied final transcription / 2026-10-29"
+    },
+    "f585840c18e7abf89ff7a31626891325a3b6d17f770c89dcaf171c01e330de3e": {
+      "resource": "naver-016-reference-v1",
+      "content_type": "image/png",
+      "sha256": "b4c6ab8c67a7a2ea1d1f968bbe0a1e8f973c1f5ac0820febdd7792187abbb0f5",
+      "size_bytes": 121390,
+      "pixel_width": 3200,
+      "pixel_height": 742,
+      "renderer": "Supplied final transcription / 2026-10-29"
+    },
+    "4ee33504768844cbf25104fcd2c230c2ac1e0f817a7d9cbdd2ca7ca8e7c87edb": {
+      "resource": "naver-017-reference-v1",
+      "content_type": "image/png",
+      "sha256": "4891d72a3798213eed3ae98b49de298e3de2c3b8b6c9acc45724bc05e02eb1c0",
+      "size_bytes": 118402,
+      "pixel_width": 3200,
+      "pixel_height": 751,
+      "renderer": "Supplied final transcription / 2026-10-29"
+    },
+    "3a671c678e4de179df6ad41e29c993c7201ea576813c251362b6df6a38342ba9": {
+      "resource": "naver-018-reference-v1",
+      "content_type": "image/png",
+      "sha256": "45d33950b21e34a2fd3be64a5e52b035ff7a319b3a0df14c4394185b141e6d17",
+      "size_bytes": 117881,
+      "pixel_width": 3200,
+      "pixel_height": 755,
+      "renderer": "Supplied final transcription / 2026-10-29"
+    },
+    "a42de2598bc9e61c4f1a83453fb7cb39ee5cb50b575376b16249dab89184dbdb": {
+      "resource": "naver-019-reference-v1",
+      "content_type": "image/png",
+      "sha256": "80eb7517261627d3dd9e5719d7aada211b0b1c82f23564106deb917f54b07fb6",
+      "size_bytes": 121610,
+      "pixel_width": 3200,
+      "pixel_height": 772,
+      "renderer": "Supplied final transcription / 2026-10-29"
+    },
+    "8010d61ebc1dc29173f553815b70528552c02bbd78fa9f5faa1fff761c0854eb": {
+      "resource": "naver-020-reference-v1",
+      "content_type": "image/png",
+      "sha256": "450fd6a1490a38b92aea2b461e4af19d8c12c6b939ec36a288bfc1de26373779",
+      "size_bytes": 125234,
+      "pixel_width": 3200,
+      "pixel_height": 808,
+      "renderer": "Supplied final transcription / 2026-10-29"
+    },
+    "c7e5b6133e655ef046921014dd7f0e2373441797d7d514874ac7579caaff7b5c": {
+      "resource": "naver-021-reference-v1",
+      "content_type": "image/png",
+      "sha256": "1aa5bb2c1320b84cfbb4b0f81fccbe4aa65ec90e3ca9a9a44a51330698e228a1",
+      "size_bytes": 123001,
+      "pixel_width": 3200,
+      "pixel_height": 753,
+      "renderer": "Supplied final transcription / 2026-10-29"
+    },
+    "e69452b0b67d1fbd33422eec0bec95e8833e4e879d5bafd2c49e0ed494b8f247": {
+      "resource": "naver-022-reference-v1",
+      "content_type": "image/png",
+      "sha256": "ab15b535b0c2ae8ed6a6974bd9b188f5f75c8e0fc936ceb3e67b2b02ac131050",
+      "size_bytes": 127511,
+      "pixel_width": 3200,
+      "pixel_height": 749,
+      "renderer": "Supplied final transcription / 2026-10-29"
+    },
+    "9aadcab11ff0b35259ef434318c574cdf09c9985d83cb77c22405a4bb344ab41": {
+      "resource": "naver-023-reference-v1",
+      "content_type": "image/png",
+      "sha256": "600835914106cf733ba3ccee6cdfb6148587e9665302e7a56cf0da6beb294171",
+      "size_bytes": 145351,
+      "pixel_width": 3200,
+      "pixel_height": 798,
+      "renderer": "Supplied final transcription / 2026-10-29"
+    },
+    "8c65faf7470333dafdd67588711fce08180038bb68ffd203feb4ec9c9d102b58": {
+      "resource": "naver-024-reference-v1",
+      "content_type": "image/png",
+      "sha256": "ccadff082b60f9fbe7f31d429eaa66716887cf448f2491492a7fbe9b326605cd",
+      "size_bytes": 124144,
+      "pixel_width": 3200,
+      "pixel_height": 613,
+      "renderer": "Supplied final transcription / 2026-10-29"
+    },
+    "7ed5a29e0375c3c5395d3c3efae8368e218e307abd1bdd9ac8348189a2584e32": {
+      "resource": "naver-025-reference-v1",
+      "content_type": "image/png",
+      "sha256": "ec2363a2ac16720dce4ec5923cca88f9a1b465717ed3aaf5aa8abfd48534b41b",
+      "size_bytes": 121552,
+      "pixel_width": 3200,
+      "pixel_height": 742,
+      "renderer": "Supplied final transcription / 2026-10-29"
+    },
+    "437f5f55b619d6499c6588e720eb9cb83a436c23f480b22055ff7a4f0d12f3ee": {
+      "resource": "naver-026-reference-v1",
+      "content_type": "image/png",
+      "sha256": "b0f52aa111154d15a639a092349319ed06102f0053b760f504a6909b72041df3",
+      "size_bytes": 136324,
+      "pixel_width": 3200,
+      "pixel_height": 740,
+      "renderer": "Supplied final transcription / 2026-10-29"
+    },
+    "7ccd3fb926b5a573eade511bba5b8dda530916e45124dfaf2d21ef29dca77f54": {
+      "resource": "naver-027-reference-v1",
+      "content_type": "image/png",
+      "sha256": "043c131ac54b5dac04ee0b428e1ab726eed495188d4b1d1c3fb04c3f4733adfb",
+      "size_bytes": 134658,
+      "pixel_width": 3200,
+      "pixel_height": 794,
+      "renderer": "Supplied final transcription / 2026-10-29"
+    },
+    "6f37b6f732ba050f83ad6dc903a871e4c23454477d9ee4e280c3104b7dfe420b": {
+      "resource": "naver-028-reference-v1",
+      "content_type": "image/png",
+      "sha256": "1be142380af910397c76d95ad2a94d9951c894db9328c8b199b45dd18485448e",
+      "size_bytes": 132476,
+      "pixel_width": 3200,
+      "pixel_height": 742,
+      "renderer": "Supplied final transcription / 2026-10-29"
+    },
+    "d35824116975b53fc895e0bb546ce7ad6777da24a6827a4a7ff42c0dbf4d4779": {
+      "resource": "naver-029-reference-v1",
+      "content_type": "image/png",
+      "sha256": "7620d7aee6f127336df7546c3cdcd840ef1d37ca29dcb89d9a781f606135cf67",
+      "size_bytes": 133574,
+      "pixel_width": 3200,
+      "pixel_height": 772,
+      "renderer": "Supplied final transcription / 2026-10-29"
+    },
+    "2721bd8bdcbf9e7c9361f9a046f4c0b72859aa17917c6828b63d1c0babd68157": {
+      "resource": "naver-030-reference-v1",
+      "content_type": "image/png",
+      "sha256": "3dee3d85123252a2046f00eaa33e4f351af3e5addcd156fe2ae0df9ef5222b6e",
+      "size_bytes": 123484,
+      "pixel_width": 3200,
+      "pixel_height": 751,
+      "renderer": "Supplied final transcription / 2026-10-29"
+    },
+    "6e1388f2c975b9dfab68be40ec81d3d54e2c4125bcd1c2ef15dc1d5ef41b260f": {
+      "resource": "naver-031-reference-v1",
+      "content_type": "image/png",
+      "sha256": "a9757a14b78a7a42541e2543798e14276c0b0adbbc34ffc00e496e3e1298c06a",
+      "size_bytes": 133129,
+      "pixel_width": 3200,
+      "pixel_height": 764,
+      "renderer": "Supplied final transcription / 2026-10-29"
+    },
+    "8e0243e2a782b5644bedf4d6f86570f3d8b9880b4f7ddadc9a3108eabab9465e": {
+      "resource": "naver-032-reference-v1",
+      "content_type": "image/png",
+      "sha256": "037c95c717f749a7edb98e0ad6a4ab05e9316922811d3751d739598dc38d50a1",
+      "size_bytes": 133754,
+      "pixel_width": 3200,
+      "pixel_height": 808,
+      "renderer": "Supplied final transcription / 2026-10-29"
+    },
+    "422f4ebfe3453f8fd5b9ebc8b65e3ca35f414fcf7f02ecc1386af014717b5091": {
+      "resource": "naver-033-reference-v1",
+      "content_type": "image/png",
+      "sha256": "e1cce3ecc22956161adb7b51936389d7df53cbe2fffde53f3b3c0c57ba6a27a0",
+      "size_bytes": 130730,
+      "pixel_width": 3200,
+      "pixel_height": 619,
+      "renderer": "Supplied final transcription / 2026-10-29"
+    },
+    "e60f6b2d1e4daf63382768f18aee0936c8fcf88b0255d914b843703df05c50ad": {
+      "resource": "naver-034-reference-v1",
+      "content_type": "image/png",
+      "sha256": "84b55dc30ea97d1bb2e2fd0b13f41ac8c82ab94716c8e46d6067f585ac9be8d7",
+      "size_bytes": 103810,
+      "pixel_width": 3200,
+      "pixel_height": 599,
+      "renderer": "Supplied final transcription / 2026-10-29"
+    },
+    "2c07ee77cb2fe495045e587a7896a688a1ded1b38c2fc71dd00d641657963cdb": {
+      "resource": "naver-035-reference-v1",
+      "content_type": "image/png",
+      "sha256": "42b197be737f86223f01d6ec983cd02f0d68c5985e11e65ceaab538abf0f945a",
+      "size_bytes": 122686,
+      "pixel_width": 3200,
+      "pixel_height": 628,
+      "renderer": "Supplied final transcription / 2026-10-29"
+    },
+    "911514408b1390141a660cb612b0a9a7600e7e379edd61290d7bc5d0e622f4dc": {
+      "resource": "naver-036-reference-v1",
+      "content_type": "image/png",
+      "sha256": "8c8f52f88fc701113ccc82949b81f5bc59395a8b4d06925440f42f1f72c42edf",
+      "size_bytes": 132646,
+      "pixel_width": 3200,
+      "pixel_height": 608,
+      "renderer": "Supplied final transcription / 2026-10-29"
+    },
+    "da643b443a4661b6d589281e97ef5e97f6fef094d939c70a4c33b86ce2fd9a8e": {
+      "resource": "naver-037-reference-v1",
+      "content_type": "image/png",
+      "sha256": "62ca0675d8dae1bc812c06cd4fec54a751beee94f4704ad60f5d2aff818911ad",
+      "size_bytes": 127177,
+      "pixel_width": 3200,
+      "pixel_height": 605,
+      "renderer": "Supplied final transcription / 2026-10-29"
+    },
+    "94513330dde03757d91c0728e3a5c85676224e65397ad87531ac8981a2b39fb1": {
+      "resource": "naver-038-reference-v1",
+      "content_type": "image/png",
+      "sha256": "20fe45b286dbd42b076ce847a87c001baca51a828cb1d9b979319ad5b7c2e51e",
+      "size_bytes": 127796,
+      "pixel_width": 3200,
+      "pixel_height": 749,
+      "renderer": "Supplied final transcription / 2026-10-29"
+    },
+    "a6e39f72b6cc852de9be01f96e5c0f2df8164573e3c1f97cf6653d99960a4ead": {
+      "resource": "naver-039-reference-v1",
+      "content_type": "image/png",
+      "sha256": "a8d545387bf49f48b82493151771b7a8bafcc21a7640e7dd1f200bcc65e95c05",
+      "size_bytes": 130031,
+      "pixel_width": 3200,
+      "pixel_height": 744,
+      "renderer": "Supplied final transcription / 2026-10-29"
+    },
+    "b94ba82f4a345f8272cba2736653df87eb97f5c0d5abf2977addd1df5f0e7cb8": {
+      "resource": "naver-040-reference-v1",
+      "content_type": "image/png",
+      "sha256": "50b8821a460a841448f206efda3a278e36b60cf9888ce6e745ab4da153eac27d",
+      "size_bytes": 115344,
+      "pixel_width": 3200,
+      "pixel_height": 777,
+      "renderer": "Supplied final transcription / 2026-10-29"
+    },
+    "a9821c521dfd407248f1bf83c2eff63c05e93d6c123d37bcac65fc0872b9a6fb": {
+      "resource": "naver-041-reference-v1",
+      "content_type": "image/png",
+      "sha256": "f385503b606bc4808e4f1074d517296dac22f6fb98db5f3f1594a91c0b46cb4f",
+      "size_bytes": 129709,
+      "pixel_width": 3200,
+      "pixel_height": 602,
+      "renderer": "Supplied final transcription / 2026-10-29"
+    },
+    "67e50464b04ab8aa802adb564610ea475c8b394ceb2f2a919160b9fda7d017af": {
+      "resource": "naver-042-reference-v1",
+      "content_type": "image/png",
+      "sha256": "c8886939545d172ce161db0297339ab7436c4062bb45c7f6d67ca5d0066af653",
+      "size_bytes": 132699,
+      "pixel_width": 3200,
+      "pixel_height": 740,
+      "renderer": "Supplied final transcription / 2026-10-29"
+    },
+    "cbcb55c32091d601196f981f3825049a6db0edadcf57b04b9b6e0b6528068e8e": {
+      "resource": "naver-043-reference-v1",
+      "content_type": "image/png",
+      "sha256": "03be3d9ba1922c5c14ec0af4082bd4ece3838e1fd5e79d08059743451b1463a4",
+      "size_bytes": 121196,
+      "pixel_width": 3200,
+      "pixel_height": 747,
+      "renderer": "Supplied final transcription / 2026-10-29"
+    },
+    "9d68b9f69ae0fd21f571f6def4ebccfa4b6f84cb9fce147d181aa7770d217c70": {
+      "resource": "naver-044-reference-v1",
+      "content_type": "image/png",
+      "sha256": "311d09677ca72716c5676fcb946a777fb5eca8065d5e1ade74e555e3294e160b",
+      "size_bytes": 118143,
+      "pixel_width": 3200,
+      "pixel_height": 749,
+      "renderer": "Supplied final transcription / 2026-10-29"
+    },
+    "f0ae4b4698fc859e7240f12ab7cb40f3418e98522b7493f2402032821e750e7b": {
+      "resource": "naver-045-reference-v1",
+      "content_type": "image/png",
+      "sha256": "49728b577637619605420fcac5e12e3cfba7fc634efdf4fb49f26f34a03a91f4",
+      "size_bytes": 131359,
+      "pixel_width": 3200,
+      "pixel_height": 747,
+      "renderer": "Supplied final transcription / 2026-10-29"
+    },
+    "847eb70e6c937a675ee504908fe9b484504a6b5c8fbcf5e3129c44b071d93c97": {
+      "resource": "naver-046-reference-v1",
+      "content_type": "image/png",
+      "sha256": "e23d3657325ed778b6222cf5bcf27469b0fd8cca8ce82c44c983094b0d48a4fe",
+      "size_bytes": 150736,
+      "pixel_width": 3200,
+      "pixel_height": 749,
+      "renderer": "Supplied final transcription / 2026-10-29"
+    },
+    "9406233af63d5940bc96d6520f4c8b73855695f8dd951d02b52e10d94076c477": {
+      "resource": "naver-047-reference-v1",
+      "content_type": "image/png",
+      "sha256": "05d55a9db1f9ea58b4efe4221f0384550351090ee073ea1dba0e762f58493a60",
+      "size_bytes": 121977,
+      "pixel_width": 3200,
+      "pixel_height": 616,
+      "renderer": "Supplied final transcription / 2026-10-29"
+    },
+    "0932b05943926e3e69c78bcb5ccef64ace94012600a02735ec95e54a30b084da": {
+      "resource": "naver-048-reference-v1",
+      "content_type": "image/png",
+      "sha256": "dc9282cc3ebe610ad008f768b0078a86efd7924c5c59c88a288d3721a02cdd96",
+      "size_bytes": 134393,
+      "pixel_width": 3200,
+      "pixel_height": 755,
+      "renderer": "Supplied final transcription / 2026-10-29"
+    },
+    "879fca90cf4b2d285431d10adc3e9b0e0d0b10d377a353580b1e12051590cbc9": {
+      "resource": "naver-049-reference-v1",
+      "content_type": "image/png",
+      "sha256": "d4253411ae7472471f27393a1676ebd4b8060e5dc2b4d9bf937c53edfad55d18",
+      "size_bytes": 121393,
+      "pixel_width": 3200,
+      "pixel_height": 623,
+      "renderer": "Supplied final transcription / 2026-10-29"
+    },
+    "2f45029ed6702c25afb5330301c9d419f035fa92279bf82b2fb86e20fda82c81": {
+      "resource": "naver-050-reference-v1",
+      "content_type": "image/png",
+      "sha256": "0fce3c650326709ca2e50e3aafd57877c0a77894ef29a4b64d564205eaf4af02",
+      "size_bytes": 111431,
+      "pixel_width": 3200,
+      "pixel_height": 828,
+      "renderer": "Supplied final transcription / 2026-10-29"
+    },
+    "1283f3f938f81b7407baaabd7c1d7db85f40fe44dd035ac73cbcc577cf215f11": {
+      "resource": "naver-051-reference-v1",
+      "content_type": "image/png",
+      "sha256": "8f48cf0667d132002a2dd43b6bdfafe3288d0e0bec4959e7fad763c8a6bc4389",
+      "size_bytes": 132941,
+      "pixel_width": 3200,
+      "pixel_height": 808,
+      "renderer": "Supplied final transcription / 2026-10-29"
+    },
+    "71a84c9170d7a87642b34a3acb65ac6f4bed50e91e9b6f376e09c0443ac02c55": {
+      "resource": "naver-052-reference-v1",
+      "content_type": "image/png",
+      "sha256": "1c0e4a1bbb4ea4a72d2e8f2a3fddd99e2d302bd4700e8a7514202a1e346534e8",
+      "size_bytes": 132002,
+      "pixel_width": 3200,
+      "pixel_height": 755,
+      "renderer": "Supplied final transcription / 2026-10-29"
+    },
+    "0f5c4c71e92c1209564ef60b43232956d909f87bca3f2915d217c1911927bc2a": {
+      "resource": "naver-053-reference-v1",
+      "content_type": "image/png",
+      "sha256": "069249bc974c3f856e5a5a7b99e787fce46695c7ec06fdcf13c1fad86ebb6049",
+      "size_bytes": 118589,
+      "pixel_width": 3200,
+      "pixel_height": 755,
+      "renderer": "Supplied final transcription / 2026-10-29"
+    },
+    "386de537fe72bdbf96a791a6736d5eb13707d611ad45b4ace9df8e05e2d70481": {
+      "resource": "naver-054-reference-v1",
+      "content_type": "image/png",
+      "sha256": "554b3d568dede797452c557490fb2383bbd38fe6ec9f725f674b4c3a980ca5d4",
+      "size_bytes": 127007,
+      "pixel_width": 3200,
+      "pixel_height": 821,
+      "renderer": "Supplied final transcription / 2026-10-29"
+    },
+    "4f14f1e7fedd0837c40d2f7f3a049048d94f4b64f9962754816d027492fb2360": {
+      "resource": "naver-055-reference-v1",
+      "content_type": "image/png",
+      "sha256": "23d99faf64dbeccd3b24364f95b8f35d0fffa35cd957c5769f06ef71f562bf84",
+      "size_bytes": 115511,
+      "pixel_width": 3200,
+      "pixel_height": 789,
+      "renderer": "Supplied final transcription / 2026-10-29"
+    },
+    "2fd27f631835dc0064158fffe389ee0bed1cbc4061abba126e0ee2249e7d0dbb": {
+      "resource": "naver-056-reference-v1",
+      "content_type": "image/png",
+      "sha256": "597fecf0f81223a840b08e8a8c2f5d00b59e7d3f911ba6382cc8486473d0347a",
+      "size_bytes": 137686,
+      "pixel_width": 3200,
+      "pixel_height": 847,
+      "renderer": "Supplied final transcription / 2026-10-29"
+    },
+    "e76076eb035657f6518f9889b22d2b714b9bfe6534e3fdce8e0f612a04ede045": {
+      "resource": "naver-057-reference-v1",
+      "content_type": "image/png",
+      "sha256": "0fe29ce98fd4c3c4395d7425c68de51af70970a8c0f482eeeb21eb4fdf035423",
+      "size_bytes": 159046,
+      "pixel_width": 3200,
+      "pixel_height": 655,
+      "renderer": "Supplied final transcription / 2026-10-29"
+    },
+    "79e4d1a3ed7215cf90504d65ebd330b9e53ddc33d44dc137d3b86df9af180220": {
+      "resource": "naver-058-reference-v1",
+      "content_type": "image/png",
+      "sha256": "ec8c7dbbc44a44ef442447581d4e882e34662050b090f7cc462d4f9cd06b446c",
+      "size_bytes": 125840,
+      "pixel_width": 3200,
+      "pixel_height": 599,
+      "renderer": "Supplied final transcription / 2026-10-29"
+    },
+    "aed36af0034d7af2c78b733ab9613189423d7f1485152e008dbf2a21b23fd401": {
+      "resource": "naver-059-reference-v1",
+      "content_type": "image/png",
+      "sha256": "f4ed2feca8b8f6610f489ac0c55fc7c98da122413a54ea507849d8c1c5361212",
+      "size_bytes": 125743,
+      "pixel_width": 3200,
+      "pixel_height": 640,
+      "renderer": "Supplied final transcription / 2026-10-29"
     }
   }
 }

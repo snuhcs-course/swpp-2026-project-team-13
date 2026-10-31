@@ -50,7 +50,7 @@ struct HomeView: View {
                             Card { HStack(spacing: 20) {
                                 Text(String(format: "%02d", index+1)).font(.system(size: 29, weight: .light, design: .rounded)).foregroundStyle(SORITheme.violet).frame(width: 48)
                                 VStack(alignment: .leading, spacing: 10) { Text(q.title).font(.headline).foregroundStyle(SORITheme.ink)
-                                    HStack { Text("\(q.keySignature.tonic) \(q.keySignature.mode.capitalized)"); Text("·"); Text("\(q.timeSignature.numerator)/\(q.timeSignature.denominator)"); Text("·"); Text("\(q.measureCount)마디"); Text("·"); Text("\(q.recommendedDurationSeconds / 60)분 \(q.recommendedDurationSeconds % 60)초") }.font(.caption).foregroundStyle(.secondary)
+                                    HStack { Text(q.keySignature.label); Text("·"); Text("\(q.timeSignature.numerator)/\(q.timeSignature.denominator)"); Text("·"); Text("\(q.measureCount)마디"); Text("·"); Text("\(q.recommendedDurationSeconds / 60)분 \(q.recommendedDurationSeconds % 60)초") }.font(.caption).foregroundStyle(.secondary)
                                 }
                                 Spacer(); Image(systemName: "arrow.up.right").font(.title3).foregroundStyle(SORITheme.violet).padding(14).background(SORITheme.soft, in: Circle())
                             } }
@@ -70,7 +70,7 @@ struct QuestionView: View {
             VStack(alignment: .leading, spacing: 28) {
                 SectionCaption(eyebrow: "READY TO LISTEN", title: q.title, subtitle: q.description)
                 HStack {
-                    Pill(text:"\(q.keySignature.tonic) Major",icon:"music.note")
+                    Pill(text:q.keySignature.label,icon:"music.note")
                     Pill(text:"\(q.timeSignature.numerator)/\(q.timeSignature.denominator) · 8마디")
                     if let tempo = q.tempo { Pill(text:tempo.label,icon:"metronome") }
                     Pill(text:"권장 \(q.recommendedDurationSeconds/60)분 \(q.recommendedDurationSeconds%60)초",icon:"clock")

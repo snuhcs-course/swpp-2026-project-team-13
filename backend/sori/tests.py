@@ -70,7 +70,7 @@ class FlowTests(TestCase):
         return attempt, answer.data, response.data
 
 
-    def test_exam_plan_countins_waits_and_timer_match_all_three_meters(self):
+    def test_exam_plan_countins_waits_and_timer_match_all_catalog_meters(self):
         from datetime import datetime
         for version in QuestionVersion.objects.order_by("question__order"):
             original = dict(version.metadata)
@@ -85,7 +85,7 @@ class FlowTests(TestCase):
             self.assertEqual(plan["count_in"]["beat_unit"], q["time_signature"]["denominator"])
             self.assertEqual([s["pause_after_ms"] for s in plan["steps"]], [20000]*10+[120000])
             started = self.post(f'attempts/{a["id"]}/start/').data
-            expected = {(4,4):456,(3,4):426,(6,8):423}[(q["time_signature"]["numerator"],q["time_signature"]["denominator"])]
+            expected = {(4,4):456,(3,4):426,(6,8):423,(2,4):393,(7,8):443,(9,8):468,(12,8):516}[(q["time_signature"]["numerator"],q["time_signature"]["denominator"])]
             self.assertEqual(q["recommended_duration_seconds"], expected)
             self.assertEqual(a["question"]["recommended_duration_seconds"], expected)
             self.assertEqual((datetime.fromisoformat(started["recommended_end_at"].replace("Z","+00:00")) -
@@ -115,11 +115,26 @@ class FlowTests(TestCase):
         self.assertEqual(response.data["playback_plan"],legacy)
         self.assertEqual(response.data["question"]["version"],1)
 
-    def test_three_questions_assets_and_owner_visibility(self):
+    def test_full_catalog_pagination_and_owner_visibility(self):
         response = self.client.get("/api/v1/questions/")
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.data["count"], 3)
-        self.assertEqual([(q["time_signature"]["numerator"], q["time_signature"]["denominator"]) for q in response.data["results"]], [(6,8),(4,4),(3,4)])
+        self.assertEqual(response.data["count"], 62)
+        self.assertEqual([(q["time_signature"]["numerator"], q["time_signature"]["denominator"]) for q in response.data["results"][:3]], [(6,8),(4,4),(3,4)])
+        results=list(response.data["results"])
+        while response.data["next"]:
+            response=self.client.get(response.data["next"])
+            self.assertEqual(response.status_code,200)
+            results.extend(response.data["results"])
+        self.assertEqual(len(results),62)
+        self.assertEqual(len({q["id"] for q in results}),62)
+        self.assertTrue(all(q["title"].startswith("고난도 청음") for q in results[3:]))
+        # Every new problem resolves its authenticated score and final answer image.
+        for summary in results[3:]:
+            q=self.client.get(f'/api/v1/questions/{summary["id"]}/').data
+            for asset in [q["score_assets"]["main"],q["score_assets"]["scale"],q["correct_score"]]:
+                binary=self.client.get(asset["url"])
+                self.assertEqual(binary.status_code,200)
+                self.assertEqual(hashlib.sha256(b"".join(binary.streaming_content)).hexdigest(),asset["sha256"])
         attempt, answer, _ = self.submitted()
         image = self.client.get(answer["image_url"])
         self.assertEqual(hashlib.sha256(b"".join(image.streaming_content)).hexdigest(), answer["sha256"])

@@ -30,7 +30,7 @@ class EngravingTests(unittest.TestCase):
                 self.assertEqual(hashlib.sha256(data).hexdigest(),asset["sha256"])
                 self.assertEqual(len(data),asset["size_bytes"])
                 self.assertEqual(struct.unpack(">II",data[16:24]),(asset["pixel_width"],asset["pixel_height"]))
-                self.assertLess(asset["pixel_height"]/asset["pixel_width"],0.25)
+                self.assertLess(asset["pixel_height"]/asset["pixel_width"],0.28 if item["metadata"]["score_assets"]["main"]["profile"]=="sori-monophonic-v3" else 0.25)
                 self.assertEqual(data,(RESOURCES / (asset["resource"]+".pngdata")).read_bytes())
     def test_hash_pinned_style_has_the_same_bytes_in_a_linux_checkout(self):
         data = (ROOT / "scripts/engraving/compact-v1.mss").read_bytes()

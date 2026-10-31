@@ -1,4 +1,4 @@
-"""Build deterministic MXL assets from the three original answer XMLs. Python stdlib only."""
+"""Build deterministic practice assets, including imported Naver exercises. Stdlib only."""
 import copy
 import hashlib
 import json
@@ -118,6 +118,8 @@ def main():
         metadata = {"id": question_id, "version": 2, "title": title, "source": "practice", "key_signature": {"tonic": "C", "mode": "major", "fifths": 0}, "time_signature": {"numerator": numerator, "denominator": denominator}, "measure_count": 8, "recommended_duration_seconds": 300, "description": "멜로디를 듣고 빈 오선에 적어보세요. 제출 후 AI 평가와 정답을 확인할 수 있어요.", "time_policy": "advisory", "clef": "treble", "sheet_layout": layout, "content_policy": "client_readable_practice", "score_visibility": "after_submission", "score_assets": assets}
         catalog.append({"order": index, "metadata": metadata, "main_path": f"questions/excerpt-{index}/v2/main.mxl", "scale_path": f"questions/excerpt-{index}/v2/scale.mxl"})
         demo.append(metadata)
+    from import_naver_questions import append_naver
+    append_naver(catalog, demo)
     (CONTENT / "catalog.json").write_text(json.dumps(catalog, ensure_ascii=False, indent=2), encoding="utf-8")
     (RESOURCES / "practice-catalog.json").write_text(json.dumps(demo, ensure_ascii=False, indent=2), encoding="utf-8")
 
@@ -127,7 +129,7 @@ def main():
         lines.append(f'        case ({n},{d}): return TempoSetting(policyId:"{POLICY["id"]}",beatUnit:"{value["beat_unit"]}",bpm:{value["default_bpm"]},minimumBpm:{value["minimum_bpm"]},maximumBpm:{value["maximum_bpm"]})')
     lines += ['        default: return setting(for:TimeSignature(numerator:4,denominator:4))', "        }", "    }", "}"]
     (RESOURCES.parent / "Core/TempoDefaults.swift").write_text("\n".join(lines)+"\n",encoding="utf-8")
-    print("Built v2 questions and ascending/descending scales; v1 assets preserved.")
+    print(f"Built {len(catalog)} questions and ascending/descending scales; legacy assets preserved.")
 
 if __name__ == "__main__":
     main()

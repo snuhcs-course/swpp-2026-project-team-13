@@ -6,7 +6,7 @@ from django.db import transaction
 from sori.models import Question, QuestionVersion
 
 class Command(BaseCommand):
-    help = "Register the three immutable problem versions shipped with the application."
+    help = "Register all immutable problem versions shipped in the practice catalog."
     @transaction.atomic
     def handle(self, *args, **options):
         catalog = json.loads((settings.CONTENT_ROOT / "catalog.json").read_text(encoding="utf-8"))

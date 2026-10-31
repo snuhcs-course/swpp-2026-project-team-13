@@ -35,6 +35,8 @@ For Windows installation without a Mac, follow [the Sideloadly guide](../docs/WI
 
 Server enum fields decode as strings and branch explicitly. Added unknown values never crash decoding. Contract JSON uses one snake_case strategy and accepts ISO 8601 timestamps with or without fractional seconds. All authenticated assets must use the configured API origin. Redirects are refused, including public template redirects, to prevent credential leakage. Public templates receive no Authorization header. Downloads are streamed with explicit limits; CRC, compressed/uncompressed size, ZIP entry names, and XML shape are checked before use.
 
+The practice catalog now contains 62 exercises (3 originals and 59 advanced Naver transcriptions). The `sori-monophonic-v3` extension adds 2/4, 7/8, 9/8, 12/8, thirty-second notes, three beam levels and MIDI pitches through B6. Scores with unconfirmed tonality display “조표 없음”. See [import and deployment notes](../docs/NAVER-QUESTIONS.md).
+
 ## Validation
 
 From the repository root:

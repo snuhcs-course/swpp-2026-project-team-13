@@ -65,9 +65,15 @@ def main():
         check("health",status==200 and health=={"status":"ok"})
         _,me=request("/api/v1/me/")
         _,page=request("/api/v1/questions/")
-        check("three questions",page["count"]==3)
+        expected=json.loads((ROOT / "backend/content/catalog.json").read_text(encoding="utf-8"))
+        check("full practice catalog",page["count"]==len(expected))
+        summaries=list(page["results"])
+        while page["next"]:
+            _,page=request(page["next"])
+            summaries.extend(page["results"])
+        check("all catalog pages",len(summaries)==len(expected) and len({q["id"] for q in summaries})==len(expected))
         questions=[]
-        for summary in page["results"]:
+        for summary in summaries:
             _,q=request("/api/v1/questions/"+summary["id"]+"/")
             questions.append(q)
             for kind,asset in q["score_assets"].items():

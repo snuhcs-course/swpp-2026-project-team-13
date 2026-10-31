@@ -301,5 +301,5964 @@
     },
     "main_path": "questions/excerpt-3/v2/main.mxl",
     "scale_path": "questions/excerpt-3/v2/scale.mxl"
+  },
+  {
+    "order": 4,
+    "metadata": {
+      "id": "82a95dad-5e69-5836-bdd7-43e99d23e6d2",
+      "version": 2,
+      "title": "고난도 청음 01 · 6/8",
+      "source": "practice",
+      "key_signature": {
+        "tonic": "C",
+        "mode": "unspecified",
+        "fifths": 0
+      },
+      "time_signature": {
+        "numerator": 6,
+        "denominator": 8
+      },
+      "measure_count": 8,
+      "recommended_duration_seconds": 300,
+      "description": "임시표·셋잇단음표·당김음을 포함한 고난도 단성 청음입니다. 조표 없이 표기된 선율을 듣고 8마디를 적어보세요.",
+      "time_policy": "advisory",
+      "clef": "treble",
+      "sheet_layout": {
+        "id": "staff-8bars-6-8-v2",
+        "logical_width": 1330,
+        "logical_height": 846,
+        "export_scale": 2,
+        "pixel_width": 2660,
+        "pixel_height": 1692,
+        "template_png_url": "https://api.sori.example/assets/sheets/staff-8bars-6-8-v2.png",
+        "template_sha256": "32906ad8aeab576eec3b7dfd0e3e86d28a7f446b285e09dcecb468384c55b287",
+        "systems": [
+          {
+            "index": 1,
+            "first_measure": 1,
+            "last_measure": 4,
+            "staff_line_y": [
+              164,
+              176,
+              188,
+              200,
+              212
+            ],
+            "barline_x": [
+              54,
+              450,
+              725,
+              1000,
+              1276
+            ]
+          },
+          {
+            "index": 2,
+            "first_measure": 5,
+            "last_measure": 8,
+            "staff_line_y": [
+              499,
+              511,
+              523,
+              535,
+              547
+            ],
+            "barline_x": [
+              54,
+              397,
+              690,
+              983,
+              1276
+            ]
+          }
+        ]
+      },
+      "content_policy": "client_readable_practice",
+      "score_visibility": "after_submission",
+      "score_assets": {
+        "main": {
+          "url": "https://api.sori.example/api/v1/questions/82a95dad-5e69-5836-bdd7-43e99d23e6d2/versions/2/scores/main/",
+          "content_type": "application/vnd.recordare.musicxml",
+          "sha256": "0882bcdcadc55c51c46e122a917f1a2372c31dbe76ab82108ad51bdbec894b4f",
+          "size_bytes": 1547,
+          "musicxml_version": "4.0",
+          "profile": "sori-monophonic-v3",
+          "part_id": "P1",
+          "measure_count": 8,
+          "source_tempo_bpm": 96
+        },
+        "scale": {
+          "url": "https://api.sori.example/api/v1/questions/82a95dad-5e69-5836-bdd7-43e99d23e6d2/versions/2/scores/scale/",
+          "content_type": "application/vnd.recordare.musicxml",
+          "sha256": "1a1f361300e398400b32c48535c9ec56538208a2f09470eb1482e5dd107082d6",
+          "size_bytes": 1082,
+          "musicxml_version": "4.0",
+          "profile": "sori-monophonic-v3",
+          "part_id": "P1",
+          "measure_count": 3,
+          "source_tempo_bpm": 96
+        }
+      }
+    },
+    "main_path": "questions/naver-001/v2/main.mxl",
+    "scale_path": "questions/naver-001/v2/scale.mxl"
+  },
+  {
+    "order": 5,
+    "metadata": {
+      "id": "8e39ceaf-b31d-5eaa-a77c-0f5239e9f0bc",
+      "version": 2,
+      "title": "고난도 청음 02 · 4/4",
+      "source": "practice",
+      "key_signature": {
+        "tonic": "C",
+        "mode": "unspecified",
+        "fifths": 0
+      },
+      "time_signature": {
+        "numerator": 4,
+        "denominator": 4
+      },
+      "measure_count": 8,
+      "recommended_duration_seconds": 300,
+      "description": "임시표·셋잇단음표·당김음을 포함한 고난도 단성 청음입니다. 조표 없이 표기된 선율을 듣고 8마디를 적어보세요.",
+      "time_policy": "advisory",
+      "clef": "treble",
+      "sheet_layout": {
+        "id": "staff-8bars-4-4-v2",
+        "logical_width": 1330,
+        "logical_height": 846,
+        "export_scale": 2,
+        "pixel_width": 2660,
+        "pixel_height": 1692,
+        "template_png_url": "https://api.sori.example/assets/sheets/staff-8bars-4-4-v2.png",
+        "template_sha256": "8057c4278804d4a148a806be071b877ed688a814ef6e350b53a2e40807c2fcae",
+        "systems": [
+          {
+            "index": 1,
+            "first_measure": 1,
+            "last_measure": 4,
+            "staff_line_y": [
+              164,
+              176,
+              188,
+              200,
+              212
+            ],
+            "barline_x": [
+              54,
+              450,
+              725,
+              1000,
+              1276
+            ]
+          },
+          {
+            "index": 2,
+            "first_measure": 5,
+            "last_measure": 8,
+            "staff_line_y": [
+              499,
+              511,
+              523,
+              535,
+              547
+            ],
+            "barline_x": [
+              54,
+              397,
+              690,
+              983,
+              1276
+            ]
+          }
+        ]
+      },
+      "content_policy": "client_readable_practice",
+      "score_visibility": "after_submission",
+      "score_assets": {
+        "main": {
+          "url": "https://api.sori.example/api/v1/questions/8e39ceaf-b31d-5eaa-a77c-0f5239e9f0bc/versions/2/scores/main/",
+          "content_type": "application/vnd.recordare.musicxml",
+          "sha256": "1f4a0042ff10684bf3889b5ec46dad57b3db6f2be54192ae0cd4dbbf91ed748b",
+          "size_bytes": 1797,
+          "musicxml_version": "4.0",
+          "profile": "sori-monophonic-v3",
+          "part_id": "P1",
+          "measure_count": 8,
+          "source_tempo_bpm": 96
+        },
+        "scale": {
+          "url": "https://api.sori.example/api/v1/questions/8e39ceaf-b31d-5eaa-a77c-0f5239e9f0bc/versions/2/scores/scale/",
+          "content_type": "application/vnd.recordare.musicxml",
+          "sha256": "4a349eec3a3227fc1ddbba4fea791da8b7dc76166547d69dd4df28c4cacdf0e3",
+          "size_bytes": 1069,
+          "musicxml_version": "4.0",
+          "profile": "sori-monophonic-v3",
+          "part_id": "P1",
+          "measure_count": 2,
+          "source_tempo_bpm": 96
+        }
+      }
+    },
+    "main_path": "questions/naver-002/v2/main.mxl",
+    "scale_path": "questions/naver-002/v2/scale.mxl"
+  },
+  {
+    "order": 6,
+    "metadata": {
+      "id": "fc584d16-ddbb-5d20-a411-bdb404c68071",
+      "version": 2,
+      "title": "고난도 청음 03 · 3/4",
+      "source": "practice",
+      "key_signature": {
+        "tonic": "C",
+        "mode": "unspecified",
+        "fifths": 0
+      },
+      "time_signature": {
+        "numerator": 3,
+        "denominator": 4
+      },
+      "measure_count": 8,
+      "recommended_duration_seconds": 300,
+      "description": "임시표·셋잇단음표·당김음을 포함한 고난도 단성 청음입니다. 조표 없이 표기된 선율을 듣고 8마디를 적어보세요.",
+      "time_policy": "advisory",
+      "clef": "treble",
+      "sheet_layout": {
+        "id": "staff-8bars-3-4-v2",
+        "logical_width": 1330,
+        "logical_height": 846,
+        "export_scale": 2,
+        "pixel_width": 2660,
+        "pixel_height": 1692,
+        "template_png_url": "https://api.sori.example/assets/sheets/staff-8bars-3-4-v2.png",
+        "template_sha256": "97c59bec81f03a008c0a0a4e4771bf808b074d1e35b1875078f24adf0a6e3160",
+        "systems": [
+          {
+            "index": 1,
+            "first_measure": 1,
+            "last_measure": 4,
+            "staff_line_y": [
+              164,
+              176,
+              188,
+              200,
+              212
+            ],
+            "barline_x": [
+              54,
+              450,
+              725,
+              1000,
+              1276
+            ]
+          },
+          {
+            "index": 2,
+            "first_measure": 5,
+            "last_measure": 8,
+            "staff_line_y": [
+              499,
+              511,
+              523,
+              535,
+              547
+            ],
+            "barline_x": [
+              54,
+              397,
+              690,
+              983,
+              1276
+            ]
+          }
+        ]
+      },
+      "content_policy": "client_readable_practice",
+      "score_visibility": "after_submission",
+      "score_assets": {
+        "main": {
+          "url": "https://api.sori.example/api/v1/questions/fc584d16-ddbb-5d20-a411-bdb404c68071/versions/2/scores/main/",
+          "content_type": "application/vnd.recordare.musicxml",
+          "sha256": "1089755dcce10b55c0e5407d336c8cc0d5db7eb912cc92894f8d50621d3566da",
+          "size_bytes": 1912,
+          "musicxml_version": "4.0",
+          "profile": "sori-monophonic-v3",
+          "part_id": "P1",
+          "measure_count": 8,
+          "source_tempo_bpm": 96
+        },
+        "scale": {
+          "url": "https://api.sori.example/api/v1/questions/fc584d16-ddbb-5d20-a411-bdb404c68071/versions/2/scores/scale/",
+          "content_type": "application/vnd.recordare.musicxml",
+          "sha256": "dabe183fd0507e07dede25880bb63dcb8cb15713dc875393f7f1d9cd3ffc50fa",
+          "size_bytes": 1082,
+          "musicxml_version": "4.0",
+          "profile": "sori-monophonic-v3",
+          "part_id": "P1",
+          "measure_count": 3,
+          "source_tempo_bpm": 96
+        }
+      }
+    },
+    "main_path": "questions/naver-003/v2/main.mxl",
+    "scale_path": "questions/naver-003/v2/scale.mxl"
+  },
+  {
+    "order": 7,
+    "metadata": {
+      "id": "7d0104b8-5a22-5f4e-8e22-5f842b9f7eca",
+      "version": 2,
+      "title": "고난도 청음 04 · 6/8",
+      "source": "practice",
+      "key_signature": {
+        "tonic": "C",
+        "mode": "unspecified",
+        "fifths": 0
+      },
+      "time_signature": {
+        "numerator": 6,
+        "denominator": 8
+      },
+      "measure_count": 8,
+      "recommended_duration_seconds": 300,
+      "description": "임시표·셋잇단음표·당김음을 포함한 고난도 단성 청음입니다. 조표 없이 표기된 선율을 듣고 8마디를 적어보세요.",
+      "time_policy": "advisory",
+      "clef": "treble",
+      "sheet_layout": {
+        "id": "staff-8bars-6-8-v2",
+        "logical_width": 1330,
+        "logical_height": 846,
+        "export_scale": 2,
+        "pixel_width": 2660,
+        "pixel_height": 1692,
+        "template_png_url": "https://api.sori.example/assets/sheets/staff-8bars-6-8-v2.png",
+        "template_sha256": "32906ad8aeab576eec3b7dfd0e3e86d28a7f446b285e09dcecb468384c55b287",
+        "systems": [
+          {
+            "index": 1,
+            "first_measure": 1,
+            "last_measure": 4,
+            "staff_line_y": [
+              164,
+              176,
+              188,
+              200,
+              212
+            ],
+            "barline_x": [
+              54,
+              450,
+              725,
+              1000,
+              1276
+            ]
+          },
+          {
+            "index": 2,
+            "first_measure": 5,
+            "last_measure": 8,
+            "staff_line_y": [
+              499,
+              511,
+              523,
+              535,
+              547
+            ],
+            "barline_x": [
+              54,
+              397,
+              690,
+              983,
+              1276
+            ]
+          }
+        ]
+      },
+      "content_policy": "client_readable_practice",
+      "score_visibility": "after_submission",
+      "score_assets": {
+        "main": {
+          "url": "https://api.sori.example/api/v1/questions/7d0104b8-5a22-5f4e-8e22-5f842b9f7eca/versions/2/scores/main/",
+          "content_type": "application/vnd.recordare.musicxml",
+          "sha256": "52dd926b7200d841621056f78d3e63eb398b2c90f2014a42e74b433a45e10eb4",
+          "size_bytes": 1769,
+          "musicxml_version": "4.0",
+          "profile": "sori-monophonic-v3",
+          "part_id": "P1",
+          "measure_count": 8,
+          "source_tempo_bpm": 96
+        },
+        "scale": {
+          "url": "https://api.sori.example/api/v1/questions/7d0104b8-5a22-5f4e-8e22-5f842b9f7eca/versions/2/scores/scale/",
+          "content_type": "application/vnd.recordare.musicxml",
+          "sha256": "1a1f361300e398400b32c48535c9ec56538208a2f09470eb1482e5dd107082d6",
+          "size_bytes": 1082,
+          "musicxml_version": "4.0",
+          "profile": "sori-monophonic-v3",
+          "part_id": "P1",
+          "measure_count": 3,
+          "source_tempo_bpm": 96
+        }
+      }
+    },
+    "main_path": "questions/naver-004/v2/main.mxl",
+    "scale_path": "questions/naver-004/v2/scale.mxl"
+  },
+  {
+    "order": 8,
+    "metadata": {
+      "id": "245672cf-f699-510c-a5c1-81469e1de419",
+      "version": 2,
+      "title": "고난도 청음 05 · 3/4",
+      "source": "practice",
+      "key_signature": {
+        "tonic": "C",
+        "mode": "unspecified",
+        "fifths": 0
+      },
+      "time_signature": {
+        "numerator": 3,
+        "denominator": 4
+      },
+      "measure_count": 8,
+      "recommended_duration_seconds": 300,
+      "description": "임시표·셋잇단음표·당김음을 포함한 고난도 단성 청음입니다. 조표 없이 표기된 선율을 듣고 8마디를 적어보세요.",
+      "time_policy": "advisory",
+      "clef": "treble",
+      "sheet_layout": {
+        "id": "staff-8bars-3-4-v2",
+        "logical_width": 1330,
+        "logical_height": 846,
+        "export_scale": 2,
+        "pixel_width": 2660,
+        "pixel_height": 1692,
+        "template_png_url": "https://api.sori.example/assets/sheets/staff-8bars-3-4-v2.png",
+        "template_sha256": "97c59bec81f03a008c0a0a4e4771bf808b074d1e35b1875078f24adf0a6e3160",
+        "systems": [
+          {
+            "index": 1,
+            "first_measure": 1,
+            "last_measure": 4,
+            "staff_line_y": [
+              164,
+              176,
+              188,
+              200,
+              212
+            ],
+            "barline_x": [
+              54,
+              450,
+              725,
+              1000,
+              1276
+            ]
+          },
+          {
+            "index": 2,
+            "first_measure": 5,
+            "last_measure": 8,
+            "staff_line_y": [
+              499,
+              511,
+              523,
+              535,
+              547
+            ],
+            "barline_x": [
+              54,
+              397,
+              690,
+              983,
+              1276
+            ]
+          }
+        ]
+      },
+      "content_policy": "client_readable_practice",
+      "score_visibility": "after_submission",
+      "score_assets": {
+        "main": {
+          "url": "https://api.sori.example/api/v1/questions/245672cf-f699-510c-a5c1-81469e1de419/versions/2/scores/main/",
+          "content_type": "application/vnd.recordare.musicxml",
+          "sha256": "fcb5ba0404e241a5dfb316d67418cb245613c66353c6ec0cb82509f842043bfb",
+          "size_bytes": 1709,
+          "musicxml_version": "4.0",
+          "profile": "sori-monophonic-v3",
+          "part_id": "P1",
+          "measure_count": 8,
+          "source_tempo_bpm": 96
+        },
+        "scale": {
+          "url": "https://api.sori.example/api/v1/questions/245672cf-f699-510c-a5c1-81469e1de419/versions/2/scores/scale/",
+          "content_type": "application/vnd.recordare.musicxml",
+          "sha256": "dabe183fd0507e07dede25880bb63dcb8cb15713dc875393f7f1d9cd3ffc50fa",
+          "size_bytes": 1082,
+          "musicxml_version": "4.0",
+          "profile": "sori-monophonic-v3",
+          "part_id": "P1",
+          "measure_count": 3,
+          "source_tempo_bpm": 96
+        }
+      }
+    },
+    "main_path": "questions/naver-005/v2/main.mxl",
+    "scale_path": "questions/naver-005/v2/scale.mxl"
+  },
+  {
+    "order": 9,
+    "metadata": {
+      "id": "4ee0a8eb-1c76-559b-a161-fb209b01672b",
+      "version": 2,
+      "title": "고난도 청음 06 · 4/4",
+      "source": "practice",
+      "key_signature": {
+        "tonic": "C",
+        "mode": "unspecified",
+        "fifths": 0
+      },
+      "time_signature": {
+        "numerator": 4,
+        "denominator": 4
+      },
+      "measure_count": 8,
+      "recommended_duration_seconds": 300,
+      "description": "임시표·셋잇단음표·당김음을 포함한 고난도 단성 청음입니다. 조표 없이 표기된 선율을 듣고 8마디를 적어보세요.",
+      "time_policy": "advisory",
+      "clef": "treble",
+      "sheet_layout": {
+        "id": "staff-8bars-4-4-v2",
+        "logical_width": 1330,
+        "logical_height": 846,
+        "export_scale": 2,
+        "pixel_width": 2660,
+        "pixel_height": 1692,
+        "template_png_url": "https://api.sori.example/assets/sheets/staff-8bars-4-4-v2.png",
+        "template_sha256": "8057c4278804d4a148a806be071b877ed688a814ef6e350b53a2e40807c2fcae",
+        "systems": [
+          {
+            "index": 1,
+            "first_measure": 1,
+            "last_measure": 4,
+            "staff_line_y": [
+              164,
+              176,
+              188,
+              200,
+              212
+            ],
+            "barline_x": [
+              54,
+              450,
+              725,
+              1000,
+              1276
+            ]
+          },
+          {
+            "index": 2,
+            "first_measure": 5,
+            "last_measure": 8,
+            "staff_line_y": [
+              499,
+              511,
+              523,
+              535,
+              547
+            ],
+            "barline_x": [
+              54,
+              397,
+              690,
+              983,
+              1276
+            ]
+          }
+        ]
+      },
+      "content_policy": "client_readable_practice",
+      "score_visibility": "after_submission",
+      "score_assets": {
+        "main": {
+          "url": "https://api.sori.example/api/v1/questions/4ee0a8eb-1c76-559b-a161-fb209b01672b/versions/2/scores/main/",
+          "content_type": "application/vnd.recordare.musicxml",
+          "sha256": "5ee531b4cc7f815651cac3556fbc5438af33fe94f3f59672a00d79ccfe7a3c59",
+          "size_bytes": 1886,
+          "musicxml_version": "4.0",
+          "profile": "sori-monophonic-v3",
+          "part_id": "P1",
+          "measure_count": 8,
+          "source_tempo_bpm": 96
+        },
+        "scale": {
+          "url": "https://api.sori.example/api/v1/questions/4ee0a8eb-1c76-559b-a161-fb209b01672b/versions/2/scores/scale/",
+          "content_type": "application/vnd.recordare.musicxml",
+          "sha256": "4a349eec3a3227fc1ddbba4fea791da8b7dc76166547d69dd4df28c4cacdf0e3",
+          "size_bytes": 1069,
+          "musicxml_version": "4.0",
+          "profile": "sori-monophonic-v3",
+          "part_id": "P1",
+          "measure_count": 2,
+          "source_tempo_bpm": 96
+        }
+      }
+    },
+    "main_path": "questions/naver-006/v2/main.mxl",
+    "scale_path": "questions/naver-006/v2/scale.mxl"
+  },
+  {
+    "order": 10,
+    "metadata": {
+      "id": "92d02281-7385-55f2-bf5d-b0bf39e7eb86",
+      "version": 2,
+      "title": "고난도 청음 07 · 3/4",
+      "source": "practice",
+      "key_signature": {
+        "tonic": "C",
+        "mode": "unspecified",
+        "fifths": 0
+      },
+      "time_signature": {
+        "numerator": 3,
+        "denominator": 4
+      },
+      "measure_count": 8,
+      "recommended_duration_seconds": 300,
+      "description": "임시표·셋잇단음표·당김음을 포함한 고난도 단성 청음입니다. 조표 없이 표기된 선율을 듣고 8마디를 적어보세요.",
+      "time_policy": "advisory",
+      "clef": "treble",
+      "sheet_layout": {
+        "id": "staff-8bars-3-4-v2",
+        "logical_width": 1330,
+        "logical_height": 846,
+        "export_scale": 2,
+        "pixel_width": 2660,
+        "pixel_height": 1692,
+        "template_png_url": "https://api.sori.example/assets/sheets/staff-8bars-3-4-v2.png",
+        "template_sha256": "97c59bec81f03a008c0a0a4e4771bf808b074d1e35b1875078f24adf0a6e3160",
+        "systems": [
+          {
+            "index": 1,
+            "first_measure": 1,
+            "last_measure": 4,
+            "staff_line_y": [
+              164,
+              176,
+              188,
+              200,
+              212
+            ],
+            "barline_x": [
+              54,
+              450,
+              725,
+              1000,
+              1276
+            ]
+          },
+          {
+            "index": 2,
+            "first_measure": 5,
+            "last_measure": 8,
+            "staff_line_y": [
+              499,
+              511,
+              523,
+              535,
+              547
+            ],
+            "barline_x": [
+              54,
+              397,
+              690,
+              983,
+              1276
+            ]
+          }
+        ]
+      },
+      "content_policy": "client_readable_practice",
+      "score_visibility": "after_submission",
+      "score_assets": {
+        "main": {
+          "url": "https://api.sori.example/api/v1/questions/92d02281-7385-55f2-bf5d-b0bf39e7eb86/versions/2/scores/main/",
+          "content_type": "application/vnd.recordare.musicxml",
+          "sha256": "05d5ca2086253e88ea6472a5bf13935f3391e29839458cc109ebbb729d73646b",
+          "size_bytes": 1873,
+          "musicxml_version": "4.0",
+          "profile": "sori-monophonic-v3",
+          "part_id": "P1",
+          "measure_count": 8,
+          "source_tempo_bpm": 96
+        },
+        "scale": {
+          "url": "https://api.sori.example/api/v1/questions/92d02281-7385-55f2-bf5d-b0bf39e7eb86/versions/2/scores/scale/",
+          "content_type": "application/vnd.recordare.musicxml",
+          "sha256": "dabe183fd0507e07dede25880bb63dcb8cb15713dc875393f7f1d9cd3ffc50fa",
+          "size_bytes": 1082,
+          "musicxml_version": "4.0",
+          "profile": "sori-monophonic-v3",
+          "part_id": "P1",
+          "measure_count": 3,
+          "source_tempo_bpm": 96
+        }
+      }
+    },
+    "main_path": "questions/naver-007/v2/main.mxl",
+    "scale_path": "questions/naver-007/v2/scale.mxl"
+  },
+  {
+    "order": 11,
+    "metadata": {
+      "id": "f43da563-2196-5ac2-a622-db4cf375dbd7",
+      "version": 2,
+      "title": "고난도 청음 08 · 4/4",
+      "source": "practice",
+      "key_signature": {
+        "tonic": "C",
+        "mode": "unspecified",
+        "fifths": 0
+      },
+      "time_signature": {
+        "numerator": 4,
+        "denominator": 4
+      },
+      "measure_count": 8,
+      "recommended_duration_seconds": 300,
+      "description": "임시표·셋잇단음표·당김음을 포함한 고난도 단성 청음입니다. 조표 없이 표기된 선율을 듣고 8마디를 적어보세요.",
+      "time_policy": "advisory",
+      "clef": "treble",
+      "sheet_layout": {
+        "id": "staff-8bars-4-4-v2",
+        "logical_width": 1330,
+        "logical_height": 846,
+        "export_scale": 2,
+        "pixel_width": 2660,
+        "pixel_height": 1692,
+        "template_png_url": "https://api.sori.example/assets/sheets/staff-8bars-4-4-v2.png",
+        "template_sha256": "8057c4278804d4a148a806be071b877ed688a814ef6e350b53a2e40807c2fcae",
+        "systems": [
+          {
+            "index": 1,
+            "first_measure": 1,
+            "last_measure": 4,
+            "staff_line_y": [
+              164,
+              176,
+              188,
+              200,
+              212
+            ],
+            "barline_x": [
+              54,
+              450,
+              725,
+              1000,
+              1276
+            ]
+          },
+          {
+            "index": 2,
+            "first_measure": 5,
+            "last_measure": 8,
+            "staff_line_y": [
+              499,
+              511,
+              523,
+              535,
+              547
+            ],
+            "barline_x": [
+              54,
+              397,
+              690,
+              983,
+              1276
+            ]
+          }
+        ]
+      },
+      "content_policy": "client_readable_practice",
+      "score_visibility": "after_submission",
+      "score_assets": {
+        "main": {
+          "url": "https://api.sori.example/api/v1/questions/f43da563-2196-5ac2-a622-db4cf375dbd7/versions/2/scores/main/",
+          "content_type": "application/vnd.recordare.musicxml",
+          "sha256": "5c09e3c335998c7455096dbab42cf1e25515597427a1167d58372ea52277783f",
+          "size_bytes": 1614,
+          "musicxml_version": "4.0",
+          "profile": "sori-monophonic-v3",
+          "part_id": "P1",
+          "measure_count": 8,
+          "source_tempo_bpm": 96
+        },
+        "scale": {
+          "url": "https://api.sori.example/api/v1/questions/f43da563-2196-5ac2-a622-db4cf375dbd7/versions/2/scores/scale/",
+          "content_type": "application/vnd.recordare.musicxml",
+          "sha256": "4a349eec3a3227fc1ddbba4fea791da8b7dc76166547d69dd4df28c4cacdf0e3",
+          "size_bytes": 1069,
+          "musicxml_version": "4.0",
+          "profile": "sori-monophonic-v3",
+          "part_id": "P1",
+          "measure_count": 2,
+          "source_tempo_bpm": 96
+        }
+      }
+    },
+    "main_path": "questions/naver-008/v2/main.mxl",
+    "scale_path": "questions/naver-008/v2/scale.mxl"
+  },
+  {
+    "order": 12,
+    "metadata": {
+      "id": "1992cc1a-d0d1-5057-9add-3f62d50b6616",
+      "version": 2,
+      "title": "고난도 청음 09 · 4/4",
+      "source": "practice",
+      "key_signature": {
+        "tonic": "C",
+        "mode": "unspecified",
+        "fifths": 0
+      },
+      "time_signature": {
+        "numerator": 4,
+        "denominator": 4
+      },
+      "measure_count": 8,
+      "recommended_duration_seconds": 300,
+      "description": "임시표·셋잇단음표·당김음을 포함한 고난도 단성 청음입니다. 조표 없이 표기된 선율을 듣고 8마디를 적어보세요.",
+      "time_policy": "advisory",
+      "clef": "treble",
+      "sheet_layout": {
+        "id": "staff-8bars-4-4-v2",
+        "logical_width": 1330,
+        "logical_height": 846,
+        "export_scale": 2,
+        "pixel_width": 2660,
+        "pixel_height": 1692,
+        "template_png_url": "https://api.sori.example/assets/sheets/staff-8bars-4-4-v2.png",
+        "template_sha256": "8057c4278804d4a148a806be071b877ed688a814ef6e350b53a2e40807c2fcae",
+        "systems": [
+          {
+            "index": 1,
+            "first_measure": 1,
+            "last_measure": 4,
+            "staff_line_y": [
+              164,
+              176,
+              188,
+              200,
+              212
+            ],
+            "barline_x": [
+              54,
+              450,
+              725,
+              1000,
+              1276
+            ]
+          },
+          {
+            "index": 2,
+            "first_measure": 5,
+            "last_measure": 8,
+            "staff_line_y": [
+              499,
+              511,
+              523,
+              535,
+              547
+            ],
+            "barline_x": [
+              54,
+              397,
+              690,
+              983,
+              1276
+            ]
+          }
+        ]
+      },
+      "content_policy": "client_readable_practice",
+      "score_visibility": "after_submission",
+      "score_assets": {
+        "main": {
+          "url": "https://api.sori.example/api/v1/questions/1992cc1a-d0d1-5057-9add-3f62d50b6616/versions/2/scores/main/",
+          "content_type": "application/vnd.recordare.musicxml",
+          "sha256": "2614f4f0e3d0a8b6507fff97cd050d00cb7577aa76d0b301d10d500a2067925c",
+          "size_bytes": 1848,
+          "musicxml_version": "4.0",
+          "profile": "sori-monophonic-v3",
+          "part_id": "P1",
+          "measure_count": 8,
+          "source_tempo_bpm": 96
+        },
+        "scale": {
+          "url": "https://api.sori.example/api/v1/questions/1992cc1a-d0d1-5057-9add-3f62d50b6616/versions/2/scores/scale/",
+          "content_type": "application/vnd.recordare.musicxml",
+          "sha256": "4a349eec3a3227fc1ddbba4fea791da8b7dc76166547d69dd4df28c4cacdf0e3",
+          "size_bytes": 1069,
+          "musicxml_version": "4.0",
+          "profile": "sori-monophonic-v3",
+          "part_id": "P1",
+          "measure_count": 2,
+          "source_tempo_bpm": 96
+        }
+      }
+    },
+    "main_path": "questions/naver-009/v2/main.mxl",
+    "scale_path": "questions/naver-009/v2/scale.mxl"
+  },
+  {
+    "order": 13,
+    "metadata": {
+      "id": "0b957d0a-3ec4-516b-92e7-acab3e6e550a",
+      "version": 2,
+      "title": "고난도 청음 10 · 4/4",
+      "source": "practice",
+      "key_signature": {
+        "tonic": "C",
+        "mode": "unspecified",
+        "fifths": 0
+      },
+      "time_signature": {
+        "numerator": 4,
+        "denominator": 4
+      },
+      "measure_count": 8,
+      "recommended_duration_seconds": 300,
+      "description": "임시표·셋잇단음표·당김음을 포함한 고난도 단성 청음입니다. 조표 없이 표기된 선율을 듣고 8마디를 적어보세요.",
+      "time_policy": "advisory",
+      "clef": "treble",
+      "sheet_layout": {
+        "id": "staff-8bars-4-4-v2",
+        "logical_width": 1330,
+        "logical_height": 846,
+        "export_scale": 2,
+        "pixel_width": 2660,
+        "pixel_height": 1692,
+        "template_png_url": "https://api.sori.example/assets/sheets/staff-8bars-4-4-v2.png",
+        "template_sha256": "8057c4278804d4a148a806be071b877ed688a814ef6e350b53a2e40807c2fcae",
+        "systems": [
+          {
+            "index": 1,
+            "first_measure": 1,
+            "last_measure": 4,
+            "staff_line_y": [
+              164,
+              176,
+              188,
+              200,
+              212
+            ],
+            "barline_x": [
+              54,
+              450,
+              725,
+              1000,
+              1276
+            ]
+          },
+          {
+            "index": 2,
+            "first_measure": 5,
+            "last_measure": 8,
+            "staff_line_y": [
+              499,
+              511,
+              523,
+              535,
+              547
+            ],
+            "barline_x": [
+              54,
+              397,
+              690,
+              983,
+              1276
+            ]
+          }
+        ]
+      },
+      "content_policy": "client_readable_practice",
+      "score_visibility": "after_submission",
+      "score_assets": {
+        "main": {
+          "url": "https://api.sori.example/api/v1/questions/0b957d0a-3ec4-516b-92e7-acab3e6e550a/versions/2/scores/main/",
+          "content_type": "application/vnd.recordare.musicxml",
+          "sha256": "23c9c6f3b515bce22308cc6d243222286af96146abc2d9c38c1c421ca82024e0",
+          "size_bytes": 1769,
+          "musicxml_version": "4.0",
+          "profile": "sori-monophonic-v3",
+          "part_id": "P1",
+          "measure_count": 8,
+          "source_tempo_bpm": 96
+        },
+        "scale": {
+          "url": "https://api.sori.example/api/v1/questions/0b957d0a-3ec4-516b-92e7-acab3e6e550a/versions/2/scores/scale/",
+          "content_type": "application/vnd.recordare.musicxml",
+          "sha256": "4a349eec3a3227fc1ddbba4fea791da8b7dc76166547d69dd4df28c4cacdf0e3",
+          "size_bytes": 1069,
+          "musicxml_version": "4.0",
+          "profile": "sori-monophonic-v3",
+          "part_id": "P1",
+          "measure_count": 2,
+          "source_tempo_bpm": 96
+        }
+      }
+    },
+    "main_path": "questions/naver-010/v2/main.mxl",
+    "scale_path": "questions/naver-010/v2/scale.mxl"
+  },
+  {
+    "order": 14,
+    "metadata": {
+      "id": "e8be5f41-d0c1-500d-8544-73be4716e2ee",
+      "version": 2,
+      "title": "고난도 청음 11 · 6/8",
+      "source": "practice",
+      "key_signature": {
+        "tonic": "C",
+        "mode": "unspecified",
+        "fifths": 0
+      },
+      "time_signature": {
+        "numerator": 6,
+        "denominator": 8
+      },
+      "measure_count": 8,
+      "recommended_duration_seconds": 300,
+      "description": "임시표·셋잇단음표·당김음을 포함한 고난도 단성 청음입니다. 조표 없이 표기된 선율을 듣고 8마디를 적어보세요.",
+      "time_policy": "advisory",
+      "clef": "treble",
+      "sheet_layout": {
+        "id": "staff-8bars-6-8-v2",
+        "logical_width": 1330,
+        "logical_height": 846,
+        "export_scale": 2,
+        "pixel_width": 2660,
+        "pixel_height": 1692,
+        "template_png_url": "https://api.sori.example/assets/sheets/staff-8bars-6-8-v2.png",
+        "template_sha256": "32906ad8aeab576eec3b7dfd0e3e86d28a7f446b285e09dcecb468384c55b287",
+        "systems": [
+          {
+            "index": 1,
+            "first_measure": 1,
+            "last_measure": 4,
+            "staff_line_y": [
+              164,
+              176,
+              188,
+              200,
+              212
+            ],
+            "barline_x": [
+              54,
+              450,
+              725,
+              1000,
+              1276
+            ]
+          },
+          {
+            "index": 2,
+            "first_measure": 5,
+            "last_measure": 8,
+            "staff_line_y": [
+              499,
+              511,
+              523,
+              535,
+              547
+            ],
+            "barline_x": [
+              54,
+              397,
+              690,
+              983,
+              1276
+            ]
+          }
+        ]
+      },
+      "content_policy": "client_readable_practice",
+      "score_visibility": "after_submission",
+      "score_assets": {
+        "main": {
+          "url": "https://api.sori.example/api/v1/questions/e8be5f41-d0c1-500d-8544-73be4716e2ee/versions/2/scores/main/",
+          "content_type": "application/vnd.recordare.musicxml",
+          "sha256": "efbf89eecc6a367b023b21165f09a5883b3b02d087be6bcbbbb5d2a44d6793e5",
+          "size_bytes": 1842,
+          "musicxml_version": "4.0",
+          "profile": "sori-monophonic-v3",
+          "part_id": "P1",
+          "measure_count": 8,
+          "source_tempo_bpm": 96
+        },
+        "scale": {
+          "url": "https://api.sori.example/api/v1/questions/e8be5f41-d0c1-500d-8544-73be4716e2ee/versions/2/scores/scale/",
+          "content_type": "application/vnd.recordare.musicxml",
+          "sha256": "1a1f361300e398400b32c48535c9ec56538208a2f09470eb1482e5dd107082d6",
+          "size_bytes": 1082,
+          "musicxml_version": "4.0",
+          "profile": "sori-monophonic-v3",
+          "part_id": "P1",
+          "measure_count": 3,
+          "source_tempo_bpm": 96
+        }
+      }
+    },
+    "main_path": "questions/naver-011/v2/main.mxl",
+    "scale_path": "questions/naver-011/v2/scale.mxl"
+  },
+  {
+    "order": 15,
+    "metadata": {
+      "id": "0c51fde9-818f-5568-ab1a-b637bf502092",
+      "version": 2,
+      "title": "고난도 청음 12 · 6/8",
+      "source": "practice",
+      "key_signature": {
+        "tonic": "C",
+        "mode": "unspecified",
+        "fifths": 0
+      },
+      "time_signature": {
+        "numerator": 6,
+        "denominator": 8
+      },
+      "measure_count": 8,
+      "recommended_duration_seconds": 300,
+      "description": "임시표·셋잇단음표·당김음을 포함한 고난도 단성 청음입니다. 조표 없이 표기된 선율을 듣고 8마디를 적어보세요.",
+      "time_policy": "advisory",
+      "clef": "treble",
+      "sheet_layout": {
+        "id": "staff-8bars-6-8-v2",
+        "logical_width": 1330,
+        "logical_height": 846,
+        "export_scale": 2,
+        "pixel_width": 2660,
+        "pixel_height": 1692,
+        "template_png_url": "https://api.sori.example/assets/sheets/staff-8bars-6-8-v2.png",
+        "template_sha256": "32906ad8aeab576eec3b7dfd0e3e86d28a7f446b285e09dcecb468384c55b287",
+        "systems": [
+          {
+            "index": 1,
+            "first_measure": 1,
+            "last_measure": 4,
+            "staff_line_y": [
+              164,
+              176,
+              188,
+              200,
+              212
+            ],
+            "barline_x": [
+              54,
+              450,
+              725,
+              1000,
+              1276
+            ]
+          },
+          {
+            "index": 2,
+            "first_measure": 5,
+            "last_measure": 8,
+            "staff_line_y": [
+              499,
+              511,
+              523,
+              535,
+              547
+            ],
+            "barline_x": [
+              54,
+              397,
+              690,
+              983,
+              1276
+            ]
+          }
+        ]
+      },
+      "content_policy": "client_readable_practice",
+      "score_visibility": "after_submission",
+      "score_assets": {
+        "main": {
+          "url": "https://api.sori.example/api/v1/questions/0c51fde9-818f-5568-ab1a-b637bf502092/versions/2/scores/main/",
+          "content_type": "application/vnd.recordare.musicxml",
+          "sha256": "af9b9672f0155f3e1d018819bc50ea443f1eda94f1b79e3395ab0bc2ddfa87d0",
+          "size_bytes": 1901,
+          "musicxml_version": "4.0",
+          "profile": "sori-monophonic-v3",
+          "part_id": "P1",
+          "measure_count": 8,
+          "source_tempo_bpm": 96
+        },
+        "scale": {
+          "url": "https://api.sori.example/api/v1/questions/0c51fde9-818f-5568-ab1a-b637bf502092/versions/2/scores/scale/",
+          "content_type": "application/vnd.recordare.musicxml",
+          "sha256": "1a1f361300e398400b32c48535c9ec56538208a2f09470eb1482e5dd107082d6",
+          "size_bytes": 1082,
+          "musicxml_version": "4.0",
+          "profile": "sori-monophonic-v3",
+          "part_id": "P1",
+          "measure_count": 3,
+          "source_tempo_bpm": 96
+        }
+      }
+    },
+    "main_path": "questions/naver-012/v2/main.mxl",
+    "scale_path": "questions/naver-012/v2/scale.mxl"
+  },
+  {
+    "order": 16,
+    "metadata": {
+      "id": "f7b0a2b1-f768-55ce-ae06-9422befd8b8f",
+      "version": 2,
+      "title": "고난도 청음 13 · 6/8",
+      "source": "practice",
+      "key_signature": {
+        "tonic": "C",
+        "mode": "unspecified",
+        "fifths": 0
+      },
+      "time_signature": {
+        "numerator": 6,
+        "denominator": 8
+      },
+      "measure_count": 8,
+      "recommended_duration_seconds": 300,
+      "description": "임시표·셋잇단음표·당김음을 포함한 고난도 단성 청음입니다. 조표 없이 표기된 선율을 듣고 8마디를 적어보세요.",
+      "time_policy": "advisory",
+      "clef": "treble",
+      "sheet_layout": {
+        "id": "staff-8bars-6-8-v2",
+        "logical_width": 1330,
+        "logical_height": 846,
+        "export_scale": 2,
+        "pixel_width": 2660,
+        "pixel_height": 1692,
+        "template_png_url": "https://api.sori.example/assets/sheets/staff-8bars-6-8-v2.png",
+        "template_sha256": "32906ad8aeab576eec3b7dfd0e3e86d28a7f446b285e09dcecb468384c55b287",
+        "systems": [
+          {
+            "index": 1,
+            "first_measure": 1,
+            "last_measure": 4,
+            "staff_line_y": [
+              164,
+              176,
+              188,
+              200,
+              212
+            ],
+            "barline_x": [
+              54,
+              450,
+              725,
+              1000,
+              1276
+            ]
+          },
+          {
+            "index": 2,
+            "first_measure": 5,
+            "last_measure": 8,
+            "staff_line_y": [
+              499,
+              511,
+              523,
+              535,
+              547
+            ],
+            "barline_x": [
+              54,
+              397,
+              690,
+              983,
+              1276
+            ]
+          }
+        ]
+      },
+      "content_policy": "client_readable_practice",
+      "score_visibility": "after_submission",
+      "score_assets": {
+        "main": {
+          "url": "https://api.sori.example/api/v1/questions/f7b0a2b1-f768-55ce-ae06-9422befd8b8f/versions/2/scores/main/",
+          "content_type": "application/vnd.recordare.musicxml",
+          "sha256": "63df0c936ce0da106795167d8f65f31b39e34319d12e5917e6e92d306f61e349",
+          "size_bytes": 1738,
+          "musicxml_version": "4.0",
+          "profile": "sori-monophonic-v3",
+          "part_id": "P1",
+          "measure_count": 8,
+          "source_tempo_bpm": 96
+        },
+        "scale": {
+          "url": "https://api.sori.example/api/v1/questions/f7b0a2b1-f768-55ce-ae06-9422befd8b8f/versions/2/scores/scale/",
+          "content_type": "application/vnd.recordare.musicxml",
+          "sha256": "1a1f361300e398400b32c48535c9ec56538208a2f09470eb1482e5dd107082d6",
+          "size_bytes": 1082,
+          "musicxml_version": "4.0",
+          "profile": "sori-monophonic-v3",
+          "part_id": "P1",
+          "measure_count": 3,
+          "source_tempo_bpm": 96
+        }
+      }
+    },
+    "main_path": "questions/naver-013/v2/main.mxl",
+    "scale_path": "questions/naver-013/v2/scale.mxl"
+  },
+  {
+    "order": 17,
+    "metadata": {
+      "id": "3ac6537c-5ba8-510b-94be-ccb08f27efe7",
+      "version": 2,
+      "title": "고난도 청음 14 · 3/4",
+      "source": "practice",
+      "key_signature": {
+        "tonic": "C",
+        "mode": "unspecified",
+        "fifths": 0
+      },
+      "time_signature": {
+        "numerator": 3,
+        "denominator": 4
+      },
+      "measure_count": 8,
+      "recommended_duration_seconds": 300,
+      "description": "임시표·셋잇단음표·당김음을 포함한 고난도 단성 청음입니다. 조표 없이 표기된 선율을 듣고 8마디를 적어보세요.",
+      "time_policy": "advisory",
+      "clef": "treble",
+      "sheet_layout": {
+        "id": "staff-8bars-3-4-v2",
+        "logical_width": 1330,
+        "logical_height": 846,
+        "export_scale": 2,
+        "pixel_width": 2660,
+        "pixel_height": 1692,
+        "template_png_url": "https://api.sori.example/assets/sheets/staff-8bars-3-4-v2.png",
+        "template_sha256": "97c59bec81f03a008c0a0a4e4771bf808b074d1e35b1875078f24adf0a6e3160",
+        "systems": [
+          {
+            "index": 1,
+            "first_measure": 1,
+            "last_measure": 4,
+            "staff_line_y": [
+              164,
+              176,
+              188,
+              200,
+              212
+            ],
+            "barline_x": [
+              54,
+              450,
+              725,
+              1000,
+              1276
+            ]
+          },
+          {
+            "index": 2,
+            "first_measure": 5,
+            "last_measure": 8,
+            "staff_line_y": [
+              499,
+              511,
+              523,
+              535,
+              547
+            ],
+            "barline_x": [
+              54,
+              397,
+              690,
+              983,
+              1276
+            ]
+          }
+        ]
+      },
+      "content_policy": "client_readable_practice",
+      "score_visibility": "after_submission",
+      "score_assets": {
+        "main": {
+          "url": "https://api.sori.example/api/v1/questions/3ac6537c-5ba8-510b-94be-ccb08f27efe7/versions/2/scores/main/",
+          "content_type": "application/vnd.recordare.musicxml",
+          "sha256": "ed2fd1b204ba0fb1541d619179e09d65aca3249acf5554098b169b55bbe92e52",
+          "size_bytes": 1850,
+          "musicxml_version": "4.0",
+          "profile": "sori-monophonic-v3",
+          "part_id": "P1",
+          "measure_count": 8,
+          "source_tempo_bpm": 96
+        },
+        "scale": {
+          "url": "https://api.sori.example/api/v1/questions/3ac6537c-5ba8-510b-94be-ccb08f27efe7/versions/2/scores/scale/",
+          "content_type": "application/vnd.recordare.musicxml",
+          "sha256": "dabe183fd0507e07dede25880bb63dcb8cb15713dc875393f7f1d9cd3ffc50fa",
+          "size_bytes": 1082,
+          "musicxml_version": "4.0",
+          "profile": "sori-monophonic-v3",
+          "part_id": "P1",
+          "measure_count": 3,
+          "source_tempo_bpm": 96
+        }
+      }
+    },
+    "main_path": "questions/naver-014/v2/main.mxl",
+    "scale_path": "questions/naver-014/v2/scale.mxl"
+  },
+  {
+    "order": 18,
+    "metadata": {
+      "id": "63796469-9afb-5b5f-a917-bb0f810eb22a",
+      "version": 2,
+      "title": "고난도 청음 15 · 6/8",
+      "source": "practice",
+      "key_signature": {
+        "tonic": "C",
+        "mode": "unspecified",
+        "fifths": 0
+      },
+      "time_signature": {
+        "numerator": 6,
+        "denominator": 8
+      },
+      "measure_count": 8,
+      "recommended_duration_seconds": 300,
+      "description": "임시표·셋잇단음표·당김음을 포함한 고난도 단성 청음입니다. 조표 없이 표기된 선율을 듣고 8마디를 적어보세요.",
+      "time_policy": "advisory",
+      "clef": "treble",
+      "sheet_layout": {
+        "id": "staff-8bars-6-8-v2",
+        "logical_width": 1330,
+        "logical_height": 846,
+        "export_scale": 2,
+        "pixel_width": 2660,
+        "pixel_height": 1692,
+        "template_png_url": "https://api.sori.example/assets/sheets/staff-8bars-6-8-v2.png",
+        "template_sha256": "32906ad8aeab576eec3b7dfd0e3e86d28a7f446b285e09dcecb468384c55b287",
+        "systems": [
+          {
+            "index": 1,
+            "first_measure": 1,
+            "last_measure": 4,
+            "staff_line_y": [
+              164,
+              176,
+              188,
+              200,
+              212
+            ],
+            "barline_x": [
+              54,
+              450,
+              725,
+              1000,
+              1276
+            ]
+          },
+          {
+            "index": 2,
+            "first_measure": 5,
+            "last_measure": 8,
+            "staff_line_y": [
+              499,
+              511,
+              523,
+              535,
+              547
+            ],
+            "barline_x": [
+              54,
+              397,
+              690,
+              983,
+              1276
+            ]
+          }
+        ]
+      },
+      "content_policy": "client_readable_practice",
+      "score_visibility": "after_submission",
+      "score_assets": {
+        "main": {
+          "url": "https://api.sori.example/api/v1/questions/63796469-9afb-5b5f-a917-bb0f810eb22a/versions/2/scores/main/",
+          "content_type": "application/vnd.recordare.musicxml",
+          "sha256": "74506987d21483d5da0bd4fb1716f488e0fa84c53f77da7f12080bef9d060581",
+          "size_bytes": 1720,
+          "musicxml_version": "4.0",
+          "profile": "sori-monophonic-v3",
+          "part_id": "P1",
+          "measure_count": 8,
+          "source_tempo_bpm": 96
+        },
+        "scale": {
+          "url": "https://api.sori.example/api/v1/questions/63796469-9afb-5b5f-a917-bb0f810eb22a/versions/2/scores/scale/",
+          "content_type": "application/vnd.recordare.musicxml",
+          "sha256": "1a1f361300e398400b32c48535c9ec56538208a2f09470eb1482e5dd107082d6",
+          "size_bytes": 1082,
+          "musicxml_version": "4.0",
+          "profile": "sori-monophonic-v3",
+          "part_id": "P1",
+          "measure_count": 3,
+          "source_tempo_bpm": 96
+        }
+      }
+    },
+    "main_path": "questions/naver-015/v2/main.mxl",
+    "scale_path": "questions/naver-015/v2/scale.mxl"
+  },
+  {
+    "order": 19,
+    "metadata": {
+      "id": "32b528ba-0055-50d7-b6f1-a993641ff0da",
+      "version": 2,
+      "title": "고난도 청음 16 · 4/4",
+      "source": "practice",
+      "key_signature": {
+        "tonic": "C",
+        "mode": "unspecified",
+        "fifths": 0
+      },
+      "time_signature": {
+        "numerator": 4,
+        "denominator": 4
+      },
+      "measure_count": 8,
+      "recommended_duration_seconds": 300,
+      "description": "임시표·셋잇단음표·당김음을 포함한 고난도 단성 청음입니다. 조표 없이 표기된 선율을 듣고 8마디를 적어보세요.",
+      "time_policy": "advisory",
+      "clef": "treble",
+      "sheet_layout": {
+        "id": "staff-8bars-4-4-v2",
+        "logical_width": 1330,
+        "logical_height": 846,
+        "export_scale": 2,
+        "pixel_width": 2660,
+        "pixel_height": 1692,
+        "template_png_url": "https://api.sori.example/assets/sheets/staff-8bars-4-4-v2.png",
+        "template_sha256": "8057c4278804d4a148a806be071b877ed688a814ef6e350b53a2e40807c2fcae",
+        "systems": [
+          {
+            "index": 1,
+            "first_measure": 1,
+            "last_measure": 4,
+            "staff_line_y": [
+              164,
+              176,
+              188,
+              200,
+              212
+            ],
+            "barline_x": [
+              54,
+              450,
+              725,
+              1000,
+              1276
+            ]
+          },
+          {
+            "index": 2,
+            "first_measure": 5,
+            "last_measure": 8,
+            "staff_line_y": [
+              499,
+              511,
+              523,
+              535,
+              547
+            ],
+            "barline_x": [
+              54,
+              397,
+              690,
+              983,
+              1276
+            ]
+          }
+        ]
+      },
+      "content_policy": "client_readable_practice",
+      "score_visibility": "after_submission",
+      "score_assets": {
+        "main": {
+          "url": "https://api.sori.example/api/v1/questions/32b528ba-0055-50d7-b6f1-a993641ff0da/versions/2/scores/main/",
+          "content_type": "application/vnd.recordare.musicxml",
+          "sha256": "f585840c18e7abf89ff7a31626891325a3b6d17f770c89dcaf171c01e330de3e",
+          "size_bytes": 1883,
+          "musicxml_version": "4.0",
+          "profile": "sori-monophonic-v3",
+          "part_id": "P1",
+          "measure_count": 8,
+          "source_tempo_bpm": 96
+        },
+        "scale": {
+          "url": "https://api.sori.example/api/v1/questions/32b528ba-0055-50d7-b6f1-a993641ff0da/versions/2/scores/scale/",
+          "content_type": "application/vnd.recordare.musicxml",
+          "sha256": "4a349eec3a3227fc1ddbba4fea791da8b7dc76166547d69dd4df28c4cacdf0e3",
+          "size_bytes": 1069,
+          "musicxml_version": "4.0",
+          "profile": "sori-monophonic-v3",
+          "part_id": "P1",
+          "measure_count": 2,
+          "source_tempo_bpm": 96
+        }
+      }
+    },
+    "main_path": "questions/naver-016/v2/main.mxl",
+    "scale_path": "questions/naver-016/v2/scale.mxl"
+  },
+  {
+    "order": 20,
+    "metadata": {
+      "id": "49e1faed-3cb5-5da8-bcf7-14647aae0c2f",
+      "version": 2,
+      "title": "고난도 청음 17 · 3/4",
+      "source": "practice",
+      "key_signature": {
+        "tonic": "C",
+        "mode": "unspecified",
+        "fifths": 0
+      },
+      "time_signature": {
+        "numerator": 3,
+        "denominator": 4
+      },
+      "measure_count": 8,
+      "recommended_duration_seconds": 300,
+      "description": "임시표·셋잇단음표·당김음을 포함한 고난도 단성 청음입니다. 조표 없이 표기된 선율을 듣고 8마디를 적어보세요.",
+      "time_policy": "advisory",
+      "clef": "treble",
+      "sheet_layout": {
+        "id": "staff-8bars-3-4-v2",
+        "logical_width": 1330,
+        "logical_height": 846,
+        "export_scale": 2,
+        "pixel_width": 2660,
+        "pixel_height": 1692,
+        "template_png_url": "https://api.sori.example/assets/sheets/staff-8bars-3-4-v2.png",
+        "template_sha256": "97c59bec81f03a008c0a0a4e4771bf808b074d1e35b1875078f24adf0a6e3160",
+        "systems": [
+          {
+            "index": 1,
+            "first_measure": 1,
+            "last_measure": 4,
+            "staff_line_y": [
+              164,
+              176,
+              188,
+              200,
+              212
+            ],
+            "barline_x": [
+              54,
+              450,
+              725,
+              1000,
+              1276
+            ]
+          },
+          {
+            "index": 2,
+            "first_measure": 5,
+            "last_measure": 8,
+            "staff_line_y": [
+              499,
+              511,
+              523,
+              535,
+              547
+            ],
+            "barline_x": [
+              54,
+              397,
+              690,
+              983,
+              1276
+            ]
+          }
+        ]
+      },
+      "content_policy": "client_readable_practice",
+      "score_visibility": "after_submission",
+      "score_assets": {
+        "main": {
+          "url": "https://api.sori.example/api/v1/questions/49e1faed-3cb5-5da8-bcf7-14647aae0c2f/versions/2/scores/main/",
+          "content_type": "application/vnd.recordare.musicxml",
+          "sha256": "4ee33504768844cbf25104fcd2c230c2ac1e0f817a7d9cbdd2ca7ca8e7c87edb",
+          "size_bytes": 1863,
+          "musicxml_version": "4.0",
+          "profile": "sori-monophonic-v3",
+          "part_id": "P1",
+          "measure_count": 8,
+          "source_tempo_bpm": 96
+        },
+        "scale": {
+          "url": "https://api.sori.example/api/v1/questions/49e1faed-3cb5-5da8-bcf7-14647aae0c2f/versions/2/scores/scale/",
+          "content_type": "application/vnd.recordare.musicxml",
+          "sha256": "dabe183fd0507e07dede25880bb63dcb8cb15713dc875393f7f1d9cd3ffc50fa",
+          "size_bytes": 1082,
+          "musicxml_version": "4.0",
+          "profile": "sori-monophonic-v3",
+          "part_id": "P1",
+          "measure_count": 3,
+          "source_tempo_bpm": 96
+        }
+      }
+    },
+    "main_path": "questions/naver-017/v2/main.mxl",
+    "scale_path": "questions/naver-017/v2/scale.mxl"
+  },
+  {
+    "order": 21,
+    "metadata": {
+      "id": "1829f18d-469b-5745-92c9-5c090297510f",
+      "version": 2,
+      "title": "고난도 청음 18 · 6/8",
+      "source": "practice",
+      "key_signature": {
+        "tonic": "C",
+        "mode": "unspecified",
+        "fifths": 0
+      },
+      "time_signature": {
+        "numerator": 6,
+        "denominator": 8
+      },
+      "measure_count": 8,
+      "recommended_duration_seconds": 300,
+      "description": "임시표·셋잇단음표·당김음을 포함한 고난도 단성 청음입니다. 조표 없이 표기된 선율을 듣고 8마디를 적어보세요.",
+      "time_policy": "advisory",
+      "clef": "treble",
+      "sheet_layout": {
+        "id": "staff-8bars-6-8-v2",
+        "logical_width": 1330,
+        "logical_height": 846,
+        "export_scale": 2,
+        "pixel_width": 2660,
+        "pixel_height": 1692,
+        "template_png_url": "https://api.sori.example/assets/sheets/staff-8bars-6-8-v2.png",
+        "template_sha256": "32906ad8aeab576eec3b7dfd0e3e86d28a7f446b285e09dcecb468384c55b287",
+        "systems": [
+          {
+            "index": 1,
+            "first_measure": 1,
+            "last_measure": 4,
+            "staff_line_y": [
+              164,
+              176,
+              188,
+              200,
+              212
+            ],
+            "barline_x": [
+              54,
+              450,
+              725,
+              1000,
+              1276
+            ]
+          },
+          {
+            "index": 2,
+            "first_measure": 5,
+            "last_measure": 8,
+            "staff_line_y": [
+              499,
+              511,
+              523,
+              535,
+              547
+            ],
+            "barline_x": [
+              54,
+              397,
+              690,
+              983,
+              1276
+            ]
+          }
+        ]
+      },
+      "content_policy": "client_readable_practice",
+      "score_visibility": "after_submission",
+      "score_assets": {
+        "main": {
+          "url": "https://api.sori.example/api/v1/questions/1829f18d-469b-5745-92c9-5c090297510f/versions/2/scores/main/",
+          "content_type": "application/vnd.recordare.musicxml",
+          "sha256": "3a671c678e4de179df6ad41e29c993c7201ea576813c251362b6df6a38342ba9",
+          "size_bytes": 1768,
+          "musicxml_version": "4.0",
+          "profile": "sori-monophonic-v3",
+          "part_id": "P1",
+          "measure_count": 8,
+          "source_tempo_bpm": 96
+        },
+        "scale": {
+          "url": "https://api.sori.example/api/v1/questions/1829f18d-469b-5745-92c9-5c090297510f/versions/2/scores/scale/",
+          "content_type": "application/vnd.recordare.musicxml",
+          "sha256": "1a1f361300e398400b32c48535c9ec56538208a2f09470eb1482e5dd107082d6",
+          "size_bytes": 1082,
+          "musicxml_version": "4.0",
+          "profile": "sori-monophonic-v3",
+          "part_id": "P1",
+          "measure_count": 3,
+          "source_tempo_bpm": 96
+        }
+      }
+    },
+    "main_path": "questions/naver-018/v2/main.mxl",
+    "scale_path": "questions/naver-018/v2/scale.mxl"
+  },
+  {
+    "order": 22,
+    "metadata": {
+      "id": "89c6c3ae-baa5-5d91-aec9-cb53b5550867",
+      "version": 2,
+      "title": "고난도 청음 19 · 3/4",
+      "source": "practice",
+      "key_signature": {
+        "tonic": "C",
+        "mode": "unspecified",
+        "fifths": 0
+      },
+      "time_signature": {
+        "numerator": 3,
+        "denominator": 4
+      },
+      "measure_count": 8,
+      "recommended_duration_seconds": 300,
+      "description": "임시표·셋잇단음표·당김음을 포함한 고난도 단성 청음입니다. 조표 없이 표기된 선율을 듣고 8마디를 적어보세요.",
+      "time_policy": "advisory",
+      "clef": "treble",
+      "sheet_layout": {
+        "id": "staff-8bars-3-4-v2",
+        "logical_width": 1330,
+        "logical_height": 846,
+        "export_scale": 2,
+        "pixel_width": 2660,
+        "pixel_height": 1692,
+        "template_png_url": "https://api.sori.example/assets/sheets/staff-8bars-3-4-v2.png",
+        "template_sha256": "97c59bec81f03a008c0a0a4e4771bf808b074d1e35b1875078f24adf0a6e3160",
+        "systems": [
+          {
+            "index": 1,
+            "first_measure": 1,
+            "last_measure": 4,
+            "staff_line_y": [
+              164,
+              176,
+              188,
+              200,
+              212
+            ],
+            "barline_x": [
+              54,
+              450,
+              725,
+              1000,
+              1276
+            ]
+          },
+          {
+            "index": 2,
+            "first_measure": 5,
+            "last_measure": 8,
+            "staff_line_y": [
+              499,
+              511,
+              523,
+              535,
+              547
+            ],
+            "barline_x": [
+              54,
+              397,
+              690,
+              983,
+              1276
+            ]
+          }
+        ]
+      },
+      "content_policy": "client_readable_practice",
+      "score_visibility": "after_submission",
+      "score_assets": {
+        "main": {
+          "url": "https://api.sori.example/api/v1/questions/89c6c3ae-baa5-5d91-aec9-cb53b5550867/versions/2/scores/main/",
+          "content_type": "application/vnd.recordare.musicxml",
+          "sha256": "a42de2598bc9e61c4f1a83453fb7cb39ee5cb50b575376b16249dab89184dbdb",
+          "size_bytes": 1926,
+          "musicxml_version": "4.0",
+          "profile": "sori-monophonic-v3",
+          "part_id": "P1",
+          "measure_count": 8,
+          "source_tempo_bpm": 96
+        },
+        "scale": {
+          "url": "https://api.sori.example/api/v1/questions/89c6c3ae-baa5-5d91-aec9-cb53b5550867/versions/2/scores/scale/",
+          "content_type": "application/vnd.recordare.musicxml",
+          "sha256": "dabe183fd0507e07dede25880bb63dcb8cb15713dc875393f7f1d9cd3ffc50fa",
+          "size_bytes": 1082,
+          "musicxml_version": "4.0",
+          "profile": "sori-monophonic-v3",
+          "part_id": "P1",
+          "measure_count": 3,
+          "source_tempo_bpm": 96
+        }
+      }
+    },
+    "main_path": "questions/naver-019/v2/main.mxl",
+    "scale_path": "questions/naver-019/v2/scale.mxl"
+  },
+  {
+    "order": 23,
+    "metadata": {
+      "id": "9285f494-c4d5-53dc-87ee-375457323730",
+      "version": 2,
+      "title": "고난도 청음 20 · 6/8",
+      "source": "practice",
+      "key_signature": {
+        "tonic": "C",
+        "mode": "unspecified",
+        "fifths": 0
+      },
+      "time_signature": {
+        "numerator": 6,
+        "denominator": 8
+      },
+      "measure_count": 8,
+      "recommended_duration_seconds": 300,
+      "description": "임시표·셋잇단음표·당김음을 포함한 고난도 단성 청음입니다. 조표 없이 표기된 선율을 듣고 8마디를 적어보세요.",
+      "time_policy": "advisory",
+      "clef": "treble",
+      "sheet_layout": {
+        "id": "staff-8bars-6-8-v2",
+        "logical_width": 1330,
+        "logical_height": 846,
+        "export_scale": 2,
+        "pixel_width": 2660,
+        "pixel_height": 1692,
+        "template_png_url": "https://api.sori.example/assets/sheets/staff-8bars-6-8-v2.png",
+        "template_sha256": "32906ad8aeab576eec3b7dfd0e3e86d28a7f446b285e09dcecb468384c55b287",
+        "systems": [
+          {
+            "index": 1,
+            "first_measure": 1,
+            "last_measure": 4,
+            "staff_line_y": [
+              164,
+              176,
+              188,
+              200,
+              212
+            ],
+            "barline_x": [
+              54,
+              450,
+              725,
+              1000,
+              1276
+            ]
+          },
+          {
+            "index": 2,
+            "first_measure": 5,
+            "last_measure": 8,
+            "staff_line_y": [
+              499,
+              511,
+              523,
+              535,
+              547
+            ],
+            "barline_x": [
+              54,
+              397,
+              690,
+              983,
+              1276
+            ]
+          }
+        ]
+      },
+      "content_policy": "client_readable_practice",
+      "score_visibility": "after_submission",
+      "score_assets": {
+        "main": {
+          "url": "https://api.sori.example/api/v1/questions/9285f494-c4d5-53dc-87ee-375457323730/versions/2/scores/main/",
+          "content_type": "application/vnd.recordare.musicxml",
+          "sha256": "8010d61ebc1dc29173f553815b70528552c02bbd78fa9f5faa1fff761c0854eb",
+          "size_bytes": 1931,
+          "musicxml_version": "4.0",
+          "profile": "sori-monophonic-v3",
+          "part_id": "P1",
+          "measure_count": 8,
+          "source_tempo_bpm": 96
+        },
+        "scale": {
+          "url": "https://api.sori.example/api/v1/questions/9285f494-c4d5-53dc-87ee-375457323730/versions/2/scores/scale/",
+          "content_type": "application/vnd.recordare.musicxml",
+          "sha256": "1a1f361300e398400b32c48535c9ec56538208a2f09470eb1482e5dd107082d6",
+          "size_bytes": 1082,
+          "musicxml_version": "4.0",
+          "profile": "sori-monophonic-v3",
+          "part_id": "P1",
+          "measure_count": 3,
+          "source_tempo_bpm": 96
+        }
+      }
+    },
+    "main_path": "questions/naver-020/v2/main.mxl",
+    "scale_path": "questions/naver-020/v2/scale.mxl"
+  },
+  {
+    "order": 24,
+    "metadata": {
+      "id": "98f20ed2-f273-5e28-83ea-a36e08e6561d",
+      "version": 2,
+      "title": "고난도 청음 21 · 4/4",
+      "source": "practice",
+      "key_signature": {
+        "tonic": "C",
+        "mode": "unspecified",
+        "fifths": 0
+      },
+      "time_signature": {
+        "numerator": 4,
+        "denominator": 4
+      },
+      "measure_count": 8,
+      "recommended_duration_seconds": 300,
+      "description": "임시표·셋잇단음표·당김음을 포함한 고난도 단성 청음입니다. 조표 없이 표기된 선율을 듣고 8마디를 적어보세요.",
+      "time_policy": "advisory",
+      "clef": "treble",
+      "sheet_layout": {
+        "id": "staff-8bars-4-4-v2",
+        "logical_width": 1330,
+        "logical_height": 846,
+        "export_scale": 2,
+        "pixel_width": 2660,
+        "pixel_height": 1692,
+        "template_png_url": "https://api.sori.example/assets/sheets/staff-8bars-4-4-v2.png",
+        "template_sha256": "8057c4278804d4a148a806be071b877ed688a814ef6e350b53a2e40807c2fcae",
+        "systems": [
+          {
+            "index": 1,
+            "first_measure": 1,
+            "last_measure": 4,
+            "staff_line_y": [
+              164,
+              176,
+              188,
+              200,
+              212
+            ],
+            "barline_x": [
+              54,
+              450,
+              725,
+              1000,
+              1276
+            ]
+          },
+          {
+            "index": 2,
+            "first_measure": 5,
+            "last_measure": 8,
+            "staff_line_y": [
+              499,
+              511,
+              523,
+              535,
+              547
+            ],
+            "barline_x": [
+              54,
+              397,
+              690,
+              983,
+              1276
+            ]
+          }
+        ]
+      },
+      "content_policy": "client_readable_practice",
+      "score_visibility": "after_submission",
+      "score_assets": {
+        "main": {
+          "url": "https://api.sori.example/api/v1/questions/98f20ed2-f273-5e28-83ea-a36e08e6561d/versions/2/scores/main/",
+          "content_type": "application/vnd.recordare.musicxml",
+          "sha256": "c7e5b6133e655ef046921014dd7f0e2373441797d7d514874ac7579caaff7b5c",
+          "size_bytes": 1925,
+          "musicxml_version": "4.0",
+          "profile": "sori-monophonic-v3",
+          "part_id": "P1",
+          "measure_count": 8,
+          "source_tempo_bpm": 96
+        },
+        "scale": {
+          "url": "https://api.sori.example/api/v1/questions/98f20ed2-f273-5e28-83ea-a36e08e6561d/versions/2/scores/scale/",
+          "content_type": "application/vnd.recordare.musicxml",
+          "sha256": "4a349eec3a3227fc1ddbba4fea791da8b7dc76166547d69dd4df28c4cacdf0e3",
+          "size_bytes": 1069,
+          "musicxml_version": "4.0",
+          "profile": "sori-monophonic-v3",
+          "part_id": "P1",
+          "measure_count": 2,
+          "source_tempo_bpm": 96
+        }
+      }
+    },
+    "main_path": "questions/naver-021/v2/main.mxl",
+    "scale_path": "questions/naver-021/v2/scale.mxl"
+  },
+  {
+    "order": 25,
+    "metadata": {
+      "id": "7ec63df6-b973-5689-9902-14791a9c9160",
+      "version": 2,
+      "title": "고난도 청음 22 · 3/4",
+      "source": "practice",
+      "key_signature": {
+        "tonic": "C",
+        "mode": "unspecified",
+        "fifths": 0
+      },
+      "time_signature": {
+        "numerator": 3,
+        "denominator": 4
+      },
+      "measure_count": 8,
+      "recommended_duration_seconds": 300,
+      "description": "임시표·셋잇단음표·당김음을 포함한 고난도 단성 청음입니다. 조표 없이 표기된 선율을 듣고 8마디를 적어보세요.",
+      "time_policy": "advisory",
+      "clef": "treble",
+      "sheet_layout": {
+        "id": "staff-8bars-3-4-v2",
+        "logical_width": 1330,
+        "logical_height": 846,
+        "export_scale": 2,
+        "pixel_width": 2660,
+        "pixel_height": 1692,
+        "template_png_url": "https://api.sori.example/assets/sheets/staff-8bars-3-4-v2.png",
+        "template_sha256": "97c59bec81f03a008c0a0a4e4771bf808b074d1e35b1875078f24adf0a6e3160",
+        "systems": [
+          {
+            "index": 1,
+            "first_measure": 1,
+            "last_measure": 4,
+            "staff_line_y": [
+              164,
+              176,
+              188,
+              200,
+              212
+            ],
+            "barline_x": [
+              54,
+              450,
+              725,
+              1000,
+              1276
+            ]
+          },
+          {
+            "index": 2,
+            "first_measure": 5,
+            "last_measure": 8,
+            "staff_line_y": [
+              499,
+              511,
+              523,
+              535,
+              547
+            ],
+            "barline_x": [
+              54,
+              397,
+              690,
+              983,
+              1276
+            ]
+          }
+        ]
+      },
+      "content_policy": "client_readable_practice",
+      "score_visibility": "after_submission",
+      "score_assets": {
+        "main": {
+          "url": "https://api.sori.example/api/v1/questions/7ec63df6-b973-5689-9902-14791a9c9160/versions/2/scores/main/",
+          "content_type": "application/vnd.recordare.musicxml",
+          "sha256": "e69452b0b67d1fbd33422eec0bec95e8833e4e879d5bafd2c49e0ed494b8f247",
+          "size_bytes": 1839,
+          "musicxml_version": "4.0",
+          "profile": "sori-monophonic-v3",
+          "part_id": "P1",
+          "measure_count": 8,
+          "source_tempo_bpm": 96
+        },
+        "scale": {
+          "url": "https://api.sori.example/api/v1/questions/7ec63df6-b973-5689-9902-14791a9c9160/versions/2/scores/scale/",
+          "content_type": "application/vnd.recordare.musicxml",
+          "sha256": "dabe183fd0507e07dede25880bb63dcb8cb15713dc875393f7f1d9cd3ffc50fa",
+          "size_bytes": 1082,
+          "musicxml_version": "4.0",
+          "profile": "sori-monophonic-v3",
+          "part_id": "P1",
+          "measure_count": 3,
+          "source_tempo_bpm": 96
+        }
+      }
+    },
+    "main_path": "questions/naver-022/v2/main.mxl",
+    "scale_path": "questions/naver-022/v2/scale.mxl"
+  },
+  {
+    "order": 26,
+    "metadata": {
+      "id": "a056d89f-5f01-5046-a3f7-1c2ce744fbc8",
+      "version": 2,
+      "title": "고난도 청음 23 · 3/4",
+      "source": "practice",
+      "key_signature": {
+        "tonic": "C",
+        "mode": "unspecified",
+        "fifths": 0
+      },
+      "time_signature": {
+        "numerator": 3,
+        "denominator": 4
+      },
+      "measure_count": 8,
+      "recommended_duration_seconds": 300,
+      "description": "임시표·셋잇단음표·당김음을 포함한 고난도 단성 청음입니다. 조표 없이 표기된 선율을 듣고 8마디를 적어보세요.",
+      "time_policy": "advisory",
+      "clef": "treble",
+      "sheet_layout": {
+        "id": "staff-8bars-3-4-v2",
+        "logical_width": 1330,
+        "logical_height": 846,
+        "export_scale": 2,
+        "pixel_width": 2660,
+        "pixel_height": 1692,
+        "template_png_url": "https://api.sori.example/assets/sheets/staff-8bars-3-4-v2.png",
+        "template_sha256": "97c59bec81f03a008c0a0a4e4771bf808b074d1e35b1875078f24adf0a6e3160",
+        "systems": [
+          {
+            "index": 1,
+            "first_measure": 1,
+            "last_measure": 4,
+            "staff_line_y": [
+              164,
+              176,
+              188,
+              200,
+              212
+            ],
+            "barline_x": [
+              54,
+              450,
+              725,
+              1000,
+              1276
+            ]
+          },
+          {
+            "index": 2,
+            "first_measure": 5,
+            "last_measure": 8,
+            "staff_line_y": [
+              499,
+              511,
+              523,
+              535,
+              547
+            ],
+            "barline_x": [
+              54,
+              397,
+              690,
+              983,
+              1276
+            ]
+          }
+        ]
+      },
+      "content_policy": "client_readable_practice",
+      "score_visibility": "after_submission",
+      "score_assets": {
+        "main": {
+          "url": "https://api.sori.example/api/v1/questions/a056d89f-5f01-5046-a3f7-1c2ce744fbc8/versions/2/scores/main/",
+          "content_type": "application/vnd.recordare.musicxml",
+          "sha256": "9aadcab11ff0b35259ef434318c574cdf09c9985d83cb77c22405a4bb344ab41",
+          "size_bytes": 1980,
+          "musicxml_version": "4.0",
+          "profile": "sori-monophonic-v3",
+          "part_id": "P1",
+          "measure_count": 8,
+          "source_tempo_bpm": 96
+        },
+        "scale": {
+          "url": "https://api.sori.example/api/v1/questions/a056d89f-5f01-5046-a3f7-1c2ce744fbc8/versions/2/scores/scale/",
+          "content_type": "application/vnd.recordare.musicxml",
+          "sha256": "dabe183fd0507e07dede25880bb63dcb8cb15713dc875393f7f1d9cd3ffc50fa",
+          "size_bytes": 1082,
+          "musicxml_version": "4.0",
+          "profile": "sori-monophonic-v3",
+          "part_id": "P1",
+          "measure_count": 3,
+          "source_tempo_bpm": 96
+        }
+      }
+    },
+    "main_path": "questions/naver-023/v2/main.mxl",
+    "scale_path": "questions/naver-023/v2/scale.mxl"
+  },
+  {
+    "order": 27,
+    "metadata": {
+      "id": "63d8053a-62f9-5685-808a-425067e5e6a9",
+      "version": 2,
+      "title": "고난도 청음 24 · 4/4",
+      "source": "practice",
+      "key_signature": {
+        "tonic": "C",
+        "mode": "unspecified",
+        "fifths": 0
+      },
+      "time_signature": {
+        "numerator": 4,
+        "denominator": 4
+      },
+      "measure_count": 8,
+      "recommended_duration_seconds": 300,
+      "description": "임시표·셋잇단음표·당김음을 포함한 고난도 단성 청음입니다. 조표 없이 표기된 선율을 듣고 8마디를 적어보세요.",
+      "time_policy": "advisory",
+      "clef": "treble",
+      "sheet_layout": {
+        "id": "staff-8bars-4-4-v2",
+        "logical_width": 1330,
+        "logical_height": 846,
+        "export_scale": 2,
+        "pixel_width": 2660,
+        "pixel_height": 1692,
+        "template_png_url": "https://api.sori.example/assets/sheets/staff-8bars-4-4-v2.png",
+        "template_sha256": "8057c4278804d4a148a806be071b877ed688a814ef6e350b53a2e40807c2fcae",
+        "systems": [
+          {
+            "index": 1,
+            "first_measure": 1,
+            "last_measure": 4,
+            "staff_line_y": [
+              164,
+              176,
+              188,
+              200,
+              212
+            ],
+            "barline_x": [
+              54,
+              450,
+              725,
+              1000,
+              1276
+            ]
+          },
+          {
+            "index": 2,
+            "first_measure": 5,
+            "last_measure": 8,
+            "staff_line_y": [
+              499,
+              511,
+              523,
+              535,
+              547
+            ],
+            "barline_x": [
+              54,
+              397,
+              690,
+              983,
+              1276
+            ]
+          }
+        ]
+      },
+      "content_policy": "client_readable_practice",
+      "score_visibility": "after_submission",
+      "score_assets": {
+        "main": {
+          "url": "https://api.sori.example/api/v1/questions/63d8053a-62f9-5685-808a-425067e5e6a9/versions/2/scores/main/",
+          "content_type": "application/vnd.recordare.musicxml",
+          "sha256": "8c65faf7470333dafdd67588711fce08180038bb68ffd203feb4ec9c9d102b58",
+          "size_bytes": 1739,
+          "musicxml_version": "4.0",
+          "profile": "sori-monophonic-v3",
+          "part_id": "P1",
+          "measure_count": 8,
+          "source_tempo_bpm": 96
+        },
+        "scale": {
+          "url": "https://api.sori.example/api/v1/questions/63d8053a-62f9-5685-808a-425067e5e6a9/versions/2/scores/scale/",
+          "content_type": "application/vnd.recordare.musicxml",
+          "sha256": "4a349eec3a3227fc1ddbba4fea791da8b7dc76166547d69dd4df28c4cacdf0e3",
+          "size_bytes": 1069,
+          "musicxml_version": "4.0",
+          "profile": "sori-monophonic-v3",
+          "part_id": "P1",
+          "measure_count": 2,
+          "source_tempo_bpm": 96
+        }
+      }
+    },
+    "main_path": "questions/naver-024/v2/main.mxl",
+    "scale_path": "questions/naver-024/v2/scale.mxl"
+  },
+  {
+    "order": 28,
+    "metadata": {
+      "id": "260db637-d958-5bb5-ae4d-ffcc7555420e",
+      "version": 2,
+      "title": "고난도 청음 25 · 7/8",
+      "source": "practice",
+      "key_signature": {
+        "tonic": "C",
+        "mode": "unspecified",
+        "fifths": 0
+      },
+      "time_signature": {
+        "numerator": 7,
+        "denominator": 8
+      },
+      "measure_count": 8,
+      "recommended_duration_seconds": 300,
+      "description": "임시표·셋잇단음표·당김음을 포함한 고난도 단성 청음입니다. 조표 없이 표기된 선율을 듣고 8마디를 적어보세요.",
+      "time_policy": "advisory",
+      "clef": "treble",
+      "sheet_layout": {
+        "id": "staff-8bars-7-8-v2",
+        "logical_width": 1330,
+        "logical_height": 846,
+        "export_scale": 2,
+        "pixel_width": 2660,
+        "pixel_height": 1692,
+        "template_png_url": "https://api.sori.example/assets/sheets/staff-8bars-7-8-v2.png",
+        "template_sha256": "ba1d8758fcffb71074d5b9f65cf172c49fd411ef3f29d6f9f29a6a7c6da99711",
+        "systems": [
+          {
+            "index": 1,
+            "first_measure": 1,
+            "last_measure": 4,
+            "staff_line_y": [
+              164,
+              176,
+              188,
+              200,
+              212
+            ],
+            "barline_x": [
+              54,
+              450,
+              725,
+              1000,
+              1276
+            ]
+          },
+          {
+            "index": 2,
+            "first_measure": 5,
+            "last_measure": 8,
+            "staff_line_y": [
+              499,
+              511,
+              523,
+              535,
+              547
+            ],
+            "barline_x": [
+              54,
+              397,
+              690,
+              983,
+              1276
+            ]
+          }
+        ]
+      },
+      "content_policy": "client_readable_practice",
+      "score_visibility": "after_submission",
+      "score_assets": {
+        "main": {
+          "url": "https://api.sori.example/api/v1/questions/260db637-d958-5bb5-ae4d-ffcc7555420e/versions/2/scores/main/",
+          "content_type": "application/vnd.recordare.musicxml",
+          "sha256": "7ed5a29e0375c3c5395d3c3efae8368e218e307abd1bdd9ac8348189a2584e32",
+          "size_bytes": 1888,
+          "musicxml_version": "4.0",
+          "profile": "sori-monophonic-v3",
+          "part_id": "P1",
+          "measure_count": 8,
+          "source_tempo_bpm": 96
+        },
+        "scale": {
+          "url": "https://api.sori.example/api/v1/questions/260db637-d958-5bb5-ae4d-ffcc7555420e/versions/2/scores/scale/",
+          "content_type": "application/vnd.recordare.musicxml",
+          "sha256": "86d01936f97a6b699cf2c6e22c7328487560557bf377ce45ba422f7efc7e3475",
+          "size_bytes": 1152,
+          "musicxml_version": "4.0",
+          "profile": "sori-monophonic-v3",
+          "part_id": "P1",
+          "measure_count": 3,
+          "source_tempo_bpm": 96
+        }
+      }
+    },
+    "main_path": "questions/naver-025/v2/main.mxl",
+    "scale_path": "questions/naver-025/v2/scale.mxl"
+  },
+  {
+    "order": 29,
+    "metadata": {
+      "id": "a80263d9-cf63-5bee-bdaa-603a28a10077",
+      "version": 2,
+      "title": "고난도 청음 26 · 4/4",
+      "source": "practice",
+      "key_signature": {
+        "tonic": "C",
+        "mode": "unspecified",
+        "fifths": 0
+      },
+      "time_signature": {
+        "numerator": 4,
+        "denominator": 4
+      },
+      "measure_count": 8,
+      "recommended_duration_seconds": 300,
+      "description": "임시표·셋잇단음표·당김음을 포함한 고난도 단성 청음입니다. 조표 없이 표기된 선율을 듣고 8마디를 적어보세요.",
+      "time_policy": "advisory",
+      "clef": "treble",
+      "sheet_layout": {
+        "id": "staff-8bars-4-4-v2",
+        "logical_width": 1330,
+        "logical_height": 846,
+        "export_scale": 2,
+        "pixel_width": 2660,
+        "pixel_height": 1692,
+        "template_png_url": "https://api.sori.example/assets/sheets/staff-8bars-4-4-v2.png",
+        "template_sha256": "8057c4278804d4a148a806be071b877ed688a814ef6e350b53a2e40807c2fcae",
+        "systems": [
+          {
+            "index": 1,
+            "first_measure": 1,
+            "last_measure": 4,
+            "staff_line_y": [
+              164,
+              176,
+              188,
+              200,
+              212
+            ],
+            "barline_x": [
+              54,
+              450,
+              725,
+              1000,
+              1276
+            ]
+          },
+          {
+            "index": 2,
+            "first_measure": 5,
+            "last_measure": 8,
+            "staff_line_y": [
+              499,
+              511,
+              523,
+              535,
+              547
+            ],
+            "barline_x": [
+              54,
+              397,
+              690,
+              983,
+              1276
+            ]
+          }
+        ]
+      },
+      "content_policy": "client_readable_practice",
+      "score_visibility": "after_submission",
+      "score_assets": {
+        "main": {
+          "url": "https://api.sori.example/api/v1/questions/a80263d9-cf63-5bee-bdaa-603a28a10077/versions/2/scores/main/",
+          "content_type": "application/vnd.recordare.musicxml",
+          "sha256": "437f5f55b619d6499c6588e720eb9cb83a436c23f480b22055ff7a4f0d12f3ee",
+          "size_bytes": 1885,
+          "musicxml_version": "4.0",
+          "profile": "sori-monophonic-v3",
+          "part_id": "P1",
+          "measure_count": 8,
+          "source_tempo_bpm": 96
+        },
+        "scale": {
+          "url": "https://api.sori.example/api/v1/questions/a80263d9-cf63-5bee-bdaa-603a28a10077/versions/2/scores/scale/",
+          "content_type": "application/vnd.recordare.musicxml",
+          "sha256": "4a349eec3a3227fc1ddbba4fea791da8b7dc76166547d69dd4df28c4cacdf0e3",
+          "size_bytes": 1069,
+          "musicxml_version": "4.0",
+          "profile": "sori-monophonic-v3",
+          "part_id": "P1",
+          "measure_count": 2,
+          "source_tempo_bpm": 96
+        }
+      }
+    },
+    "main_path": "questions/naver-026/v2/main.mxl",
+    "scale_path": "questions/naver-026/v2/scale.mxl"
+  },
+  {
+    "order": 30,
+    "metadata": {
+      "id": "5534617d-bff2-5ea6-9a9f-b14d7f6cf3ef",
+      "version": 2,
+      "title": "고난도 청음 27 · 3/4",
+      "source": "practice",
+      "key_signature": {
+        "tonic": "C",
+        "mode": "unspecified",
+        "fifths": 0
+      },
+      "time_signature": {
+        "numerator": 3,
+        "denominator": 4
+      },
+      "measure_count": 8,
+      "recommended_duration_seconds": 300,
+      "description": "임시표·셋잇단음표·당김음을 포함한 고난도 단성 청음입니다. 조표 없이 표기된 선율을 듣고 8마디를 적어보세요.",
+      "time_policy": "advisory",
+      "clef": "treble",
+      "sheet_layout": {
+        "id": "staff-8bars-3-4-v2",
+        "logical_width": 1330,
+        "logical_height": 846,
+        "export_scale": 2,
+        "pixel_width": 2660,
+        "pixel_height": 1692,
+        "template_png_url": "https://api.sori.example/assets/sheets/staff-8bars-3-4-v2.png",
+        "template_sha256": "97c59bec81f03a008c0a0a4e4771bf808b074d1e35b1875078f24adf0a6e3160",
+        "systems": [
+          {
+            "index": 1,
+            "first_measure": 1,
+            "last_measure": 4,
+            "staff_line_y": [
+              164,
+              176,
+              188,
+              200,
+              212
+            ],
+            "barline_x": [
+              54,
+              450,
+              725,
+              1000,
+              1276
+            ]
+          },
+          {
+            "index": 2,
+            "first_measure": 5,
+            "last_measure": 8,
+            "staff_line_y": [
+              499,
+              511,
+              523,
+              535,
+              547
+            ],
+            "barline_x": [
+              54,
+              397,
+              690,
+              983,
+              1276
+            ]
+          }
+        ]
+      },
+      "content_policy": "client_readable_practice",
+      "score_visibility": "after_submission",
+      "score_assets": {
+        "main": {
+          "url": "https://api.sori.example/api/v1/questions/5534617d-bff2-5ea6-9a9f-b14d7f6cf3ef/versions/2/scores/main/",
+          "content_type": "application/vnd.recordare.musicxml",
+          "sha256": "7ccd3fb926b5a573eade511bba5b8dda530916e45124dfaf2d21ef29dca77f54",
+          "size_bytes": 1825,
+          "musicxml_version": "4.0",
+          "profile": "sori-monophonic-v3",
+          "part_id": "P1",
+          "measure_count": 8,
+          "source_tempo_bpm": 96
+        },
+        "scale": {
+          "url": "https://api.sori.example/api/v1/questions/5534617d-bff2-5ea6-9a9f-b14d7f6cf3ef/versions/2/scores/scale/",
+          "content_type": "application/vnd.recordare.musicxml",
+          "sha256": "dabe183fd0507e07dede25880bb63dcb8cb15713dc875393f7f1d9cd3ffc50fa",
+          "size_bytes": 1082,
+          "musicxml_version": "4.0",
+          "profile": "sori-monophonic-v3",
+          "part_id": "P1",
+          "measure_count": 3,
+          "source_tempo_bpm": 96
+        }
+      }
+    },
+    "main_path": "questions/naver-027/v2/main.mxl",
+    "scale_path": "questions/naver-027/v2/scale.mxl"
+  },
+  {
+    "order": 31,
+    "metadata": {
+      "id": "32e00783-ab09-5a4a-8fba-188baea7e9a2",
+      "version": 2,
+      "title": "고난도 청음 28 · 3/4",
+      "source": "practice",
+      "key_signature": {
+        "tonic": "C",
+        "mode": "unspecified",
+        "fifths": 0
+      },
+      "time_signature": {
+        "numerator": 3,
+        "denominator": 4
+      },
+      "measure_count": 8,
+      "recommended_duration_seconds": 300,
+      "description": "임시표·셋잇단음표·당김음을 포함한 고난도 단성 청음입니다. 조표 없이 표기된 선율을 듣고 8마디를 적어보세요.",
+      "time_policy": "advisory",
+      "clef": "treble",
+      "sheet_layout": {
+        "id": "staff-8bars-3-4-v2",
+        "logical_width": 1330,
+        "logical_height": 846,
+        "export_scale": 2,
+        "pixel_width": 2660,
+        "pixel_height": 1692,
+        "template_png_url": "https://api.sori.example/assets/sheets/staff-8bars-3-4-v2.png",
+        "template_sha256": "97c59bec81f03a008c0a0a4e4771bf808b074d1e35b1875078f24adf0a6e3160",
+        "systems": [
+          {
+            "index": 1,
+            "first_measure": 1,
+            "last_measure": 4,
+            "staff_line_y": [
+              164,
+              176,
+              188,
+              200,
+              212
+            ],
+            "barline_x": [
+              54,
+              450,
+              725,
+              1000,
+              1276
+            ]
+          },
+          {
+            "index": 2,
+            "first_measure": 5,
+            "last_measure": 8,
+            "staff_line_y": [
+              499,
+              511,
+              523,
+              535,
+              547
+            ],
+            "barline_x": [
+              54,
+              397,
+              690,
+              983,
+              1276
+            ]
+          }
+        ]
+      },
+      "content_policy": "client_readable_practice",
+      "score_visibility": "after_submission",
+      "score_assets": {
+        "main": {
+          "url": "https://api.sori.example/api/v1/questions/32e00783-ab09-5a4a-8fba-188baea7e9a2/versions/2/scores/main/",
+          "content_type": "application/vnd.recordare.musicxml",
+          "sha256": "6f37b6f732ba050f83ad6dc903a871e4c23454477d9ee4e280c3104b7dfe420b",
+          "size_bytes": 1901,
+          "musicxml_version": "4.0",
+          "profile": "sori-monophonic-v3",
+          "part_id": "P1",
+          "measure_count": 8,
+          "source_tempo_bpm": 96
+        },
+        "scale": {
+          "url": "https://api.sori.example/api/v1/questions/32e00783-ab09-5a4a-8fba-188baea7e9a2/versions/2/scores/scale/",
+          "content_type": "application/vnd.recordare.musicxml",
+          "sha256": "dabe183fd0507e07dede25880bb63dcb8cb15713dc875393f7f1d9cd3ffc50fa",
+          "size_bytes": 1082,
+          "musicxml_version": "4.0",
+          "profile": "sori-monophonic-v3",
+          "part_id": "P1",
+          "measure_count": 3,
+          "source_tempo_bpm": 96
+        }
+      }
+    },
+    "main_path": "questions/naver-028/v2/main.mxl",
+    "scale_path": "questions/naver-028/v2/scale.mxl"
+  },
+  {
+    "order": 32,
+    "metadata": {
+      "id": "e96636a3-5449-55f5-935c-38c943cefb7b",
+      "version": 2,
+      "title": "고난도 청음 29 · 3/4",
+      "source": "practice",
+      "key_signature": {
+        "tonic": "C",
+        "mode": "unspecified",
+        "fifths": 0
+      },
+      "time_signature": {
+        "numerator": 3,
+        "denominator": 4
+      },
+      "measure_count": 8,
+      "recommended_duration_seconds": 300,
+      "description": "임시표·셋잇단음표·당김음을 포함한 고난도 단성 청음입니다. 조표 없이 표기된 선율을 듣고 8마디를 적어보세요.",
+      "time_policy": "advisory",
+      "clef": "treble",
+      "sheet_layout": {
+        "id": "staff-8bars-3-4-v2",
+        "logical_width": 1330,
+        "logical_height": 846,
+        "export_scale": 2,
+        "pixel_width": 2660,
+        "pixel_height": 1692,
+        "template_png_url": "https://api.sori.example/assets/sheets/staff-8bars-3-4-v2.png",
+        "template_sha256": "97c59bec81f03a008c0a0a4e4771bf808b074d1e35b1875078f24adf0a6e3160",
+        "systems": [
+          {
+            "index": 1,
+            "first_measure": 1,
+            "last_measure": 4,
+            "staff_line_y": [
+              164,
+              176,
+              188,
+              200,
+              212
+            ],
+            "barline_x": [
+              54,
+              450,
+              725,
+              1000,
+              1276
+            ]
+          },
+          {
+            "index": 2,
+            "first_measure": 5,
+            "last_measure": 8,
+            "staff_line_y": [
+              499,
+              511,
+              523,
+              535,
+              547
+            ],
+            "barline_x": [
+              54,
+              397,
+              690,
+              983,
+              1276
+            ]
+          }
+        ]
+      },
+      "content_policy": "client_readable_practice",
+      "score_visibility": "after_submission",
+      "score_assets": {
+        "main": {
+          "url": "https://api.sori.example/api/v1/questions/e96636a3-5449-55f5-935c-38c943cefb7b/versions/2/scores/main/",
+          "content_type": "application/vnd.recordare.musicxml",
+          "sha256": "d35824116975b53fc895e0bb546ce7ad6777da24a6827a4a7ff42c0dbf4d4779",
+          "size_bytes": 1817,
+          "musicxml_version": "4.0",
+          "profile": "sori-monophonic-v3",
+          "part_id": "P1",
+          "measure_count": 8,
+          "source_tempo_bpm": 96
+        },
+        "scale": {
+          "url": "https://api.sori.example/api/v1/questions/e96636a3-5449-55f5-935c-38c943cefb7b/versions/2/scores/scale/",
+          "content_type": "application/vnd.recordare.musicxml",
+          "sha256": "dabe183fd0507e07dede25880bb63dcb8cb15713dc875393f7f1d9cd3ffc50fa",
+          "size_bytes": 1082,
+          "musicxml_version": "4.0",
+          "profile": "sori-monophonic-v3",
+          "part_id": "P1",
+          "measure_count": 3,
+          "source_tempo_bpm": 96
+        }
+      }
+    },
+    "main_path": "questions/naver-029/v2/main.mxl",
+    "scale_path": "questions/naver-029/v2/scale.mxl"
+  },
+  {
+    "order": 33,
+    "metadata": {
+      "id": "75fbc9a7-1113-5e8e-b120-332f642cc875",
+      "version": 2,
+      "title": "고난도 청음 30 · 6/8",
+      "source": "practice",
+      "key_signature": {
+        "tonic": "C",
+        "mode": "unspecified",
+        "fifths": 0
+      },
+      "time_signature": {
+        "numerator": 6,
+        "denominator": 8
+      },
+      "measure_count": 8,
+      "recommended_duration_seconds": 300,
+      "description": "임시표·셋잇단음표·당김음을 포함한 고난도 단성 청음입니다. 조표 없이 표기된 선율을 듣고 8마디를 적어보세요.",
+      "time_policy": "advisory",
+      "clef": "treble",
+      "sheet_layout": {
+        "id": "staff-8bars-6-8-v2",
+        "logical_width": 1330,
+        "logical_height": 846,
+        "export_scale": 2,
+        "pixel_width": 2660,
+        "pixel_height": 1692,
+        "template_png_url": "https://api.sori.example/assets/sheets/staff-8bars-6-8-v2.png",
+        "template_sha256": "32906ad8aeab576eec3b7dfd0e3e86d28a7f446b285e09dcecb468384c55b287",
+        "systems": [
+          {
+            "index": 1,
+            "first_measure": 1,
+            "last_measure": 4,
+            "staff_line_y": [
+              164,
+              176,
+              188,
+              200,
+              212
+            ],
+            "barline_x": [
+              54,
+              450,
+              725,
+              1000,
+              1276
+            ]
+          },
+          {
+            "index": 2,
+            "first_measure": 5,
+            "last_measure": 8,
+            "staff_line_y": [
+              499,
+              511,
+              523,
+              535,
+              547
+            ],
+            "barline_x": [
+              54,
+              397,
+              690,
+              983,
+              1276
+            ]
+          }
+        ]
+      },
+      "content_policy": "client_readable_practice",
+      "score_visibility": "after_submission",
+      "score_assets": {
+        "main": {
+          "url": "https://api.sori.example/api/v1/questions/75fbc9a7-1113-5e8e-b120-332f642cc875/versions/2/scores/main/",
+          "content_type": "application/vnd.recordare.musicxml",
+          "sha256": "2721bd8bdcbf9e7c9361f9a046f4c0b72859aa17917c6828b63d1c0babd68157",
+          "size_bytes": 1886,
+          "musicxml_version": "4.0",
+          "profile": "sori-monophonic-v3",
+          "part_id": "P1",
+          "measure_count": 8,
+          "source_tempo_bpm": 96
+        },
+        "scale": {
+          "url": "https://api.sori.example/api/v1/questions/75fbc9a7-1113-5e8e-b120-332f642cc875/versions/2/scores/scale/",
+          "content_type": "application/vnd.recordare.musicxml",
+          "sha256": "1a1f361300e398400b32c48535c9ec56538208a2f09470eb1482e5dd107082d6",
+          "size_bytes": 1082,
+          "musicxml_version": "4.0",
+          "profile": "sori-monophonic-v3",
+          "part_id": "P1",
+          "measure_count": 3,
+          "source_tempo_bpm": 96
+        }
+      }
+    },
+    "main_path": "questions/naver-030/v2/main.mxl",
+    "scale_path": "questions/naver-030/v2/scale.mxl"
+  },
+  {
+    "order": 34,
+    "metadata": {
+      "id": "753e86e5-e446-5126-b455-223f780306cf",
+      "version": 2,
+      "title": "고난도 청음 31 · 6/8",
+      "source": "practice",
+      "key_signature": {
+        "tonic": "C",
+        "mode": "unspecified",
+        "fifths": 0
+      },
+      "time_signature": {
+        "numerator": 6,
+        "denominator": 8
+      },
+      "measure_count": 8,
+      "recommended_duration_seconds": 300,
+      "description": "임시표·셋잇단음표·당김음을 포함한 고난도 단성 청음입니다. 조표 없이 표기된 선율을 듣고 8마디를 적어보세요.",
+      "time_policy": "advisory",
+      "clef": "treble",
+      "sheet_layout": {
+        "id": "staff-8bars-6-8-v2",
+        "logical_width": 1330,
+        "logical_height": 846,
+        "export_scale": 2,
+        "pixel_width": 2660,
+        "pixel_height": 1692,
+        "template_png_url": "https://api.sori.example/assets/sheets/staff-8bars-6-8-v2.png",
+        "template_sha256": "32906ad8aeab576eec3b7dfd0e3e86d28a7f446b285e09dcecb468384c55b287",
+        "systems": [
+          {
+            "index": 1,
+            "first_measure": 1,
+            "last_measure": 4,
+            "staff_line_y": [
+              164,
+              176,
+              188,
+              200,
+              212
+            ],
+            "barline_x": [
+              54,
+              450,
+              725,
+              1000,
+              1276
+            ]
+          },
+          {
+            "index": 2,
+            "first_measure": 5,
+            "last_measure": 8,
+            "staff_line_y": [
+              499,
+              511,
+              523,
+              535,
+              547
+            ],
+            "barline_x": [
+              54,
+              397,
+              690,
+              983,
+              1276
+            ]
+          }
+        ]
+      },
+      "content_policy": "client_readable_practice",
+      "score_visibility": "after_submission",
+      "score_assets": {
+        "main": {
+          "url": "https://api.sori.example/api/v1/questions/753e86e5-e446-5126-b455-223f780306cf/versions/2/scores/main/",
+          "content_type": "application/vnd.recordare.musicxml",
+          "sha256": "6e1388f2c975b9dfab68be40ec81d3d54e2c4125bcd1c2ef15dc1d5ef41b260f",
+          "size_bytes": 2050,
+          "musicxml_version": "4.0",
+          "profile": "sori-monophonic-v3",
+          "part_id": "P1",
+          "measure_count": 8,
+          "source_tempo_bpm": 96
+        },
+        "scale": {
+          "url": "https://api.sori.example/api/v1/questions/753e86e5-e446-5126-b455-223f780306cf/versions/2/scores/scale/",
+          "content_type": "application/vnd.recordare.musicxml",
+          "sha256": "1a1f361300e398400b32c48535c9ec56538208a2f09470eb1482e5dd107082d6",
+          "size_bytes": 1082,
+          "musicxml_version": "4.0",
+          "profile": "sori-monophonic-v3",
+          "part_id": "P1",
+          "measure_count": 3,
+          "source_tempo_bpm": 96
+        }
+      }
+    },
+    "main_path": "questions/naver-031/v2/main.mxl",
+    "scale_path": "questions/naver-031/v2/scale.mxl"
+  },
+  {
+    "order": 35,
+    "metadata": {
+      "id": "873e55b9-8b3f-5c2e-9d8f-90465e364d40",
+      "version": 2,
+      "title": "고난도 청음 32 · 6/8",
+      "source": "practice",
+      "key_signature": {
+        "tonic": "C",
+        "mode": "unspecified",
+        "fifths": 0
+      },
+      "time_signature": {
+        "numerator": 6,
+        "denominator": 8
+      },
+      "measure_count": 8,
+      "recommended_duration_seconds": 300,
+      "description": "임시표·셋잇단음표·당김음을 포함한 고난도 단성 청음입니다. 조표 없이 표기된 선율을 듣고 8마디를 적어보세요.",
+      "time_policy": "advisory",
+      "clef": "treble",
+      "sheet_layout": {
+        "id": "staff-8bars-6-8-v2",
+        "logical_width": 1330,
+        "logical_height": 846,
+        "export_scale": 2,
+        "pixel_width": 2660,
+        "pixel_height": 1692,
+        "template_png_url": "https://api.sori.example/assets/sheets/staff-8bars-6-8-v2.png",
+        "template_sha256": "32906ad8aeab576eec3b7dfd0e3e86d28a7f446b285e09dcecb468384c55b287",
+        "systems": [
+          {
+            "index": 1,
+            "first_measure": 1,
+            "last_measure": 4,
+            "staff_line_y": [
+              164,
+              176,
+              188,
+              200,
+              212
+            ],
+            "barline_x": [
+              54,
+              450,
+              725,
+              1000,
+              1276
+            ]
+          },
+          {
+            "index": 2,
+            "first_measure": 5,
+            "last_measure": 8,
+            "staff_line_y": [
+              499,
+              511,
+              523,
+              535,
+              547
+            ],
+            "barline_x": [
+              54,
+              397,
+              690,
+              983,
+              1276
+            ]
+          }
+        ]
+      },
+      "content_policy": "client_readable_practice",
+      "score_visibility": "after_submission",
+      "score_assets": {
+        "main": {
+          "url": "https://api.sori.example/api/v1/questions/873e55b9-8b3f-5c2e-9d8f-90465e364d40/versions/2/scores/main/",
+          "content_type": "application/vnd.recordare.musicxml",
+          "sha256": "8e0243e2a782b5644bedf4d6f86570f3d8b9880b4f7ddadc9a3108eabab9465e",
+          "size_bytes": 1982,
+          "musicxml_version": "4.0",
+          "profile": "sori-monophonic-v3",
+          "part_id": "P1",
+          "measure_count": 8,
+          "source_tempo_bpm": 96
+        },
+        "scale": {
+          "url": "https://api.sori.example/api/v1/questions/873e55b9-8b3f-5c2e-9d8f-90465e364d40/versions/2/scores/scale/",
+          "content_type": "application/vnd.recordare.musicxml",
+          "sha256": "1a1f361300e398400b32c48535c9ec56538208a2f09470eb1482e5dd107082d6",
+          "size_bytes": 1082,
+          "musicxml_version": "4.0",
+          "profile": "sori-monophonic-v3",
+          "part_id": "P1",
+          "measure_count": 3,
+          "source_tempo_bpm": 96
+        }
+      }
+    },
+    "main_path": "questions/naver-032/v2/main.mxl",
+    "scale_path": "questions/naver-032/v2/scale.mxl"
+  },
+  {
+    "order": 36,
+    "metadata": {
+      "id": "77264500-906c-57c4-ab2f-a1dcd6a6fe98",
+      "version": 2,
+      "title": "고난도 청음 33 · 12/8",
+      "source": "practice",
+      "key_signature": {
+        "tonic": "C",
+        "mode": "unspecified",
+        "fifths": 0
+      },
+      "time_signature": {
+        "numerator": 12,
+        "denominator": 8
+      },
+      "measure_count": 8,
+      "recommended_duration_seconds": 300,
+      "description": "임시표·셋잇단음표·당김음을 포함한 고난도 단성 청음입니다. 조표 없이 표기된 선율을 듣고 8마디를 적어보세요.",
+      "time_policy": "advisory",
+      "clef": "treble",
+      "sheet_layout": {
+        "id": "staff-8bars-12-8-v2",
+        "logical_width": 1330,
+        "logical_height": 846,
+        "export_scale": 2,
+        "pixel_width": 2660,
+        "pixel_height": 1692,
+        "template_png_url": "https://api.sori.example/assets/sheets/staff-8bars-12-8-v2.png",
+        "template_sha256": "af19c618d0d206c793eff1207ba42ad59631e268634e0a679b4e9470efe7105a",
+        "systems": [
+          {
+            "index": 1,
+            "first_measure": 1,
+            "last_measure": 4,
+            "staff_line_y": [
+              164,
+              176,
+              188,
+              200,
+              212
+            ],
+            "barline_x": [
+              54,
+              450,
+              725,
+              1000,
+              1276
+            ]
+          },
+          {
+            "index": 2,
+            "first_measure": 5,
+            "last_measure": 8,
+            "staff_line_y": [
+              499,
+              511,
+              523,
+              535,
+              547
+            ],
+            "barline_x": [
+              54,
+              397,
+              690,
+              983,
+              1276
+            ]
+          }
+        ]
+      },
+      "content_policy": "client_readable_practice",
+      "score_visibility": "after_submission",
+      "score_assets": {
+        "main": {
+          "url": "https://api.sori.example/api/v1/questions/77264500-906c-57c4-ab2f-a1dcd6a6fe98/versions/2/scores/main/",
+          "content_type": "application/vnd.recordare.musicxml",
+          "sha256": "422f4ebfe3453f8fd5b9ebc8b65e3ca35f414fcf7f02ecc1386af014717b5091",
+          "size_bytes": 2128,
+          "musicxml_version": "4.0",
+          "profile": "sori-monophonic-v3",
+          "part_id": "P1",
+          "measure_count": 8,
+          "source_tempo_bpm": 96
+        },
+        "scale": {
+          "url": "https://api.sori.example/api/v1/questions/77264500-906c-57c4-ab2f-a1dcd6a6fe98/versions/2/scores/scale/",
+          "content_type": "application/vnd.recordare.musicxml",
+          "sha256": "468a211174311a955a3c559469009b0a13ad9fce9ea730980e580282ebbdfb39",
+          "size_bytes": 1130,
+          "musicxml_version": "4.0",
+          "profile": "sori-monophonic-v3",
+          "part_id": "P1",
+          "measure_count": 2,
+          "source_tempo_bpm": 96
+        }
+      }
+    },
+    "main_path": "questions/naver-033/v2/main.mxl",
+    "scale_path": "questions/naver-033/v2/scale.mxl"
+  },
+  {
+    "order": 37,
+    "metadata": {
+      "id": "0d46e131-c2d0-53c2-a132-216b6c27d4cc",
+      "version": 2,
+      "title": "고난도 청음 34 · 9/8",
+      "source": "practice",
+      "key_signature": {
+        "tonic": "C",
+        "mode": "unspecified",
+        "fifths": 0
+      },
+      "time_signature": {
+        "numerator": 9,
+        "denominator": 8
+      },
+      "measure_count": 8,
+      "recommended_duration_seconds": 300,
+      "description": "임시표·셋잇단음표·당김음을 포함한 고난도 단성 청음입니다. 조표 없이 표기된 선율을 듣고 8마디를 적어보세요.",
+      "time_policy": "advisory",
+      "clef": "treble",
+      "sheet_layout": {
+        "id": "staff-8bars-9-8-v2",
+        "logical_width": 1330,
+        "logical_height": 846,
+        "export_scale": 2,
+        "pixel_width": 2660,
+        "pixel_height": 1692,
+        "template_png_url": "https://api.sori.example/assets/sheets/staff-8bars-9-8-v2.png",
+        "template_sha256": "c9c255f64ce76c16c1aab0a7b8fb2a6a5afc81633e99f565699566f8ed89287f",
+        "systems": [
+          {
+            "index": 1,
+            "first_measure": 1,
+            "last_measure": 4,
+            "staff_line_y": [
+              164,
+              176,
+              188,
+              200,
+              212
+            ],
+            "barline_x": [
+              54,
+              450,
+              725,
+              1000,
+              1276
+            ]
+          },
+          {
+            "index": 2,
+            "first_measure": 5,
+            "last_measure": 8,
+            "staff_line_y": [
+              499,
+              511,
+              523,
+              535,
+              547
+            ],
+            "barline_x": [
+              54,
+              397,
+              690,
+              983,
+              1276
+            ]
+          }
+        ]
+      },
+      "content_policy": "client_readable_practice",
+      "score_visibility": "after_submission",
+      "score_assets": {
+        "main": {
+          "url": "https://api.sori.example/api/v1/questions/0d46e131-c2d0-53c2-a132-216b6c27d4cc/versions/2/scores/main/",
+          "content_type": "application/vnd.recordare.musicxml",
+          "sha256": "e60f6b2d1e4daf63382768f18aee0936c8fcf88b0255d914b843703df05c50ad",
+          "size_bytes": 1812,
+          "musicxml_version": "4.0",
+          "profile": "sori-monophonic-v3",
+          "part_id": "P1",
+          "measure_count": 8,
+          "source_tempo_bpm": 96
+        },
+        "scale": {
+          "url": "https://api.sori.example/api/v1/questions/0d46e131-c2d0-53c2-a132-216b6c27d4cc/versions/2/scores/scale/",
+          "content_type": "application/vnd.recordare.musicxml",
+          "sha256": "d96e29e3f589f5a75b87f0bed0f9a1e4a5ad40e37a93d0899bfa3e2801a2994d",
+          "size_bytes": 1074,
+          "musicxml_version": "4.0",
+          "profile": "sori-monophonic-v3",
+          "part_id": "P1",
+          "measure_count": 2,
+          "source_tempo_bpm": 96
+        }
+      }
+    },
+    "main_path": "questions/naver-034/v2/main.mxl",
+    "scale_path": "questions/naver-034/v2/scale.mxl"
+  },
+  {
+    "order": 38,
+    "metadata": {
+      "id": "bbbe4c3c-7826-5db5-97b9-93d8dbfd78f3",
+      "version": 2,
+      "title": "고난도 청음 35 · 4/4",
+      "source": "practice",
+      "key_signature": {
+        "tonic": "C",
+        "mode": "unspecified",
+        "fifths": 0
+      },
+      "time_signature": {
+        "numerator": 4,
+        "denominator": 4
+      },
+      "measure_count": 8,
+      "recommended_duration_seconds": 300,
+      "description": "임시표·셋잇단음표·당김음을 포함한 고난도 단성 청음입니다. 조표 없이 표기된 선율을 듣고 8마디를 적어보세요.",
+      "time_policy": "advisory",
+      "clef": "treble",
+      "sheet_layout": {
+        "id": "staff-8bars-4-4-v2",
+        "logical_width": 1330,
+        "logical_height": 846,
+        "export_scale": 2,
+        "pixel_width": 2660,
+        "pixel_height": 1692,
+        "template_png_url": "https://api.sori.example/assets/sheets/staff-8bars-4-4-v2.png",
+        "template_sha256": "8057c4278804d4a148a806be071b877ed688a814ef6e350b53a2e40807c2fcae",
+        "systems": [
+          {
+            "index": 1,
+            "first_measure": 1,
+            "last_measure": 4,
+            "staff_line_y": [
+              164,
+              176,
+              188,
+              200,
+              212
+            ],
+            "barline_x": [
+              54,
+              450,
+              725,
+              1000,
+              1276
+            ]
+          },
+          {
+            "index": 2,
+            "first_measure": 5,
+            "last_measure": 8,
+            "staff_line_y": [
+              499,
+              511,
+              523,
+              535,
+              547
+            ],
+            "barline_x": [
+              54,
+              397,
+              690,
+              983,
+              1276
+            ]
+          }
+        ]
+      },
+      "content_policy": "client_readable_practice",
+      "score_visibility": "after_submission",
+      "score_assets": {
+        "main": {
+          "url": "https://api.sori.example/api/v1/questions/bbbe4c3c-7826-5db5-97b9-93d8dbfd78f3/versions/2/scores/main/",
+          "content_type": "application/vnd.recordare.musicxml",
+          "sha256": "2c07ee77cb2fe495045e587a7896a688a1ded1b38c2fc71dd00d641657963cdb",
+          "size_bytes": 2066,
+          "musicxml_version": "4.0",
+          "profile": "sori-monophonic-v3",
+          "part_id": "P1",
+          "measure_count": 8,
+          "source_tempo_bpm": 96
+        },
+        "scale": {
+          "url": "https://api.sori.example/api/v1/questions/bbbe4c3c-7826-5db5-97b9-93d8dbfd78f3/versions/2/scores/scale/",
+          "content_type": "application/vnd.recordare.musicxml",
+          "sha256": "4a349eec3a3227fc1ddbba4fea791da8b7dc76166547d69dd4df28c4cacdf0e3",
+          "size_bytes": 1069,
+          "musicxml_version": "4.0",
+          "profile": "sori-monophonic-v3",
+          "part_id": "P1",
+          "measure_count": 2,
+          "source_tempo_bpm": 96
+        }
+      }
+    },
+    "main_path": "questions/naver-035/v2/main.mxl",
+    "scale_path": "questions/naver-035/v2/scale.mxl"
+  },
+  {
+    "order": 39,
+    "metadata": {
+      "id": "9b1ee54d-942b-5f58-95f1-4e4bde2646dd",
+      "version": 2,
+      "title": "고난도 청음 36 · 12/8",
+      "source": "practice",
+      "key_signature": {
+        "tonic": "C",
+        "mode": "unspecified",
+        "fifths": 0
+      },
+      "time_signature": {
+        "numerator": 12,
+        "denominator": 8
+      },
+      "measure_count": 8,
+      "recommended_duration_seconds": 300,
+      "description": "임시표·셋잇단음표·당김음을 포함한 고난도 단성 청음입니다. 조표 없이 표기된 선율을 듣고 8마디를 적어보세요.",
+      "time_policy": "advisory",
+      "clef": "treble",
+      "sheet_layout": {
+        "id": "staff-8bars-12-8-v2",
+        "logical_width": 1330,
+        "logical_height": 846,
+        "export_scale": 2,
+        "pixel_width": 2660,
+        "pixel_height": 1692,
+        "template_png_url": "https://api.sori.example/assets/sheets/staff-8bars-12-8-v2.png",
+        "template_sha256": "af19c618d0d206c793eff1207ba42ad59631e268634e0a679b4e9470efe7105a",
+        "systems": [
+          {
+            "index": 1,
+            "first_measure": 1,
+            "last_measure": 4,
+            "staff_line_y": [
+              164,
+              176,
+              188,
+              200,
+              212
+            ],
+            "barline_x": [
+              54,
+              450,
+              725,
+              1000,
+              1276
+            ]
+          },
+          {
+            "index": 2,
+            "first_measure": 5,
+            "last_measure": 8,
+            "staff_line_y": [
+              499,
+              511,
+              523,
+              535,
+              547
+            ],
+            "barline_x": [
+              54,
+              397,
+              690,
+              983,
+              1276
+            ]
+          }
+        ]
+      },
+      "content_policy": "client_readable_practice",
+      "score_visibility": "after_submission",
+      "score_assets": {
+        "main": {
+          "url": "https://api.sori.example/api/v1/questions/9b1ee54d-942b-5f58-95f1-4e4bde2646dd/versions/2/scores/main/",
+          "content_type": "application/vnd.recordare.musicxml",
+          "sha256": "911514408b1390141a660cb612b0a9a7600e7e379edd61290d7bc5d0e622f4dc",
+          "size_bytes": 2285,
+          "musicxml_version": "4.0",
+          "profile": "sori-monophonic-v3",
+          "part_id": "P1",
+          "measure_count": 8,
+          "source_tempo_bpm": 96
+        },
+        "scale": {
+          "url": "https://api.sori.example/api/v1/questions/9b1ee54d-942b-5f58-95f1-4e4bde2646dd/versions/2/scores/scale/",
+          "content_type": "application/vnd.recordare.musicxml",
+          "sha256": "468a211174311a955a3c559469009b0a13ad9fce9ea730980e580282ebbdfb39",
+          "size_bytes": 1130,
+          "musicxml_version": "4.0",
+          "profile": "sori-monophonic-v3",
+          "part_id": "P1",
+          "measure_count": 2,
+          "source_tempo_bpm": 96
+        }
+      }
+    },
+    "main_path": "questions/naver-036/v2/main.mxl",
+    "scale_path": "questions/naver-036/v2/scale.mxl"
+  },
+  {
+    "order": 40,
+    "metadata": {
+      "id": "666a0895-7063-5a3b-a55c-797481b393c0",
+      "version": 2,
+      "title": "고난도 청음 37 · 12/8",
+      "source": "practice",
+      "key_signature": {
+        "tonic": "C",
+        "mode": "unspecified",
+        "fifths": 0
+      },
+      "time_signature": {
+        "numerator": 12,
+        "denominator": 8
+      },
+      "measure_count": 8,
+      "recommended_duration_seconds": 300,
+      "description": "임시표·셋잇단음표·당김음을 포함한 고난도 단성 청음입니다. 조표 없이 표기된 선율을 듣고 8마디를 적어보세요.",
+      "time_policy": "advisory",
+      "clef": "treble",
+      "sheet_layout": {
+        "id": "staff-8bars-12-8-v2",
+        "logical_width": 1330,
+        "logical_height": 846,
+        "export_scale": 2,
+        "pixel_width": 2660,
+        "pixel_height": 1692,
+        "template_png_url": "https://api.sori.example/assets/sheets/staff-8bars-12-8-v2.png",
+        "template_sha256": "af19c618d0d206c793eff1207ba42ad59631e268634e0a679b4e9470efe7105a",
+        "systems": [
+          {
+            "index": 1,
+            "first_measure": 1,
+            "last_measure": 4,
+            "staff_line_y": [
+              164,
+              176,
+              188,
+              200,
+              212
+            ],
+            "barline_x": [
+              54,
+              450,
+              725,
+              1000,
+              1276
+            ]
+          },
+          {
+            "index": 2,
+            "first_measure": 5,
+            "last_measure": 8,
+            "staff_line_y": [
+              499,
+              511,
+              523,
+              535,
+              547
+            ],
+            "barline_x": [
+              54,
+              397,
+              690,
+              983,
+              1276
+            ]
+          }
+        ]
+      },
+      "content_policy": "client_readable_practice",
+      "score_visibility": "after_submission",
+      "score_assets": {
+        "main": {
+          "url": "https://api.sori.example/api/v1/questions/666a0895-7063-5a3b-a55c-797481b393c0/versions/2/scores/main/",
+          "content_type": "application/vnd.recordare.musicxml",
+          "sha256": "da643b443a4661b6d589281e97ef5e97f6fef094d939c70a4c33b86ce2fd9a8e",
+          "size_bytes": 2113,
+          "musicxml_version": "4.0",
+          "profile": "sori-monophonic-v3",
+          "part_id": "P1",
+          "measure_count": 8,
+          "source_tempo_bpm": 96
+        },
+        "scale": {
+          "url": "https://api.sori.example/api/v1/questions/666a0895-7063-5a3b-a55c-797481b393c0/versions/2/scores/scale/",
+          "content_type": "application/vnd.recordare.musicxml",
+          "sha256": "468a211174311a955a3c559469009b0a13ad9fce9ea730980e580282ebbdfb39",
+          "size_bytes": 1130,
+          "musicxml_version": "4.0",
+          "profile": "sori-monophonic-v3",
+          "part_id": "P1",
+          "measure_count": 2,
+          "source_tempo_bpm": 96
+        }
+      }
+    },
+    "main_path": "questions/naver-037/v2/main.mxl",
+    "scale_path": "questions/naver-037/v2/scale.mxl"
+  },
+  {
+    "order": 41,
+    "metadata": {
+      "id": "88b2163e-2f78-5721-8b45-f260c8aec357",
+      "version": 2,
+      "title": "고난도 청음 38 · 4/4",
+      "source": "practice",
+      "key_signature": {
+        "tonic": "C",
+        "mode": "unspecified",
+        "fifths": 0
+      },
+      "time_signature": {
+        "numerator": 4,
+        "denominator": 4
+      },
+      "measure_count": 8,
+      "recommended_duration_seconds": 300,
+      "description": "임시표·셋잇단음표·당김음을 포함한 고난도 단성 청음입니다. 조표 없이 표기된 선율을 듣고 8마디를 적어보세요.",
+      "time_policy": "advisory",
+      "clef": "treble",
+      "sheet_layout": {
+        "id": "staff-8bars-4-4-v2",
+        "logical_width": 1330,
+        "logical_height": 846,
+        "export_scale": 2,
+        "pixel_width": 2660,
+        "pixel_height": 1692,
+        "template_png_url": "https://api.sori.example/assets/sheets/staff-8bars-4-4-v2.png",
+        "template_sha256": "8057c4278804d4a148a806be071b877ed688a814ef6e350b53a2e40807c2fcae",
+        "systems": [
+          {
+            "index": 1,
+            "first_measure": 1,
+            "last_measure": 4,
+            "staff_line_y": [
+              164,
+              176,
+              188,
+              200,
+              212
+            ],
+            "barline_x": [
+              54,
+              450,
+              725,
+              1000,
+              1276
+            ]
+          },
+          {
+            "index": 2,
+            "first_measure": 5,
+            "last_measure": 8,
+            "staff_line_y": [
+              499,
+              511,
+              523,
+              535,
+              547
+            ],
+            "barline_x": [
+              54,
+              397,
+              690,
+              983,
+              1276
+            ]
+          }
+        ]
+      },
+      "content_policy": "client_readable_practice",
+      "score_visibility": "after_submission",
+      "score_assets": {
+        "main": {
+          "url": "https://api.sori.example/api/v1/questions/88b2163e-2f78-5721-8b45-f260c8aec357/versions/2/scores/main/",
+          "content_type": "application/vnd.recordare.musicxml",
+          "sha256": "94513330dde03757d91c0728e3a5c85676224e65397ad87531ac8981a2b39fb1",
+          "size_bytes": 1912,
+          "musicxml_version": "4.0",
+          "profile": "sori-monophonic-v3",
+          "part_id": "P1",
+          "measure_count": 8,
+          "source_tempo_bpm": 96
+        },
+        "scale": {
+          "url": "https://api.sori.example/api/v1/questions/88b2163e-2f78-5721-8b45-f260c8aec357/versions/2/scores/scale/",
+          "content_type": "application/vnd.recordare.musicxml",
+          "sha256": "4a349eec3a3227fc1ddbba4fea791da8b7dc76166547d69dd4df28c4cacdf0e3",
+          "size_bytes": 1069,
+          "musicxml_version": "4.0",
+          "profile": "sori-monophonic-v3",
+          "part_id": "P1",
+          "measure_count": 2,
+          "source_tempo_bpm": 96
+        }
+      }
+    },
+    "main_path": "questions/naver-038/v2/main.mxl",
+    "scale_path": "questions/naver-038/v2/scale.mxl"
+  },
+  {
+    "order": 42,
+    "metadata": {
+      "id": "e9b7c08b-bb7c-56b6-b575-c77e2fc5d0eb",
+      "version": 2,
+      "title": "고난도 청음 39 · 4/4",
+      "source": "practice",
+      "key_signature": {
+        "tonic": "C",
+        "mode": "unspecified",
+        "fifths": 0
+      },
+      "time_signature": {
+        "numerator": 4,
+        "denominator": 4
+      },
+      "measure_count": 8,
+      "recommended_duration_seconds": 300,
+      "description": "임시표·셋잇단음표·당김음을 포함한 고난도 단성 청음입니다. 조표 없이 표기된 선율을 듣고 8마디를 적어보세요.",
+      "time_policy": "advisory",
+      "clef": "treble",
+      "sheet_layout": {
+        "id": "staff-8bars-4-4-v2",
+        "logical_width": 1330,
+        "logical_height": 846,
+        "export_scale": 2,
+        "pixel_width": 2660,
+        "pixel_height": 1692,
+        "template_png_url": "https://api.sori.example/assets/sheets/staff-8bars-4-4-v2.png",
+        "template_sha256": "8057c4278804d4a148a806be071b877ed688a814ef6e350b53a2e40807c2fcae",
+        "systems": [
+          {
+            "index": 1,
+            "first_measure": 1,
+            "last_measure": 4,
+            "staff_line_y": [
+              164,
+              176,
+              188,
+              200,
+              212
+            ],
+            "barline_x": [
+              54,
+              450,
+              725,
+              1000,
+              1276
+            ]
+          },
+          {
+            "index": 2,
+            "first_measure": 5,
+            "last_measure": 8,
+            "staff_line_y": [
+              499,
+              511,
+              523,
+              535,
+              547
+            ],
+            "barline_x": [
+              54,
+              397,
+              690,
+              983,
+              1276
+            ]
+          }
+        ]
+      },
+      "content_policy": "client_readable_practice",
+      "score_visibility": "after_submission",
+      "score_assets": {
+        "main": {
+          "url": "https://api.sori.example/api/v1/questions/e9b7c08b-bb7c-56b6-b575-c77e2fc5d0eb/versions/2/scores/main/",
+          "content_type": "application/vnd.recordare.musicxml",
+          "sha256": "a6e39f72b6cc852de9be01f96e5c0f2df8164573e3c1f97cf6653d99960a4ead",
+          "size_bytes": 1918,
+          "musicxml_version": "4.0",
+          "profile": "sori-monophonic-v3",
+          "part_id": "P1",
+          "measure_count": 8,
+          "source_tempo_bpm": 96
+        },
+        "scale": {
+          "url": "https://api.sori.example/api/v1/questions/e9b7c08b-bb7c-56b6-b575-c77e2fc5d0eb/versions/2/scores/scale/",
+          "content_type": "application/vnd.recordare.musicxml",
+          "sha256": "4a349eec3a3227fc1ddbba4fea791da8b7dc76166547d69dd4df28c4cacdf0e3",
+          "size_bytes": 1069,
+          "musicxml_version": "4.0",
+          "profile": "sori-monophonic-v3",
+          "part_id": "P1",
+          "measure_count": 2,
+          "source_tempo_bpm": 96
+        }
+      }
+    },
+    "main_path": "questions/naver-039/v2/main.mxl",
+    "scale_path": "questions/naver-039/v2/scale.mxl"
+  },
+  {
+    "order": 43,
+    "metadata": {
+      "id": "cb6dd5a2-bdb8-5d69-b8b2-bad7c5566465",
+      "version": 2,
+      "title": "고난도 청음 40 · 6/8",
+      "source": "practice",
+      "key_signature": {
+        "tonic": "C",
+        "mode": "unspecified",
+        "fifths": 0
+      },
+      "time_signature": {
+        "numerator": 6,
+        "denominator": 8
+      },
+      "measure_count": 8,
+      "recommended_duration_seconds": 300,
+      "description": "임시표·셋잇단음표·당김음을 포함한 고난도 단성 청음입니다. 조표 없이 표기된 선율을 듣고 8마디를 적어보세요.",
+      "time_policy": "advisory",
+      "clef": "treble",
+      "sheet_layout": {
+        "id": "staff-8bars-6-8-v2",
+        "logical_width": 1330,
+        "logical_height": 846,
+        "export_scale": 2,
+        "pixel_width": 2660,
+        "pixel_height": 1692,
+        "template_png_url": "https://api.sori.example/assets/sheets/staff-8bars-6-8-v2.png",
+        "template_sha256": "32906ad8aeab576eec3b7dfd0e3e86d28a7f446b285e09dcecb468384c55b287",
+        "systems": [
+          {
+            "index": 1,
+            "first_measure": 1,
+            "last_measure": 4,
+            "staff_line_y": [
+              164,
+              176,
+              188,
+              200,
+              212
+            ],
+            "barline_x": [
+              54,
+              450,
+              725,
+              1000,
+              1276
+            ]
+          },
+          {
+            "index": 2,
+            "first_measure": 5,
+            "last_measure": 8,
+            "staff_line_y": [
+              499,
+              511,
+              523,
+              535,
+              547
+            ],
+            "barline_x": [
+              54,
+              397,
+              690,
+              983,
+              1276
+            ]
+          }
+        ]
+      },
+      "content_policy": "client_readable_practice",
+      "score_visibility": "after_submission",
+      "score_assets": {
+        "main": {
+          "url": "https://api.sori.example/api/v1/questions/cb6dd5a2-bdb8-5d69-b8b2-bad7c5566465/versions/2/scores/main/",
+          "content_type": "application/vnd.recordare.musicxml",
+          "sha256": "b94ba82f4a345f8272cba2736653df87eb97f5c0d5abf2977addd1df5f0e7cb8",
+          "size_bytes": 1835,
+          "musicxml_version": "4.0",
+          "profile": "sori-monophonic-v3",
+          "part_id": "P1",
+          "measure_count": 8,
+          "source_tempo_bpm": 96
+        },
+        "scale": {
+          "url": "https://api.sori.example/api/v1/questions/cb6dd5a2-bdb8-5d69-b8b2-bad7c5566465/versions/2/scores/scale/",
+          "content_type": "application/vnd.recordare.musicxml",
+          "sha256": "1a1f361300e398400b32c48535c9ec56538208a2f09470eb1482e5dd107082d6",
+          "size_bytes": 1082,
+          "musicxml_version": "4.0",
+          "profile": "sori-monophonic-v3",
+          "part_id": "P1",
+          "measure_count": 3,
+          "source_tempo_bpm": 96
+        }
+      }
+    },
+    "main_path": "questions/naver-040/v2/main.mxl",
+    "scale_path": "questions/naver-040/v2/scale.mxl"
+  },
+  {
+    "order": 44,
+    "metadata": {
+      "id": "b143a971-f576-5714-90e9-84a7f6078c81",
+      "version": 2,
+      "title": "고난도 청음 41 · 4/4",
+      "source": "practice",
+      "key_signature": {
+        "tonic": "C",
+        "mode": "unspecified",
+        "fifths": 0
+      },
+      "time_signature": {
+        "numerator": 4,
+        "denominator": 4
+      },
+      "measure_count": 8,
+      "recommended_duration_seconds": 300,
+      "description": "임시표·셋잇단음표·당김음을 포함한 고난도 단성 청음입니다. 조표 없이 표기된 선율을 듣고 8마디를 적어보세요.",
+      "time_policy": "advisory",
+      "clef": "treble",
+      "sheet_layout": {
+        "id": "staff-8bars-4-4-v2",
+        "logical_width": 1330,
+        "logical_height": 846,
+        "export_scale": 2,
+        "pixel_width": 2660,
+        "pixel_height": 1692,
+        "template_png_url": "https://api.sori.example/assets/sheets/staff-8bars-4-4-v2.png",
+        "template_sha256": "8057c4278804d4a148a806be071b877ed688a814ef6e350b53a2e40807c2fcae",
+        "systems": [
+          {
+            "index": 1,
+            "first_measure": 1,
+            "last_measure": 4,
+            "staff_line_y": [
+              164,
+              176,
+              188,
+              200,
+              212
+            ],
+            "barline_x": [
+              54,
+              450,
+              725,
+              1000,
+              1276
+            ]
+          },
+          {
+            "index": 2,
+            "first_measure": 5,
+            "last_measure": 8,
+            "staff_line_y": [
+              499,
+              511,
+              523,
+              535,
+              547
+            ],
+            "barline_x": [
+              54,
+              397,
+              690,
+              983,
+              1276
+            ]
+          }
+        ]
+      },
+      "content_policy": "client_readable_practice",
+      "score_visibility": "after_submission",
+      "score_assets": {
+        "main": {
+          "url": "https://api.sori.example/api/v1/questions/b143a971-f576-5714-90e9-84a7f6078c81/versions/2/scores/main/",
+          "content_type": "application/vnd.recordare.musicxml",
+          "sha256": "a9821c521dfd407248f1bf83c2eff63c05e93d6c123d37bcac65fc0872b9a6fb",
+          "size_bytes": 2288,
+          "musicxml_version": "4.0",
+          "profile": "sori-monophonic-v3",
+          "part_id": "P1",
+          "measure_count": 8,
+          "source_tempo_bpm": 96
+        },
+        "scale": {
+          "url": "https://api.sori.example/api/v1/questions/b143a971-f576-5714-90e9-84a7f6078c81/versions/2/scores/scale/",
+          "content_type": "application/vnd.recordare.musicxml",
+          "sha256": "4a349eec3a3227fc1ddbba4fea791da8b7dc76166547d69dd4df28c4cacdf0e3",
+          "size_bytes": 1069,
+          "musicxml_version": "4.0",
+          "profile": "sori-monophonic-v3",
+          "part_id": "P1",
+          "measure_count": 2,
+          "source_tempo_bpm": 96
+        }
+      }
+    },
+    "main_path": "questions/naver-041/v2/main.mxl",
+    "scale_path": "questions/naver-041/v2/scale.mxl"
+  },
+  {
+    "order": 45,
+    "metadata": {
+      "id": "8ab7ccc3-bb2f-57bd-9d62-8e3aa1d2cec4",
+      "version": 2,
+      "title": "고난도 청음 42 · 3/4",
+      "source": "practice",
+      "key_signature": {
+        "tonic": "C",
+        "mode": "unspecified",
+        "fifths": 0
+      },
+      "time_signature": {
+        "numerator": 3,
+        "denominator": 4
+      },
+      "measure_count": 8,
+      "recommended_duration_seconds": 300,
+      "description": "임시표·셋잇단음표·당김음을 포함한 고난도 단성 청음입니다. 조표 없이 표기된 선율을 듣고 8마디를 적어보세요.",
+      "time_policy": "advisory",
+      "clef": "treble",
+      "sheet_layout": {
+        "id": "staff-8bars-3-4-v2",
+        "logical_width": 1330,
+        "logical_height": 846,
+        "export_scale": 2,
+        "pixel_width": 2660,
+        "pixel_height": 1692,
+        "template_png_url": "https://api.sori.example/assets/sheets/staff-8bars-3-4-v2.png",
+        "template_sha256": "97c59bec81f03a008c0a0a4e4771bf808b074d1e35b1875078f24adf0a6e3160",
+        "systems": [
+          {
+            "index": 1,
+            "first_measure": 1,
+            "last_measure": 4,
+            "staff_line_y": [
+              164,
+              176,
+              188,
+              200,
+              212
+            ],
+            "barline_x": [
+              54,
+              450,
+              725,
+              1000,
+              1276
+            ]
+          },
+          {
+            "index": 2,
+            "first_measure": 5,
+            "last_measure": 8,
+            "staff_line_y": [
+              499,
+              511,
+              523,
+              535,
+              547
+            ],
+            "barline_x": [
+              54,
+              397,
+              690,
+              983,
+              1276
+            ]
+          }
+        ]
+      },
+      "content_policy": "client_readable_practice",
+      "score_visibility": "after_submission",
+      "score_assets": {
+        "main": {
+          "url": "https://api.sori.example/api/v1/questions/8ab7ccc3-bb2f-57bd-9d62-8e3aa1d2cec4/versions/2/scores/main/",
+          "content_type": "application/vnd.recordare.musicxml",
+          "sha256": "67e50464b04ab8aa802adb564610ea475c8b394ceb2f2a919160b9fda7d017af",
+          "size_bytes": 1973,
+          "musicxml_version": "4.0",
+          "profile": "sori-monophonic-v3",
+          "part_id": "P1",
+          "measure_count": 8,
+          "source_tempo_bpm": 96
+        },
+        "scale": {
+          "url": "https://api.sori.example/api/v1/questions/8ab7ccc3-bb2f-57bd-9d62-8e3aa1d2cec4/versions/2/scores/scale/",
+          "content_type": "application/vnd.recordare.musicxml",
+          "sha256": "dabe183fd0507e07dede25880bb63dcb8cb15713dc875393f7f1d9cd3ffc50fa",
+          "size_bytes": 1082,
+          "musicxml_version": "4.0",
+          "profile": "sori-monophonic-v3",
+          "part_id": "P1",
+          "measure_count": 3,
+          "source_tempo_bpm": 96
+        }
+      }
+    },
+    "main_path": "questions/naver-042/v2/main.mxl",
+    "scale_path": "questions/naver-042/v2/scale.mxl"
+  },
+  {
+    "order": 46,
+    "metadata": {
+      "id": "bbd4b58e-9db6-5868-a3fa-c2660f87169f",
+      "version": 2,
+      "title": "고난도 청음 43 · 4/4",
+      "source": "practice",
+      "key_signature": {
+        "tonic": "C",
+        "mode": "unspecified",
+        "fifths": 0
+      },
+      "time_signature": {
+        "numerator": 4,
+        "denominator": 4
+      },
+      "measure_count": 8,
+      "recommended_duration_seconds": 300,
+      "description": "임시표·셋잇단음표·당김음을 포함한 고난도 단성 청음입니다. 조표 없이 표기된 선율을 듣고 8마디를 적어보세요.",
+      "time_policy": "advisory",
+      "clef": "treble",
+      "sheet_layout": {
+        "id": "staff-8bars-4-4-v2",
+        "logical_width": 1330,
+        "logical_height": 846,
+        "export_scale": 2,
+        "pixel_width": 2660,
+        "pixel_height": 1692,
+        "template_png_url": "https://api.sori.example/assets/sheets/staff-8bars-4-4-v2.png",
+        "template_sha256": "8057c4278804d4a148a806be071b877ed688a814ef6e350b53a2e40807c2fcae",
+        "systems": [
+          {
+            "index": 1,
+            "first_measure": 1,
+            "last_measure": 4,
+            "staff_line_y": [
+              164,
+              176,
+              188,
+              200,
+              212
+            ],
+            "barline_x": [
+              54,
+              450,
+              725,
+              1000,
+              1276
+            ]
+          },
+          {
+            "index": 2,
+            "first_measure": 5,
+            "last_measure": 8,
+            "staff_line_y": [
+              499,
+              511,
+              523,
+              535,
+              547
+            ],
+            "barline_x": [
+              54,
+              397,
+              690,
+              983,
+              1276
+            ]
+          }
+        ]
+      },
+      "content_policy": "client_readable_practice",
+      "score_visibility": "after_submission",
+      "score_assets": {
+        "main": {
+          "url": "https://api.sori.example/api/v1/questions/bbd4b58e-9db6-5868-a3fa-c2660f87169f/versions/2/scores/main/",
+          "content_type": "application/vnd.recordare.musicxml",
+          "sha256": "cbcb55c32091d601196f981f3825049a6db0edadcf57b04b9b6e0b6528068e8e",
+          "size_bytes": 1749,
+          "musicxml_version": "4.0",
+          "profile": "sori-monophonic-v3",
+          "part_id": "P1",
+          "measure_count": 8,
+          "source_tempo_bpm": 96
+        },
+        "scale": {
+          "url": "https://api.sori.example/api/v1/questions/bbd4b58e-9db6-5868-a3fa-c2660f87169f/versions/2/scores/scale/",
+          "content_type": "application/vnd.recordare.musicxml",
+          "sha256": "4a349eec3a3227fc1ddbba4fea791da8b7dc76166547d69dd4df28c4cacdf0e3",
+          "size_bytes": 1069,
+          "musicxml_version": "4.0",
+          "profile": "sori-monophonic-v3",
+          "part_id": "P1",
+          "measure_count": 2,
+          "source_tempo_bpm": 96
+        }
+      }
+    },
+    "main_path": "questions/naver-043/v2/main.mxl",
+    "scale_path": "questions/naver-043/v2/scale.mxl"
+  },
+  {
+    "order": 47,
+    "metadata": {
+      "id": "dbae662f-293a-511c-a895-c6cb6ee0b057",
+      "version": 2,
+      "title": "고난도 청음 44 · 6/8",
+      "source": "practice",
+      "key_signature": {
+        "tonic": "C",
+        "mode": "unspecified",
+        "fifths": 0
+      },
+      "time_signature": {
+        "numerator": 6,
+        "denominator": 8
+      },
+      "measure_count": 8,
+      "recommended_duration_seconds": 300,
+      "description": "임시표·셋잇단음표·당김음을 포함한 고난도 단성 청음입니다. 조표 없이 표기된 선율을 듣고 8마디를 적어보세요.",
+      "time_policy": "advisory",
+      "clef": "treble",
+      "sheet_layout": {
+        "id": "staff-8bars-6-8-v2",
+        "logical_width": 1330,
+        "logical_height": 846,
+        "export_scale": 2,
+        "pixel_width": 2660,
+        "pixel_height": 1692,
+        "template_png_url": "https://api.sori.example/assets/sheets/staff-8bars-6-8-v2.png",
+        "template_sha256": "32906ad8aeab576eec3b7dfd0e3e86d28a7f446b285e09dcecb468384c55b287",
+        "systems": [
+          {
+            "index": 1,
+            "first_measure": 1,
+            "last_measure": 4,
+            "staff_line_y": [
+              164,
+              176,
+              188,
+              200,
+              212
+            ],
+            "barline_x": [
+              54,
+              450,
+              725,
+              1000,
+              1276
+            ]
+          },
+          {
+            "index": 2,
+            "first_measure": 5,
+            "last_measure": 8,
+            "staff_line_y": [
+              499,
+              511,
+              523,
+              535,
+              547
+            ],
+            "barline_x": [
+              54,
+              397,
+              690,
+              983,
+              1276
+            ]
+          }
+        ]
+      },
+      "content_policy": "client_readable_practice",
+      "score_visibility": "after_submission",
+      "score_assets": {
+        "main": {
+          "url": "https://api.sori.example/api/v1/questions/dbae662f-293a-511c-a895-c6cb6ee0b057/versions/2/scores/main/",
+          "content_type": "application/vnd.recordare.musicxml",
+          "sha256": "9d68b9f69ae0fd21f571f6def4ebccfa4b6f84cb9fce147d181aa7770d217c70",
+          "size_bytes": 1874,
+          "musicxml_version": "4.0",
+          "profile": "sori-monophonic-v3",
+          "part_id": "P1",
+          "measure_count": 8,
+          "source_tempo_bpm": 96
+        },
+        "scale": {
+          "url": "https://api.sori.example/api/v1/questions/dbae662f-293a-511c-a895-c6cb6ee0b057/versions/2/scores/scale/",
+          "content_type": "application/vnd.recordare.musicxml",
+          "sha256": "1a1f361300e398400b32c48535c9ec56538208a2f09470eb1482e5dd107082d6",
+          "size_bytes": 1082,
+          "musicxml_version": "4.0",
+          "profile": "sori-monophonic-v3",
+          "part_id": "P1",
+          "measure_count": 3,
+          "source_tempo_bpm": 96
+        }
+      }
+    },
+    "main_path": "questions/naver-044/v2/main.mxl",
+    "scale_path": "questions/naver-044/v2/scale.mxl"
+  },
+  {
+    "order": 48,
+    "metadata": {
+      "id": "69fdffda-459a-5b2d-a997-b0b408ff17fb",
+      "version": 2,
+      "title": "고난도 청음 45 · 4/4",
+      "source": "practice",
+      "key_signature": {
+        "tonic": "C",
+        "mode": "unspecified",
+        "fifths": 0
+      },
+      "time_signature": {
+        "numerator": 4,
+        "denominator": 4
+      },
+      "measure_count": 8,
+      "recommended_duration_seconds": 300,
+      "description": "임시표·셋잇단음표·당김음을 포함한 고난도 단성 청음입니다. 조표 없이 표기된 선율을 듣고 8마디를 적어보세요.",
+      "time_policy": "advisory",
+      "clef": "treble",
+      "sheet_layout": {
+        "id": "staff-8bars-4-4-v2",
+        "logical_width": 1330,
+        "logical_height": 846,
+        "export_scale": 2,
+        "pixel_width": 2660,
+        "pixel_height": 1692,
+        "template_png_url": "https://api.sori.example/assets/sheets/staff-8bars-4-4-v2.png",
+        "template_sha256": "8057c4278804d4a148a806be071b877ed688a814ef6e350b53a2e40807c2fcae",
+        "systems": [
+          {
+            "index": 1,
+            "first_measure": 1,
+            "last_measure": 4,
+            "staff_line_y": [
+              164,
+              176,
+              188,
+              200,
+              212
+            ],
+            "barline_x": [
+              54,
+              450,
+              725,
+              1000,
+              1276
+            ]
+          },
+          {
+            "index": 2,
+            "first_measure": 5,
+            "last_measure": 8,
+            "staff_line_y": [
+              499,
+              511,
+              523,
+              535,
+              547
+            ],
+            "barline_x": [
+              54,
+              397,
+              690,
+              983,
+              1276
+            ]
+          }
+        ]
+      },
+      "content_policy": "client_readable_practice",
+      "score_visibility": "after_submission",
+      "score_assets": {
+        "main": {
+          "url": "https://api.sori.example/api/v1/questions/69fdffda-459a-5b2d-a997-b0b408ff17fb/versions/2/scores/main/",
+          "content_type": "application/vnd.recordare.musicxml",
+          "sha256": "f0ae4b4698fc859e7240f12ab7cb40f3418e98522b7493f2402032821e750e7b",
+          "size_bytes": 2011,
+          "musicxml_version": "4.0",
+          "profile": "sori-monophonic-v3",
+          "part_id": "P1",
+          "measure_count": 8,
+          "source_tempo_bpm": 96
+        },
+        "scale": {
+          "url": "https://api.sori.example/api/v1/questions/69fdffda-459a-5b2d-a997-b0b408ff17fb/versions/2/scores/scale/",
+          "content_type": "application/vnd.recordare.musicxml",
+          "sha256": "4a349eec3a3227fc1ddbba4fea791da8b7dc76166547d69dd4df28c4cacdf0e3",
+          "size_bytes": 1069,
+          "musicxml_version": "4.0",
+          "profile": "sori-monophonic-v3",
+          "part_id": "P1",
+          "measure_count": 2,
+          "source_tempo_bpm": 96
+        }
+      }
+    },
+    "main_path": "questions/naver-045/v2/main.mxl",
+    "scale_path": "questions/naver-045/v2/scale.mxl"
+  },
+  {
+    "order": 49,
+    "metadata": {
+      "id": "083bd34c-f343-5801-8d4e-4ad8f23c9bb6",
+      "version": 2,
+      "title": "고난도 청음 46 · 3/4",
+      "source": "practice",
+      "key_signature": {
+        "tonic": "C",
+        "mode": "unspecified",
+        "fifths": 0
+      },
+      "time_signature": {
+        "numerator": 3,
+        "denominator": 4
+      },
+      "measure_count": 8,
+      "recommended_duration_seconds": 300,
+      "description": "임시표·셋잇단음표·당김음을 포함한 고난도 단성 청음입니다. 조표 없이 표기된 선율을 듣고 8마디를 적어보세요.",
+      "time_policy": "advisory",
+      "clef": "treble",
+      "sheet_layout": {
+        "id": "staff-8bars-3-4-v2",
+        "logical_width": 1330,
+        "logical_height": 846,
+        "export_scale": 2,
+        "pixel_width": 2660,
+        "pixel_height": 1692,
+        "template_png_url": "https://api.sori.example/assets/sheets/staff-8bars-3-4-v2.png",
+        "template_sha256": "97c59bec81f03a008c0a0a4e4771bf808b074d1e35b1875078f24adf0a6e3160",
+        "systems": [
+          {
+            "index": 1,
+            "first_measure": 1,
+            "last_measure": 4,
+            "staff_line_y": [
+              164,
+              176,
+              188,
+              200,
+              212
+            ],
+            "barline_x": [
+              54,
+              450,
+              725,
+              1000,
+              1276
+            ]
+          },
+          {
+            "index": 2,
+            "first_measure": 5,
+            "last_measure": 8,
+            "staff_line_y": [
+              499,
+              511,
+              523,
+              535,
+              547
+            ],
+            "barline_x": [
+              54,
+              397,
+              690,
+              983,
+              1276
+            ]
+          }
+        ]
+      },
+      "content_policy": "client_readable_practice",
+      "score_visibility": "after_submission",
+      "score_assets": {
+        "main": {
+          "url": "https://api.sori.example/api/v1/questions/083bd34c-f343-5801-8d4e-4ad8f23c9bb6/versions/2/scores/main/",
+          "content_type": "application/vnd.recordare.musicxml",
+          "sha256": "847eb70e6c937a675ee504908fe9b484504a6b5c8fbcf5e3129c44b071d93c97",
+          "size_bytes": 2081,
+          "musicxml_version": "4.0",
+          "profile": "sori-monophonic-v3",
+          "part_id": "P1",
+          "measure_count": 8,
+          "source_tempo_bpm": 96
+        },
+        "scale": {
+          "url": "https://api.sori.example/api/v1/questions/083bd34c-f343-5801-8d4e-4ad8f23c9bb6/versions/2/scores/scale/",
+          "content_type": "application/vnd.recordare.musicxml",
+          "sha256": "dabe183fd0507e07dede25880bb63dcb8cb15713dc875393f7f1d9cd3ffc50fa",
+          "size_bytes": 1082,
+          "musicxml_version": "4.0",
+          "profile": "sori-monophonic-v3",
+          "part_id": "P1",
+          "measure_count": 3,
+          "source_tempo_bpm": 96
+        }
+      }
+    },
+    "main_path": "questions/naver-046/v2/main.mxl",
+    "scale_path": "questions/naver-046/v2/scale.mxl"
+  },
+  {
+    "order": 50,
+    "metadata": {
+      "id": "ec045145-f657-5c8c-ac4d-5117b3f16db7",
+      "version": 2,
+      "title": "고난도 청음 47 · 9/8",
+      "source": "practice",
+      "key_signature": {
+        "tonic": "C",
+        "mode": "unspecified",
+        "fifths": 0
+      },
+      "time_signature": {
+        "numerator": 9,
+        "denominator": 8
+      },
+      "measure_count": 8,
+      "recommended_duration_seconds": 300,
+      "description": "임시표·셋잇단음표·당김음을 포함한 고난도 단성 청음입니다. 조표 없이 표기된 선율을 듣고 8마디를 적어보세요.",
+      "time_policy": "advisory",
+      "clef": "treble",
+      "sheet_layout": {
+        "id": "staff-8bars-9-8-v2",
+        "logical_width": 1330,
+        "logical_height": 846,
+        "export_scale": 2,
+        "pixel_width": 2660,
+        "pixel_height": 1692,
+        "template_png_url": "https://api.sori.example/assets/sheets/staff-8bars-9-8-v2.png",
+        "template_sha256": "c9c255f64ce76c16c1aab0a7b8fb2a6a5afc81633e99f565699566f8ed89287f",
+        "systems": [
+          {
+            "index": 1,
+            "first_measure": 1,
+            "last_measure": 4,
+            "staff_line_y": [
+              164,
+              176,
+              188,
+              200,
+              212
+            ],
+            "barline_x": [
+              54,
+              450,
+              725,
+              1000,
+              1276
+            ]
+          },
+          {
+            "index": 2,
+            "first_measure": 5,
+            "last_measure": 8,
+            "staff_line_y": [
+              499,
+              511,
+              523,
+              535,
+              547
+            ],
+            "barline_x": [
+              54,
+              397,
+              690,
+              983,
+              1276
+            ]
+          }
+        ]
+      },
+      "content_policy": "client_readable_practice",
+      "score_visibility": "after_submission",
+      "score_assets": {
+        "main": {
+          "url": "https://api.sori.example/api/v1/questions/ec045145-f657-5c8c-ac4d-5117b3f16db7/versions/2/scores/main/",
+          "content_type": "application/vnd.recordare.musicxml",
+          "sha256": "9406233af63d5940bc96d6520f4c8b73855695f8dd951d02b52e10d94076c477",
+          "size_bytes": 2132,
+          "musicxml_version": "4.0",
+          "profile": "sori-monophonic-v3",
+          "part_id": "P1",
+          "measure_count": 8,
+          "source_tempo_bpm": 96
+        },
+        "scale": {
+          "url": "https://api.sori.example/api/v1/questions/ec045145-f657-5c8c-ac4d-5117b3f16db7/versions/2/scores/scale/",
+          "content_type": "application/vnd.recordare.musicxml",
+          "sha256": "d96e29e3f589f5a75b87f0bed0f9a1e4a5ad40e37a93d0899bfa3e2801a2994d",
+          "size_bytes": 1074,
+          "musicxml_version": "4.0",
+          "profile": "sori-monophonic-v3",
+          "part_id": "P1",
+          "measure_count": 2,
+          "source_tempo_bpm": 96
+        }
+      }
+    },
+    "main_path": "questions/naver-047/v2/main.mxl",
+    "scale_path": "questions/naver-047/v2/scale.mxl"
+  },
+  {
+    "order": 51,
+    "metadata": {
+      "id": "487d8824-eba3-5ea2-95bd-c73a7ac630b1",
+      "version": 2,
+      "title": "고난도 청음 48 · 3/4",
+      "source": "practice",
+      "key_signature": {
+        "tonic": "C",
+        "mode": "unspecified",
+        "fifths": 0
+      },
+      "time_signature": {
+        "numerator": 3,
+        "denominator": 4
+      },
+      "measure_count": 8,
+      "recommended_duration_seconds": 300,
+      "description": "임시표·셋잇단음표·당김음을 포함한 고난도 단성 청음입니다. 조표 없이 표기된 선율을 듣고 8마디를 적어보세요.",
+      "time_policy": "advisory",
+      "clef": "treble",
+      "sheet_layout": {
+        "id": "staff-8bars-3-4-v2",
+        "logical_width": 1330,
+        "logical_height": 846,
+        "export_scale": 2,
+        "pixel_width": 2660,
+        "pixel_height": 1692,
+        "template_png_url": "https://api.sori.example/assets/sheets/staff-8bars-3-4-v2.png",
+        "template_sha256": "97c59bec81f03a008c0a0a4e4771bf808b074d1e35b1875078f24adf0a6e3160",
+        "systems": [
+          {
+            "index": 1,
+            "first_measure": 1,
+            "last_measure": 4,
+            "staff_line_y": [
+              164,
+              176,
+              188,
+              200,
+              212
+            ],
+            "barline_x": [
+              54,
+              450,
+              725,
+              1000,
+              1276
+            ]
+          },
+          {
+            "index": 2,
+            "first_measure": 5,
+            "last_measure": 8,
+            "staff_line_y": [
+              499,
+              511,
+              523,
+              535,
+              547
+            ],
+            "barline_x": [
+              54,
+              397,
+              690,
+              983,
+              1276
+            ]
+          }
+        ]
+      },
+      "content_policy": "client_readable_practice",
+      "score_visibility": "after_submission",
+      "score_assets": {
+        "main": {
+          "url": "https://api.sori.example/api/v1/questions/487d8824-eba3-5ea2-95bd-c73a7ac630b1/versions/2/scores/main/",
+          "content_type": "application/vnd.recordare.musicxml",
+          "sha256": "0932b05943926e3e69c78bcb5ccef64ace94012600a02735ec95e54a30b084da",
+          "size_bytes": 1920,
+          "musicxml_version": "4.0",
+          "profile": "sori-monophonic-v3",
+          "part_id": "P1",
+          "measure_count": 8,
+          "source_tempo_bpm": 96
+        },
+        "scale": {
+          "url": "https://api.sori.example/api/v1/questions/487d8824-eba3-5ea2-95bd-c73a7ac630b1/versions/2/scores/scale/",
+          "content_type": "application/vnd.recordare.musicxml",
+          "sha256": "dabe183fd0507e07dede25880bb63dcb8cb15713dc875393f7f1d9cd3ffc50fa",
+          "size_bytes": 1082,
+          "musicxml_version": "4.0",
+          "profile": "sori-monophonic-v3",
+          "part_id": "P1",
+          "measure_count": 3,
+          "source_tempo_bpm": 96
+        }
+      }
+    },
+    "main_path": "questions/naver-048/v2/main.mxl",
+    "scale_path": "questions/naver-048/v2/scale.mxl"
+  },
+  {
+    "order": 52,
+    "metadata": {
+      "id": "42167662-5011-5343-8a42-1f3c0be57938",
+      "version": 2,
+      "title": "고난도 청음 49 · 4/4",
+      "source": "practice",
+      "key_signature": {
+        "tonic": "C",
+        "mode": "unspecified",
+        "fifths": 0
+      },
+      "time_signature": {
+        "numerator": 4,
+        "denominator": 4
+      },
+      "measure_count": 8,
+      "recommended_duration_seconds": 300,
+      "description": "임시표·셋잇단음표·당김음을 포함한 고난도 단성 청음입니다. 조표 없이 표기된 선율을 듣고 8마디를 적어보세요.",
+      "time_policy": "advisory",
+      "clef": "treble",
+      "sheet_layout": {
+        "id": "staff-8bars-4-4-v2",
+        "logical_width": 1330,
+        "logical_height": 846,
+        "export_scale": 2,
+        "pixel_width": 2660,
+        "pixel_height": 1692,
+        "template_png_url": "https://api.sori.example/assets/sheets/staff-8bars-4-4-v2.png",
+        "template_sha256": "8057c4278804d4a148a806be071b877ed688a814ef6e350b53a2e40807c2fcae",
+        "systems": [
+          {
+            "index": 1,
+            "first_measure": 1,
+            "last_measure": 4,
+            "staff_line_y": [
+              164,
+              176,
+              188,
+              200,
+              212
+            ],
+            "barline_x": [
+              54,
+              450,
+              725,
+              1000,
+              1276
+            ]
+          },
+          {
+            "index": 2,
+            "first_measure": 5,
+            "last_measure": 8,
+            "staff_line_y": [
+              499,
+              511,
+              523,
+              535,
+              547
+            ],
+            "barline_x": [
+              54,
+              397,
+              690,
+              983,
+              1276
+            ]
+          }
+        ]
+      },
+      "content_policy": "client_readable_practice",
+      "score_visibility": "after_submission",
+      "score_assets": {
+        "main": {
+          "url": "https://api.sori.example/api/v1/questions/42167662-5011-5343-8a42-1f3c0be57938/versions/2/scores/main/",
+          "content_type": "application/vnd.recordare.musicxml",
+          "sha256": "879fca90cf4b2d285431d10adc3e9b0e0d0b10d377a353580b1e12051590cbc9",
+          "size_bytes": 2066,
+          "musicxml_version": "4.0",
+          "profile": "sori-monophonic-v3",
+          "part_id": "P1",
+          "measure_count": 8,
+          "source_tempo_bpm": 96
+        },
+        "scale": {
+          "url": "https://api.sori.example/api/v1/questions/42167662-5011-5343-8a42-1f3c0be57938/versions/2/scores/scale/",
+          "content_type": "application/vnd.recordare.musicxml",
+          "sha256": "4a349eec3a3227fc1ddbba4fea791da8b7dc76166547d69dd4df28c4cacdf0e3",
+          "size_bytes": 1069,
+          "musicxml_version": "4.0",
+          "profile": "sori-monophonic-v3",
+          "part_id": "P1",
+          "measure_count": 2,
+          "source_tempo_bpm": 96
+        }
+      }
+    },
+    "main_path": "questions/naver-049/v2/main.mxl",
+    "scale_path": "questions/naver-049/v2/scale.mxl"
+  },
+  {
+    "order": 53,
+    "metadata": {
+      "id": "04699cfc-d0aa-5d0b-a51a-f8ce59813785",
+      "version": 2,
+      "title": "고난도 청음 50 · 2/4",
+      "source": "practice",
+      "key_signature": {
+        "tonic": "C",
+        "mode": "unspecified",
+        "fifths": 0
+      },
+      "time_signature": {
+        "numerator": 2,
+        "denominator": 4
+      },
+      "measure_count": 8,
+      "recommended_duration_seconds": 300,
+      "description": "임시표·셋잇단음표·당김음을 포함한 고난도 단성 청음입니다. 조표 없이 표기된 선율을 듣고 8마디를 적어보세요.",
+      "time_policy": "advisory",
+      "clef": "treble",
+      "sheet_layout": {
+        "id": "staff-8bars-2-4-v2",
+        "logical_width": 1330,
+        "logical_height": 846,
+        "export_scale": 2,
+        "pixel_width": 2660,
+        "pixel_height": 1692,
+        "template_png_url": "https://api.sori.example/assets/sheets/staff-8bars-2-4-v2.png",
+        "template_sha256": "ad6e119d79306fbd55da431ad49ad9821c77680c7db52926d844689e672a4560",
+        "systems": [
+          {
+            "index": 1,
+            "first_measure": 1,
+            "last_measure": 4,
+            "staff_line_y": [
+              164,
+              176,
+              188,
+              200,
+              212
+            ],
+            "barline_x": [
+              54,
+              450,
+              725,
+              1000,
+              1276
+            ]
+          },
+          {
+            "index": 2,
+            "first_measure": 5,
+            "last_measure": 8,
+            "staff_line_y": [
+              499,
+              511,
+              523,
+              535,
+              547
+            ],
+            "barline_x": [
+              54,
+              397,
+              690,
+              983,
+              1276
+            ]
+          }
+        ]
+      },
+      "content_policy": "client_readable_practice",
+      "score_visibility": "after_submission",
+      "score_assets": {
+        "main": {
+          "url": "https://api.sori.example/api/v1/questions/04699cfc-d0aa-5d0b-a51a-f8ce59813785/versions/2/scores/main/",
+          "content_type": "application/vnd.recordare.musicxml",
+          "sha256": "2f45029ed6702c25afb5330301c9d419f035fa92279bf82b2fb86e20fda82c81",
+          "size_bytes": 1640,
+          "musicxml_version": "4.0",
+          "profile": "sori-monophonic-v3",
+          "part_id": "P1",
+          "measure_count": 8,
+          "source_tempo_bpm": 96
+        },
+        "scale": {
+          "url": "https://api.sori.example/api/v1/questions/04699cfc-d0aa-5d0b-a51a-f8ce59813785/versions/2/scores/scale/",
+          "content_type": "application/vnd.recordare.musicxml",
+          "sha256": "d033809872eb18f32345d95c848dfabf65335adb5fb0b096ba6a834133fcd430",
+          "size_bytes": 1083,
+          "musicxml_version": "4.0",
+          "profile": "sori-monophonic-v3",
+          "part_id": "P1",
+          "measure_count": 4,
+          "source_tempo_bpm": 96
+        }
+      }
+    },
+    "main_path": "questions/naver-050/v2/main.mxl",
+    "scale_path": "questions/naver-050/v2/scale.mxl"
+  },
+  {
+    "order": 54,
+    "metadata": {
+      "id": "2f67bc99-edd1-55f2-b206-554e30a7e986",
+      "version": 2,
+      "title": "고난도 청음 51 · 3/4",
+      "source": "practice",
+      "key_signature": {
+        "tonic": "C",
+        "mode": "unspecified",
+        "fifths": 0
+      },
+      "time_signature": {
+        "numerator": 3,
+        "denominator": 4
+      },
+      "measure_count": 8,
+      "recommended_duration_seconds": 300,
+      "description": "임시표·셋잇단음표·당김음을 포함한 고난도 단성 청음입니다. 조표 없이 표기된 선율을 듣고 8마디를 적어보세요.",
+      "time_policy": "advisory",
+      "clef": "treble",
+      "sheet_layout": {
+        "id": "staff-8bars-3-4-v2",
+        "logical_width": 1330,
+        "logical_height": 846,
+        "export_scale": 2,
+        "pixel_width": 2660,
+        "pixel_height": 1692,
+        "template_png_url": "https://api.sori.example/assets/sheets/staff-8bars-3-4-v2.png",
+        "template_sha256": "97c59bec81f03a008c0a0a4e4771bf808b074d1e35b1875078f24adf0a6e3160",
+        "systems": [
+          {
+            "index": 1,
+            "first_measure": 1,
+            "last_measure": 4,
+            "staff_line_y": [
+              164,
+              176,
+              188,
+              200,
+              212
+            ],
+            "barline_x": [
+              54,
+              450,
+              725,
+              1000,
+              1276
+            ]
+          },
+          {
+            "index": 2,
+            "first_measure": 5,
+            "last_measure": 8,
+            "staff_line_y": [
+              499,
+              511,
+              523,
+              535,
+              547
+            ],
+            "barline_x": [
+              54,
+              397,
+              690,
+              983,
+              1276
+            ]
+          }
+        ]
+      },
+      "content_policy": "client_readable_practice",
+      "score_visibility": "after_submission",
+      "score_assets": {
+        "main": {
+          "url": "https://api.sori.example/api/v1/questions/2f67bc99-edd1-55f2-b206-554e30a7e986/versions/2/scores/main/",
+          "content_type": "application/vnd.recordare.musicxml",
+          "sha256": "1283f3f938f81b7407baaabd7c1d7db85f40fe44dd035ac73cbcc577cf215f11",
+          "size_bytes": 1894,
+          "musicxml_version": "4.0",
+          "profile": "sori-monophonic-v3",
+          "part_id": "P1",
+          "measure_count": 8,
+          "source_tempo_bpm": 96
+        },
+        "scale": {
+          "url": "https://api.sori.example/api/v1/questions/2f67bc99-edd1-55f2-b206-554e30a7e986/versions/2/scores/scale/",
+          "content_type": "application/vnd.recordare.musicxml",
+          "sha256": "dabe183fd0507e07dede25880bb63dcb8cb15713dc875393f7f1d9cd3ffc50fa",
+          "size_bytes": 1082,
+          "musicxml_version": "4.0",
+          "profile": "sori-monophonic-v3",
+          "part_id": "P1",
+          "measure_count": 3,
+          "source_tempo_bpm": 96
+        }
+      }
+    },
+    "main_path": "questions/naver-051/v2/main.mxl",
+    "scale_path": "questions/naver-051/v2/scale.mxl"
+  },
+  {
+    "order": 55,
+    "metadata": {
+      "id": "d29ae89e-3dc1-57b7-b034-676d1a1773b9",
+      "version": 2,
+      "title": "고난도 청음 52 · 4/4",
+      "source": "practice",
+      "key_signature": {
+        "tonic": "C",
+        "mode": "unspecified",
+        "fifths": 0
+      },
+      "time_signature": {
+        "numerator": 4,
+        "denominator": 4
+      },
+      "measure_count": 8,
+      "recommended_duration_seconds": 300,
+      "description": "임시표·셋잇단음표·당김음을 포함한 고난도 단성 청음입니다. 조표 없이 표기된 선율을 듣고 8마디를 적어보세요.",
+      "time_policy": "advisory",
+      "clef": "treble",
+      "sheet_layout": {
+        "id": "staff-8bars-4-4-v2",
+        "logical_width": 1330,
+        "logical_height": 846,
+        "export_scale": 2,
+        "pixel_width": 2660,
+        "pixel_height": 1692,
+        "template_png_url": "https://api.sori.example/assets/sheets/staff-8bars-4-4-v2.png",
+        "template_sha256": "8057c4278804d4a148a806be071b877ed688a814ef6e350b53a2e40807c2fcae",
+        "systems": [
+          {
+            "index": 1,
+            "first_measure": 1,
+            "last_measure": 4,
+            "staff_line_y": [
+              164,
+              176,
+              188,
+              200,
+              212
+            ],
+            "barline_x": [
+              54,
+              450,
+              725,
+              1000,
+              1276
+            ]
+          },
+          {
+            "index": 2,
+            "first_measure": 5,
+            "last_measure": 8,
+            "staff_line_y": [
+              499,
+              511,
+              523,
+              535,
+              547
+            ],
+            "barline_x": [
+              54,
+              397,
+              690,
+              983,
+              1276
+            ]
+          }
+        ]
+      },
+      "content_policy": "client_readable_practice",
+      "score_visibility": "after_submission",
+      "score_assets": {
+        "main": {
+          "url": "https://api.sori.example/api/v1/questions/d29ae89e-3dc1-57b7-b034-676d1a1773b9/versions/2/scores/main/",
+          "content_type": "application/vnd.recordare.musicxml",
+          "sha256": "71a84c9170d7a87642b34a3acb65ac6f4bed50e91e9b6f376e09c0443ac02c55",
+          "size_bytes": 1954,
+          "musicxml_version": "4.0",
+          "profile": "sori-monophonic-v3",
+          "part_id": "P1",
+          "measure_count": 8,
+          "source_tempo_bpm": 96
+        },
+        "scale": {
+          "url": "https://api.sori.example/api/v1/questions/d29ae89e-3dc1-57b7-b034-676d1a1773b9/versions/2/scores/scale/",
+          "content_type": "application/vnd.recordare.musicxml",
+          "sha256": "4a349eec3a3227fc1ddbba4fea791da8b7dc76166547d69dd4df28c4cacdf0e3",
+          "size_bytes": 1069,
+          "musicxml_version": "4.0",
+          "profile": "sori-monophonic-v3",
+          "part_id": "P1",
+          "measure_count": 2,
+          "source_tempo_bpm": 96
+        }
+      }
+    },
+    "main_path": "questions/naver-052/v2/main.mxl",
+    "scale_path": "questions/naver-052/v2/scale.mxl"
+  },
+  {
+    "order": 56,
+    "metadata": {
+      "id": "7df3efd1-eea8-5baf-8f1f-b24e8d452ef5",
+      "version": 2,
+      "title": "고난도 청음 53 · 6/8",
+      "source": "practice",
+      "key_signature": {
+        "tonic": "C",
+        "mode": "unspecified",
+        "fifths": 0
+      },
+      "time_signature": {
+        "numerator": 6,
+        "denominator": 8
+      },
+      "measure_count": 8,
+      "recommended_duration_seconds": 300,
+      "description": "임시표·셋잇단음표·당김음을 포함한 고난도 단성 청음입니다. 조표 없이 표기된 선율을 듣고 8마디를 적어보세요.",
+      "time_policy": "advisory",
+      "clef": "treble",
+      "sheet_layout": {
+        "id": "staff-8bars-6-8-v2",
+        "logical_width": 1330,
+        "logical_height": 846,
+        "export_scale": 2,
+        "pixel_width": 2660,
+        "pixel_height": 1692,
+        "template_png_url": "https://api.sori.example/assets/sheets/staff-8bars-6-8-v2.png",
+        "template_sha256": "32906ad8aeab576eec3b7dfd0e3e86d28a7f446b285e09dcecb468384c55b287",
+        "systems": [
+          {
+            "index": 1,
+            "first_measure": 1,
+            "last_measure": 4,
+            "staff_line_y": [
+              164,
+              176,
+              188,
+              200,
+              212
+            ],
+            "barline_x": [
+              54,
+              450,
+              725,
+              1000,
+              1276
+            ]
+          },
+          {
+            "index": 2,
+            "first_measure": 5,
+            "last_measure": 8,
+            "staff_line_y": [
+              499,
+              511,
+              523,
+              535,
+              547
+            ],
+            "barline_x": [
+              54,
+              397,
+              690,
+              983,
+              1276
+            ]
+          }
+        ]
+      },
+      "content_policy": "client_readable_practice",
+      "score_visibility": "after_submission",
+      "score_assets": {
+        "main": {
+          "url": "https://api.sori.example/api/v1/questions/7df3efd1-eea8-5baf-8f1f-b24e8d452ef5/versions/2/scores/main/",
+          "content_type": "application/vnd.recordare.musicxml",
+          "sha256": "0f5c4c71e92c1209564ef60b43232956d909f87bca3f2915d217c1911927bc2a",
+          "size_bytes": 1728,
+          "musicxml_version": "4.0",
+          "profile": "sori-monophonic-v3",
+          "part_id": "P1",
+          "measure_count": 8,
+          "source_tempo_bpm": 96
+        },
+        "scale": {
+          "url": "https://api.sori.example/api/v1/questions/7df3efd1-eea8-5baf-8f1f-b24e8d452ef5/versions/2/scores/scale/",
+          "content_type": "application/vnd.recordare.musicxml",
+          "sha256": "1a1f361300e398400b32c48535c9ec56538208a2f09470eb1482e5dd107082d6",
+          "size_bytes": 1082,
+          "musicxml_version": "4.0",
+          "profile": "sori-monophonic-v3",
+          "part_id": "P1",
+          "measure_count": 3,
+          "source_tempo_bpm": 96
+        }
+      }
+    },
+    "main_path": "questions/naver-053/v2/main.mxl",
+    "scale_path": "questions/naver-053/v2/scale.mxl"
+  },
+  {
+    "order": 57,
+    "metadata": {
+      "id": "1801ad40-74dd-5e94-867f-74ec85af23dc",
+      "version": 2,
+      "title": "고난도 청음 54 · 6/8",
+      "source": "practice",
+      "key_signature": {
+        "tonic": "C",
+        "mode": "unspecified",
+        "fifths": 0
+      },
+      "time_signature": {
+        "numerator": 6,
+        "denominator": 8
+      },
+      "measure_count": 8,
+      "recommended_duration_seconds": 300,
+      "description": "임시표·셋잇단음표·당김음을 포함한 고난도 단성 청음입니다. 조표 없이 표기된 선율을 듣고 8마디를 적어보세요.",
+      "time_policy": "advisory",
+      "clef": "treble",
+      "sheet_layout": {
+        "id": "staff-8bars-6-8-v2",
+        "logical_width": 1330,
+        "logical_height": 846,
+        "export_scale": 2,
+        "pixel_width": 2660,
+        "pixel_height": 1692,
+        "template_png_url": "https://api.sori.example/assets/sheets/staff-8bars-6-8-v2.png",
+        "template_sha256": "32906ad8aeab576eec3b7dfd0e3e86d28a7f446b285e09dcecb468384c55b287",
+        "systems": [
+          {
+            "index": 1,
+            "first_measure": 1,
+            "last_measure": 4,
+            "staff_line_y": [
+              164,
+              176,
+              188,
+              200,
+              212
+            ],
+            "barline_x": [
+              54,
+              450,
+              725,
+              1000,
+              1276
+            ]
+          },
+          {
+            "index": 2,
+            "first_measure": 5,
+            "last_measure": 8,
+            "staff_line_y": [
+              499,
+              511,
+              523,
+              535,
+              547
+            ],
+            "barline_x": [
+              54,
+              397,
+              690,
+              983,
+              1276
+            ]
+          }
+        ]
+      },
+      "content_policy": "client_readable_practice",
+      "score_visibility": "after_submission",
+      "score_assets": {
+        "main": {
+          "url": "https://api.sori.example/api/v1/questions/1801ad40-74dd-5e94-867f-74ec85af23dc/versions/2/scores/main/",
+          "content_type": "application/vnd.recordare.musicxml",
+          "sha256": "386de537fe72bdbf96a791a6736d5eb13707d611ad45b4ace9df8e05e2d70481",
+          "size_bytes": 1792,
+          "musicxml_version": "4.0",
+          "profile": "sori-monophonic-v3",
+          "part_id": "P1",
+          "measure_count": 8,
+          "source_tempo_bpm": 96
+        },
+        "scale": {
+          "url": "https://api.sori.example/api/v1/questions/1801ad40-74dd-5e94-867f-74ec85af23dc/versions/2/scores/scale/",
+          "content_type": "application/vnd.recordare.musicxml",
+          "sha256": "1a1f361300e398400b32c48535c9ec56538208a2f09470eb1482e5dd107082d6",
+          "size_bytes": 1082,
+          "musicxml_version": "4.0",
+          "profile": "sori-monophonic-v3",
+          "part_id": "P1",
+          "measure_count": 3,
+          "source_tempo_bpm": 96
+        }
+      }
+    },
+    "main_path": "questions/naver-054/v2/main.mxl",
+    "scale_path": "questions/naver-054/v2/scale.mxl"
+  },
+  {
+    "order": 58,
+    "metadata": {
+      "id": "8fee11b2-0485-538c-b570-1b75f8813ce9",
+      "version": 2,
+      "title": "고난도 청음 55 · 6/8",
+      "source": "practice",
+      "key_signature": {
+        "tonic": "C",
+        "mode": "unspecified",
+        "fifths": 0
+      },
+      "time_signature": {
+        "numerator": 6,
+        "denominator": 8
+      },
+      "measure_count": 8,
+      "recommended_duration_seconds": 300,
+      "description": "임시표·셋잇단음표·당김음을 포함한 고난도 단성 청음입니다. 조표 없이 표기된 선율을 듣고 8마디를 적어보세요.",
+      "time_policy": "advisory",
+      "clef": "treble",
+      "sheet_layout": {
+        "id": "staff-8bars-6-8-v2",
+        "logical_width": 1330,
+        "logical_height": 846,
+        "export_scale": 2,
+        "pixel_width": 2660,
+        "pixel_height": 1692,
+        "template_png_url": "https://api.sori.example/assets/sheets/staff-8bars-6-8-v2.png",
+        "template_sha256": "32906ad8aeab576eec3b7dfd0e3e86d28a7f446b285e09dcecb468384c55b287",
+        "systems": [
+          {
+            "index": 1,
+            "first_measure": 1,
+            "last_measure": 4,
+            "staff_line_y": [
+              164,
+              176,
+              188,
+              200,
+              212
+            ],
+            "barline_x": [
+              54,
+              450,
+              725,
+              1000,
+              1276
+            ]
+          },
+          {
+            "index": 2,
+            "first_measure": 5,
+            "last_measure": 8,
+            "staff_line_y": [
+              499,
+              511,
+              523,
+              535,
+              547
+            ],
+            "barline_x": [
+              54,
+              397,
+              690,
+              983,
+              1276
+            ]
+          }
+        ]
+      },
+      "content_policy": "client_readable_practice",
+      "score_visibility": "after_submission",
+      "score_assets": {
+        "main": {
+          "url": "https://api.sori.example/api/v1/questions/8fee11b2-0485-538c-b570-1b75f8813ce9/versions/2/scores/main/",
+          "content_type": "application/vnd.recordare.musicxml",
+          "sha256": "4f14f1e7fedd0837c40d2f7f3a049048d94f4b64f9962754816d027492fb2360",
+          "size_bytes": 1851,
+          "musicxml_version": "4.0",
+          "profile": "sori-monophonic-v3",
+          "part_id": "P1",
+          "measure_count": 8,
+          "source_tempo_bpm": 96
+        },
+        "scale": {
+          "url": "https://api.sori.example/api/v1/questions/8fee11b2-0485-538c-b570-1b75f8813ce9/versions/2/scores/scale/",
+          "content_type": "application/vnd.recordare.musicxml",
+          "sha256": "1a1f361300e398400b32c48535c9ec56538208a2f09470eb1482e5dd107082d6",
+          "size_bytes": 1082,
+          "musicxml_version": "4.0",
+          "profile": "sori-monophonic-v3",
+          "part_id": "P1",
+          "measure_count": 3,
+          "source_tempo_bpm": 96
+        }
+      }
+    },
+    "main_path": "questions/naver-055/v2/main.mxl",
+    "scale_path": "questions/naver-055/v2/scale.mxl"
+  },
+  {
+    "order": 59,
+    "metadata": {
+      "id": "79710003-1d78-57e9-af04-a32eb56d77f9",
+      "version": 2,
+      "title": "고난도 청음 56 · 3/4",
+      "source": "practice",
+      "key_signature": {
+        "tonic": "C",
+        "mode": "unspecified",
+        "fifths": 0
+      },
+      "time_signature": {
+        "numerator": 3,
+        "denominator": 4
+      },
+      "measure_count": 8,
+      "recommended_duration_seconds": 300,
+      "description": "임시표·셋잇단음표·당김음을 포함한 고난도 단성 청음입니다. 조표 없이 표기된 선율을 듣고 8마디를 적어보세요.",
+      "time_policy": "advisory",
+      "clef": "treble",
+      "sheet_layout": {
+        "id": "staff-8bars-3-4-v2",
+        "logical_width": 1330,
+        "logical_height": 846,
+        "export_scale": 2,
+        "pixel_width": 2660,
+        "pixel_height": 1692,
+        "template_png_url": "https://api.sori.example/assets/sheets/staff-8bars-3-4-v2.png",
+        "template_sha256": "97c59bec81f03a008c0a0a4e4771bf808b074d1e35b1875078f24adf0a6e3160",
+        "systems": [
+          {
+            "index": 1,
+            "first_measure": 1,
+            "last_measure": 4,
+            "staff_line_y": [
+              164,
+              176,
+              188,
+              200,
+              212
+            ],
+            "barline_x": [
+              54,
+              450,
+              725,
+              1000,
+              1276
+            ]
+          },
+          {
+            "index": 2,
+            "first_measure": 5,
+            "last_measure": 8,
+            "staff_line_y": [
+              499,
+              511,
+              523,
+              535,
+              547
+            ],
+            "barline_x": [
+              54,
+              397,
+              690,
+              983,
+              1276
+            ]
+          }
+        ]
+      },
+      "content_policy": "client_readable_practice",
+      "score_visibility": "after_submission",
+      "score_assets": {
+        "main": {
+          "url": "https://api.sori.example/api/v1/questions/79710003-1d78-57e9-af04-a32eb56d77f9/versions/2/scores/main/",
+          "content_type": "application/vnd.recordare.musicxml",
+          "sha256": "2fd27f631835dc0064158fffe389ee0bed1cbc4061abba126e0ee2249e7d0dbb",
+          "size_bytes": 1971,
+          "musicxml_version": "4.0",
+          "profile": "sori-monophonic-v3",
+          "part_id": "P1",
+          "measure_count": 8,
+          "source_tempo_bpm": 96
+        },
+        "scale": {
+          "url": "https://api.sori.example/api/v1/questions/79710003-1d78-57e9-af04-a32eb56d77f9/versions/2/scores/scale/",
+          "content_type": "application/vnd.recordare.musicxml",
+          "sha256": "dabe183fd0507e07dede25880bb63dcb8cb15713dc875393f7f1d9cd3ffc50fa",
+          "size_bytes": 1082,
+          "musicxml_version": "4.0",
+          "profile": "sori-monophonic-v3",
+          "part_id": "P1",
+          "measure_count": 3,
+          "source_tempo_bpm": 96
+        }
+      }
+    },
+    "main_path": "questions/naver-056/v2/main.mxl",
+    "scale_path": "questions/naver-056/v2/scale.mxl"
+  },
+  {
+    "order": 60,
+    "metadata": {
+      "id": "b5daabb1-dcb2-50c6-8e9c-976312b21a8d",
+      "version": 2,
+      "title": "고난도 청음 57 · 6/8",
+      "source": "practice",
+      "key_signature": {
+        "tonic": "C",
+        "mode": "unspecified",
+        "fifths": 0
+      },
+      "time_signature": {
+        "numerator": 6,
+        "denominator": 8
+      },
+      "measure_count": 8,
+      "recommended_duration_seconds": 300,
+      "description": "임시표·셋잇단음표·당김음을 포함한 고난도 단성 청음입니다. 조표 없이 표기된 선율을 듣고 8마디를 적어보세요.",
+      "time_policy": "advisory",
+      "clef": "treble",
+      "sheet_layout": {
+        "id": "staff-8bars-6-8-v2",
+        "logical_width": 1330,
+        "logical_height": 846,
+        "export_scale": 2,
+        "pixel_width": 2660,
+        "pixel_height": 1692,
+        "template_png_url": "https://api.sori.example/assets/sheets/staff-8bars-6-8-v2.png",
+        "template_sha256": "32906ad8aeab576eec3b7dfd0e3e86d28a7f446b285e09dcecb468384c55b287",
+        "systems": [
+          {
+            "index": 1,
+            "first_measure": 1,
+            "last_measure": 4,
+            "staff_line_y": [
+              164,
+              176,
+              188,
+              200,
+              212
+            ],
+            "barline_x": [
+              54,
+              450,
+              725,
+              1000,
+              1276
+            ]
+          },
+          {
+            "index": 2,
+            "first_measure": 5,
+            "last_measure": 8,
+            "staff_line_y": [
+              499,
+              511,
+              523,
+              535,
+              547
+            ],
+            "barline_x": [
+              54,
+              397,
+              690,
+              983,
+              1276
+            ]
+          }
+        ]
+      },
+      "content_policy": "client_readable_practice",
+      "score_visibility": "after_submission",
+      "score_assets": {
+        "main": {
+          "url": "https://api.sori.example/api/v1/questions/b5daabb1-dcb2-50c6-8e9c-976312b21a8d/versions/2/scores/main/",
+          "content_type": "application/vnd.recordare.musicxml",
+          "sha256": "e76076eb035657f6518f9889b22d2b714b9bfe6534e3fdce8e0f612a04ede045",
+          "size_bytes": 2339,
+          "musicxml_version": "4.0",
+          "profile": "sori-monophonic-v3",
+          "part_id": "P1",
+          "measure_count": 8,
+          "source_tempo_bpm": 96
+        },
+        "scale": {
+          "url": "https://api.sori.example/api/v1/questions/b5daabb1-dcb2-50c6-8e9c-976312b21a8d/versions/2/scores/scale/",
+          "content_type": "application/vnd.recordare.musicxml",
+          "sha256": "1a1f361300e398400b32c48535c9ec56538208a2f09470eb1482e5dd107082d6",
+          "size_bytes": 1082,
+          "musicxml_version": "4.0",
+          "profile": "sori-monophonic-v3",
+          "part_id": "P1",
+          "measure_count": 3,
+          "source_tempo_bpm": 96
+        }
+      }
+    },
+    "main_path": "questions/naver-057/v2/main.mxl",
+    "scale_path": "questions/naver-057/v2/scale.mxl"
+  },
+  {
+    "order": 61,
+    "metadata": {
+      "id": "42b079a4-814d-5095-aedd-dad2ef21926a",
+      "version": 2,
+      "title": "고난도 청음 58 · 4/4",
+      "source": "practice",
+      "key_signature": {
+        "tonic": "C",
+        "mode": "unspecified",
+        "fifths": 0
+      },
+      "time_signature": {
+        "numerator": 4,
+        "denominator": 4
+      },
+      "measure_count": 8,
+      "recommended_duration_seconds": 300,
+      "description": "임시표·셋잇단음표·당김음을 포함한 고난도 단성 청음입니다. 조표 없이 표기된 선율을 듣고 8마디를 적어보세요.",
+      "time_policy": "advisory",
+      "clef": "treble",
+      "sheet_layout": {
+        "id": "staff-8bars-4-4-v2",
+        "logical_width": 1330,
+        "logical_height": 846,
+        "export_scale": 2,
+        "pixel_width": 2660,
+        "pixel_height": 1692,
+        "template_png_url": "https://api.sori.example/assets/sheets/staff-8bars-4-4-v2.png",
+        "template_sha256": "8057c4278804d4a148a806be071b877ed688a814ef6e350b53a2e40807c2fcae",
+        "systems": [
+          {
+            "index": 1,
+            "first_measure": 1,
+            "last_measure": 4,
+            "staff_line_y": [
+              164,
+              176,
+              188,
+              200,
+              212
+            ],
+            "barline_x": [
+              54,
+              450,
+              725,
+              1000,
+              1276
+            ]
+          },
+          {
+            "index": 2,
+            "first_measure": 5,
+            "last_measure": 8,
+            "staff_line_y": [
+              499,
+              511,
+              523,
+              535,
+              547
+            ],
+            "barline_x": [
+              54,
+              397,
+              690,
+              983,
+              1276
+            ]
+          }
+        ]
+      },
+      "content_policy": "client_readable_practice",
+      "score_visibility": "after_submission",
+      "score_assets": {
+        "main": {
+          "url": "https://api.sori.example/api/v1/questions/42b079a4-814d-5095-aedd-dad2ef21926a/versions/2/scores/main/",
+          "content_type": "application/vnd.recordare.musicxml",
+          "sha256": "79e4d1a3ed7215cf90504d65ebd330b9e53ddc33d44dc137d3b86df9af180220",
+          "size_bytes": 2161,
+          "musicxml_version": "4.0",
+          "profile": "sori-monophonic-v3",
+          "part_id": "P1",
+          "measure_count": 8,
+          "source_tempo_bpm": 96
+        },
+        "scale": {
+          "url": "https://api.sori.example/api/v1/questions/42b079a4-814d-5095-aedd-dad2ef21926a/versions/2/scores/scale/",
+          "content_type": "application/vnd.recordare.musicxml",
+          "sha256": "4a349eec3a3227fc1ddbba4fea791da8b7dc76166547d69dd4df28c4cacdf0e3",
+          "size_bytes": 1069,
+          "musicxml_version": "4.0",
+          "profile": "sori-monophonic-v3",
+          "part_id": "P1",
+          "measure_count": 2,
+          "source_tempo_bpm": 96
+        }
+      }
+    },
+    "main_path": "questions/naver-058/v2/main.mxl",
+    "scale_path": "questions/naver-058/v2/scale.mxl"
+  },
+  {
+    "order": 62,
+    "metadata": {
+      "id": "fc614554-31f4-5360-b49c-d46e95f00022",
+      "version": 2,
+      "title": "고난도 청음 59 · 6/8",
+      "source": "practice",
+      "key_signature": {
+        "tonic": "C",
+        "mode": "unspecified",
+        "fifths": 0
+      },
+      "time_signature": {
+        "numerator": 6,
+        "denominator": 8
+      },
+      "measure_count": 8,
+      "recommended_duration_seconds": 300,
+      "description": "임시표·셋잇단음표·당김음을 포함한 고난도 단성 청음입니다. 조표 없이 표기된 선율을 듣고 8마디를 적어보세요.",
+      "time_policy": "advisory",
+      "clef": "treble",
+      "sheet_layout": {
+        "id": "staff-8bars-6-8-v2",
+        "logical_width": 1330,
+        "logical_height": 846,
+        "export_scale": 2,
+        "pixel_width": 2660,
+        "pixel_height": 1692,
+        "template_png_url": "https://api.sori.example/assets/sheets/staff-8bars-6-8-v2.png",
+        "template_sha256": "32906ad8aeab576eec3b7dfd0e3e86d28a7f446b285e09dcecb468384c55b287",
+        "systems": [
+          {
+            "index": 1,
+            "first_measure": 1,
+            "last_measure": 4,
+            "staff_line_y": [
+              164,
+              176,
+              188,
+              200,
+              212
+            ],
+            "barline_x": [
+              54,
+              450,
+              725,
+              1000,
+              1276
+            ]
+          },
+          {
+            "index": 2,
+            "first_measure": 5,
+            "last_measure": 8,
+            "staff_line_y": [
+              499,
+              511,
+              523,
+              535,
+              547
+            ],
+            "barline_x": [
+              54,
+              397,
+              690,
+              983,
+              1276
+            ]
+          }
+        ]
+      },
+      "content_policy": "client_readable_practice",
+      "score_visibility": "after_submission",
+      "score_assets": {
+        "main": {
+          "url": "https://api.sori.example/api/v1/questions/fc614554-31f4-5360-b49c-d46e95f00022/versions/2/scores/main/",
+          "content_type": "application/vnd.recordare.musicxml",
+          "sha256": "aed36af0034d7af2c78b733ab9613189423d7f1485152e008dbf2a21b23fd401",
+          "size_bytes": 2164,
+          "musicxml_version": "4.0",
+          "profile": "sori-monophonic-v3",
+          "part_id": "P1",
+          "measure_count": 8,
+          "source_tempo_bpm": 96
+        },
+        "scale": {
+          "url": "https://api.sori.example/api/v1/questions/fc614554-31f4-5360-b49c-d46e95f00022/versions/2/scores/scale/",
+          "content_type": "application/vnd.recordare.musicxml",
+          "sha256": "1a1f361300e398400b32c48535c9ec56538208a2f09470eb1482e5dd107082d6",
+          "size_bytes": 1082,
+          "musicxml_version": "4.0",
+          "profile": "sori-monophonic-v3",
+          "part_id": "P1",
+          "measure_count": 3,
+          "source_tempo_bpm": 96
+        }
+      }
+    },
+    "main_path": "questions/naver-059/v2/main.mxl",
+    "scale_path": "questions/naver-059/v2/scale.mxl"
   }
 ]

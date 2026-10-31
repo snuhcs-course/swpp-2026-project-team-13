@@ -128,10 +128,10 @@ final class SafeXML: NSObject, XMLParserDelegate {
 }
 
 enum MusicXMLParser {
-    static let version = "sori-parser-3"
+    static let version = "sori-parser-4"
     static func parseMXL(_ data: Data, asset: ScoreAsset, tempo: Double? = nil) throws -> MusicScore {
         guard data.count == asset.sizeBytes, data.sha256 == asset.sha256 else { throw SORIError.invalidScore("SCORE_HASH_MISMATCH: 악보의 해시 또는 크기가 다릅니다.") }
-        guard ["sori-monophonic-v1", "sori-monophonic-v2"].contains(asset.profile), asset.musicxmlVersion == "4.0", asset.partId == "P1", asset.contentType == "application/vnd.recordare.musicxml" else { throw SORIError.unsupported("UNSUPPORTED_SCORE_PROFILE: 악보 형식을 확인해 주세요.") }
+        guard ["sori-monophonic-v1", "sori-monophonic-v2", "sori-monophonic-v3"].contains(asset.profile), asset.musicxmlVersion == "4.0", asset.partId == "P1", asset.contentType == "application/vnd.recordare.musicxml" else { throw SORIError.unsupported("UNSUPPORTED_SCORE_PROFILE: 악보 형식을 확인해 주세요.") }
         let files = try MXLContainer.entries(data)
         return try parseXML(files["score.xml"]!, measures: asset.measureCount, tempo: tempo ?? asset.sourceTempoBpm ?? 96)
     }
@@ -166,7 +166,7 @@ enum MusicXMLParser {
             for child in node.children { try validate(child) }
         }
         try validate(root)
-        guard root.name == "score-partwise", root.attributes["version"] == "4.0", [2,3,8].contains(measures),
+        guard root.name == "score-partwise", root.attributes["version"] == "4.0", [1,2,3,4,8].contains(measures),
               root.children(named: "part").count == 1, let part = root.one("part"), part.attributes["id"] == "P1",
               let partList = root.one("part-list"), partList.children(named: "score-part").count == 1,
               partList.one("score-part")?.attributes["id"] == "P1", (40...200).contains(tempo) else { throw fail("파트·버전·마디 수를 확인해 주세요.") }
@@ -177,7 +177,7 @@ enum MusicXMLParser {
         guard bars.count == measures else { throw fail("마디 수 불일치") }
         guard let time = bars.first?.one("attributes")?.one("time"), let beats = Int(time.value("beats") ?? ""), let beatType = Int(time.value("beat-type") ?? "") else { throw fail("박자표 누락") }
         let meter = TimeSignature(numerator: beats, denominator: beatType)
-        guard meter.supported else { throw fail("지원하는 박자는 4/4, 3/4, 6/8입니다.") }
+        guard meter.supported else { throw fail("지원하지 않는 박자표입니다.") }
         let barTicks = meter.ticksPerMeasure
         var events: [MusicEvent] = [], symbols: [ScoreSymbol] = [], openTie: Int?, sawTempo = false
         for (barIndex, bar) in bars.enumerated() {
@@ -185,9 +185,9 @@ enum MusicXMLParser {
             let attrs = bar.children(named: "attributes")
             if barIndex == 0 {
                 guard attrs.count == 1, let a = attrs.first, a.value("divisions") == "480", a.one("key")?.value("fifths") == "0",
-                      a.one("key")?.value("mode") == "major", a.one("time")?.value("beats") == String(beats), a.one("time")?.value("beat-type") == String(beatType),
+                      ["major", "none"].contains(a.one("key")?.value("mode") ?? ""), a.one("time")?.value("beats") == String(beats), a.one("time")?.value("beat-type") == String(beatType),
                       a.one("clef")?.value("sign") == "G", a.one("clef")?.value("line") == "2",
-                      a.value("staves") == nil || a.value("staves") == "1" else { throw fail("C Major·지원 박자·높은음자리표·divisions 480 필요") }
+                      a.value("staves") == nil || a.value("staves") == "1" else { throw fail("조표 없음·지원 박자·높은음자리표·divisions 480 필요") }
             } else if !attrs.isEmpty { throw fail("중간 속성 변경") }
             for direction in bar.children(named: "direction") {
                 let sounds = direction.children(named: "sound")
@@ -201,7 +201,7 @@ enum MusicXMLParser {
             for note in bar.children(named: "note") {
                 let duration = Int(note.value("duration") ?? "") ?? 0
                 let type = note.value("type") ?? "", dots = note.children(named: "dot").count
-                let bases = ["whole":1920,"half":960,"quarter":480,"eighth":240,"16th":120]
+                let bases = ["whole":1920,"half":960,"quarter":480,"eighth":240,"16th":120,"32nd":60]
                 let modification = note.one("time-modification")
                 let actual = modification.flatMap { Int($0.value("actual-notes") ?? "") } ?? (modification == nil ? 1 : 0)
                 let normal = modification.flatMap { Int($0.value("normal-notes") ?? "") } ?? (modification == nil ? 1 : 0)
@@ -218,7 +218,7 @@ enum MusicXMLParser {
                     let pitches = ["C":0,"D":2,"E":4,"F":5,"G":7,"A":9,"B":11]
                     guard let step, let semitone = pitches[step], (-2...2).contains(alter), (3...6).contains(octave) else { throw fail("음높이") }
                     let value = (octave+1)*12 + semitone + alter
-                    guard (48...84).contains(value) else { throw fail("MIDI 음역 48~84") }; midi = value
+                    guard (48...95).contains(value) else { throw fail("MIDI 음역 48~95") }; midi = value
                 }
                 let ties = note.children(named: "tie").compactMap { $0.attributes["type"] }
                 guard ties.count == note.children(named: "tie").count, ties.allSatisfy({ ["start","stop"].contains($0) }), Set(ties).count == ties.count,
@@ -235,7 +235,7 @@ enum MusicXMLParser {
                 }
                 var beams: [Int:String] = [:]
                 for beam in note.children(named: "beam") {
-                    guard let level = Int(beam.attributes["number"] ?? "1"), (1...2).contains(level), beams[level] == nil, ["begin","continue","end","forward hook","backward hook"].contains(beam.text.trimmingCharacters(in: .whitespacesAndNewlines)) else { throw fail("빔 형식") }
+                    guard let level = Int(beam.attributes["number"] ?? "1"), (1...3).contains(level), beams[level] == nil, ["begin","continue","end","forward hook","backward hook"].contains(beam.text.trimmingCharacters(in: .whitespacesAndNewlines)) else { throw fail("빔 형식") }
                     beams[level] = beam.text.trimmingCharacters(in: .whitespacesAndNewlines)
                 }
                 let tuplets = note.one("notations")?.children(named: "tuplet") ?? []

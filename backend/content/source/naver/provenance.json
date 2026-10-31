@@ -1,0 +1,301 @@
+{
+  "source_url": "https://blog.naver.com/smdpnp/222022610009",
+  "revision": "final / 2026-10-29",
+  "questions": {
+    "Q001.musicxml": {
+      "sha256": "5a72998e3b75bdac2ff43e536d39d3d5d3285986cc849417ea9cc9ea997a9178",
+      "score_png_sha256": "0325cf0447e4ca96d5904d3bac662227e4acaca6579ab52c0388f49d4db73cd0",
+      "review_status": "User accepted Q001–Q006 musical content; retained in v3."
+    },
+    "Q002.musicxml": {
+      "sha256": "2a38d6f95be2f6981d685325050c4b1f516c956e2b85e7623dd3be9ee2639e95",
+      "score_png_sha256": "311d94387921e8a0a33fb712f1c93a64172c118c9e255274553202ee6a0efdc9",
+      "review_status": "User accepted Q001–Q006 musical content; retained in v3."
+    },
+    "Q003.musicxml": {
+      "sha256": "49ab22c6f3bd532b009e15abb607e6577b5d7108cd60e64317eba8114e905464",
+      "score_png_sha256": "f892e346ff2944fe71d996ae661c7eac0c1e4920330563bd5285953008884100",
+      "review_status": "User final correction applied; other musical content retained."
+    },
+    "Q004.musicxml": {
+      "sha256": "b6bcedde8b0b57aca7c1f13661b0b7f9ac09ce6daffd411264cc3a6454b81d4b",
+      "score_png_sha256": "5b29d71252ebd1a7842859f48c74e3c2d1aef4aa208cb92a75457a0bf2e16bbf",
+      "review_status": "User final correction applied; other musical content retained."
+    },
+    "Q005.musicxml": {
+      "sha256": "30a5234a34b7ffb51e0a7ccbc3d917d40182deae0e94cca94e532532a5120df2",
+      "score_png_sha256": "5d6eeebe77af825062c502c43dd1ec74f530d24259b1e25a8620c4971f714c0d",
+      "review_status": "User final correction applied; other musical content retained."
+    },
+    "Q006.musicxml": {
+      "sha256": "db0aaa2994dc203376d73e7231b43d1821367bfec3c9930a0a5809e47af6f7ce",
+      "score_png_sha256": "4e7d7be1968698f6b055de9d31d376d4c0b69099857fa37ef8d01ee03541e5cb",
+      "review_status": "User accepted Q001–Q006 musical content; retained in v3."
+    },
+    "Q007.musicxml": {
+      "sha256": "87516027eaef4d77ac6d19f0a99d0d438e19815d8fb6c326919716f79a9b4ca4",
+      "score_png_sha256": "e0612ce9da9c73776b4bbc7b5a177ef8afe77bf85d8bd0ffe6f988c1c2f206db",
+      "review_status": "v3 revised draft; user review pending outside specifically identified corrections"
+    },
+    "Q008.musicxml": {
+      "sha256": "84d945a331e4a34f5b6c7190adb26cd507cd296d254608ea5f637a2e82fdf979",
+      "score_png_sha256": "f8956e85fc70f899d5abf09dd27c306029669f34f742cdd6ea46592a77c8f78c",
+      "review_status": "v3 revised draft; user review pending outside specifically identified corrections"
+    },
+    "Q009.musicxml": {
+      "sha256": "73c2be4182c03696fe13a667b5c28d3bd680cb7d2ed412036ce297af948e2203",
+      "score_png_sha256": "3dd278dae084a4f2bd79b20f6e6ecb3015d275cb66dcd096793a360cf2438bea",
+      "review_status": "v3 revised draft; user review pending outside specifically identified corrections"
+    },
+    "Q010.musicxml": {
+      "sha256": "6bda97ccb01eda962d28ca3c9a8c500452c84844e3c258b5ad681a89598e0dec",
+      "score_png_sha256": "9b051c71421397ad951ed5b3e1c94bad9f72ebef472b28cd6f03d10f8200277d",
+      "review_status": "v3 revised draft; user review pending outside specifically identified corrections"
+    },
+    "Q011.musicxml": {
+      "sha256": "bf94d09c917d87e549a46e07bd20ce9f7d0a03620b89b986650a0a0d0d91d578",
+      "score_png_sha256": "e66e980bbdd6ad5371f79a28c6ce5948dcfad06899d512204b9b00843f4a0124",
+      "review_status": "User final correction applied; other musical content retained."
+    },
+    "Q012.musicxml": {
+      "sha256": "5d6e9e0a63320400a7b3982ff79a720b03f24a30c233f0aa27923c78a56f6522",
+      "score_png_sha256": "86355a14b5e76ea416265589008129ad8e5ddc07109f177812fbe1d9e09fa938",
+      "review_status": "User final correction applied; other musical content retained."
+    },
+    "Q013.musicxml": {
+      "sha256": "83e7cc847e689a4b5acf3faace1864d90e27f206ba4d97d8e90ee33381f1ce56",
+      "score_png_sha256": "accc511848d474ca2f94aea7771e40035cf49850e6d299051d18ae7bcb191572",
+      "review_status": "User final correction applied; other musical content retained."
+    },
+    "Q014.musicxml": {
+      "sha256": "30ea2650b36101a88a2226567058a7254c6e16430ece1621e3153c736ee61e32",
+      "score_png_sha256": "1f931e9460902b57148b00e39587923017c3bb51b9003a9c2698bf0a78b7768c",
+      "review_status": "v3 revised draft; user review pending outside specifically identified corrections"
+    },
+    "Q015.musicxml": {
+      "sha256": "1f341447749429f05592fc4190606c68f49e4c8fca4dd4d152ac4d3ad132499b",
+      "score_png_sha256": "c46e1f55b562c098004da82433129958ee84c89eca05ff87fa88f6e5e8a54e70",
+      "review_status": "v3 revised draft; user review pending outside specifically identified corrections"
+    },
+    "Q016.musicxml": {
+      "sha256": "0f8debfb7d1dfdd3ab1f8bbb42c82eb1dbb3ecd41790680c0367171029678ce9",
+      "score_png_sha256": "b4c6ab8c67a7a2ea1d1f968bbe0a1e8f973c1f5ac0820febdd7792187abbb0f5",
+      "review_status": "v3 revised draft; user review pending outside specifically identified corrections"
+    },
+    "Q017.musicxml": {
+      "sha256": "62fab483170b384cf7da5136694f0ca6bacc5b78c2b945abb632540a1f5491a2",
+      "score_png_sha256": "4891d72a3798213eed3ae98b49de298e3de2c3b8b6c9acc45724bc05e02eb1c0",
+      "review_status": "v3 revised draft; user review pending outside specifically identified corrections"
+    },
+    "Q018.musicxml": {
+      "sha256": "4f82d253b5ecda7a1dea4a6244462d81961d39a4ab58e7d67b13ba5deb1e74b9",
+      "score_png_sha256": "45d33950b21e34a2fd3be64a5e52b035ff7a319b3a0df14c4394185b141e6d17",
+      "review_status": "v3 revised draft; user review pending outside specifically identified corrections"
+    },
+    "Q019.musicxml": {
+      "sha256": "26d5eeefa4d7374ff9b5cf83d683dc02bfb1c483060fa74fb7a7fd8f6d8b6886",
+      "score_png_sha256": "80eb7517261627d3dd9e5719d7aada211b0b1c82f23564106deb917f54b07fb6",
+      "review_status": "v3 revised draft; user review pending outside specifically identified corrections"
+    },
+    "Q020.musicxml": {
+      "sha256": "77807176220eecf25e4ee9a5930ff42155334061b4fefa35bb756781f841616c",
+      "score_png_sha256": "450fd6a1490a38b92aea2b461e4af19d8c12c6b939ec36a288bfc1de26373779",
+      "review_status": "User final correction applied; other musical content retained."
+    },
+    "Q021.musicxml": {
+      "sha256": "131b7766f27c61bdabe163f9316dbfdd61f949f0298ecbd3aae106abb9545015",
+      "score_png_sha256": "1aa5bb2c1320b84cfbb4b0f81fccbe4aa65ec90e3ca9a9a44a51330698e228a1",
+      "review_status": "v3 revised draft; user review pending outside specifically identified corrections"
+    },
+    "Q022.musicxml": {
+      "sha256": "1cd74fb50ee04dfb8dbcd911a3096c98e9dadcb3f94ebe91d62a4d78dde29458",
+      "score_png_sha256": "ab15b535b0c2ae8ed6a6974bd9b188f5f75c8e0fc936ceb3e67b2b02ac131050",
+      "review_status": "v3 revised draft; user review pending outside specifically identified corrections"
+    },
+    "Q023.musicxml": {
+      "sha256": "d2ee87f820a30bf19fc48c4eea9e954a804f96cdf3ef91a35db5977de09cd464",
+      "score_png_sha256": "600835914106cf733ba3ccee6cdfb6148587e9665302e7a56cf0da6beb294171",
+      "review_status": "v3 revised draft; user review pending outside specifically identified corrections"
+    },
+    "Q024.musicxml": {
+      "sha256": "a17194a77b1726ca7378c00e34a801a8542ca035e7b011926d827b3b46ffcc1e",
+      "score_png_sha256": "ccadff082b60f9fbe7f31d429eaa66716887cf448f2491492a7fbe9b326605cd",
+      "review_status": "v3 revised draft; user review pending outside specifically identified corrections"
+    },
+    "Q025.musicxml": {
+      "sha256": "c69e36212018cb70e3a91194e094b3cbeba3f89abff3c6b3d76e1e96fcc73e0e",
+      "score_png_sha256": "ec2363a2ac16720dce4ec5923cca88f9a1b465717ed3aaf5aa8abfd48534b41b",
+      "review_status": "v3 revised draft; user review pending outside specifically identified corrections"
+    },
+    "Q026.musicxml": {
+      "sha256": "52eb1f6a5e839516a4a6192957c81dbb10595df720784f427f97c2d8cd1b3db9",
+      "score_png_sha256": "b0f52aa111154d15a639a092349319ed06102f0053b760f504a6909b72041df3",
+      "review_status": "v3 revised draft; user review pending outside specifically identified corrections"
+    },
+    "Q027.musicxml": {
+      "sha256": "ca43cef2599cdf53541c90c704ecae5375ebd1d49cd7bba83f87b252a74800ff",
+      "score_png_sha256": "043c131ac54b5dac04ee0b428e1ab726eed495188d4b1d1c3fb04c3f4733adfb",
+      "review_status": "v3 revised draft; user review pending outside specifically identified corrections"
+    },
+    "Q028.musicxml": {
+      "sha256": "8190e4692045db697abbf12d4aece0d444de8da24314215bc0ca446ef7c57417",
+      "score_png_sha256": "1be142380af910397c76d95ad2a94d9951c894db9328c8b199b45dd18485448e",
+      "review_status": "v3 revised draft; user review pending outside specifically identified corrections"
+    },
+    "Q029.musicxml": {
+      "sha256": "beba443ddbb4907a9a3ff7f8ac344949cac66c0f851a6dbb483a961207b67975",
+      "score_png_sha256": "7620d7aee6f127336df7546c3cdcd840ef1d37ca29dcb89d9a781f606135cf67",
+      "review_status": "v3 revised draft; user review pending outside specifically identified corrections"
+    },
+    "Q030.musicxml": {
+      "sha256": "32f947b1a6554a0c8e7fedeea2f5642691d584097cbc9a03687e2d2646b70055",
+      "score_png_sha256": "3dee3d85123252a2046f00eaa33e4f351af3e5addcd156fe2ae0df9ef5222b6e",
+      "review_status": "v3 revised draft; user review pending outside specifically identified corrections"
+    },
+    "Q031.musicxml": {
+      "sha256": "0ff6d4a157c874ac697bf6f29d0e8391ad97de52de22bcbd4f79fda56bf95d1f",
+      "score_png_sha256": "a9757a14b78a7a42541e2543798e14276c0b0adbbc34ffc00e496e3e1298c06a",
+      "review_status": "v3 revised draft; user review pending outside specifically identified corrections"
+    },
+    "Q032.musicxml": {
+      "sha256": "aff7a17fe76b41fb15ac351bf4f702ec11ac9a6e0c7ea40f5c86ce7d186816b4",
+      "score_png_sha256": "037c95c717f749a7edb98e0ad6a4ab05e9316922811d3751d739598dc38d50a1",
+      "review_status": "v3 revised draft; user review pending outside specifically identified corrections"
+    },
+    "Q033.musicxml": {
+      "sha256": "c042d43ae10a690174d10bfffa0ea47cd1e8fadf4dd45936a9f3d6497c662a28",
+      "score_png_sha256": "e1cce3ecc22956161adb7b51936389d7df53cbe2fffde53f3b3c0c57ba6a27a0",
+      "review_status": "v3 revised draft; user review pending outside specifically identified corrections"
+    },
+    "Q034.musicxml": {
+      "sha256": "b5ee5e5484ec62271eb41074381b2fb82391389b6f4edbed57827f98dfda2502",
+      "score_png_sha256": "84b55dc30ea97d1bb2e2fd0b13f41ac8c82ab94716c8e46d6067f585ac9be8d7",
+      "review_status": "v3 revised draft; user review pending outside specifically identified corrections"
+    },
+    "Q035.musicxml": {
+      "sha256": "d14c0fe5aeb360d24359deced4beb2060be3f673defdb9177ba7293a2f5182fb",
+      "score_png_sha256": "42b197be737f86223f01d6ec983cd02f0d68c5985e11e65ceaab538abf0f945a",
+      "review_status": "v3 revised draft; user review pending outside specifically identified corrections"
+    },
+    "Q036.musicxml": {
+      "sha256": "9e6838d544272037625508177235f521cb3d32c23524c04750b0f8dffc4a68a4",
+      "score_png_sha256": "8c8f52f88fc701113ccc82949b81f5bc59395a8b4d06925440f42f1f72c42edf",
+      "review_status": "v3 revised draft; user review pending outside specifically identified corrections"
+    },
+    "Q037.musicxml": {
+      "sha256": "f32e40eb81f5d228ecf8eebc76b9888aeaf9098aa8aa2f2c3e8ba38683d97cef",
+      "score_png_sha256": "62ca0675d8dae1bc812c06cd4fec54a751beee94f4704ad60f5d2aff818911ad",
+      "review_status": "v3 revised draft; user review pending outside specifically identified corrections"
+    },
+    "Q038.musicxml": {
+      "sha256": "f962e2d32ccffc55433cd75ea967acedd0ab04e82f4ef0207f6b86f18123eacd",
+      "score_png_sha256": "20fe45b286dbd42b076ce847a87c001baca51a828cb1d9b979319ad5b7c2e51e",
+      "review_status": "v3 revised draft; user review pending outside specifically identified corrections"
+    },
+    "Q039.musicxml": {
+      "sha256": "181491d6fe51058d2068377bcdbd3ce847cfa7e7ba64c3826c49d190bad6c0d8",
+      "score_png_sha256": "a8d545387bf49f48b82493151771b7a8bafcc21a7640e7dd1f200bcc65e95c05",
+      "review_status": "v3 revised draft; user review pending outside specifically identified corrections"
+    },
+    "Q040.musicxml": {
+      "sha256": "17906ba22278e86e11effe8329dedeecf64ed154d83726eb5da1d2c1c03e15eb",
+      "score_png_sha256": "50b8821a460a841448f206efda3a278e36b60cf9888ce6e745ab4da153eac27d",
+      "review_status": "v3 revised draft; user review pending outside specifically identified corrections"
+    },
+    "Q041.musicxml": {
+      "sha256": "c6105e7b8aee4ddfee10e06f225bd11ac89b0fc4e0ea131d3d682a7ce82a6aec",
+      "score_png_sha256": "f385503b606bc4808e4f1074d517296dac22f6fb98db5f3f1594a91c0b46cb4f",
+      "review_status": "v3 revised draft; user review pending outside specifically identified corrections"
+    },
+    "Q042.musicxml": {
+      "sha256": "7b71697e0ca72a71e542af1cf771582ce37fc40268977d58fd4f15215a559146",
+      "score_png_sha256": "c8886939545d172ce161db0297339ab7436c4062bb45c7f6d67ca5d0066af653",
+      "review_status": "v3 revised draft; user review pending outside specifically identified corrections"
+    },
+    "Q043.musicxml": {
+      "sha256": "e414d33583fcfc6e512ea8f73875fb70a6b45ab120a4182b48381999b69b3d20",
+      "score_png_sha256": "03be3d9ba1922c5c14ec0af4082bd4ece3838e1fd5e79d08059743451b1463a4",
+      "review_status": "v3 revised draft; user review pending outside specifically identified corrections"
+    },
+    "Q044.musicxml": {
+      "sha256": "74637d2d5675505f9604c3c805576a472e79296df7214f1a3089c7ce8e54a906",
+      "score_png_sha256": "311d09677ca72716c5676fcb946a777fb5eca8065d5e1ade74e555e3294e160b",
+      "review_status": "v3 revised draft; user review pending outside specifically identified corrections"
+    },
+    "Q045.musicxml": {
+      "sha256": "101438438470e61d9959ba9d7d8a60f084c1f54fcdb64091c658954f7ea90ded",
+      "score_png_sha256": "49728b577637619605420fcac5e12e3cfba7fc634efdf4fb49f26f34a03a91f4",
+      "review_status": "v3 revised draft; user review pending outside specifically identified corrections"
+    },
+    "Q046.musicxml": {
+      "sha256": "e0f611e40ec14b08374abc3c0cd0f92e5bc1672c5eba5313d4def1ffc3185553",
+      "score_png_sha256": "e23d3657325ed778b6222cf5bcf27469b0fd8cca8ce82c44c983094b0d48a4fe",
+      "review_status": "v3 revised draft; user review pending outside specifically identified corrections"
+    },
+    "Q047.musicxml": {
+      "sha256": "11e0f9707637b5cb9d9403a795525dfe0fbc31f30affa5e27b2bbe33b1dbcb12",
+      "score_png_sha256": "05d55a9db1f9ea58b4efe4221f0384550351090ee073ea1dba0e762f58493a60",
+      "review_status": "v3 revised draft; user review pending outside specifically identified corrections"
+    },
+    "Q048.musicxml": {
+      "sha256": "68abbdce9d73213904169060d2e7b3c715a9faccb8d2af64679faae34a5c962a",
+      "score_png_sha256": "dc9282cc3ebe610ad008f768b0078a86efd7924c5c59c88a288d3721a02cdd96",
+      "review_status": "v3 revised draft; user review pending outside specifically identified corrections"
+    },
+    "Q049.musicxml": {
+      "sha256": "c43726a11a9cbee501e52109faa715f92c3d3eeb2baaafcb1763b1dce8263b21",
+      "score_png_sha256": "d4253411ae7472471f27393a1676ebd4b8060e5dc2b4d9bf937c53edfad55d18",
+      "review_status": "v3 revised draft; user review pending outside specifically identified corrections"
+    },
+    "Q050.musicxml": {
+      "sha256": "7340a560052ea18c411683c888777d4142a4ea7ba9fb742d6e2adff1354f71d4",
+      "score_png_sha256": "0fce3c650326709ca2e50e3aafd57877c0a77894ef29a4b64d564205eaf4af02",
+      "review_status": "v3 revised draft; user review pending outside specifically identified corrections"
+    },
+    "Q051.musicxml": {
+      "sha256": "f2197099d0da9bc9b6f359318fc00698147648bb3cefbbe31a01369bd5e17390",
+      "score_png_sha256": "8f48cf0667d132002a2dd43b6bdfafe3288d0e0bec4959e7fad763c8a6bc4389",
+      "review_status": "v3 revised draft; user review pending outside specifically identified corrections"
+    },
+    "Q052.musicxml": {
+      "sha256": "ee7a3e616c857bbcf7f85c3c154113df0aff8822feb6a2e4ae80b0ae2d731c73",
+      "score_png_sha256": "1c0e4a1bbb4ea4a72d2e8f2a3fddd99e2d302bd4700e8a7514202a1e346534e8",
+      "review_status": "v3 revised draft; user review pending outside specifically identified corrections"
+    },
+    "Q053.musicxml": {
+      "sha256": "a2595f2d1266711e6cfb2e19a17caed9ddf6d66532a1dcddea87df38450ec4fc",
+      "score_png_sha256": "069249bc974c3f856e5a5a7b99e787fce46695c7ec06fdcf13c1fad86ebb6049",
+      "review_status": "v3 revised draft; user review pending outside specifically identified corrections"
+    },
+    "Q054.musicxml": {
+      "sha256": "14ce70b38ea38d2f196c736dd94752989b127cdfb456859c07bf3ec764ebe1c0",
+      "score_png_sha256": "554b3d568dede797452c557490fb2383bbd38fe6ec9f725f674b4c3a980ca5d4",
+      "review_status": "v3 revised draft; user review pending outside specifically identified corrections"
+    },
+    "Q055.musicxml": {
+      "sha256": "237c948fe4e864c2604639e88766466e94e0808e579d1bcef330db71759de902",
+      "score_png_sha256": "23d99faf64dbeccd3b24364f95b8f35d0fffa35cd957c5769f06ef71f562bf84",
+      "review_status": "v3 revised draft; user review pending outside specifically identified corrections"
+    },
+    "Q056.musicxml": {
+      "sha256": "0badb36e3d25d4d750fc8c68e581751d2eff502217154e95bb5636dde19903eb",
+      "score_png_sha256": "597fecf0f81223a840b08e8a8c2f5d00b59e7d3f911ba6382cc8486473d0347a",
+      "review_status": "v3 revised draft; user review pending outside specifically identified corrections"
+    },
+    "Q057.musicxml": {
+      "sha256": "21d9ac06f9c653874283798ab0c5b3ce23962107916c1fcd118c6bc575360635",
+      "score_png_sha256": "0fe29ce98fd4c3c4395d7425c68de51af70970a8c0f482eeeb21eb4fdf035423",
+      "review_status": "v3 revised draft; user review pending outside specifically identified corrections"
+    },
+    "Q058.musicxml": {
+      "sha256": "56deeffcae7d410e383fbb6c99a49533a1a8c207f66a7e8ba3fca838e36e8d29",
+      "score_png_sha256": "ec8c7dbbc44a44ef442447581d4e882e34662050b090f7cc462d4f9cd06b446c",
+      "review_status": "v3 revised draft; user review pending outside specifically identified corrections"
+    },
+    "Q059.musicxml": {
+      "sha256": "25451a0eb2828e9c2f09996af7515b578d2022214ba73308cf8b0f1c82ef5b9e",
+      "score_png_sha256": "f4ed2feca8b8f6610f489ac0c55fc7c98da122413a54ea507849d8c1c5361212",
+      "review_status": "v3 revised draft; user review pending outside specifically identified corrections"
+    }
+  }
+}

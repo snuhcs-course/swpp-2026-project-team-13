@@ -74,7 +74,8 @@ def main():
     version_text = version.stdout + version.stderr
     if "4.6.3" not in version_text:
         parser.error("Pinned renderer is MuseScore 4.6.3; review a renderer version upgrade before regenerating assets")
-    catalog = json.loads((CONTENT / "catalog.json").read_text(encoding="utf-8"))
+    # Imported final images are already reviewed source artifacts; render only the originals.
+    catalog = json.loads((CONTENT / "catalog.json").read_text(encoding="utf-8"))[:3]
     jobs = []
     for index, item in enumerate(catalog, 1):
         with zipfile.ZipFile(CONTENT / item["main_path"]) as archive:
@@ -107,6 +108,8 @@ def main():
             manifest["scores"][version["metadata"]["score_assets"]["main"]["sha256"]] = asset
     (target / "manifest.json").write_text(json.dumps(manifest, ensure_ascii=False, indent=2), encoding="utf-8")
     (RESOURCES / "engraving-manifest.json").write_text(json.dumps(manifest, ensure_ascii=False, indent=2), encoding="utf-8")
+    from import_naver_questions import append_naver
+    append_naver(list(catalog), [])
     print("Exported 3 MuseScore reference scores: no measure numbers, 4+4 bars, courtesy naturals. Original MXL files preserved.")
 
 if __name__ == "__main__":

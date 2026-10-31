@@ -19,7 +19,7 @@ def musical_note(note):
 
 class ContentTests(unittest.TestCase):
     def test_original_notes_and_all_three_meters_are_preserved(self):
-        self.assertEqual(len(CATALOG),3)
+        self.assertEqual(len(CATALOG),62)
         for item, filename, meter in zip(CATALOG,SOURCES,[(6,8),(4,4),(3,4)]):
             original = ET.fromstring((CONTENT / "source" / filename).read_bytes())
             with zipfile.ZipFile(CONTENT / item["main_path"]) as archive:
@@ -33,7 +33,7 @@ class ContentTests(unittest.TestCase):
             self.assertEqual(len(score.findall("part/measure")),8)
 
     def test_all_bars_and_tuplet_durations_are_exact(self):
-        bases={"whole":1920,"half":960,"quarter":480,"eighth":240,"16th":120}
+        bases={"whole":1920,"half":960,"quarter":480,"eighth":240,"16th":120,"32nd":60}
         for item in CATALOG:
             meter=item["metadata"]["time_signature"]
             expected=meter["numerator"]*480*4//meter["denominator"]
@@ -72,10 +72,55 @@ class ContentTests(unittest.TestCase):
             with zipfile.ZipFile(CONTENT / item["scale_path"]) as archive:
                 score=ET.fromstring(archive.read("score.xml"))
             notes=score.findall("part/measure/note")
-            self.assertEqual([(n.findtext("pitch/step"),n.findtext("pitch/octave")) for n in notes],expected)
-            self.assertTrue(all(n.findtext("duration")=="240" for n in notes[:-1]))
+            attacks = [n for n in notes if not any(t.get("type")=="stop" for t in n.findall("tie"))]
+            self.assertEqual([(n.findtext("pitch/step"),n.findtext("pitch/octave")) for n in attacks],expected)
+            self.assertTrue(all(n.findtext("duration")=="240" for n in attacks[:-1]))
             self.assertEqual(len(score.findall("part/measure")),item["metadata"]["score_assets"]["scale"]["measure_count"])
             self.assertEqual(item["metadata"]["version"],2)
+
+    def test_naver_final_transcriptions_preserve_notes_rests_ties_and_accidentals(self):
+        provenance=json.loads((CONTENT / "source/naver/provenance.json").read_text(encoding="utf-8"))
+        resources=ROOT / "frontend/IPadApp/IPadApp/Resources"
+        self.assertEqual(json.loads((resources / "practice-catalog.json").read_text(encoding="utf-8")),[i["metadata"] for i in CATALOG])
+        self.assertEqual(len({i["metadata"]["id"] for i in CATALOG}),62)
+        meters=set()
+        for number,item in enumerate(CATALOG[3:],1):
+            with self.subTest(question=number):
+                filename=f"Q{number:03}.musicxml"
+                data=(CONTENT / "source/naver" / filename).read_bytes()
+                self.assertEqual(hashlib.sha256(data).hexdigest(),provenance["questions"][filename]["sha256"])
+                original=ET.fromstring(data)
+                divisions=int(original.findtext("part/measure/attributes/divisions"))
+                with zipfile.ZipFile(CONTENT / item["main_path"]) as archive:
+                    score=ET.fromstring(archive.read("score.xml"))
+                source_notes=original.findall("part/measure/note")
+                built_notes=score.findall("part/measure/note")
+                self.assertEqual(len(source_notes),len(built_notes))
+                for source_note,note in zip(source_notes,built_notes):
+                    expected=list(musical_note(source_note));expected[4]=expected[4]*480//divisions
+                    self.assertEqual(tuple(expected),musical_note(note))
+                    self.assertEqual(source_note.findtext("accidental"),note.findtext("accidental"))
+                    self.assertEqual([(t.tag,sorted(t.attrib.items())) for t in source_note.findall("notations/*")],[(t.tag,sorted(t.attrib.items())) for t in note.findall("notations/*")])
+                meter=item["metadata"]["time_signature"]
+                self.assertEqual((str(meter["numerator"]),str(meter["denominator"])),(original.findtext("part/measure/attributes/time/beats"),original.findtext("part/measure/attributes/time/beat-type")))
+                meters.add((meter["numerator"],meter["denominator"]))
+                self.assertEqual(item["metadata"]["key_signature"]["mode"],"unspecified")
+        self.assertEqual(meters,{(2,4),(3,4),(4,4),(6,8),(7,8),(9,8),(12,8)})
+
+    def test_all_ties_join_contiguous_equal_pitches_and_close(self):
+        for item in CATALOG:
+            for kind in ("main","scale"):
+                with zipfile.ZipFile(CONTENT / item[f"{kind}_path"]) as archive:
+                    score=ET.fromstring(archive.read("score.xml"))
+                opened=None
+                for note in score.findall("part/measure/note"):
+                    pitch=(note.findtext("pitch/step"),note.findtext("pitch/alter","0"),note.findtext("pitch/octave"))
+                    ties=[t.get("type") for t in note.findall("tie")]
+                    self.assertEqual("stop" in ties,opened is not None)
+                    if opened is not None:
+                        self.assertEqual(pitch,opened)
+                    opened=pitch if "start" in ties else None
+                self.assertIsNone(opened)
 
     def test_original_v1_files_remain_available_with_the_original_hashes(self):
         original=json.loads((CONTENT / "catalog-v1.json").read_text(encoding="utf-8"))

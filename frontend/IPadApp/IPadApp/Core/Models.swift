@@ -9,11 +9,14 @@ struct UserProfile: Codable, Identifiable, Equatable {
     var displayName: String
     var learningGoal: String
 }
-struct KeySignature: Codable, Equatable { var tonic: String; var mode: String; var fifths: Int }
+struct KeySignature: Codable, Equatable {
+    var tonic: String; var mode: String; var fifths: Int
+    var label: String { mode == "unspecified" ? "조표 없음" : "\(tonic) \(mode.capitalized)" }
+}
 struct TimeSignature: Codable, Equatable {
     var numerator: Int; var denominator: Int
     var ticksPerMeasure: Int { numerator * 480 * 4 / denominator }
-    var supported: Bool { [(4,4), (3,4), (6,8)].contains { $0.0 == numerator && $0.1 == denominator } }
+    var supported: Bool { [(2,4), (3,4), (4,4), (6,8), (7,8), (9,8), (12,8)].contains { $0.0 == numerator && $0.1 == denominator } }
 }
 struct SheetSystem: Codable, Equatable {
     var index: Int; var firstMeasure: Int; var lastMeasure: Int
@@ -25,7 +28,7 @@ struct SheetLayout: Codable, Equatable {
     var pixelWidth: Int; var pixelHeight: Int
     var templatePngUrl: URL; var templateSha256: String; var systems: [SheetSystem]
     func validate() throws {
-        guard ["staff-8bars-v1", "staff-8bars-4-4-v2", "staff-8bars-3-4-v2", "staff-8bars-6-8-v2"].contains(id), logicalWidth == 1330, logicalHeight == 846,
+        guard ["staff-8bars-v1", "staff-8bars-4-4-v2", "staff-8bars-3-4-v2", "staff-8bars-6-8-v2", "staff-8bars-2-4-v2", "staff-8bars-7-8-v2", "staff-8bars-9-8-v2", "staff-8bars-12-8-v2"].contains(id), logicalWidth == 1330, logicalHeight == 846,
               exportScale == 2, pixelWidth == 2660, pixelHeight == 1692,
               systems.count == 2, systems.allSatisfy({ $0.staffLineY.count == 5 && $0.barlineX.count == 5 }) else {
             throw SORIError.unsupported("지원하지 않는 오선 템플릿입니다.")
@@ -58,7 +61,7 @@ struct Question: Codable, Identifiable, Equatable {
     var correctScore: ReferenceImage? = nil
     func validate() throws {
         try sheetLayout.validate()
-        guard source == "practice", keySignature.tonic == "C", keySignature.mode == "major", keySignature.fifths == 0,
+        guard source == "practice", keySignature.tonic == "C", ["major", "unspecified"].contains(keySignature.mode), keySignature.fifths == 0,
               timeSignature.supported, measureCount == 8,
               timePolicy == "advisory", clef == "treble", contentPolicy == "client_readable_practice",
               scoreVisibility == "after_submission" else { throw SORIError.unsupported("지원하지 않는 문제 형식입니다.") }
@@ -86,7 +89,7 @@ struct TempoSetting: Codable, Equatable {
               minimumBpm > 0, maximumBpm >= minimumBpm, (minimumBpm...maximumBpm).contains(bpm),
               quarterBpm >= 40, quarterBpm <= 200 else { throw SORIError.unsupported("템포 설정을 확인해 주세요.") }
         if let meter {
-            guard beatUnit == (meter.denominator == 8 ? "dotted_quarter" : "quarter") else { throw SORIError.unsupported("템포의 기준 음표가 박자와 다릅니다.") }
+            guard beatUnit == (meter.denominator == 8 && meter.numerator % 3 == 0 ? "dotted_quarter" : "quarter") else { throw SORIError.unsupported("템포의 기준 음표가 박자와 다릅니다.") }
         }
     }
 }
@@ -104,7 +107,7 @@ struct PlaybackPlan: Codable, Equatable {
         let ranges = [(1,8),(1,2),(1,2),(1,4),(3,4),(3,6),(5,6),(5,8),(7,8),(7,8),(1,8)]
         return PlaybackPlan(version:4,engine:"local_midi",tempoBpm:selected.quarterBpm,instrumentProfileId:"sori-piano-v2",
             tuningHz:440,transposeSemitones:0,velocity:80,gateRatio:1,releaseTailMs:300,
-            scale:ScalePlayback(scoreKind:"scale",fromMeasure:1,toMeasure:scaleMeasures ?? (meter.numerator == 4 ? 2 : 3)),pauseAfterScaleMs:2000,
+            scale:ScalePlayback(scoreKind:"scale",fromMeasure:1,toMeasure:scaleMeasures ?? ((15*240+meter.ticksPerMeasure-1)/meter.ticksPerMeasure)),pauseAfterScaleMs:2000,
             allowManualPause:true,allowManualReplay:false,interruptionPolicy:"restart_current_segment",
             steps:ranges.enumerated().map { i, range in
                 PlaybackStep(order:i+1,fromMeasure:range.0,toMeasure:range.1,scoreKind:"main",pauseAfterMs:i == 10 ? 120000 : 20000)
@@ -126,7 +129,7 @@ struct PlaybackPlan: Codable, Equatable {
               transposeSemitones == 0, velocity == 80, gateRatio == 1, releaseTailMs == 300,
               tempoBpm.isFinite, (40...200).contains(tempoBpm), allowManualPause, !allowManualReplay,
               interruptionPolicy == "restart_current_segment", scale.scoreKind == "scale", scale.fromMeasure == 1,
-              (version == 4 ? [2,3].contains(scale.toMeasure) : scale.toMeasure == 2), pauseAfterScaleMs >= 0, steps.count == 11,
+              (version == 4 ? (1...4).contains(scale.toMeasure) : scale.toMeasure == 2), pauseAfterScaleMs >= 0, steps.count == 11,
               zip(steps,ranges).enumerated().allSatisfy({ i,pair in
                   pair.0.order == i+1 && pair.0.fromMeasure == pair.1.0 && pair.0.toMeasure == pair.1.1 && pair.0.scoreKind == "main" && pair.0.pauseAfterMs >= 0
               }) else { throw SORIError.unsupported("지원하지 않는 재생 계획입니다.") }
