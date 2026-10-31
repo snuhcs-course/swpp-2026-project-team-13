@@ -62,6 +62,31 @@ final class StubProtocol:URLProtocol {
         XCTAssertEqual(mxl.sha256,question.scoreAssets.main.sha256);XCTAssertEqual(calls.count,13)
         XCTAssertTrue(calls.contains("GET questions/?page=1&page_size=20"));XCTAssertTrue(calls.contains("PATCH me/"))
     }
+    func testClassicalFilterDoesNotChangePracticePagination() async throws {
+        let config=URLSessionConfiguration.ephemeral;config.protocolClasses=[StubProtocol.self]
+        let base=URL(string:"https://api.sori.example/api/v1/")!
+        let api=try HTTPExamAPI(base:base,token:"test-token",session:URLSession(configuration:config))
+        let response=try Data(contentsOf:root.appendingPathComponent("examples/questions.json"))
+        var paths:[String]=[]
+        StubProtocol.handler={ request in
+            XCTAssertEqual(request.httpMethod,"GET")
+            XCTAssertEqual(request.value(forHTTPHeaderField:"Authorization"),"Bearer test-token")
+            XCTAssertEqual(request.value(forHTTPHeaderField:"Accept"),"application/json")
+            paths.append(request.url!.absoluteString.replacingOccurrences(of:base.absoluteString,with:""))
+            return (200,"application/json",response)
+        }
+        defer {StubProtocol.handler=nil}
+        _=try await api.questions(page:1)
+        _=try await api.classicalQuestions(page:1)
+        _=try await api.classicalQuestions(page:2)
+        _=try await api.questions(page:2)
+        XCTAssertEqual(paths,[
+            "questions/?page=1&page_size=20",
+            "questions/?page=1&page_size=20&collection=classical",
+            "questions/?page=2&page_size=20&collection=classical",
+            "questions/?page=2&page_size=20"
+        ])
+    }
     func test401IsSurfacedWithoutAutomaticRepeat() async throws {
         let config=URLSessionConfiguration.ephemeral;config.protocolClasses=[StubProtocol.self]
         let api=try HTTPExamAPI(base:URL(string:"https://api.example/api/v1/")!,token:"bad",session:URLSession(configuration:config))

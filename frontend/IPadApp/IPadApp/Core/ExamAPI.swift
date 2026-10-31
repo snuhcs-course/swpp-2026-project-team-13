@@ -132,14 +132,16 @@ final class NoRedirectDelegate: NSObject, URLSessionTaskDelegate, @unchecked Sen
     func profile() async throws -> UserProfile { try await json("me/") }
     func updateGoal(_ goal: String) async throws -> UserProfile { try await json("me/", method: "PATCH", body: JSONSerialization.data(withJSONObject: ["learning_goal": goal])) }
     func questions(page: Int) async throws -> QuestionPage {
-        try await questionPage(page:page,collection:"practice")
+        try await questionPage(page:page)
     }
     func classicalQuestions(page: Int) async throws -> QuestionPage {
         try await questionPage(page:page,collection:"classical")
     }
-    private func questionPage(page: Int, collection: String) async throws -> QuestionPage {
+    private func questionPage(page: Int, collection: String? = nil) async throws -> QuestionPage {
         var components = URLComponents(url: endpoint("questions/"), resolvingAgainstBaseURL: false)!
-        components.queryItems = [URLQueryItem(name: "page", value: String(page)), URLQueryItem(name: "page_size", value: "20"), URLQueryItem(name:"collection",value:collection)]
+        var queryItems = [URLQueryItem(name: "page", value: String(page)), URLQueryItem(name: "page_size", value: "20")]
+        if let collection { queryItems.append(URLQueryItem(name: "collection", value: collection)) }
+        components.queryItems = queryItems
         let data = try await execute(request(components.url!), limit: 2 * 1024 * 1024)
         return try ContractJSON.decoder().decode(QuestionPage.self, from: data)
     }
