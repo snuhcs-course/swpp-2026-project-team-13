@@ -2,7 +2,7 @@ import SwiftUI
 import PencilKit
 
 @MainActor final class AppModel: ObservableObject {
-    enum Screen: String { case home, question, exam, result, history, settings, minigames }
+    enum Screen: String { case home, question, exam, result, history, settings, minigames, classical }
     @Published var screen: Screen = .home
     @Published var profile: UserProfile?
     @Published var questions: [QuestionSummary] = []

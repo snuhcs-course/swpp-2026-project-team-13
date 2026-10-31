@@ -1,0 +1,11 @@
+{
+  "localMelodies": 36,
+  "eightBarFiles": 32,
+  "externalLinks": 3,
+  "audioSchedule": "passed (simulated Web Audio)",
+  "stopDuringResume": "passed",
+  "loopAndTempo": "passed",
+  "composerFilters": "passed",
+  "backgroundStops": "passed",
+  "browserVisualAndRealAudio": "not run"
+}
