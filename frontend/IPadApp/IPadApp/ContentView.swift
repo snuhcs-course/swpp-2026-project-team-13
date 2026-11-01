@@ -11,9 +11,11 @@ struct ContentView: View {
                 HStack(spacing: 8) { WaveMark(); Text("SORI").font(.system(size: 29, weight: .heavy, design: .rounded)).tracking(3) }.padding(.horizontal, 24).padding(.top, 32)
                 Text("소리에서 시작하는 음악 공부").font(.caption).foregroundStyle(.secondary).padding(.horizontal, 24)
                 VStack(spacing: 8) {
-                    sidebar("나의 연습실", icon: "square.grid.2x2", screen: .home)
-                    sidebar("클래식", icon: "music.quarternote.3", screen: .classical)
-                    sidebar("미니게임", icon: "gamecontroller", screen: .minigames)
+                    sidebar("Daily Training", icon:"sun.max", screen:.dailyTraining)
+                    sidebar("Drills", icon:"gamecontroller", screen:.minigames)
+                    sidebar("Practice", icon:"pencil.and.list.clipboard", screen:.home)
+                    sidebar("Exam", icon:"music.note.list", screen:.examLibrary)
+                    Divider().padding(.vertical,8)
                     sidebar("연습 기록", icon: "clock.arrow.circlepath", screen: .history)
                     sidebar("연결 설정", icon: "slider.horizontal.3", screen: .settings)
                 }.padding(.horizontal, 14)
@@ -30,7 +32,9 @@ struct ContentView: View {
                 ZStack {
                     SORITheme.background.ignoresSafeArea()
                     switch model.screen {
-                    case .home: HomeView(model: model)
+                    case .dailyTraining: DailyTrainingPlaceholderView()
+                    case .home: HomeView(model:model,mode:.practice)
+                    case .examLibrary: HomeView(model:model,mode:.exam)
                     case .question: QuestionView(model: model)
                     case .exam: ExamView(model: model, drawing: model.drawing, player: model.player)
                     case .result: ResultView(model: model)
@@ -43,7 +47,7 @@ struct ContentView: View {
                 .toolbar {
                     ToolbarItem(placement: .topBarLeading) {
                         if [.question,.exam,.result].contains(model.screen) {
-                            Button { model.navigate(model.selectedQuestion?.collection == "classical" ? .classical : .home) } label: { Label(model.selectedQuestion?.collection == "classical" ? "클래식" : "연습실", systemImage: "chevron.left") }
+                            Button { model.navigate(model.selectedQuestion?.collection == "classical" ? .classical : model.libraryScreen) } label: { Label(model.selectedQuestion?.collection == "classical" ? "클래식" : model.selectedMode.title, systemImage:"chevron.left") }
                         }
                     }
                     ToolbarItem(placement: .topBarTrailing) {
@@ -72,10 +76,18 @@ struct ContentView: View {
         }
     }
     private func sidebar(_ title: String, icon: String, screen: AppModel.Screen) -> some View {
-        Button { model.navigate(screen) } label: {
+        let active = model.screen == screen || ([.question,.exam,.result,.classical].contains(model.screen) && screen == model.libraryScreen)
+        return Button { model.navigate(screen) } label: {
             Label(title, systemImage: icon).font(.system(size: 15, weight: .semibold)).frame(maxWidth: .infinity, alignment: .leading).padding(15)
-                .foregroundStyle(model.screen == screen ? SORITheme.violet : SORITheme.ink.opacity(0.65))
-                .background(model.screen == screen ? SORITheme.soft : .clear, in: RoundedRectangle(cornerRadius: 12))
+                .foregroundStyle(active ? SORITheme.violet : SORITheme.ink.opacity(0.65))
+                .background(active ? SORITheme.soft : .clear, in: RoundedRectangle(cornerRadius: 12))
         }.buttonStyle(.plain).disabled(model.busy)
+    }
+}
+
+struct DailyTrainingPlaceholderView: View {
+    var body: some View {
+        ContentUnavailableView("Daily Training 준비 중",systemImage:"sun.max",
+            description:Text("매일 미니게임 세트와 청음 한 문제를 함께 연습하는 메뉴를 준비하고 있어요. 지금은 Drills와 Practice에서 시작해 주세요."))
     }
 }

@@ -7,7 +7,7 @@ struct MiniGameHubView: View {
     var body: some View {
         ScrollView {
             VStack(alignment:.leading,spacing:26) {
-                SectionCaption(eyebrow:"PLAY WITH SOUND",title:"미니게임",subtitle:"짧게 듣고, 가볍게 연주하고. 귀의 감각을 깨워 보세요.")
+                SectionCaption(eyebrow:"PLAY WITH SOUND",title:"Drills",subtitle:"미니게임을 골라 듣고 기억하는 연습을 해보세요.")
                 Button { playing = true } label: {
                     VStack(alignment:.leading,spacing:24) {
                         HStack { Pill(text:"NEW · 두 가지 플레이"); Spacer(); Image(systemName:"arrow.up.right").font(.title2) }

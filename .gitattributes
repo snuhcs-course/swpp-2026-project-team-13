@@ -18,3 +18,7 @@ backend/content/source/practice-import/*.musicxml binary
 
 # The renderer manifest pins the stylesheet hash on Windows and Linux.
 *.mss text eol=lf
+
+# Keep the specification fixture's XML hash identical across platforms.
+docs/feature-v1/example.musicxml text eol=lf
+backend/sori/features/fixtures/example.musicxml text eol=lf

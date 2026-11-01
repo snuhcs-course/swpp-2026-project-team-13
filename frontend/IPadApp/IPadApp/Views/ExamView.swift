@@ -69,7 +69,7 @@ struct ExamView: View {
     private var header: some View {
         HStack(alignment: .center) {
             VStack(alignment: .leading, spacing: 6) {
-                Text(model.session?.attempt.question.title ?? "청음 연습").font(.headline)
+                Text((model.session?.attempt.studyMode.title ?? "Practice") + " · " + (model.session?.attempt.question.title ?? "청음 연습")).font(.headline)
                 if let tempo = model.session?.attempt.playbackPlan.tempo { Text(tempo.label).font(.caption).foregroundStyle(.secondary) }
                 Text(player.message).font(.subheadline).foregroundStyle(SORITheme.violet).accessibilityIdentifier("playback-status")
             }

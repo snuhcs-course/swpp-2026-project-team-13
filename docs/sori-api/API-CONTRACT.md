@@ -1,10 +1,35 @@
-# SORI API 계약 v0.6.0
+# SORI API 계약 v0.7.0
 
-이 버전은 개인 연습용 iPad 앱과 Django 서버의 계약입니다. HTTP 경로는 /api/v1/을 유지합니다. 기존 v0.2.0의 서버 비교 산식 대신, 서버가 OpenRouter에 필기 이미지와 고정된 정답을 함께 보내 AI 평가와 한국어 피드백을 받습니다. 자기채점 및 감독형 Exam 모드는 이번 구현 범위 밖입니다.
+이 버전은 개인 연습용 iPad 앱과 Django 서버의 계약입니다. HTTP 경로는 /api/v1/을 유지합니다. Practice는 마디별 자기채점, Exam은 OpenRouter에 필기 이미지와 고정된 정답을 함께 보내는 AI 평가·한국어 피드백입니다. 두 모드 모두 기존 재생 계획을 사용하며, 정답을 기기에 전달하지 않는 감독형 시험 구조는 아닙니다.
+
+## Practice / Exam 분리 (2026-11-01)
+
+응시 생성에 `mode: practice | exam`을 추가합니다. 새 앱은 항상 명시하며, 생략한 구버전 요청과 기존 응시는 Exam으로 유지합니다. 생성 후 모드를 바꿀 수 없습니다. `Attempt` 응답에는 `mode`, nullable `feature_analysis_id`가 추가되고, Practice의 `grading_mode`는 `self`입니다. 새 서버 응시는 정답 자산을 검증한 Feature v1 분석 ID를 고정합니다. 과거 응시와 로컬 데모의 분석 ID는 null일 수 있습니다. 분석 준비 실패는 503 `QUESTION_ANALYSIS_UNAVAILABLE`이며 AI를 호출하지 않습니다.
+
+Practice 제출은 **200 PracticeAssessment**를 즉시 반환합니다. 처음은 `status=pending, revision=0, errors=[]`이며 AI 작업을 만들지 않습니다. `GET result/`도 같은 종류의 최신 기록을 반환합니다. `PUT self-assessment/`는 아래 전체 스냅샷을 저장합니다.
+
+```json
+{
+  "expected_revision": 0,
+  "errors": [{"measure": 3, "types": ["pitch", "rhythm"]}],
+  "completed": true
+}
+```
+
+- 마디 번호는 응시 문제의 1-based 범위입니다. 같은 마디는 한 번만 보내며 `pitch / rhythm / other`를 중복 없이 복수 선택합니다. 마디 오름차순, 유형은 위 순서로 정규화합니다.
+- `completed=false`는 미완료/임시 저장입니다. `completed=true, errors=[]`는 오류를 찾지 못하고 채점을 완료했다는 별도 관찰입니다. 숫자 점수나 AI 피드백을 만들지 않습니다.
+- 저장마다 revision을 1 올린 새 이력 행을 추가합니다. 완료 후 수정도 이전 기록을 보존합니다. 통계의 최신 상태는 해당 응시의 마지막 revision으로 판단해야 합니다.
+- `expected_revision`이 최신 값과 다르면 409 `SELF_ASSESSMENT_REVISION_CONFLICT`입니다. 서버 기록을 덮어쓰지 않으며 앱은 로컬 표시를 보관하고 사용자가 서버 표시 적용/내 표시 유지 중 선택하게 합니다.
+- 저장에는 `Idempotency-Key`가 필수입니다. 응답 유실 시 **같은 키·같은 본문**을 재전송합니다. 최초 저장 영수증이 반환되므로 이후 수정본을 덮어쓰지 않습니다.
+- Practice의 `grading-retries/`는 409 `AI_GRADING_NOT_AVAILABLE`, Exam의 `self-assessment/`는 409 `SELF_ASSESSMENT_NOT_AVAILABLE`입니다.
+
+Exam 제출은 기존 **202 Grading**과 비동기 워커·결과 조회·재시도를 유지합니다. 서버에는 인식 XML 전체와 오류 annotation에 해당하는 마디 XML/유효 attributes를 함께 보관합니다. XML은 인식 결과의 근거이며 실제 오류 위치의 확정 정답이 아닙니다. 인식 불확실 여부를 별도로 남기고, 표기 권장 사항은 오류로 세지 않습니다. 현재 사용자 약점 판정·통계 화면·개인화 프롬프트는 포함하지 않습니다.
+
+화면·저장·수동 확인 절차는 [Practice / Exam 안내](../PRACTICE-EXAM.md), 샘플은 `examples/practice-assessment-*.json`을 참고하세요.
 
 ## 고난도 문제 추가 (2026-10-31)
 
-현재 카탈로그는 기본 3개와 고난도 59개, 총 62개입니다. 기본 3개의 ID·메타데이터·악보 bytes와 기존 응시 스냅샷은 유지합니다. 목록은 기본 20개씩 페이지를 나눕니다.
+이 절의 최초 추가분은 기본 3개와 고난도 59개, 총 62개입니다. 이후 초·중급과 클래식이 추가되어 현재 일반 113개와 클래식 11개를 제공합니다. 기본 3개의 ID·메타데이터·악보 bytes와 기존 응시 스냅샷은 유지합니다. 목록은 기본 20개씩 페이지를 나눕니다.
 
 고난도 자산은 `sori-monophonic-v3`입니다. 2/4·7/8·9/8·12/8, 32분음표·3단 빔, MIDI 48–95 음역을 추가로 허용합니다. 조표가 없고 조성이 확정되지 않은 원본은 `key_signature.mode=unspecified`로 전달하며 앱에서 ‘조표 없음’으로 표시합니다. `tonic=C`는 준비용 기준음이고 다장조 판정을 뜻하지 않습니다. 해당 main XML은 fifths=0, mode=none입니다.
 
@@ -66,17 +91,18 @@ MXL은 정확히 mimetype, META-INF/container.xml, score.xml 세 엔트리를 �
 | 메서드 | 경로 | 성공 | 동작 |
 |---|---|---|---|
 | GET / PATCH | /me/ | 200 | 사용자·학습 목표 |
-| GET | /questions/ | 200 | 3문제의 페이지 목록 |
+| GET | /questions/ | 200 | collection별 문제 페이지 목록 |
 | GET | /questions/{id}/ | 200 | 안내·오선·main/scale 자산 |
 | GET | /questions/{id}/versions/{version}/scores/{kind}/ | 200 | main 또는 scale MXL bytes |
-| POST | /attempts/ | 201 | question_id, question_version으로 응시 생성 |
+| POST | /attempts/ | 201 | question_id, question_version, mode로 응시 생성 |
 | GET | /attempts/{id}/ | 200 | 저장된 응시·제출 답안 복구 |
 | POST | /attempts/{id}/start/ | 200 | 자산·피아노 준비 후 시작, 본문 없음 |
 | POST | /attempts/{id}/answers/ | 201 | multipart PNG 업로드 |
 | GET | /attempts/{id}/answers/{answer_id}/image/ | 200 | 업로드한 원본 PNG |
-| POST | /attempts/{id}/submit/ | 202 | 명시한 answer_id로 최종 제출 |
-| GET | /attempts/{id}/result/ | 200 | 채점 진행·결과 |
-| POST | /attempts/{id}/grading-retries/ | 202 | 실패한 같은 답안 재시도, 본문 없음 |
+| POST | /attempts/{id}/submit/ | 200 / 202 | Practice 자기채점 시작 / Exam AI 작업 생성 |
+| GET | /attempts/{id}/result/ | 200 | Practice 최신 자기채점 / Exam 채점 진행·결과 |
+| PUT | /attempts/{id}/self-assessment/ | 200 | Practice 전체 마디 오류·완료 상태 저장 |
+| POST | /attempts/{id}/grading-retries/ | 202 | Exam의 실패한 같은 답안 재시도, 본문 없음 |
 
 공개 오선은 /assets/sheets/{layout_id}.png에서 제공합니다. 기존 /api/health/도 유지합니다.
 
@@ -86,11 +112,11 @@ MXL은 정확히 mimetype, META-INF/container.xml, score.xml 세 엔트리를 �
 
 업로드와 제출은 별개입니다. multipart 필드는 image, client_answer_id, answer_format_version(텍스트 1), sheet_layout_id입니다. 서버는 실제 PNG와 규격을 검사하고 원본 bytes·해시를 저장합니다.
 
-생성·업로드·제출·재시도에는 Idempotency-Key(UUID)를 보냅니다. 같은 사용자·경로·키·본문을 재전송하면 최초 영수증을 반환합니다. 같은 키의 다른 본문은 409 IDEMPOTENCY_KEY_REUSED, 진행 중인 동일 요청은 409 REQUEST_IN_PROGRESS입니다.
+생성·업로드·제출·자기채점 저장·재시도에는 Idempotency-Key(UUID)를 보냅니다. 같은 사용자·경로·키·본문을 재전송하면 최초 영수증을 반환합니다. 같은 키의 다른 본문은 409 IDEMPOTENCY_KEY_REUSED, 진행 중인 동일 요청은 409 REQUEST_IN_PROGRESS입니다.
 
 (attempt, client_answer_id)는 유일합니다. 동일 이미지·ID의 업로드 영수증은 제출 후에도 재조회할 수 있습니다. 제출은 answer_id를 고정하며 마지막 업로드를 임의 선택하지 않습니다. 같은 답안 재제출은 새 채점 작업을 만들지 않습니다. 다른 답안으로 바꾸는 요청은 409입니다.
 
-최종 제출·선택 답안·채점 작업을 하나의 DB 트랜잭션에 저장합니다. 별도 워커가 DB의 작업을 가져가므로 HTTP 프로세스 재시작이나 앱 화면 이탈로 작업을 잃지 않습니다. 파일 저장이 성공한 다음 업로드 성공을 반환합니다.
+최종 제출·선택 답안과 Practice 초기 자기채점 또는 Exam 채점 작업을 하나의 DB 트랜잭션에 저장합니다. Exam은 별도 워커가 DB의 작업을 가져가므로 HTTP 프로세스 재시작이나 앱 화면 이탈로 작업을 잃지 않습니다. 파일 저장이 성공한 다음 업로드 성공을 반환합니다.
 
 
 ## v3/v4의 공통 재생 시간표

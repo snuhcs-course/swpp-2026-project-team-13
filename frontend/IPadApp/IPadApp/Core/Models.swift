@@ -195,6 +195,9 @@ struct Attempt: Codable, Identifiable, Equatable {
     var id: UUID; var status: String; var gradingMode: String; var createdAt: Date
     var startedAt: Date?; var recommendedEndAt: Date?; var submittedAt: Date?; var submittedAnswerId: UUID?; var latestAnswer: Answer?
     var question: Question; var playbackPlan: PlaybackPlan; var serverTime: Date
+    var mode: String? = nil
+    var featureAnalysisId: UUID? = nil
+    var studyMode: StudyMode { mode.flatMap { StudyMode(rawValue:$0) } ?? (gradingMode == "self" ? .practice : .exam) }
 }
 struct BBox: Codable, Equatable {
     var x: Double; var y: Double; var width: Double; var height: Double

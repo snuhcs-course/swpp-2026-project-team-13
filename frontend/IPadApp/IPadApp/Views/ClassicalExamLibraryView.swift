@@ -15,6 +15,7 @@ struct ClassicalExamLibraryView: View {
         GeometryReader { geometry in
             ScrollView {
                 VStack(alignment:.leading,spacing:26) {
+                    Button { model.navigate(model.libraryScreen) } label: { Label(model.selectedMode.title + " 문제 목록",systemImage:"chevron.left") }.buttonStyle(.bordered)
                     HStack(alignment:.top) {
                         SectionCaption(eyebrow:"CLASSICAL DICTATION",title:model.selectedComposer ?? "클래식 청음",
                             subtitle:model.selectedComposer == nil ? "마음이 가는 작곡가를 골라 8마디 선율을 기록해 보세요." : "음계와 선율을 듣고, 빈 오선에 직접 적어보세요.")
@@ -34,7 +35,7 @@ struct ClassicalExamLibraryView: View {
                         Button { model.selectedComposer = nil } label: { Label("작곡가 선택",systemImage:"chevron.left") }.buttonStyle(.bordered)
                         if let portrait = portraits.first(where: { $0.name == name }) { composerCard(portrait,count:selected.count,height:180) }
                         ForEach(selected) { question in
-                            Button { Task { await model.choose(question.id) } } label: {
+                            Button { Task { await model.choose(question.id,mode:model.selectedMode) } } label: {
                                 Card { HStack(spacing:20) {
                                     Image(systemName:"music.note").font(.title2).foregroundStyle(SORITheme.violet)
                                     VStack(alignment:.leading,spacing:10) {

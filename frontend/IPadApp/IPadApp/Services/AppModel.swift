@@ -2,7 +2,7 @@ import SwiftUI
 import PencilKit
 
 @MainActor final class AppModel: ObservableObject {
-    enum Screen: String { case home, question, exam, result, history, settings, minigames, classical }
+    enum Screen: String { case dailyTraining, home, examLibrary, question, exam, result, history, settings, minigames, classical }
     @Published var screen: Screen = .home
     @Published var profile: UserProfile?
     @Published var questions: [QuestionSummary] = []
@@ -13,6 +13,7 @@ import PencilKit
     private var classicalPage = 0
     @Published var selectedComposer: String?
     @Published var selectedQuestion: Question?
+    @Published var selectedMode: StudyMode = .practice
     @Published var session: SessionRecord?
     @Published var history: [SessionRecord] = []
     @Published var busy = false
@@ -48,6 +49,16 @@ import PencilKit
     var isLocked: Bool { session?.frozen == true || session?.attempt.status != "in_progress" || drawingMissing || saveFailed }
     var remaining: Int { clock.remaining() }
     var pendingCreation: Bool { (try? store?.pending()) != nil }
+    var libraryScreen: Screen { selectedMode == .practice ? .home : .examLibrary }
+    var resultLibraryScreen: Screen { session?.attempt.question.collection == "classical" ? .classical : (session?.attempt.studyMode == .practice ? .home : .examLibrary) }
+    var practiceErrors: [MeasureError] { session?.practiceEdits ?? session?.selfAssessment?.errors ?? [] }
+    var practiceHasConflict: Bool {
+        guard let base = session?.practiceBaseRevision, let current = session?.selfAssessment?.revision else { return false }
+        return base != current
+    }
+    var practiceComparisonReady: Bool {
+        submittedImage != nil && (correctScoreImage != nil || (session?.attempt.question.correctScore == nil && mainScore != nil))
+    }
 
     init() {
         let d = UserDefaults.standard
@@ -167,10 +178,10 @@ import PencilKit
     func updateGoal(_ goal: String) async {
         await run("목표를 저장하는 중") { guard let api = self.api else { return }; self.profile = try await api.updateGoal(goal) }
     }
-    func choose(_ id: UUID) async {
+    func choose(_ id: UUID, mode: StudyMode = .exam) async {
         await run("문제 안내를 불러오는 중") {
             guard let api = self.api else { return }; let question = try await api.question(id)
-            try question.validate(); self.selectedQuestion = question; self.screen = .question
+            try question.validate(); self.selectedQuestion = question; self.selectedMode = mode; self.screen = .question
         }
     }
     private func persist(_ record: SessionRecord) throws {
@@ -180,14 +191,20 @@ import PencilKit
     func begin() async {
         await run("새 연습을 준비하는 중") {
             guard let api = self.api, let store = self.store, let selected = self.selectedQuestion else { return }
-            var pending = try store.pending() ?? PendingCreation(question: selected, key: UUID())
+            var pending = try store.pending() ?? PendingCreation(question: selected, key: UUID(), mode:self.selectedMode)
+            guard pending.question.id == selected.id, pending.studyMode == self.selectedMode else {
+                throw SORIError.storage("이전 문제의 생성 요청을 먼저 복구해 주세요. 연습 기록과 필기는 보관되어 있습니다.")
+            }
             try store.savePending(pending)
             let attempt: Attempt
-            do { attempt = try await api.createAttempt(question: pending.question, key: pending.key) }
+            do { attempt = try await api.createAttempt(question: pending.question, mode:pending.studyMode, key: pending.key) }
             catch let error as SORIError where error.code == "QUESTION_VERSION_MISMATCH" {
                 let fresh = try await api.question(pending.question.id); try fresh.validate()
-                pending = PendingCreation(question: fresh, key: UUID()); try store.savePending(pending)
-                attempt = try await api.createAttempt(question: fresh, key: pending.key)
+                pending = PendingCreation(question: fresh, key: UUID(), mode:pending.studyMode); try store.savePending(pending)
+                attempt = try await api.createAttempt(question: fresh, mode:pending.studyMode, key: pending.key)
+            }
+            guard attempt.studyMode == pending.studyMode, attempt.question.id == pending.question.id, attempt.question.version == pending.question.version else {
+                throw SORIError.transport("생성된 문제의 모드가 요청과 다릅니다. 앱과 서버의 버전을 확인해 주세요.")
             }
             var record = SessionRecord(attempt: attempt)
             if store.exists("session.json", id: attempt.id) { record = try store.load(attempt.id); record.attempt = attempt }
@@ -197,7 +214,7 @@ import PencilKit
         }
     }
     func recoverPending() async {
-        do { guard let pending = try store?.pending() else { return }; selectedQuestion = pending.question; await begin() } catch { report(error) }
+        do { guard let pending = try store?.pending() else { return }; selectedQuestion = pending.question; selectedMode = pending.studyMode; await begin() } catch { report(error) }
     }
     func open(_ record: SessionRecord) async {
         await run("저장한 연습을 복구하는 중") {
@@ -208,9 +225,10 @@ import PencilKit
     }
     private func activate(_ record: SessionRecord) async throws {
         selectedQuestion = record.attempt.question
+        selectedMode = record.attempt.studyMode
         if record.attempt.question.collection == "classical" { selectedComposer = record.attempt.question.composer }
         else { selectedPracticeLevel = record.attempt.question.practiceLevel }
-        player.stopForPreparation(); prepared = false; drawingMissing = false; saveFailed = false; mainScore = nil; submittedImage = nil; template = nil; correctScoreImage = nil; correctScoreError = nil
+        player.stopForPreparation(); prepared = false; drawingMissing = false; saveFailed = false; mainScore = nil; submittedImage = nil; template = nil; correctScoreImage = nil; correctScoreError = nil; waitingSince = nil
         guard let store else { return }
         clock.sync(record.attempt)
         switch record.attempt.status {
@@ -296,23 +314,39 @@ import PencilKit
                 record.uploaded = answer; try self.persist(record)
             }
             guard let answer = record.uploaded else { return }
-            let grading = try await api.submit(record.id, answerId: answer.id, key: submitKey)
-            guard grading.attemptId == record.id, grading.answerId == answer.id else { throw SORIError.transport("제출 결과의 답안 ID가 다릅니다.") }
-            record.grading = grading; record.attempt = try await api.attempt(record.id); try self.persist(record)
+            if record.attempt.studyMode == .practice {
+                let review = try await api.submitPractice(record.id,answerId:answer.id,key:submitKey)
+                try review.validate(attemptId:record.id,answerId:answer.id,measureCount:record.attempt.question.measureCount)
+                record.selfAssessment = review; record.grading = nil
+            } else {
+                let grading = try await api.submit(record.id, answerId: answer.id, key: submitKey)
+                guard grading.attemptId == record.id, grading.answerId == answer.id else { throw SORIError.transport("제출 결과의 답안 ID가 다릅니다.") }
+                record.grading = grading
+            }
+            record.attempt = try await api.attempt(record.id); try self.persist(record)
             self.screen = .result; self.waitingSince = Date(); try await self.loadResult()
         }
         drawing.freeze(isLocked)
     }
     private func loadResult() async throws {
         guard let api, let store, var record = session else { return }
-        let grading = try await api.result(record.id)
-        guard grading.attemptId == record.id, grading.answerId == record.attempt.submittedAnswerId else { throw SORIError.transport("결과가 제출한 답안과 일치하지 않습니다.") }
-        record.grading = grading; try persist(record)
-        if grading.isPending && waitingSince == nil { waitingSince = Date() }
-        if let answer = [record.uploaded, record.attempt.latestAnswer].compactMap({ $0 }).first(where: { $0.id == grading.answerId }) {
-            if store.exists("submitted.png", id: record.id) {
-                let data = try store.read("submitted.png", id: record.id)
-                if data.sha256 == answer.sha256 { submittedImage = UIImage(data: data) }
+        guard let answerId = record.attempt.submittedAnswerId else { throw SORIError.transport("제출한 답안이 없습니다.") }
+        if record.attempt.studyMode == .practice {
+            let review = try await api.practiceAssessment(record.id)
+            try review.validate(attemptId:record.id,answerId:answerId,measureCount:record.attempt.question.measureCount)
+            guard review.featureAnalysisId == record.attempt.featureAnalysisId else { throw SORIError.transport("문제 분석 버전이 응시와 다릅니다.") }
+            record.selfAssessment = review; record.grading = nil; waitingSince = nil
+        } else {
+            let grading = try await api.result(record.id)
+            guard grading.attemptId == record.id, grading.answerId == answerId else { throw SORIError.transport("결과가 제출한 답안과 일치하지 않습니다.") }
+            record.grading = grading
+            if grading.isPending && waitingSince == nil { waitingSince = Date() }
+        }
+        try persist(record)
+        if let answer = [record.uploaded, record.attempt.latestAnswer].compactMap({ $0 }).first(where: { $0.id == answerId }) {
+            for name in ["submitted.png","submission.png"] where submittedImage == nil && store.exists(name,id:record.id) {
+                let data = try store.read(name,id:record.id)
+                if data.sha256 == answer.sha256 { submittedImage = UIImage(data:data) }
             }
             if submittedImage == nil {
                 let data = try await api.answerImage(answer)
@@ -351,7 +385,7 @@ import PencilKit
     }
     func refreshResult() async { await run("결과를 확인하는 중") { try await self.loadResult() }; pollGeneration = UUID() }
     func poll() async {
-        while !Task.isCancelled, foreground, screen == .result, session?.grading?.isPending == true {
+        while !Task.isCancelled, foreground, screen == .result, session?.attempt.studyMode == .exam, session?.grading?.isPending == true {
             do {
                 let ms = max(500, session?.grading?.pollAfterMs ?? 2000)
                 try await Task.sleep(for: .milliseconds(ms)); try Task.checkCancellation()
@@ -363,7 +397,7 @@ import PencilKit
     }
     func retryGrading() async {
         await run("채점을 다시 요청하는 중") {
-            guard let api = self.api, var record = self.session, record.grading?.canRetry == true else { return }
+            guard let api = self.api, var record = self.session, record.attempt.studyMode == .exam, record.grading?.canRetry == true else { return }
             if record.gradingRetryKey == nil { record.gradingRetryKey = UUID(); try self.persist(record) }
             do {
                 let grading = try await api.retryGrading(record.id, key: record.gradingRetryKey!)
@@ -374,6 +408,59 @@ import PencilKit
             self.waitingSince = Date(); self.pollGeneration = UUID()
         }
     }
+    func togglePracticeError(measure: Int, type: SelfAssessmentErrorType) {
+        guard !busy, var record = session, record.attempt.studyMode == .practice, record.selfAssessmentSave == nil,
+              record.attempt.status == "submitted", let review = record.selfAssessment else { return }
+        do {
+            record.practiceEdits = try SelfAssessmentEdits.toggling(practiceErrors,measure:measure,type:type,measureCount:record.attempt.question.measureCount)
+            record.practiceBaseRevision = record.practiceBaseRevision ?? review.revision
+            try persist(record)
+        } catch { report(error) }
+    }
+    func savePracticeAssessment(completed: Bool) async {
+        await run("자기채점 기록을 저장하는 중") {
+            guard let api = self.api, var record = self.session, record.attempt.studyMode == .practice,
+                  let review = record.selfAssessment, let answerId = record.attempt.submittedAnswerId else { return }
+            guard self.practiceComparisonReady else { throw SORIError.configuration("정답과 내 악보를 불러온 뒤 채점을 완료해 주세요.") }
+            if record.selfAssessmentSave == nil {
+                guard !self.practiceHasConflict else { throw SORIError.configuration("변경된 채점 기록을 먼저 확인해 주세요.") }
+                let request = SelfAssessmentWrite(expectedRevision:record.practiceBaseRevision ?? review.revision,
+                    errors:try SelfAssessmentEdits.normalized(self.practiceErrors,measureCount:record.attempt.question.measureCount),completed:completed)
+                record.practiceBaseRevision = request.expectedRevision
+                record.practiceEdits = request.errors
+                record.selfAssessmentSave = PendingSelfAssessment(key:UUID(),request:request)
+                try self.persist(record)
+            }
+            guard let pending = record.selfAssessmentSave else { return }
+            do {
+                let saved = try await api.saveSelfAssessment(record.id,request:pending.request,key:pending.key)
+                try saved.validate(attemptId:record.id,answerId:answerId,measureCount:record.attempt.question.measureCount)
+                guard saved.revision == pending.request.expectedRevision+1, saved.featureAnalysisId == record.attempt.featureAnalysisId,
+                      saved.errors == pending.request.errors, saved.isCompleted == pending.request.completed else {
+                    throw SORIError.transport("저장된 자기채점 버전이 요청과 다릅니다.")
+                }
+                record.selfAssessment = saved; record.selfAssessmentSave = nil
+                record.practiceEdits = nil; record.practiceBaseRevision = nil
+                try self.persist(record)
+            } catch let error as SORIError where error.code == "SELF_ASSESSMENT_REVISION_CONFLICT" {
+                let latest = try await api.practiceAssessment(record.id)
+                try latest.validate(attemptId:record.id,answerId:answerId,measureCount:record.attempt.question.measureCount)
+                record.selfAssessment = latest; record.selfAssessmentSave = nil
+                try self.persist(record)
+                throw error
+            }
+        }
+    }
+    func useServerPracticeAssessment() {
+        guard !busy, var record = session, record.selfAssessmentSave == nil else { return }
+        record.practiceEdits = nil; record.practiceBaseRevision = nil
+        do { try persist(record) } catch { report(error) }
+    }
+    func keepLocalPracticeEdits() {
+        guard !busy, var record = session, record.selfAssessmentSave == nil, let review = record.selfAssessment else { return }
+        record.practiceBaseRevision = review.revision
+        do { try persist(record) } catch { report(error) }
+    }
     func background() { foreground = false; player.pause(); if !isLocked { saveDrawing(drawing.canvas.drawing) } }
     func foregroundAgain() async {
         foreground = true; pollGeneration = UUID()
@@ -381,5 +468,10 @@ import PencilKit
         // Explicit user input is still required to resume sound.
         await open(record)
     }
-    func navigate(_ target: Screen) { if target != .exam { player.pause() }; screen = target }
+    func navigate(_ target: Screen) {
+        if target != .exam { player.pause() }
+        if target == .home { selectedMode = .practice }
+        if target == .examLibrary { selectedMode = .exam }
+        screen = target
+    }
 }

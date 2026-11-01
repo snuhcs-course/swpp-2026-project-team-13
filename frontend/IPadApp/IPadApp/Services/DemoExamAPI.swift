@@ -48,11 +48,19 @@ import Foundation
         guard let q = try catalog().first(where: { $0.id == id }) else { throw SORIError.configuration("데모 문제를 찾을 수 없습니다.") }; return q
     }
     func createAttempt(question: Question, key: UUID) async throws -> Attempt {
+        try await createAttempt(question:question,mode:.exam,key:key)
+    }
+    func createAttempt(question: Question, mode: StudyMode, key: UUID) async throws -> Attempt {
         let path = store.root.appendingPathComponent("create-\(key).json")
-        if FileManager.default.fileExists(atPath: path.path) { return try ContractJSON.decoder().decode(Attempt.self, from: Data(contentsOf: path)) }
+        if FileManager.default.fileExists(atPath: path.path) {
+            let existing = try ContractJSON.decoder().decode(Attempt.self, from:Data(contentsOf:path))
+            guard existing.question.id == question.id, existing.question.version == question.version, existing.studyMode == mode else { throw SORIError.configuration("IDEMPOTENCY_KEY_REUSED") }
+            return existing
+        }
         var attempt: Attempt = try Bundled.decode("attempt-ready")
         attempt.playbackPlan = .exam(meter:question.timeSignature,setting:question.tempo,scaleMeasures:question.scoreAssets.scale.measureCount)
         attempt.id = UUID(); attempt.question = question; attempt.createdAt = Date(); attempt.serverTime = Date()
+        attempt.mode = mode.rawValue; attempt.gradingMode = mode == .practice ? "self" : "demo"
         try store.save(SessionRecord(attempt: attempt))
         try ContractJSON.encoder().encode(attempt).write(to: path, options: .atomic); return attempt
     }
@@ -86,6 +94,7 @@ import Foundation
     func answerImage(_ answer: Answer) async throws -> Data { try store.read("answer.png", id: answer.attemptId) }
     func submit(_ id: UUID, answerId: UUID, key: UUID) async throws -> Grading {
         var r = try store.load(id)
+        guard r.attempt.studyMode == .exam else { throw SORIError.configuration("Practice는 자기채점으로 진행합니다.") }
         if let g = r.grading { guard g.answerId == answerId else { throw SORIError.configuration("ATTEMPT_ALREADY_SUBMITTED") }; return g }
         guard r.uploaded?.id == answerId else { throw SORIError.configuration("RESOURCE_NOT_FOUND") }
         r.attempt.status = "submitted"; r.attempt.submittedAnswerId = answerId; r.attempt.submittedAt = Date()
@@ -104,11 +113,69 @@ import Foundation
     }
     func retryGrading(_ id: UUID, key: UUID) async throws -> Grading {
         var r = try store.load(id)
+        guard r.attempt.studyMode == .exam else { throw SORIError.configuration("Practice는 자기채점으로 진행합니다.") }
         if r.gradingRetryKey == key, let grading = r.grading { return grading }
         guard r.grading?.canRetry == true else { throw SORIError.configuration("GRADING_NOT_RETRYABLE") }
         var g: Grading = try Bundled.decode("grading-queued")
         g.attemptId = id; g.answerId = r.attempt.submittedAnswerId!; g.jobId = UUID(); g.createdAt = Date(); g.updatedAt = Date(); g.serverTime = Date()
         r.gradingRetryKey = key; r.grading = g; try store.save(r); return g
+    }
+    func submitPractice(_ id: UUID, answerId: UUID, key: UUID) async throws -> PracticeAssessment {
+        var r = try store.load(id)
+        guard r.attempt.studyMode == .practice else { throw SORIError.configuration("Exam은 AI 채점으로 진행합니다.") }
+        if let existing = r.selfAssessment {
+            guard existing.answerId == answerId else { throw SORIError.configuration("ATTEMPT_ALREADY_SUBMITTED") }
+            return existing
+        }
+        guard r.attempt.status == "in_progress", r.uploaded?.id == answerId else { throw SORIError.configuration("답안을 먼저 업로드해 주세요.") }
+        let now = Date()
+        r.attempt.status = "submitted"; r.attempt.submittedAnswerId = answerId; r.attempt.submittedAt = now
+        let review = try serializedReview(PracticeAssessment(attemptId:id,answerId:answerId,mode:"practice",gradingMode:"self",source:"self",
+            featureAnalysisId:r.attempt.featureAnalysisId,status:"pending",revision:0,errors:[],completedAt:nil,updatedAt:now,serverTime:now))
+        r.selfAssessment = review; r.grading = nil; try store.save(r)
+        return review
+    }
+    func practiceAssessment(_ id: UUID) async throws -> PracticeAssessment {
+        let r = try store.load(id)
+        guard r.attempt.studyMode == .practice, r.attempt.status == "submitted", var review = r.selfAssessment else { throw SORIError.configuration("자기채점할 제출 답안이 없습니다.") }
+        review.serverTime = Date()
+        return review
+    }
+    private struct ReviewReceipt: Codable {
+        var request: SelfAssessmentWrite
+        var review: PracticeAssessment
+    }
+    private func serializedReview(_ review: PracticeAssessment) throws -> PracticeAssessment {
+        try ContractJSON.decoder().decode(PracticeAssessment.self,from:ContractJSON.encoder().encode(review))
+    }
+    func saveSelfAssessment(_ id: UUID, request: SelfAssessmentWrite, key: UUID) async throws -> PracticeAssessment {
+        var r = try store.load(id)
+        guard r.attempt.studyMode == .practice, r.attempt.status == "submitted", let current = r.selfAssessment else { throw SORIError.configuration("자기채점할 제출 답안이 없습니다.") }
+        guard request.expectedRevision >= 0 else { throw SORIError.configuration("자기채점 버전을 확인해 주세요.") }
+        let normalized = SelfAssessmentWrite(expectedRevision:request.expectedRevision,
+            errors:try SelfAssessmentEdits.normalized(request.errors,measureCount:r.attempt.question.measureCount),completed:request.completed)
+        let name = "self-review-\(key.uuidString.lowercased()).json"
+        if store.exists(name,id:id) {
+            let receipt = try ContractJSON.decoder().decode(ReviewReceipt.self,from:store.read(name,id:id))
+            guard receipt.request == normalized else { throw SORIError.configuration("IDEMPOTENCY_KEY_REUSED") }
+            // A journal receipt is written before the head. Replay repairs a crash
+            // between those two writes without replacing a later revision.
+            if current.revision < receipt.review.revision { r.selfAssessment = receipt.review; try store.save(r) }
+            return receipt.review
+        }
+        guard current.revision == request.expectedRevision else {
+            let detail = ErrorDetail(code:"SELF_ASSESSMENT_REVISION_CONFLICT",message:"채점 기록이 변경됐습니다. 최신 기록을 확인해 주세요.",fields:[],retryAfterMs:nil)
+            throw SORIError.server(409,ErrorEnvelope(error:detail,requestId:"demo-"+UUID().uuidString),retryAfter:nil)
+        }
+        var review = current
+        review.revision += 1; review.errors = normalized.errors
+        review.status = request.completed ? "completed" : "pending"
+        review.updatedAt = Date(); review.serverTime = review.updatedAt
+        review.completedAt = request.completed ? review.updatedAt : nil
+        let receipt = ReviewReceipt(request:normalized,review:try serializedReview(review))
+        try store.write(ContractJSON.encoder().encode(receipt),name:name,id:id)
+        r.selfAssessment = receipt.review; try store.save(r)
+        return receipt.review
     }
     func asset(_ url: URL, authenticated: Bool, limit: Int) async throws -> Data {
         let data: Data

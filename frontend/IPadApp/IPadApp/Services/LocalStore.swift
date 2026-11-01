@@ -13,10 +13,18 @@ struct SessionRecord: Codable, Identifiable {
     var uploaded: Answer?
     var gradingRetryKey: UUID?
     var grading: Grading?
+    var selfAssessment: PracticeAssessment? = nil
+    var practiceEdits: [MeasureError]? = nil
+    var practiceBaseRevision: Int? = nil
+    var selfAssessmentSave: PendingSelfAssessment? = nil
     var hasDrawing = false
     var parserVersion = MusicXMLParser.version
 }
-struct PendingCreation: Codable { var question: Question; var key: UUID }
+struct PendingCreation: Codable {
+    var question: Question; var key: UUID
+    var mode: StudyMode? = nil
+    var studyMode: StudyMode { mode ?? .exam }
+}
 
 final class LocalStore {
     let root: URL
