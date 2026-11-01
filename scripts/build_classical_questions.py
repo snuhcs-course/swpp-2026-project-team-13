@@ -23,7 +23,7 @@ SOURCE = CONTENT / "source/classical"
 BASES = {"whole":1920,"half":960,"quarter":480,"eighth":240,"16th":120,"32nd":60}
 MAJOR = ["Cb","Gb","Db","Ab","Eb","Bb","F","C","G","D","A","E","B","F#","C#"]
 MINOR = ["Ab","Eb","Bb","F","C","G","D","A","E","B","F#","C#","G#","D#","A#"]
-METERS = {(2,2),(2,4),(3,4),(4,4),(3,8),(6,8),(7,8),(9,8),(12,8)}
+METERS = {(2,2),(3,2),(2,4),(3,4),(4,4),(6,4),(3,8),(6,8),(7,8),(9,8),(12,8)}
 
 
 def write_json(path, value):

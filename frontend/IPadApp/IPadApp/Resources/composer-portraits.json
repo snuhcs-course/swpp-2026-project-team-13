@@ -1,5 +1,16 @@
 [
   {
+    "id": "brahms",
+    "name": "브람스",
+    "english_name": "Johannes Brahms",
+    "years": "1833–1897",
+    "resource": "composer-brahms",
+    "source": "https://github.com/LiviuLvu/composers-list/blob/gh-pages/img/johannes-brahms.jpg",
+    "credit": "브람스의 역사적 초상화 · 공개 영역 원작의 축소본 · composers-list 미러",
+    "download_source": "https://github.com/LiviuLvu/composers-list/blob/gh-pages/img/johannes-brahms.jpg",
+    "git_blob_sha": "72434a6fc765da8ab846ce083963ebbbae9c76f2"
+  },
+  {
     "id": "prokofiev",
     "name": "프로코피예프",
     "english_name": "Sergei Prokofiev",

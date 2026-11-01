@@ -20,10 +20,11 @@ import Foundation
     private func catalog() throws -> [Question] {
         let practice: [Question] = try Bundled.decode("practice-catalog")
         let classical: [Question] = try Bundled.decode("classical-catalog")
+        let brahms: [Question] = try Bundled.decode("brahms-catalog")
         let additional: [Question] = try Bundled.decode("additional-practice-catalog")
         let revisions: [Question] = try Bundled.decode("sheet-revisions")
         let current = Dictionary(uniqueKeysWithValues:revisions.map { ($0.id,$0) })
-        let values = (practice + classical + additional).map { current[$0.id] ?? $0 }
+        let values = (practice + classical + brahms + additional).map { current[$0.id] ?? $0 }
         let engraving: EngravingManifest = try Bundled.decode("engraving-manifest")
         return values.map { source in
             var q = source

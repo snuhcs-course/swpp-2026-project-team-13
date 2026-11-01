@@ -83,15 +83,16 @@ class FlowTests(TestCase):
         while url:
             response = self.client.get(url)
             self.assertEqual(response.status_code,200,response.data)
-            self.assertEqual(response.data["count"],11)
+            self.assertEqual(response.data["count"],21)
             results.extend(response.data["results"])
             next_url = response.data["next"]
             if next_url:
                 self.assertIn("collection=classical",next_url)
                 parts = urlsplit(next_url); url = parts.path+"?"+parts.query
             else: url = None
-        self.assertEqual(len({q["id"] for q in results}),11)
-        self.assertEqual(len({q["composer"] for q in results}),7)
+        self.assertEqual(len({q["id"] for q in results}),21)
+        self.assertEqual(len({q["composer"] for q in results}),8)
+        self.assertEqual(sum(q["composer"]=="브람스" for q in results),10)
         for summary in results:
             self.assertEqual(summary["collection"],"classical")
             q = self.client.get(f'/api/v1/questions/{summary["id"]}/').data
@@ -133,7 +134,7 @@ class FlowTests(TestCase):
             self.assertEqual(plan["count_in"]["beat_unit"], q["time_signature"]["denominator"])
             self.assertEqual([s["pause_after_ms"] for s in plan["steps"]], [20000]*10+[120000])
             started = self.post(f'attempts/{a["id"]}/start/').data
-            expected = {(2,2):434,(4,4):456,(3,4):426,(6,8):423,(2,4):393,(7,8):443,(9,8):468,(12,8):516}[(q["time_signature"]["numerator"],q["time_signature"]["denominator"])]
+            expected = {(2,2):434,(3,2):489,(4,4):456,(3,4):426,(6,4):489,(6,8):423,(2,4):393,(7,8):443,(9,8):468,(12,8):516}[(q["time_signature"]["numerator"],q["time_signature"]["denominator"])]
             self.assertEqual(q["recommended_duration_seconds"], expected)
             self.assertEqual(a["question"]["recommended_duration_seconds"], expected)
             self.assertEqual((datetime.fromisoformat(started["recommended_end_at"].replace("Z","+00:00")) -

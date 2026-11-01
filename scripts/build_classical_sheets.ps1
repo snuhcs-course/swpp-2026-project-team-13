@@ -24,6 +24,14 @@ if (Test-Path -LiteralPath $practiceSource) {
     }
 }
 if ($Compact) {
+    $brahmsSource = Join-Path $Repository 'backend/content/source/brahms/provenance.json'
+    if (Test-Path -LiteralPath $brahmsSource) {
+        $brahms = Get-Content -Raw -LiteralPath $brahmsSource | ConvertFrom-Json
+        foreach ($item in $brahms.accepted) {
+            $n,$d = $item.meter
+            $combinations["$n-$d-$($item.key.fifths)"] = @([int]$n,[int]$d,[int]$item.key.fifths)
+        }
+    }
     $baseCatalog = Get-Content -Raw -LiteralPath (Join-Path $Repository 'backend/content/catalog.json') | ConvertFrom-Json
     foreach ($item in $baseCatalog) {
         $n = [int]$item.metadata.time_signature.numerator; $d = [int]$item.metadata.time_signature.denominator

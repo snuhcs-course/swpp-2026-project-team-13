@@ -11,6 +11,9 @@ struct ExamView: View {
             VStack(spacing: 0) {
                 header.padding(.horizontal, 28).padding(.vertical, 18).background(.white)
                 Divider()
+                if player.showsScaleNotice, let key = player.scaleKey {
+                    scaleNotice(key).padding(.horizontal,28).padding(.vertical,12)
+                }
                 if model.drawingMissing {
                     Label("이 기기에 편집 가능한 필기 원본이 없어요. 연습 기록에서 기존 이미지를 확인하거나 새 응시를 시작해 주세요.", systemImage: "exclamationmark.triangle").font(.subheadline).padding().foregroundStyle(.orange)
                 }
@@ -42,6 +45,26 @@ struct ExamView: View {
             Button("답안 제출") { Task { await model.submit() } }
             Button("계속 작성하기", role: .cancel) { }
         } message: { Text("제출을 시작하면 현재 필기를 고정해 전송합니다. 통신이 끊겨도 같은 답안으로 복구할 수 있어요.") }
+    }
+    private func scaleNotice(_ key: KeySignature) -> some View {
+        let sounding = player.isPlaying && player.cursor.phase == "segment"
+        return HStack(spacing:18) {
+            Image(systemName:"pianokeys").font(.system(size:32)).accessibilityHidden(true)
+            VStack(alignment:.leading,spacing:6) {
+                Text("\(key.label)\(key.mode == "minor" ? " 자연단음계" : " 음계") \(sounding ? "듣는 중" : "안내")")
+                    .font(.title2.bold()).accessibilityIdentifier("scale-notice-title")
+                Text("문제에 앞서 이 조성의 기준음을 들려드려요.").font(.subheadline)
+                if let began = player.scaleStartedAt, sounding {
+                    TimelineView(.animation(minimumInterval:0.1)) { context in
+                        ProgressView(value:min(1,max(0,context.date.timeIntervalSince(began)/max(0.1,player.scaleDuration))))
+                            .tint(SORITheme.violet).accessibilityLabel("음계 재생 진행")
+                    }
+                }
+            }
+            Spacer(minLength:0)
+        }.foregroundStyle(SORITheme.violet).padding(18)
+            .frame(maxWidth:.infinity,alignment:.leading).background(SORITheme.soft,in:RoundedRectangle(cornerRadius:16))
+            .accessibilityElement(children:.contain).accessibilityIdentifier("scale-notice")
     }
     private var header: some View {
         HStack(alignment: .center) {
@@ -83,11 +106,11 @@ struct ExamView: View {
             if player.cursor.index <= 11 && model.session?.frozen != true {
                 Button { player.isPlaying ? player.pause() : player.resume() } label: { Label(player.isPlaying ? "일시 정지" : "재생 계속", systemImage: player.isPlaying ? "pause.fill" : "play.fill") }.buttonStyle(.bordered)
             }
-            if player.cursor.phase == "gap", (1...10).contains(player.cursor.index), model.session?.frozen != true {
+            if (1...10).contains(player.cursor.index), model.session?.frozen != true {
                 Button { player.skipWritingWait() } label: {
-                    Label(player.cursor.shortenedGap == true ? "다음 재생 준비 중" : "대기 건너뛰기",systemImage:"forward.end.fill")
+                    Label("다음 구간",systemImage:"forward.end.fill")
                 }.buttonStyle(.bordered).disabled(!player.canSkipWritingWait || model.isLocked || model.busy)
-                    .help("3초 준비 후 다음 구간을 재생합니다.").accessibilityIdentifier("skip-writing-wait")
+                    .help("1.5초 후 다음 구간을 재생합니다. 연속으로 누르면 그다음 구간으로 넘깁니다.").accessibilityIdentifier("skip-writing-wait")
             }
             if model.isLocked && model.session?.frozen != true { Button("필기 저장 재시도") { model.retryDrawingSave() }.buttonStyle(.bordered) }
             Button { if model.session?.frozen == true { Task { await model.submit() } } else { confirmSubmit = true } } label: { Label(model.session?.frozen == true ? "제출 복구" : "답안 제출", systemImage: "arrow.up.doc") }.buttonStyle(PrimaryButton()).disabled(model.drawingMissing)

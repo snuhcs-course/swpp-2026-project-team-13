@@ -72,6 +72,7 @@ struct ClassicalExamLibraryView: View {
                 ScrollView { VStack(alignment:.leading,spacing:22) {
                     Text("악보: GTTM Database / musicparser 미러 · CC BY-NC-SA 4.0").font(.headline)
                     Link("악보 데이터베이스",destination:URL(string:"https://gttm.jp/gttm/database/")!)
+                    Text("브람스: 사용자 제공 brahms.mscz의 8마디 발췌본 · 곡명은 함께 제공된 메모 기준").font(.subheadline)
                     Text("원본부터 온전한 8마디인 단선율 발췌본만 사용합니다. 발췌 편곡의 조성을 유지합니다.").font(.subheadline)
                     ForEach(portraits) { portrait in
                         VStack(alignment:.leading,spacing:6) {

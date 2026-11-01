@@ -1,4 +1,4 @@
-"""Bundle the CC0 Satie portrait at build time; six historical portraits are checked in.
+"""Bundle the CC0 Satie portrait at build time; seven historical portraits are checked in.
 
 The original JPEG's SHA-1 and byte count are pinned to its Wikimedia file record.
 No image editing, third-party image libraries, or runtime download is required in CI builds.

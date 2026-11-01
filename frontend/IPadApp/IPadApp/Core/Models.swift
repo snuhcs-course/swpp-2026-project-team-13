@@ -23,7 +23,7 @@ struct KeySignature: Codable, Equatable {
 struct TimeSignature: Codable, Equatable {
     var numerator: Int; var denominator: Int
     var ticksPerMeasure: Int { numerator * 480 * 4 / denominator }
-    var supported: Bool { [(2,2), (2,4), (3,4), (4,4), (3,8), (6,8), (7,8), (9,8), (12,8)].contains { $0.0 == numerator && $0.1 == denominator } }
+    var supported: Bool { [(2,2), (3,2), (2,4), (3,4), (4,4), (6,4), (3,8), (6,8), (7,8), (9,8), (12,8)].contains { $0.0 == numerator && $0.1 == denominator } }
 }
 struct SheetSystem: Codable, Equatable {
     var index: Int; var firstMeasure: Int; var lastMeasure: Int
@@ -37,7 +37,7 @@ struct SheetLayout: Codable, Equatable {
     var displayHeight: Int? = nil
     static func supports(_ id: String) -> Bool {
         if ["staff-8bars-v1", "staff-8bars-4-4-v2", "staff-8bars-3-4-v2", "staff-8bars-6-8-v2", "staff-8bars-2-4-v2", "staff-8bars-7-8-v2", "staff-8bars-9-8-v2", "staff-8bars-12-8-v2"].contains(id) { return true }
-        for meter in [(2,2),(2,4),(3,4),(4,4),(3,8),(6,8),(7,8),(9,8),(12,8)] {
+        for meter in [(2,2),(3,2),(2,4),(3,4),(4,4),(6,4),(3,8),(6,8),(7,8),(9,8),(12,8)] {
             for fifths in -7...7 {
                 if [3,4].contains(where: { id == "staff-8bars-\(meter.0)-\(meter.1)-key\(fifths)-v\($0)" }) { return true }
             }

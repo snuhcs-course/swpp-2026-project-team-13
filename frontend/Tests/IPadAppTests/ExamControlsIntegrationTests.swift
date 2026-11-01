@@ -5,7 +5,7 @@ import ImageIO
 @testable import IPadApp
 
 @MainActor final class ExamControlsIntegrationTests: XCTestCase {
-    func testSkipWritingWaitStartsNextSegmentAfterLeadWithoutReplayingCurrentSegment() async throws {
+    func testRapidSkippingDuringAudioAndLeadStartsOnlyTheLastChosenSegment() async throws {
         let api = try DemoExamAPI(outcome:"completed")
         let list = try await api.questions(page:1)
         let q = try await api.question(try XCTUnwrap(list.results.first?.id))
@@ -15,11 +15,11 @@ import ImageIO
         let scale = try MusicXMLParser.parseMXL(scaleData,asset:q.scoreAssets.scale)
         let player = PianoPlayback(); defer { player.pause() }
         try player.prepare(main:main,scale:scale,plan:.exam(meter:q.timeSignature,scaleMeasures:scale.measures))
-        player.restore(PlaybackCursor(index:1,phase:"gap",remainingWaitMs:20000))
+        player.restore(PlaybackCursor(index:1,phase:"segment"))
         let next = expectation(description:"Next segment starts")
         var nextStarted: TimeInterval?, advances = 0
         player.onCursor = { cursor in
-            if cursor.index == 2 && cursor.phase == "segment" && nextStarted == nil {
+            if cursor.index == 4 && cursor.phase == "segment" && nextStarted == nil {
                 nextStarted = ProcessInfo.processInfo.systemUptime; advances += 1; next.fulfill()
             }
         }
@@ -27,13 +27,38 @@ import ImageIO
         try await Task.sleep(for:.milliseconds(150))
         XCTAssertTrue(player.canSkipWritingWait)
         let began = ProcessInfo.processInfo.systemUptime
-        player.skipWritingWait(); player.skipWritingWait()
-        XCTAssertEqual(player.cursor.index,1); XCTAssertEqual(player.cursor.shortenedGap,true)
-        XCTAssertFalse(player.canSkipWritingWait)
-        await fulfillment(of:[next],timeout:7)
-        XCTAssertGreaterThanOrEqual(try XCTUnwrap(nextStarted)-began,2.8)
+        player.skipWritingWait(); player.skipWritingWait(); player.skipWritingWait()
+        XCTAssertEqual(player.cursor.index,3); XCTAssertEqual(player.cursor.shortenedGap,true)
+        XCTAssertTrue(player.canSkipWritingWait)
+        await fulfillment(of:[next],timeout:5)
+        XCTAssertGreaterThanOrEqual(try XCTUnwrap(nextStarted)-began,1.4)
+        XCTAssertLessThan(try XCTUnwrap(nextStarted)-began,3.5)
         XCTAssertEqual(advances,1)
-        XCTAssertEqual(player.cursor.index,2)
+        XCTAssertEqual(player.cursor.index,4)
+        // Skip once more after real audio has begun, then pause/restart while
+        // the lead is pending. The target and remaining lead must survive.
+        player.skipWritingWait()
+        XCTAssertEqual(player.cursor.nextSegmentIndex,5)
+        try await Task.sleep(for:.milliseconds(200))
+        player.pause()
+        let saved = player.cursor
+        XCTAssertLessThan(try XCTUnwrap(saved.remainingWaitMs),1500)
+        player.restore(saved); player.resume()
+        XCTAssertEqual(player.cursor.nextSegmentIndex,5)
+    }
+    func testScaleNoticeUsesActualScaleKeyAndRendersBeforePlayback() async throws {
+        let model = AppModel(); model.demo = true
+        await model.connect(); await model.loadClassical()
+        let q = try XCTUnwrap(model.classicalQuestions.first(where: { $0.composer == "브람스" && $0.keySignature.mode == "minor" }))
+        await model.choose(q.id); await model.begin()
+        XCTAssertNil(model.error); XCTAssertTrue(model.player.showsScaleNotice)
+        XCTAssertEqual(model.player.scaleKey,q.keySignature)
+        XCTAssertEqual(model.player.scaleKey?.mode,"minor")
+        let renderer = ImageRenderer(content:ExamView(model:model,drawing:model.drawing,player:model.player).frame(width:1194,height:834))
+        renderer.scale = 2
+        let attachment = XCTAttachment(image:try XCTUnwrap(renderer.uiImage)); attachment.name = "exam-scale-notice"; attachment.lifetime = .keepAlways; add(attachment)
+        model.player.restore(PlaybackCursor(index:1,phase:"segment"))
+        XCTAssertFalse(model.player.showsScaleNotice)
     }
     func testDemoToggleAppliesImmediatelyAndPersistsAcrossTabsAndAppModels() async throws {
         let defaults = UserDefaults.standard

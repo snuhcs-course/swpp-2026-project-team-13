@@ -70,4 +70,30 @@ final class ClassicalQuestionTests: XCTestCase {
         let changed = xml.replacingOccurrences(of:"<measure number=\"2\">",with:"<measure number=\"2\"><attributes><key><fifths>0</fifths><mode>major</mode></key></attributes>")
         XCTAssertThrowsError(try MusicXMLParser.parseXML(Data(changed.utf8),measures:8,tempo:96))
     }
+    func testBrahmsExcerptsParseTheirKeysScalesAndEveryExamSegmentIncludingNewMeters() throws {
+        let questions = try ContractJSON.decoder().decode([Question].self,from:Data(contentsOf:resources.appendingPathComponent("brahms-catalog.json")))
+        XCTAssertEqual(questions.count,10)
+        var meters = Set<String>()
+        for q in questions {
+            try q.validate()
+            let name = "classical-\(q.id.uuidString.lowercased())"
+            let main = try MusicXMLParser.parseMXL(Data(contentsOf:resources.appendingPathComponent(name+"-main.mxl")),asset:q.scoreAssets.main)
+            let scale = try MusicXMLParser.parseMXL(Data(contentsOf:resources.appendingPathComponent(name+"-scale.mxl")),asset:q.scoreAssets.scale)
+            XCTAssertEqual(main.keySignature,q.keySignature); XCTAssertEqual(scale.keySignature,q.keySignature)
+            XCTAssertEqual(main.timeSignature,q.timeSignature); XCTAssertEqual(scale.timeSignature,q.timeSignature)
+            XCTAssertEqual(main.totalTicks,8*q.timeSignature.ticksPerMeasure)
+            XCTAssertEqual(scale.events.compactMap(\.midi).count,15)
+            let plan = PlaybackPlan.exam(meter:q.timeSignature,scaleMeasures:scale.measures)
+            try plan.validate()
+            XCTAssertEqual(plan.countIn?.totalTicks,q.timeSignature.ticksPerMeasure)
+            for step in plan.steps {
+                let events = try main.segment(from:step.fromMeasure,through:step.toMeasure)
+                XCTAssertFalse(events.isEmpty)
+                XCTAssertFalse(MIDIFile.make(events:events,totalTicks:(step.toMeasure-step.fromMeasure+1)*main.ticksPerMeasure,tempo:plan.tempoBpm).isEmpty)
+            }
+            meters.insert("\(q.timeSignature.numerator)/\(q.timeSignature.denominator)")
+            XCTAssertEqual(q.sheetLayout.displayHeight,620)
+        }
+        XCTAssertTrue(meters.contains("3/2")); XCTAssertTrue(meters.contains("6/4"))
+    }
 }
