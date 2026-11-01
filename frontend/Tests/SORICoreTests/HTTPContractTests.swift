@@ -121,7 +121,11 @@ final class StubProtocol:URLProtocol {
             return try XCTUnwrap(JSONSerialization.jsonObject(with:bytes) as? [String:Any])
         }
         StubProtocol.handler = { request in
-            let path = request.url!.path, method = request.httpMethod!
+            // URL.path may omit the trailing slash on Apple platforms. Keep the
+            // serialized request path so the mock checks the actual API contract.
+            let url = try XCTUnwrap(request.url)
+            let path = try XCTUnwrap(URLComponents(url:url,resolvingAgainstBaseURL:false)).percentEncodedPath
+            let method = try XCTUnwrap(request.httpMethod)
             calls.append(method + " " + path)
             XCTAssertEqual(request.value(forHTTPHeaderField:"Authorization"),"Bearer test-token")
             if method != "GET" { XCTAssertNotNil(request.value(forHTTPHeaderField:"Idempotency-Key")) }
@@ -141,8 +145,12 @@ final class StubProtocol:URLProtocol {
                 XCTAssertEqual(try body(request)["answer_id"] as? String,answerId.uuidString.lowercased())
                 return (200,"application/json",pending)
             }
-            XCTAssertTrue(path.hasSuffix("/result/"))
-            return (200,"application/json",pending)
+            if path.hasSuffix("/result/") {
+                XCTAssertEqual(method,"GET")
+                return (200,"application/json",pending)
+            }
+            XCTFail("Unexpected Practice request: \(method) \(url.absoluteString)")
+            throw URLError(.unsupportedURL)
         }
         defer { StubProtocol.handler = nil }
         let attempt = try await api.createAttempt(question:question,mode:.practice,key:UUID())
@@ -153,7 +161,8 @@ final class StubProtocol:URLProtocol {
         let saved = try await api.saveSelfAssessment(attemptId,request:SelfAssessmentWrite(expectedRevision:0,errors:[MeasureError(measure:3,types:["pitch","rhythm"])],completed:true),key:UUID())
         XCTAssertEqual(saved.revision,1)
         XCTAssertEqual(saved.errors,[MeasureError(measure:3,types:["pitch","rhythm"])])
-        XCTAssertEqual(calls.count,4)
-        XCTAssertFalse(calls.contains { $0.contains("grading-retries") })
+        let prefix = "/api/v1/attempts/\(attemptId.uuidString.lowercased())/"
+        XCTAssertEqual(calls,["POST /api/v1/attempts/", "POST " + prefix + "submit/",
+                              "GET " + prefix + "result/", "PUT " + prefix + "self-assessment/"])
     }
 }
