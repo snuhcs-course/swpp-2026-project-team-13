@@ -1,7 +1,11 @@
 import io
 import uuid
+from django.contrib.auth import get_user_model
+from django.core.exceptions import ObjectDoesNotExist
+from django.db import DatabaseError
 from django.http import JsonResponse
 from rest_framework.exceptions import APIException
+from rest_framework.response import Response
 from rest_framework.views import exception_handler as default_handler
 from .client_ip import from_trusted_proxy
 
@@ -17,9 +21,16 @@ class ContractError(APIException):
 def envelope(request, code, message, fields=None, retry_after_ms=None):
     return {"error": {"code": code, "message": message, "fields": fields or [], "retry_after_ms": retry_after_ms}, "request_id": getattr(request, "request_id", str(uuid.uuid4()))}
 
+def requester_was_deleted(request):
+    user = request.user
+    return user.is_authenticated and not get_user_model().objects.filter(pk=user.pk).exists()
+
 def exception_handler(exc, context):
     response = default_handler(exc, context)
     request = context["request"]
+    # A request overlapping account deletion can lose its rows or files at any step.
+    if response is None and isinstance(exc, (DatabaseError, ObjectDoesNotExist, OSError)) and requester_was_deleted(request):
+        response = Response(envelope(request, "AUTHENTICATION_REQUIRED", "로그인이 필요합니다."), status=401)
     if isinstance(exc, ContractError):
         response.data = envelope(request, exc.contract_code, exc.contract_message, exc.fields, exc.retry_after_ms)
         if exc.retry_after_ms is not None:

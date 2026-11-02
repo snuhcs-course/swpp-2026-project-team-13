@@ -97,9 +97,9 @@ final class NoRedirectDelegate: NSObject, URLSessionTaskDelegate, @unchecked Sen
                 }
                 guard isCurrent() else { throw CancellationError() }
                 if success {
-                    // Logout's 204 has neither a JSON body nor a required MIME header.
+                    // A 204 has neither a JSON body nor a required MIME header.
                     if expectsNoContent {
-                        guard response.statusCode == 204 else { throw SORIError.transport("로그아웃 응답을 확인하지 못했습니다.") }
+                        guard response.statusCode == 204 else { throw SORIError.transport("서버 응답을 확인하지 못했습니다.") }
                         return Data()
                     }
                     let expected = request.value(forHTTPHeaderField: "Accept") ?? ""
@@ -159,6 +159,9 @@ final class NoRedirectDelegate: NSObject, URLSessionTaskDelegate, @unchecked Sen
     }
     func logout() async throws {
         _ = try await execute(request(endpoint("auth/logout/"), method: "POST"), limit: 256 * 1024, retry: false, expectsNoContent: true)
+    }
+    func deleteAccount() async throws {
+        _ = try await execute(request(endpoint("me/"), method: "DELETE"), limit: 256 * 1024, retry: false, expectsNoContent: true)
     }
     func updateGoal(_ goal: String) async throws -> UserProfile { try await json("me/", method: "PATCH", body: JSONSerialization.data(withJSONObject: ["learning_goal": goal])) }
     func questions(page: Int) async throws -> QuestionPage {

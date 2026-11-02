@@ -3,7 +3,7 @@
   "info": {
     "title": "SORI iPad Exam API",
     "version": "0.7.0",
-    "description": "Personal-practice iPad API with three immutable MusicXML questions (6/8, 4/4, 3/4), local piano playback and asynchronous OpenRouter AI grading and Korean feedback. AI values are estimates; API-CONTRACT.md defines invariants. Legacy v1 fixtures remain for regression checks. Playback v3 adds meter-matched, accented count-ins before both full replays, 20-second writing pauses and a final 120 seconds. Password login uses one persistent, revocable DRF bearer token per user and shared PostgreSQL login limits. Signup and signup availability from API contract v0.8.0 are implemented. Operations and schemas marked x-status: planned (account deletion, grading quotas) are defined by contract v0.8.0 and are not implemented yet. From contract v0.8.0, absolute URLs in responses (asset urls, image_url, template_png_url, next/previous, Location) use the public origin that received the request, including behind an HTTPS proxy. A proxy in front of the server may return non-contract error responses (HTML body, no X-Request-ID) when the server is unavailable or the request is blocked; clients treat an undecodable error other than 401 as a server connection problem, do not branch on error.code, and never change authentication state for it. Server 401 responses always use the contract format."
+    "description": "Personal-practice iPad API with three immutable MusicXML questions (6/8, 4/4, 3/4), local piano playback and asynchronous OpenRouter AI grading and Korean feedback. AI values are estimates; API-CONTRACT.md defines invariants. Legacy v1 fixtures remain for regression checks. Playback v3 adds meter-matched, accented count-ins before both full replays, 20-second writing pauses and a final 120 seconds. Password login uses one persistent, revocable DRF bearer token per user and shared PostgreSQL login limits. Signup, signup availability and account deletion from API contract v0.8.0 are implemented. Items marked x-status: planned (grading quotas) are defined by contract v0.8.0 and are not implemented yet. From contract v0.8.0, absolute URLs in responses (asset urls, image_url, template_png_url, next/previous, Location) use the public origin that received the request, including behind an HTTPS proxy. A proxy in front of the server may return non-contract error responses (HTML body, no X-Request-ID) when the server is unavailable or the request is blocked; clients treat an undecodable error other than 401 as a server connection problem, do not branch on error.code, and never change authentication state for it. Server 401 responses always use the contract format."
   },
   "servers": [
     {
@@ -321,79 +321,6 @@
         }
       }
     },
-    "/auth/account-deletion/": {
-      "post": {
-        "operationId": "deleteAccount",
-        "tags": [
-          "Auth"
-        ],
-        "x-status": "planned",
-        "summary": "Permanently delete the authenticated account",
-        "security": [
-          {
-            "BearerAuth": []
-          }
-        ],
-        "description": "Planned for contract v0.8.0; not implemented yet. Remove x-status after implementation. POST is used instead of DELETE /me/ because the password is re-confirmed in the body and DELETE content has no defined semantics (RFC 9110). Order: 413, 401, 415, 400, 403 ACCOUNT_DELETION_NOT_ALLOWED, 429, 403 PASSWORD_INCORRECT, 204. Deletes the user, profile, token, attempts, answers, grading jobs, idempotency receipts and answer images; AI usage records are kept without the user link. Requests from the same user that overlap the deletion and fail because the user no longer exists return 401, not 500. Failed password checks, including accounts without a usable password, share the login username failure limit. No Idempotency-Key and no automatic retry.",
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/AccountDeletionRequest"
-              }
-            }
-          }
-        },
-        "responses": {
-          "204": {
-            "description": "Account deleted. Empty body; Content-Type is not required.",
-            "headers": {
-              "X-Request-ID": {
-                "description": "Server-generated request correlation ID.",
-                "schema": {
-                  "type": "string"
-                }
-              },
-              "Cache-Control": {
-                "description": "API and private answer images: private, no-store.",
-                "schema": {
-                  "type": "string",
-                  "example": "private, no-store"
-                }
-              },
-              "Date": {
-                "description": "Current HTTP response time in RFC 9110 HTTP-date format.",
-                "schema": {
-                  "type": "string"
-                }
-              }
-            }
-          },
-          "400": {
-            "$ref": "#/components/responses/AccountDeletionValidationError"
-          },
-          "401": {
-            "$ref": "#/components/responses/Error401"
-          },
-          "403": {
-            "$ref": "#/components/responses/AccountDeletionForbidden"
-          },
-          "405": {
-            "$ref": "#/components/responses/Error405"
-          },
-          "413": {
-            "$ref": "#/components/responses/AuthRequestTooLarge"
-          },
-          "415": {
-            "$ref": "#/components/responses/Error415"
-          },
-          "429": {
-            "$ref": "#/components/responses/AccountDeletionRateLimited"
-          }
-        }
-      }
-    },
     "/me/": {
       "get": {
         "operationId": "getMe",
@@ -529,6 +456,57 @@
                 "$ref": "#/components/schemas/UserProfilePatch"
               }
             }
+          }
+        }
+      },
+      "delete": {
+        "operationId": "deleteAccount",
+        "tags": [
+          "Profile"
+        ],
+        "summary": "Permanently delete the authenticated account",
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "description": "No request body and no password re-confirmation: the app asks for confirmation, and any body is neither read nor validated. Order: 401, 403 ACCOUNT_DELETION_NOT_ALLOWED, 204. Deletes the user, profile, token, attempts, answers, grading jobs, idempotency receipts, the username's login failure record and answer images; AI usage records are kept without the user link. Requests from the same user that overlap the deletion and fail because the user no longer exists return 401, not 500. No Idempotency-Key and no automatic retry.",
+        "responses": {
+          "204": {
+            "description": "Account deleted. Empty body; Content-Type is not required.",
+            "headers": {
+              "X-Request-ID": {
+                "description": "Server-generated request correlation ID.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Cache-Control": {
+                "description": "API and private answer images: private, no-store.",
+                "schema": {
+                  "type": "string",
+                  "example": "private, no-store"
+                }
+              },
+              "Date": {
+                "description": "Current HTTP response time in RFC 9110 HTTP-date format.",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Error401"
+          },
+          "403": {
+            "$ref": "#/components/responses/AccountDeletionForbidden"
+          },
+          "405": {
+            "$ref": "#/components/responses/Error405"
+          },
+          "default": {
+            "$ref": "#/components/responses/UnexpectedError"
           }
         }
       }
@@ -4475,26 +4453,6 @@
           "learning_goal": "college_entrance",
           "password": "example-password"
         }
-      },
-      "AccountDeletionRequest": {
-        "type": "object",
-        "x-status": "planned",
-        "additionalProperties": false,
-        "required": [
-          "password"
-        ],
-        "properties": {
-          "password": {
-            "type": "string",
-            "minLength": 1,
-            "maxLength": 1024,
-            "writeOnly": true,
-            "description": "Current password for re-authentication. Signup password policy is not applied. Never persist or log."
-          }
-        },
-        "example": {
-          "password": "example-password"
-        }
       }
     },
     "responses": {
@@ -5250,54 +5208,8 @@
           }
         }
       },
-      "AccountDeletionValidationError": {
-        "description": "Malformed JSON, invalid shape, unknown fields (fields=[]), or password violation (required, invalid, blank, max_length).",
-        "headers": {
-          "X-Request-ID": {
-            "description": "Server-generated request correlation ID.",
-            "schema": {
-              "type": "string"
-            }
-          },
-          "Cache-Control": {
-            "description": "API and private answer images: private, no-store.",
-            "schema": {
-              "type": "string",
-              "example": "private, no-store"
-            }
-          },
-          "Date": {
-            "description": "Current HTTP response time in RFC 9110 HTTP-date format.",
-            "schema": {
-              "type": "string"
-            }
-          }
-        },
-        "content": {
-          "application/json": {
-            "schema": {
-              "$ref": "#/components/schemas/ErrorEnvelope"
-            },
-            "example": {
-              "error": {
-                "code": "VALIDATION_ERROR",
-                "message": "입력한 내용을 확인해 주세요.",
-                "fields": [
-                  {
-                    "field": "password",
-                    "code": "required",
-                    "message": "비밀번호를 입력해 주세요."
-                  }
-                ],
-                "retry_after_ms": null
-              },
-              "request_id": "22222222-2222-4222-8222-222222222222"
-            }
-          }
-        }
-      },
       "AccountDeletionForbidden": {
-        "description": "Incorrect or unusable password (token is kept), or an admin account that cannot be deleted in the app.",
+        "description": "Admin account that cannot be deleted in the app. The token is kept.",
         "headers": {
           "X-Request-ID": {
             "description": "Server-generated request correlation ID.",
@@ -5325,23 +5237,6 @@
               "$ref": "#/components/schemas/ErrorEnvelope"
             },
             "examples": {
-              "password_incorrect": {
-                "value": {
-                  "error": {
-                    "code": "PASSWORD_INCORRECT",
-                    "message": "비밀번호를 확인해 주세요.",
-                    "fields": [
-                      {
-                        "field": "password",
-                        "code": "incorrect",
-                        "message": "비밀번호를 확인해 주세요."
-                      }
-                    ],
-                    "retry_after_ms": null
-                  },
-                  "request_id": "22222222-2222-4222-8222-222222222222"
-                }
-              },
               "admin_account": {
                 "value": {
                   "error": {
@@ -5353,53 +5248,6 @@
                   "request_id": "22222222-2222-4222-8222-222222222222"
                 }
               }
-            }
-          }
-        }
-      },
-      "AccountDeletionRateLimited": {
-        "description": "Username password-failure block shared with login. Respect Retry-After.",
-        "headers": {
-          "X-Request-ID": {
-            "description": "Server-generated request correlation ID.",
-            "schema": {
-              "type": "string"
-            }
-          },
-          "Cache-Control": {
-            "description": "API and private answer images: private, no-store.",
-            "schema": {
-              "type": "string",
-              "example": "private, no-store"
-            }
-          },
-          "Date": {
-            "description": "Current HTTP response time in RFC 9110 HTTP-date format.",
-            "schema": {
-              "type": "string"
-            }
-          },
-          "Retry-After": {
-            "description": "Integer seconds to wait.",
-            "schema": {
-              "type": "integer",
-              "minimum": 1
-            }
-          }
-        },
-        "content": {
-          "application/json": {
-            "schema": {
-              "$ref": "#/components/schemas/ErrorEnvelope"
-            },
-            "example": {
-              "error": {
-                "code": "RATE_LIMITED",
-                "message": "잠시 후 다시 시도해 주세요.",
-                "fields": [],
-                "retry_after_ms": 300000
-              },
-              "request_id": "22222222-2222-4222-8222-222222222222"
             }
           }
         }

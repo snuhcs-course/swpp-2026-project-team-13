@@ -1,3 +1,5 @@
+import hashlib
+import hmac
 import uuid
 from django.conf import settings
 from django.contrib.auth import get_user_model
@@ -8,6 +10,10 @@ from django.db.models.functions import Lower
 def usernames_differing_by_case(username):
     # The same lower(username) expression as the unique index; never iexact or Python lower().
     return get_user_model().objects.annotate(lowered=Lower("username")).filter(lowered=Lower(Value(username)))
+
+def throttle_key(kind, value):
+    # Keyed so the short, enumerable IP and username space cannot be reversed from the table.
+    return hmac.new(settings.SECRET_KEY.encode("utf-8"), (kind + "\0" + value).encode("utf-8"), hashlib.sha256).hexdigest()
 
 class LoginThrottle(models.Model):
     # Database rows (and row locks) are shared by every API process.

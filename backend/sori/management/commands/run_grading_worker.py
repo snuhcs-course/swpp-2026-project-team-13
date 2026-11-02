@@ -1,4 +1,5 @@
 import time
+from django.core.exceptions import ObjectDoesNotExist
 from django.core.management.base import BaseCommand
 from django.db import close_old_connections
 from sori.auth_views import purge_stale_throttles
@@ -21,9 +22,13 @@ class Command(BaseCommand):
                     next_purge = time.monotonic() + PURGE_INTERVAL_SECONDS
                 job = claim_job()
                 if job:
-                    execute_job(job)
-                    job.refresh_from_db()
-                    self.stdout.write(f"job={job.id} status={job.status}")
+                    try:
+                        execute_job(job)
+                        job.refresh_from_db()
+                        self.stdout.write(f"job={job.id} status={job.status}")
+                    except ObjectDoesNotExist:
+                        # The account was deleted mid-job; its result has nowhere to go.
+                        self.stdout.write(f"job={job.id} deleted")
                 elif not options["once"]:
                     time.sleep(1)
                 if options["once"]:

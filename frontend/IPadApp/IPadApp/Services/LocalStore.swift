@@ -32,6 +32,7 @@ final class LocalStore {
         var values = URLResourceValues(); values.isExcludedFromBackup = true
         var r = root; try r.setResourceValues(values)
     }
+    func removeAll() throws { try FileManager.default.removeItem(at: root) }
     func folder(_ id: UUID) throws -> URL {
         let folder = root.appendingPathComponent(id.uuidString, isDirectory: true)
         try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)

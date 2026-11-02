@@ -6,6 +6,7 @@ struct SettingsView: View {
     @State private var address = ""
     @State private var outcome = "completed"
     @State private var showSoundLicense = false
+    @State private var confirmingDeletion = false
     var body: some View {
         ScrollView { VStack(alignment:.leading,spacing:28) {
             SectionCaption(eyebrow:"CONNECTION & PREFERENCES",title:"연결 설정",subtitle:"로컬 데모 또는 SORI 서버에 연결하세요.")
@@ -46,7 +47,17 @@ struct SettingsView: View {
                             Button("계정 전환") { model.switchAccount() }
                             Button("로그아웃", role: .destructive) { Task { await model.logout() } }
                         }.disabled(model.authenticating)
+                        Divider()
+                        Text("계정을 삭제하면 서버의 응시·답안·채점 결과와 이 기기의 연습 기록·필기가 함께 지워지며 되돌릴 수 없습니다.").font(.subheadline).foregroundStyle(.secondary)
+                        Button("계정 삭제", role: .destructive) { confirmingDeletion = true }
+                            .disabled(model.authenticating).accessibilityIdentifier("delete-account")
                     } }
+                    .alert("계정을 삭제할까요?", isPresented: $confirmingDeletion) {
+                        Button("삭제", role: .destructive) { Task { await model.deleteAccount() } }
+                        Button("취소", role: .cancel) { }
+                    } message: {
+                        Text("\(user.displayName) 계정과 서버의 응시·답안·채점 결과, 이 기기의 연습 기록·필기·미제출 답안이 영구 삭제되며 되돌릴 수 없습니다.")
+                    }
                 }
             }
             Card { VStack(alignment:.leading,spacing:12) {

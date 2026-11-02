@@ -1,6 +1,4 @@
 """Password login and signup with PostgreSQL-backed rolling attempt limits."""
-import hashlib
-import hmac
 import json
 import logging
 import math
@@ -25,7 +23,7 @@ from rest_framework.views import APIView
 
 from .client_ip import client_ip_key
 from .errors import ContractError
-from .models import LoginThrottle, UserProfile, usernames_differing_by_case
+from .models import LoginThrottle, UserProfile, throttle_key, usernames_differing_by_case
 from .presentation import absolute
 from .views import GOALS
 
@@ -41,11 +39,6 @@ SIGNUP_FIELD_RULES = {
 }
 
 logger = logging.getLogger(__name__)
-
-
-def throttle_key(kind, value):
-    # Keyed so the short, enumerable IP and username space cannot be reversed from the table.
-    return hmac.new(settings.SECRET_KEY.encode("utf-8"), (kind + "\0" + value).encode("utf-8"), hashlib.sha256).hexdigest()
 
 
 def locked_throttle(kind, value):

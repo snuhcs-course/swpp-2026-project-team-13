@@ -2,7 +2,7 @@
 
 [API-CONTRACT.md](API-CONTRACT.md)는 앱이 관찰할 수 있는 동작(요청·응답·상태 코드·헤더·오류 코드)을 정의합니다. 이 문서는 그 동작을 만들기 위한 서버·앱 내부 구현, 현재 배포 구성, 운영 설정, 배포 점검과 검증 항목을 담습니다. 두 문서가 다르면 API 계약을 따르고 이 문서를 고칩니다.
 
-대상은 v0.7.0 로그인과 v0.8.0 회원가입, 계정 삭제, 클라이언트 IP 판정, AI 채점 사용량 상한, 현재 배포 구성입니다. v0.8.0 중 회원가입, 클라이언트 IP 판정, 프록시 경유 요청 처리와 gunicorn 실행은 구현했습니다. 계정 삭제, AI 채점 사용량 상한(설정 검증 제외), compose의 cloudflared 구성과 api 포트 제한은 아직 구현 전입니다.
+대상은 v0.7.0 로그인과 v0.8.0 회원가입, 계정 삭제, 클라이언트 IP 판정, AI 채점 사용량 상한, 현재 배포 구성입니다. v0.8.0 중 회원가입, 계정 삭제, 클라이언트 IP 판정, 프록시 경유 요청 처리와 gunicorn 실행은 구현했습니다. AI 채점 사용량 상한(설정 검증 제외), compose의 cloudflared 구성과 api 포트 제한은 아직 구현 전입니다.
 
 ## 배포 구성
 
@@ -49,6 +49,7 @@ networks:
 - 이에 대한 대응은 터널을 테스트 중에만 실행, SIGNUP_ENABLED를 가입 테스트 중에만 true로 설정, 관리 화면을 터널로 제공하지 않음, DJANGO_DEBUG=false, AI 두 상한과 OpenRouter API 키의 지출 한도입니다.
 - 터널이 열린 동안 주소를 알게 된 사람이 가입해 AI_MAX_JOBS_PER_DAY를 소진하면 모든 사용자의 채점이 대기하는 위험을 수용합니다. 비용은 AI 두 상한과 OpenRouter 지출 한도로 막습니다. 서버 전체 가입 상한, 가입 코드(초대 코드), 가입 계정과 관리자 계정의 AI 한도 분리는 이번 범위에 두지 않습니다. 외부 테스터를 받기 전에 가입 코드를 추가합니다.
 - Cloudflare 엣지에서 TLS가 종료되므로 Cloudflare는 비밀번호와 토큰을 볼 수 있습니다. MVP에서 수용합니다.
+- 계정 삭제는 비밀번호를 다시 묻지 않으므로, 유효한 토큰만 있으면 계정과 학습 기록을 영구 삭제할 수 있습니다. 토큰은 만료되지 않고 기기 간에 공유됩니다. 테스트 계정만 있는 현재 범위에서 수용합니다. 관리자 계정은 앱에서 삭제할 수 없습니다.
 - Windows 데스크톱이 꺼지거나 절전 상태이거나 업데이트로 재시작하면 서비스가 중단됩니다. 앱은 이를 네트워크 오류·5xx로 처리하고 인증 상태를 바꾸지 않습니다.
 - 개인정보를 저장하지 않습니다. 서버 요청 로그와 시도 제한 저장소에는 클라이언트 IP 원문을 남기지 않습니다([클라이언트 IP 판정](#클라이언트-ip-판정)). Cloudflare는 자체적으로 방문자 IP를 처리할 수 있습니다.
 
@@ -135,7 +136,7 @@ v0.8.0이 추가하는 서버 설정은 아래 환경 변수로 조정합니다.
 - 관리 화면: 프록시 경유 요청은 관리 화면에 접근할 수 없으므로, 새 환경의 관리 접근 경로를 정합니다.
 - 서버 주소: 앱은 토큰과 로컬 기록을 origin별로 묶으므로, 실제 사용자를 받기 전에 고정 도메인을 정합니다.
 - 가용성과 데이터: 백업, 복구, 서버 상시 운영, 동시 사용 부하를 검증합니다. 테스트 데이터는 이전하지 않는 것을 기본으로 합니다.
-- 계정 정책: 만료 없는 공유 토큰과 비밀번호 복구 불가 정책을 유지할지 정합니다.
+- 계정 정책: 만료 없는 공유 토큰, 비밀번호 복구 불가 정책, 비밀번호 재확인 없는 계정 삭제를 유지할지 정합니다.
 - 앱 배포: TestFlight·App Store로 배포하면 Apple 심사 요건과 Release 빌드 동작을 다시 확인합니다.
 
 ## 서버 구현 노트
@@ -198,23 +199,23 @@ v0.8.0이 추가하는 서버 설정은 아래 환경 변수로 조정합니다.
 
 ### 요청 미들웨어와 민감 정보
 
-- RequestMiddleware의 32 KiB 본문 제한은 현재 /api/v1/auth/login/에만 적용됩니다. /api/v1/auth/signup/과 /api/v1/auth/account-deletion/의 POST에도 적용하고, 413 메시지는 로그인 전용 문구 대신 "요청 본문은 32 KiB 이하여야 합니다."처럼 공통 문구로 바꿉니다.
-- 가입과 계정 삭제 뷰는 sensitive_post_parameters("password")로 password를 민감 파라미터로 지정합니다.
+- RequestMiddleware의 32 KiB 본문 제한은 /api/v1/auth/login/과 /api/v1/auth/signup/의 POST에 적용하며, 413 메시지는 "요청 본문은 32 KiB 이하여야 합니다."입니다. 계정 삭제는 본문을 읽지 않으므로 대상이 아닙니다.
+- 가입 뷰는 sensitive_post_parameters("password")로 password를 민감 파라미터로 지정합니다.
 - 가입과 가입 가능 여부 뷰는 로그인과 같이 authentication_classes=[]와 AllowAny를 사용해 Authorization 헤더를 검사하지 않습니다.
-- sori.errors.exception_handler는 IntegrityError가 발생했을 때 요청 사용자가 DB에 더 이상 없으면 401 AUTHENTICATION_REQUIRED와 WWW-Authenticate: Bearer로 변환합니다. 계정 삭제와 겹친 요청이 삭제된 사용자를 참조하는 행을 쓰려다 실패하는 경우입니다. 사용자가 남아 있으면 기존처럼 처리합니다.
+- sori.errors.exception_handler는 DatabaseError(IntegrityError 포함), ObjectDoesNotExist 또는 OSError가 발생했을 때 요청 사용자가 DB에 더 이상 없으면 401 AUTHENTICATION_REQUIRED와 WWW-Authenticate: Bearer로 변환합니다. 계정 삭제와 겹친 요청이 삭제된 사용자를 참조하는 행을 쓰거나, 함께 삭제된 행을 저장·조회하거나 삭제된 파일을 읽다 실패하는 경우입니다. 사용자가 남아 있으면 기존처럼 처리합니다.
 
 ### 계정 삭제 절차
 
-계정 삭제 API와 관리 명령 delete_practice_user는 같은 삭제 함수를 사용합니다. 하나의 DB 트랜잭션에서 아래 순서로 잠그고 삭제하며, 일부만 삭제된 상태를 남기지 않습니다.
+계정 삭제 API와 관리 명령 delete_practice_user는 같은 삭제 함수(sori.accounts.delete_account)를 사용합니다. 하나의 DB 트랜잭션에서 아래 순서로 잠그고 삭제하며, 일부만 삭제된 상태를 남기지 않습니다.
 
 잠금 순서는 사용자의 응시 행(id 순), 사용자 행, 그 사이에 커밋된 응시 행을 다시 조회해 잠금입니다. 제출·업로드는 응시 행을 잠근 채 커밋 시점의 FK 확인에서 사용자 행을 참조하므로, 사용자 행을 먼저 잠그면 교착 상태가 생길 수 있습니다.
 
 1. 사용자의 모든 응시에서 current_job과 submitted_answer 참조를 해제합니다. 이 참조와 GradingJob.answer가 PROTECT이므로, 해제하지 않으면 Django의 연쇄 삭제가 실패합니다.
 2. 사용자의 GradingJob, Answer, Attempt를 삭제합니다. 삭제할 Answer의 이미지 경로는 이 단계에서 모아 둡니다.
 3. 사용자의 IdempotencyRecord, Token, UserProfile, 해당 아이디의 로그인 실패 집계를 삭제합니다.
-4. 사용자를 삭제합니다. AI 채점 사용량 기록은 사용자 연결만 끊고 보존합니다.
+4. 사용자를 삭제합니다. AI 채점 사용량 기록은 사용자 연결만 끊고 보존합니다. 이 기록은 사용량 상한을 구현할 때 추가합니다.
 
-- 커밋 후(transaction.on_commit) 모아 둔 답안 이미지 파일을 저장소에서 삭제합니다. 파일 삭제가 실패하면 요청 ID와 파일 경로를 서버 로그에 남겨 관리자가 정리합니다.
+- 커밋 후(transaction.on_commit) 모아 둔 답안 이미지 파일을 저장소에서 삭제합니다. 파일 삭제가 실패하면 요청 ID와 파일 경로를 서버 로그에 남겨 관리자가 정리합니다. 저장소 API에 디렉터리 삭제가 없으므로 빈 디렉터리는 남을 수 있습니다.
 - 워커는 결과를 GradingJob.objects.filter(id=..., status="processing", attempt__current_job_id=...).update(...)로 저장하므로, 삭제된 작업의 결과는 갱신 행이 없어 버려집니다. 결과 저장에 save()를 쓰면 삭제된 행을 다시 INSERT할 수 있으므로 이 방식을 유지합니다.
 - 다만 execute_job 안의 job.answer·job.attempt 조회와 워커 루프의 job.refresh_from_db()는 삭제된 행에서 DoesNotExist를 던집니다. 이 예외는 execute_job의 except 목록에 없어 워커 프로세스가 종료됩니다. 워커 루프는 execute_job부터 refresh_from_db까지를 ObjectDoesNotExist로 감싸고, 삭제된 작업이면 작업 ID만 로그에 남긴 뒤 다음 작업으로 넘어갑니다.
 - delete_practice_user <username>은 비밀번호를 묻지 않는 대신 아이디를 다시 입력받아 확인하며, 관리자 계정과 사용 가능한 비밀번호가 없는 계정도 삭제할 수 있습니다.
@@ -236,7 +237,7 @@ v0.8.0이 추가하는 서버 설정은 아래 환경 변수로 조정합니다.
 - username은 Regex의 wholeMatch처럼 문자열 전체 일치로 확인합니다.
 - display_name 길이는 String.count(문자소 단위)가 아닌 unicodeScalars.count로 확인합니다. 문자 규칙은 Unicode.Scalar.Properties의 isWhitespace(앞뒤), generalCategory(.control, .lineSeparator, .paragraphSeparator), isBidiControl로 확인합니다.
 - 서버 주소에는 터널의 https://<호스트>/api/v1/을 입력합니다. Quick Tunnel 주소가 바뀌면 기존 서버 변경 흐름(인증 작업 세대 갱신, origin별 토큰 분리)을 그대로 사용합니다.
-- 프록시가 반환하는 HTML 오류는 ErrorEnvelope로 해석되지 않습니다. 현재 ExamAPI.execute는 이 경우 envelope=nil인 SORIError.server로 처리하고 401일 때만 인증 상태를 바꾸므로 그대로 유지합니다. error.code로 분기하는 화면(계정 삭제의 403 등)은 envelope=nil을 비밀번호 오류 같은 계약 오류로 처리하지 않습니다. 해석할 수 없는 429는 Retry-After가 있으면 그 시간을 지킵니다.
+- 프록시가 반환하는 HTML 오류는 ErrorEnvelope로 해석되지 않습니다. 현재 ExamAPI.execute는 이 경우 envelope=nil인 SORIError.server로 처리하고 401일 때만 인증 상태를 바꾸므로 그대로 유지합니다. error.code로 분기하는 화면(계정 삭제의 403 등)은 envelope=nil을 관리자 계정 안내 같은 계약 오류로 처리하지 않습니다. 해석할 수 없는 429는 Retry-After가 있으면 그 시간을 지킵니다.
 - Debug 빌드는 모든 HTTP를 허용하므로 Release의 ATS 설정을 확인하지 못합니다. 배포 테스트 중 한 번은 Xcode 스킴의 Run 구성을 Release로 바꿔 설치합니다.
 
 ## 검증 항목
@@ -252,10 +253,10 @@ v0.8.0이 추가하는 서버 설정은 아래 환경 변수로 조정합니다.
 
 ### v0.8.0 검증 항목
 
-- OpenAPI에서 POST /auth/signup/, GET /auth/signup-availability/, POST /auth/account-deletion/, SignupRequest·SignupAvailability·AccountDeletionRequest 스키마, 로그인 응답 스키마를 재사용한 201 응답과 오류 예시를 구현과 맞춥니다. 구현 후 세 경로와 GRADING_QUOTA_EXCEEDED의 x-status: planned를 제거하고 info.version을 0.8.0으로 맞춥니다.
+- OpenAPI에서 POST /auth/signup/, GET /auth/signup-availability/, DELETE /me/, SignupRequest·SignupAvailability 스키마, 로그인 응답 스키마를 재사용한 201 응답과 오류 예시를 구현과 맞춥니다. AI 채점 사용량 상한을 구현한 뒤 GRADING_QUOTA_EXCEEDED의 x-status: planned를 제거하고 info.version을 0.8.0으로 맞춥니다.
 - [운영 설정과 한도](#운영-설정과-한도)의 모든 설정을 settings.py에서 읽고 검증하며, backend/.env.example에 추가합니다.
 - 성공 응답과 생성된 사용자·프로필·토큰, 요청한 learning_goal과 created_via=signup 저장, 절대 URL인 Location(.../api/v1/me/), 가입 직후 토큰으로 /me/ 조회, 같은 자격 증명으로 로그인 시 같은 토큰 반환을 검증합니다.
-- 필드별 code 우선순위, password의 다중 FieldError, 알 수 없는 필드·객체가 아닌 본문의 fields=[], 짝이 맞지 않는 서로게이트의 invalid와 1024자 초과 시 max_length 우선, "student01\n"·"student01 "의 invalid_format, display_name의 양방향 제어 문자 거절과 ZWJ 허용, learning_goal의 invalid_choice, 비밀번호 정책을 검증합니다. 로그인과 계정 삭제의 password도 같은 우선순위인지 검증합니다.
+- 필드별 code 우선순위, password의 다중 FieldError, 알 수 없는 필드·객체가 아닌 본문의 fields=[], 짝이 맞지 않는 서로게이트의 invalid와 1024자 초과 시 max_length 우선, "student01\n"·"student01 "의 invalid_format, display_name의 양방향 제어 문자 거절과 ZWJ 허용, learning_goal의 invalid_choice, 비밀번호 정책을 검증합니다. 로그인의 password도 같은 우선순위인지 검증합니다.
 - 대소문자만 다른 아이디의 409(가입과 관리자 생성 경로 모두), 동시 가입 시 하나만 성공, 실패 시 사용자·프로필·토큰이 남지 않는지 검증합니다.
 - SIGNUP_ENABLED=false의 403, 32 KiB 경계와 Content-Length 없는 초과 요청의 413, 두 IP 제한과 해제, 같은 IP의 동시 가입이 성공 한도를 넘지 않는지, IP 제한 중 입력 오류의 429, 두 제한이 겹칠 때 더 긴 Retry-After, 로그인 시도 제한과의 분리, 가입 성공 시 아이디별 로그인 실패 초기화를 검증합니다.
 - LOGIN_MAX_REQUESTS_PER_IP를 바꿨을 때 로그인 IP 제한이 그 값을 따르는지, 기본값 30에서 기존 동작과 같은지 검증합니다.
@@ -267,10 +268,10 @@ v0.8.0이 추가하는 서버 설정은 아래 환경 변수로 조정합니다.
 - 대소문자 무시 비교는 사전 확인·마이그레이션 조회가 lower(username)을 사용하는지, admin 사용자 변경 폼에서 대소문자만 다른 아이디로 바꿀 때 500이 아닌 폼 오류인지 검증합니다.
 - create_practice_user가 created_via=signup 계정의 비밀번호를 바꾸지 않는지, 기존 프로필이 마이그레이션으로 admin이 되는지 검증합니다.
 - GET /auth/signup-availability/는 설정값 반영, 잘못된 Authorization 헤더와 무관한 200, 시도 제한 미포함을 검증합니다.
-- 계정 삭제는 204 후 사용자·프로필·토큰·응시·답안·채점 작업·멱등성 영수증·이미지 파일이 남지 않는지, 이전 토큰의 401, 같은 아이디 재가입 시 새 UUID, 비밀번호 불일치의 403과 토큰 유지, 관리자 계정의 403, 사용 가능한 비밀번호가 없는 계정의 403과 실패 집계, 로그인과 공유하는 아이디별 실패 제한의 429, 입력 오류의 400, 32 KiB 초과의 413, 실패 시 일부만 삭제되지 않는지를 검증합니다. 진행 중인 채점 작업이 있을 때 삭제하면 워커가 종료되지 않고 결과만 버려지는지, 삭제와 겹친 응시 생성 요청이 500이 아닌 401을 받는지, 삭제와 겹친 제출·업로드가 교착 상태 없이 끝나는지도 검증합니다. delete_practice_user도 같은 결과를 내는지 검증합니다.
+- 계정 삭제는 204 후 사용자·프로필·토큰·응시·답안·채점 작업·멱등성 영수증·로그인 실패 기록·이미지 파일이 남지 않는지, 이전 토큰의 401, 같은 아이디 재가입 시 새 UUID, 관리자 계정의 403과 데이터 유지, 본문·Content-Type과 무관한 204, 다른 사용자의 데이터 유지, 실패 시 일부만 삭제되지 않는지, 이미지 파일 삭제 실패에도 204인지를 검증합니다. 진행 중인 채점 작업이 있을 때 삭제하면 워커가 종료되지 않고 결과만 버려지는지, 삭제와 겹친 응시 생성 요청이 500이 아닌 401을 받는지, 삭제와 겹친 제출·업로드가 교착 상태 없이 끝나는지도 검증합니다. delete_practice_user도 같은 결과를 내는지 검증합니다.
 - 남용 대응 절차대로 계정을 비활성화하면 토큰이 폐기되고 로그인·제출이 거절되는지 검증합니다.
 - 앱에서는 가입 성공 후 인증 상태와 로컬 기록 연결, 이전 세대 가입 응답 무시, 오류 후 자동 재전송하지 않음, 응답 유실 후 409·429 안내, signup-availability 결과에 따른 가입 버튼 표시, 403 후 버튼 숨김, 학습 목표 선택 필수, 개인정보·복구 불가 안내 표시, GRADING_QUOTA_EXCEEDED 안내와 자동 재전송하지 않음, 대기 시간이 30초를 넘는 429의 자동 재시도 제외, 80자 display_name 표시를 검증합니다.
-- 앱의 계정 삭제는 204 후 토큰·로컬 기록 삭제와 로그인 화면 이동, 403 PASSWORD_INCORRECT 후 토큰 유지, 이전 세대 삭제 응답 무시, 오류 후 자동 재전송하지 않음, 응답 유실 후 401의 안내와 로컬 기록 기본 유지, 본문을 해석할 수 없는 403을 비밀번호 오류로 처리하지 않음을 검증합니다.
+- 앱의 계정 삭제는 204 후 토큰·로컬 기록 삭제와 로그인 화면 이동, 진행 중이던 필기가 삭제 후 다시 저장되지 않음, 403 ACCOUNT_DELETION_NOT_ALLOWED 후 토큰 유지, 이전 세대 삭제 응답 무시, 오류 후 자동 재전송하지 않음, 응답 유실 후 401의 안내와 로컬 기록 유지, 본문을 해석할 수 없는 403을 관리자 계정 오류로 처리하지 않음을 검증합니다.
 
 ### 배포 테스트
 

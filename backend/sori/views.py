@@ -14,10 +14,12 @@ from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from PIL import Image, UnidentifiedImageError
 from rest_framework.decorators import api_view, parser_classes, permission_classes, renderer_classes
+from rest_framework.exceptions import NotAuthenticated
 from rest_framework.parsers import JSONParser, MultiPartParser
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.renderers import JSONRenderer
+from .accounts import delete_account
 from .renderers import MXLRenderer, PNGRenderer
 from .engraving import reference_asset
 from .playback import make_playback_plan, timed_question
@@ -44,9 +46,15 @@ def new_job(attempt, answer):
     attempt.current_job = job
     return job
 
-@api_view(["GET", "PATCH"])
+@api_view(["GET", "PATCH", "DELETE"])
 @parser_classes([JSONParser])
 def me(request):
+    if request.method == "DELETE":
+        if request.user.is_staff or request.user.is_superuser:
+            raise ContractError("ACCOUNT_DELETION_NOT_ALLOWED", "관리자 계정은 앱에서 삭제할 수 없습니다.", 403)
+        if not delete_account(request.user, request.request_id):
+            raise NotAuthenticated()
+        return Response(status=204)
     profile, _ = UserProfile.objects.get_or_create(user=request.user)
     if request.method == "PATCH":
         fields(request.data, {"learning_goal"})

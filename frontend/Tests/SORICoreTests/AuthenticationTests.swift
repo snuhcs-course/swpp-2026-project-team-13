@@ -203,6 +203,40 @@ final class DelayedAuthProtocol: URLProtocol {
         do { try await api.logout(); XCTFail("Revocation requires 204") }
         catch { XCTAssertTrue(error is SORIError) }
     }
+    func testAccountDeletionSendsNoBodyAndAccepts204WithoutContentType() async throws {
+        let api = try client(token: "token")
+        var calls = 0
+        StubProtocol.handler = { request in
+            calls += 1
+            XCTAssertEqual(request.url?.path, "/api/v1/me")
+            XCTAssertEqual(request.httpMethod, "DELETE")
+            XCTAssertEqual(request.value(forHTTPHeaderField: "Authorization"), "Bearer token")
+            XCTAssertNil(request.httpBody)
+            XCTAssertNil(request.value(forHTTPHeaderField: "Content-Type"))
+            XCTAssertNil(request.value(forHTTPHeaderField: "Idempotency-Key"))
+            return (204, nil, Data())
+        }
+        defer { StubProtocol.handler = nil }
+        try await api.deleteAccount()
+        XCTAssertEqual(calls, 1)
+    }
+    func testAccountDeletionRejectsUnexpectedSuccessStatus() async throws {
+        let api = try client(token: "token")
+        StubProtocol.handler = { _ in (200, "application/json", Data("{}".utf8)) }
+        defer { StubProtocol.handler = nil }
+        do { try await api.deleteAccount(); XCTFail("Deletion requires 204") }
+        catch { XCTAssertTrue(error is SORIError) }
+    }
+    func testAccountDeletionIsNeverRetriedAutomatically() async throws {
+        for (status, retry) in [(500, nil), (503, "1"), (429, "1")] as [(Int, String?)] {
+            let api = try client(token: "token")
+            var calls = 0
+            StubProtocol.handler = { _ in calls += 1; return (status, "application/json", Data("{}".utf8)) }
+            defer { StubProtocol.handler = nil }
+            do { try await api.deleteAccount(); XCTFail("Expected \(status)") } catch { XCTAssertTrue(error is SORIError) }
+            XCTAssertEqual(calls, 1, "\(status) retry=\(retry ?? "")")
+        }
+    }
     func testCurrent401InvalidatesOnlyTheMatchingToken() async throws {
         let state = AuthenticationState(), ticket = state.begin(base: base)
         state.accept("current", for: ticket)

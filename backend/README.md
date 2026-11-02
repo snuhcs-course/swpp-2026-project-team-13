@@ -42,11 +42,21 @@ macOS/Linux에서는 실행 경로를 .venv/bin/python으로 바꿉니다. 기�
 
 가입은 기본으로 꺼져 있습니다(`SIGNUP_ENABLED=false`). 설정 이름과 기본값은 `.env.example`과 [AUTH-IMPLEMENTATION.md](../docs/sori-api/AUTH-IMPLEMENTATION.md#운영-설정과-한도)를 따릅니다.
 
-`SIGNUP_ENABLED=true`로 켜려면 `AI_MAX_JOBS_PER_USER_PER_DAY`와 `AI_MAX_JOBS_PER_DAY`도 함께 정해야 서버가 시작됩니다. 다만 현재는 두 값의 설정 검증만 구현되어 있고, 채점 요청에서 상한을 적용하는 코드와 계정 삭제 API는 아직 없습니다. 그동안 비용은 OpenRouter API 키의 지출 한도로만 제한되므로, 터널을 연 채 가입을 켜지 않습니다.
+`SIGNUP_ENABLED=true`로 켜려면 `AI_MAX_JOBS_PER_USER_PER_DAY`와 `AI_MAX_JOBS_PER_DAY`도 함께 정해야 서버가 시작됩니다. 다만 현재는 두 값의 설정 검증만 구현되어 있고, 채점 요청에서 상한을 적용하는 코드는 아직 없습니다. 그동안 비용은 OpenRouter API 키의 지출 한도로만 제한되므로, 터널을 연 채 가입을 켜지 않습니다.
 
 `.env`를 수정한 뒤에는 `docker compose --env-file backend/.env up -d --build`로 컨테이너를 다시 만듭니다. 이번 변경으로 API가 runserver 대신 gunicorn으로 실행되어 이미지를 다시 빌드해야 합니다. gunicorn은 정적 파일을 제공하지 않으므로 관리 화면에 스타일이 적용되지 않을 수 있습니다.
 
 배포 전에 대소문자만 다른 기존 계정이 없는지 [배포 점검 항목](../docs/sori-api/AUTH-IMPLEMENTATION.md#배포-점검-항목)의 조회로 확인합니다. 있으면 `0003_signup` 마이그레이션이 계정 목록을 출력하고 중단합니다.
+
+## 계정 삭제 계약 v0.8.0
+
+앱의 계정 삭제는 `DELETE /api/v1/me/`이며 비밀번호를 다시 묻지 않습니다. 계정과 응시·답안·채점 작업·이미지 파일을 영구 삭제하고, 관리자 계정은 403으로 거절합니다.
+
+비밀번호를 잊은 계정이나 관리자 계정은 관리 명령으로 삭제합니다. 아이디를 다시 입력해 확인합니다. Django admin의 사용자 삭제는 응시가 있으면 실패하므로 이 명령을 씁니다.
+
+```sh
+docker compose --env-file backend/.env exec api python manage.py delete_practice_user <username>
+```
 
 가입 계정의 정리는 관리 화면의 UserProfile 목록에서 `created_via` 필터로 찾습니다. `create_practice_user`는 가입 계정의 비밀번호를 재설정하지 않습니다.
 

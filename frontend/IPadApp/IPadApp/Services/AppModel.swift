@@ -278,6 +278,42 @@ import PencilKit
         }
         catch { report(error) }
     }
+    func deleteAccount() async {
+        guard let base = URL(string: server), Origin(base) != nil, let token = authentication.token else { return }
+        let local = store
+        player.pause(); drawing.freeze(true)
+        operationGeneration = UUID(); busy = false; pollGeneration = UUID()
+        logoutNeedsConfirmation = false; logoutFailure = nil; pendingLocalLogout = nil
+        let ticket = authentication.begin(base: base)
+        authentication.accept(token, for: ticket); authenticating = true; busyText = "계정을 삭제하는 중"
+        defer { if authentication.matches(ticket) { authenticating = false; drawing.freeze(isLocked) } }
+        do {
+            let candidate = try securedAPI(base: base, token: token, ticket: ticket)
+            let expire = candidate.onUnauthorized
+            candidate.onUnauthorized = { [weak self] in
+                guard let self, self.authentication.matches(ticket, token: token) else { return }
+                expire()
+                self.error = "계정이 이미 삭제됐거나 다른 기기에서 로그아웃했을 수 있어요. 같은 아이디로 다시 로그인되면 계정이 남아 있는 거예요."
+            }
+            api = candidate
+            try await candidate.deleteAccount()
+            guard authentication.matches(ticket, token: token) else { authenticating = false; return }
+            // The account is gone, so local failures must not keep this user signed in.
+            var cleaned = true
+            do { if try TokenVault.read(server: base.absoluteString) == token { try TokenVault.delete(server: base.absoluteString) } } catch { cleaned = false }
+            // Remove the records last: leaving the session saves its drawing into this store.
+            cancelLogin()
+            do { try local?.removeAll() } catch { cleaned = false }
+            if !cleaned { self.error = "계정은 삭제했지만 이 기기에 저장된 정보 일부를 지우지 못했어요." }
+        } catch {
+            guard authentication.matches(ticket, token: token), !(error is CancellationError) else { return }
+            if case SORIError.server(403, let envelope?, _) = error, envelope.error.code == "ACCOUNT_DELETION_NOT_ALLOWED" {
+                self.error = "관리자 계정은 앱에서 삭제할 수 없어요."
+            } else {
+                self.error = "계정이 삭제됐는지 확인하지 못했어요. 연결을 확인한 뒤 다시 시도해 주세요.\n" + error.localizedDescription
+            }
+        }
+    }
     func loadMore() async {
         await run("문제 목록을 불러오는 중") {
             guard let api = self.api else { return }
