@@ -19,12 +19,27 @@ def resolve_tempo(meter, selected_bpm=None):
 
 
 def quarter_bpm(tempo):
-    return tempo["bpm"] * (2 if tempo["beat_unit"] == "half" else 1.5 if tempo["beat_unit"] == "dotted_quarter" else 1)
+    return tempo["bpm"] * {"quarter":1,"dotted_quarter":1.5,"half":2,"dotted_half":3}[tempo["beat_unit"]]
+
+
+def question_tempo(metadata, selected_bpm=None):
+    """Keep reviewed score markings for these classical question versions only."""
+    marked = metadata.get("tempo")
+    if not marked or marked.get("policy_id") != "sori-score-tempo-1":
+        return resolve_tempo(metadata["time_signature"], selected_bpm)
+    if (metadata.get("collection") != "classical" or
+        marked.get("beat_unit") not in ("quarter", "dotted_quarter", "half", "dotted_half") or
+        type(marked.get("bpm")) is not int or
+        not marked["bpm"] == marked.get("minimum_bpm") == marked.get("maximum_bpm") or
+        not 40 <= quarter_bpm(marked) <= 200 or
+        selected_bpm is not None and (type(selected_bpm) is not int or selected_bpm != marked["bpm"])):
+        raise ValueError("Invalid fixed score tempo")
+    return copy.deepcopy(marked)
 
 
 def make_playback_plan(metadata, selected_bpm=None):
     meter = metadata["time_signature"]
-    tempo = resolve_tempo(meter, selected_bpm)
+    tempo = question_tempo(metadata, selected_bpm)
     scale_measures = metadata.get("score_assets", {}).get("scale", {}).get("measure_count", 2)
     return {
         "version": 4, "engine": "local_midi", "tempo_bpm": quarter_bpm(tempo), "tempo": tempo,

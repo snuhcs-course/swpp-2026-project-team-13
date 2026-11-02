@@ -84,8 +84,8 @@ final class StubProtocol:URLProtocol {
         _=try await api.questions(page:2)
         XCTAssertEqual(paths,[
             "questions/?page=1&page_size=20",
-            "questions/?page=1&page_size=20&collection=classical",
-            "questions/?page=2&page_size=20&collection=classical",
+            "questions/?page=1&page_size=50&collection=classical",
+            "questions/?page=2&page_size=50&collection=classical",
             "questions/?page=2&page_size=20"
         ])
     }

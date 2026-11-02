@@ -1,0 +1,427 @@
+{
+  "source": "User-provided classic/mahler.mscz and mahler.txt",
+  "source_sha256": "671cd12626a76d4fb2071da500cb4b8aa487d0106e18adc67effa9eee19562e1",
+  "xml_sha256": "032d138a910d23abe2c85a795787a3217dbb9b9c44761fb62239b19a963454a4",
+  "policy": "Eight complete source bars; retain notes, rests and ties; exclude only wholly silent blocks; original fixed metronome markings.",
+  "accepted": [
+    {
+      "number": 1,
+      "block": 1,
+      "measures": [
+        1,
+        8
+      ],
+      "file": "mahler-01.musicxml",
+      "sha256": "7a58ff0b89464ea3ee50816dae338842ee13a345e225c6ecbb65e0333ec18102",
+      "title": "말러 · 교향곡 6번 제1악장 1주제",
+      "meter": [
+        4,
+        4
+      ],
+      "key": {
+        "fifths": 0,
+        "mode": "minor",
+        "tonic": "A"
+      },
+      "tempo": {
+        "policy_id": "sori-score-tempo-1",
+        "beat_unit": "quarter",
+        "bpm": 120,
+        "minimum_bpm": 120,
+        "maximum_bpm": 120
+      },
+      "mode_source": "reviewed_signature_and_melody",
+      "question_id": "e200e8be-fe25-5122-ae62-42873b55b355"
+    },
+    {
+      "number": 2,
+      "block": 2,
+      "measures": [
+        9,
+        16
+      ],
+      "file": "mahler-02.musicxml",
+      "sha256": "9ac827a7af6018161a08cc65bc6a36b01e02d9ea96f5ff5bd9e4b3ad343962bf",
+      "title": "말러 · 교향곡 6번 제1악장 2주제",
+      "meter": [
+        4,
+        4
+      ],
+      "key": {
+        "fifths": -1,
+        "mode": "minor",
+        "tonic": "D"
+      },
+      "tempo": {
+        "policy_id": "sori-score-tempo-1",
+        "beat_unit": "quarter",
+        "bpm": 110,
+        "minimum_bpm": 110,
+        "maximum_bpm": 110
+      },
+      "mode_source": "reviewed_signature_and_melody",
+      "question_id": "7e17929b-1682-5ab1-bda0-84ac5a2eb280"
+    },
+    {
+      "number": 3,
+      "block": 3,
+      "measures": [
+        17,
+        24
+      ],
+      "file": "mahler-03.musicxml",
+      "sha256": "5ea236a8b6e34985773084a41d679e14c22efbbfbd9bd73497b758d28c2f958f",
+      "title": "말러 · 교향곡 6번 제4악장",
+      "meter": [
+        4,
+        4
+      ],
+      "key": {
+        "fifths": 0,
+        "mode": "minor",
+        "tonic": "A"
+      },
+      "tempo": {
+        "policy_id": "sori-score-tempo-1",
+        "beat_unit": "quarter",
+        "bpm": 120,
+        "minimum_bpm": 120,
+        "maximum_bpm": 120
+      },
+      "mode_source": "reviewed_signature_and_melody",
+      "question_id": "16754978-8957-560f-96d7-5d1b46200fa0"
+    },
+    {
+      "number": 4,
+      "block": 4,
+      "measures": [
+        25,
+        32
+      ],
+      "file": "mahler-04.musicxml",
+      "sha256": "64c29c6c590ff60e253e2c29a8d0b917e363012cb82e9dfd05d6d265329099b6",
+      "title": "말러 · 방황하는 젊은이의 노래 - '아침 들을 거닐면'",
+      "meter": [
+        4,
+        4
+      ],
+      "key": {
+        "fifths": 2,
+        "mode": "major",
+        "tonic": "D"
+      },
+      "tempo": {
+        "policy_id": "sori-score-tempo-1",
+        "beat_unit": "half",
+        "bpm": 90,
+        "minimum_bpm": 90,
+        "maximum_bpm": 90
+      },
+      "mode_source": "reviewed_signature_and_melody",
+      "question_id": "d520a564-35d2-552b-a021-97b0d1fdd60f"
+    },
+    {
+      "number": 5,
+      "block": 5,
+      "measures": [
+        33,
+        40
+      ],
+      "file": "mahler-05.musicxml",
+      "sha256": "5ae5e02852742c777da6444b0e8b0a938c9beac52b59a1327bf1cfb507ef6780",
+      "title": "말러 · 교향곡 1번 제4악장",
+      "meter": [
+        4,
+        4
+      ],
+      "key": {
+        "fifths": 2,
+        "mode": "major",
+        "tonic": "D"
+      },
+      "tempo": {
+        "policy_id": "sori-score-tempo-1",
+        "beat_unit": "half",
+        "bpm": 80,
+        "minimum_bpm": 80,
+        "maximum_bpm": 80
+      },
+      "mode_source": "reviewed_signature_and_melody",
+      "question_id": "3f658055-1913-5558-93c7-153dc076c9e4"
+    },
+    {
+      "number": 6,
+      "block": 6,
+      "measures": [
+        41,
+        48
+      ],
+      "file": "mahler-06.musicxml",
+      "sha256": "1b46b68c69424d2d5ee83d5f523c6c6487807e80ee9137c9b640f92d9ae02e3f",
+      "title": "말러 · 교향곡 1번 제3악장",
+      "meter": [
+        4,
+        4
+      ],
+      "key": {
+        "fifths": -1,
+        "mode": "minor",
+        "tonic": "D"
+      },
+      "tempo": {
+        "policy_id": "sori-score-tempo-1",
+        "beat_unit": "half",
+        "bpm": 45,
+        "minimum_bpm": 45,
+        "maximum_bpm": 45
+      },
+      "mode_source": "reviewed_signature_and_melody",
+      "question_id": "6312f829-25df-5d05-b9ad-be05ec105d39"
+    },
+    {
+      "number": 7,
+      "block": 7,
+      "measures": [
+        49,
+        56
+      ],
+      "file": "mahler-07.musicxml",
+      "sha256": "863165a0698dad9cb093b64c91b57b1858d8d4aac6f758f975f01564e20fa206",
+      "title": "말러 · 교향곡 7번 제1악장",
+      "meter": [
+        4,
+        4
+      ],
+      "key": {
+        "fifths": 0,
+        "mode": "major",
+        "tonic": "C"
+      },
+      "tempo": {
+        "policy_id": "sori-score-tempo-1",
+        "beat_unit": "quarter",
+        "bpm": 80,
+        "minimum_bpm": 80,
+        "maximum_bpm": 80
+      },
+      "mode_source": "user_confirmed",
+      "question_id": "a711fae3-6e59-5d73-9ef6-b0ae56936bde"
+    },
+    {
+      "number": 8,
+      "block": 8,
+      "measures": [
+        57,
+        64
+      ],
+      "file": "mahler-08.musicxml",
+      "sha256": "3f65560c12f41d7fe4c850cedb41a578dd5474f4b8cd11aca0226cfc81e1c739",
+      "title": "말러 · 교향곡 7번 제2악장",
+      "meter": [
+        4,
+        4
+      ],
+      "key": {
+        "fifths": 0,
+        "mode": "major",
+        "tonic": "C"
+      },
+      "tempo": {
+        "policy_id": "sori-score-tempo-1",
+        "beat_unit": "half",
+        "bpm": 60,
+        "minimum_bpm": 60,
+        "maximum_bpm": 60
+      },
+      "mode_source": "user_confirmed",
+      "question_id": "1482afb2-2476-58f1-bd19-dbb9f5cca7cc"
+    },
+    {
+      "number": 9,
+      "block": 9,
+      "measures": [
+        65,
+        72
+      ],
+      "file": "mahler-09.musicxml",
+      "sha256": "8981e82757f8c94221029a665ca78c4e0d9c8d078c9ae1add7185d78cf2d36ed",
+      "title": "말러 · 교향곡 7번 제4악장",
+      "meter": [
+        2,
+        4
+      ],
+      "key": {
+        "fifths": -2,
+        "mode": "major",
+        "tonic": "Bb"
+      },
+      "tempo": {
+        "policy_id": "sori-score-tempo-1",
+        "beat_unit": "quarter",
+        "bpm": 65,
+        "minimum_bpm": 65,
+        "maximum_bpm": 65
+      },
+      "mode_source": "reviewed_signature_and_melody",
+      "question_id": "709c867a-22f4-537b-aaf0-a928687c4b41"
+    },
+    {
+      "number": 10,
+      "block": 10,
+      "measures": [
+        73,
+        80
+      ],
+      "file": "mahler-10.musicxml",
+      "sha256": "98354b723ae615d42762b58942b3aa96fce63dfaab5be1414f40530d1a2b7919",
+      "title": "말러 · 교향곡 7번 제5악장",
+      "meter": [
+        4,
+        4
+      ],
+      "key": {
+        "fifths": 0,
+        "mode": "major",
+        "tonic": "C"
+      },
+      "tempo": {
+        "policy_id": "sori-score-tempo-1",
+        "beat_unit": "half",
+        "bpm": 80,
+        "minimum_bpm": 80,
+        "maximum_bpm": 80
+      },
+      "mode_source": "reviewed_signature_and_melody",
+      "question_id": "072aca3f-1f7a-5341-9b9f-68a647093f58"
+    },
+    {
+      "number": 11,
+      "block": 12,
+      "measures": [
+        89,
+        96
+      ],
+      "file": "mahler-11.musicxml",
+      "sha256": "94f84f5b762f744e32ec04dfdb8db5a34d77e671823c0af5bab7c8194ce513f1",
+      "title": "말러 · 교향곡 9번 제1악장",
+      "meter": [
+        4,
+        4
+      ],
+      "key": {
+        "fifths": -1,
+        "mode": "minor",
+        "tonic": "D"
+      },
+      "tempo": {
+        "policy_id": "sori-score-tempo-1",
+        "beat_unit": "quarter",
+        "bpm": 85,
+        "minimum_bpm": 85,
+        "maximum_bpm": 85
+      },
+      "mode_source": "user_confirmed",
+      "question_id": "1687ab99-f61c-55c6-b018-32b46a06fc32"
+    },
+    {
+      "number": 12,
+      "block": 13,
+      "measures": [
+        97,
+        104
+      ],
+      "file": "mahler-12.musicxml",
+      "sha256": "a40aca1689c4fbdc67eb336e452055c0ed3714d1236f1d46da5856ba75cfa22e",
+      "title": "말러 · 교향곡 9번 제2악장",
+      "meter": [
+        3,
+        4
+      ],
+      "key": {
+        "fifths": 0,
+        "mode": "major",
+        "tonic": "C"
+      },
+      "tempo": {
+        "policy_id": "sori-score-tempo-1",
+        "beat_unit": "quarter",
+        "bpm": 120,
+        "minimum_bpm": 120,
+        "maximum_bpm": 120
+      },
+      "mode_source": "reviewed_signature_and_melody",
+      "question_id": "ade92785-16f0-5332-bbe6-1fd888e4d4bd"
+    },
+    {
+      "number": 13,
+      "block": 14,
+      "measures": [
+        105,
+        112
+      ],
+      "file": "mahler-13.musicxml",
+      "sha256": "1133a5e766e4c63cce90a180cb09559516c25c8742560aa47138e1ceb719df17",
+      "title": "말러 · 교향곡 9번 제3악장",
+      "meter": [
+        2,
+        2
+      ],
+      "key": {
+        "fifths": 0,
+        "mode": "minor",
+        "tonic": "A"
+      },
+      "tempo": {
+        "policy_id": "sori-score-tempo-1",
+        "beat_unit": "half",
+        "bpm": 100,
+        "minimum_bpm": 100,
+        "maximum_bpm": 100
+      },
+      "mode_source": "reviewed_signature_and_melody",
+      "question_id": "cc0ee6f9-086a-5d8e-889c-24c59a085147"
+    }
+  ],
+  "excluded": [
+    {
+      "block": 11,
+      "measures": [
+        81,
+        88
+      ],
+      "reason": "all_rests"
+    },
+    {
+      "block": 15,
+      "measures": [
+        113,
+        120
+      ],
+      "reason": "all_rests"
+    },
+    {
+      "block": 16,
+      "measures": [
+        121,
+        128
+      ],
+      "reason": "all_rests"
+    },
+    {
+      "block": 17,
+      "measures": [
+        129,
+        136
+      ],
+      "reason": "all_rests"
+    },
+    {
+      "block": 18,
+      "measures": [
+        137,
+        138
+      ],
+      "reason": "all_rests"
+    }
+  ]
+}

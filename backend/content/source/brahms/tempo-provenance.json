@@ -1,0 +1,165 @@
+{
+  "source_sha256": "08393bb517a420b8d6eefc6485909ab726ccb05f30e3d14e4ce02d784a519ca6",
+  "revisions": [
+    {
+      "question_id": "6ab09e5a-be17-5ab0-ba82-e153cc7809da",
+      "version": 2,
+      "block": 1,
+      "measures": [
+        1,
+        8
+      ],
+      "tempo": {
+        "policy_id": "sori-score-tempo-1",
+        "beat_unit": "quarter",
+        "bpm": 100,
+        "minimum_bpm": 100,
+        "maximum_bpm": 100
+      }
+    },
+    {
+      "question_id": "1a84b97a-f446-553a-9f85-138edaaec3e2",
+      "version": 2,
+      "block": 2,
+      "measures": [
+        9,
+        16
+      ],
+      "tempo": {
+        "policy_id": "sori-score-tempo-1",
+        "beat_unit": "quarter",
+        "bpm": 80,
+        "minimum_bpm": 80,
+        "maximum_bpm": 80
+      }
+    },
+    {
+      "question_id": "6b850227-7816-5d5a-b325-2eae12bc4208",
+      "version": 2,
+      "block": 3,
+      "measures": [
+        17,
+        24
+      ],
+      "tempo": {
+        "policy_id": "sori-score-tempo-1",
+        "beat_unit": "half",
+        "bpm": 64,
+        "minimum_bpm": 64,
+        "maximum_bpm": 64
+      }
+    },
+    {
+      "question_id": "9b05b963-f37a-527e-ac03-4704f3450f7e",
+      "version": 2,
+      "block": 4,
+      "measures": [
+        25,
+        32
+      ],
+      "tempo": {
+        "policy_id": "sori-score-tempo-1",
+        "beat_unit": "quarter",
+        "bpm": 64,
+        "minimum_bpm": 64,
+        "maximum_bpm": 64
+      }
+    },
+    {
+      "question_id": "19052efc-b50b-5948-8a48-36c66da4a63c",
+      "version": 2,
+      "block": 5,
+      "measures": [
+        33,
+        40
+      ],
+      "tempo": {
+        "policy_id": "sori-score-tempo-1",
+        "beat_unit": "dotted_quarter",
+        "bpm": 42,
+        "minimum_bpm": 42,
+        "maximum_bpm": 42
+      }
+    },
+    {
+      "question_id": "8e31f5f1-2bc2-5edd-9997-46d5cfffbd26",
+      "version": 2,
+      "block": 6,
+      "measures": [
+        41,
+        48
+      ],
+      "tempo": {
+        "policy_id": "sori-score-tempo-1",
+        "beat_unit": "half",
+        "bpm": 60,
+        "minimum_bpm": 60,
+        "maximum_bpm": 60
+      }
+    },
+    {
+      "question_id": "83cc55f0-40de-5300-ae74-d8392ed14e0c",
+      "version": 2,
+      "block": 7,
+      "measures": [
+        49,
+        56
+      ],
+      "tempo": {
+        "policy_id": "sori-score-tempo-1",
+        "beat_unit": "quarter",
+        "bpm": 100,
+        "minimum_bpm": 100,
+        "maximum_bpm": 100
+      }
+    },
+    {
+      "question_id": "95a25944-5c10-55b4-b9ed-935c449badcb",
+      "version": 2,
+      "block": 9,
+      "measures": [
+        65,
+        72
+      ],
+      "tempo": {
+        "policy_id": "sori-score-tempo-1",
+        "beat_unit": "half",
+        "bpm": 100,
+        "minimum_bpm": 100,
+        "maximum_bpm": 100
+      }
+    },
+    {
+      "question_id": "6da9eb15-170a-5b39-b90b-1601d4f23f59",
+      "version": 2,
+      "block": 10,
+      "measures": [
+        73,
+        80
+      ],
+      "tempo": {
+        "policy_id": "sori-score-tempo-1",
+        "beat_unit": "quarter",
+        "bpm": 100,
+        "minimum_bpm": 100,
+        "maximum_bpm": 100
+      }
+    },
+    {
+      "question_id": "fa447422-0bb6-5a52-aa9a-8a08abe0d806",
+      "version": 2,
+      "block": 11,
+      "measures": [
+        81,
+        88
+      ],
+      "tempo": {
+        "policy_id": "sori-score-tempo-1",
+        "beat_unit": "dotted_half",
+        "bpm": 50,
+        "minimum_bpm": 50,
+        "maximum_bpm": 50
+      }
+    }
+  ]
+}

@@ -52,6 +52,7 @@ jobs:
       - run: python ../scripts/test_melody_library.py
       - run: python ../scripts/test_classical_piano.py
       - run: python ../scripts/test_classical_questions.py
+      - run: python ../scripts/test_classical_updates.py
       - run: python ../scripts/test_practice_import.py
       - run: python ../scripts/test_sheet_revisions.py
       - name: Verify Feature v1 without the application runtime

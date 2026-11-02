@@ -96,4 +96,45 @@ final class ClassicalQuestionTests: XCTestCase {
         }
         XCTAssertTrue(meters.contains("3/2")); XCTAssertTrue(meters.contains("6/4"))
     }
+    func testMahlerAndBrahmsMarkedTempiValidateAndControlActualMIDIClock() throws {
+        let mahler = try ContractJSON.decoder().decode([Question].self,from:Data(contentsOf:resources.appendingPathComponent("mahler-catalog.json")))
+        let brahms = try ContractJSON.decoder().decode([Question].self,from:Data(contentsOf:resources.appendingPathComponent("classical-tempo-revisions.json")))
+        let expected: [(String,Int,Double)] = [
+            ("quarter",120,120),("quarter",110,110),("quarter",120,120),("half",90,180),("half",80,160),("half",45,90),("quarter",80,80),
+            ("half",60,120),("quarter",65,65),("half",80,160),("quarter",85,85),("quarter",120,120),("half",100,200),
+            ("quarter",100,100),("quarter",80,80),("half",64,128),("quarter",64,64),("dotted_quarter",42,63),("half",60,120),
+            ("quarter",100,100),("half",100,200),("quarter",100,100),("dotted_half",50,150)]
+        XCTAssertEqual(mahler.count,13); XCTAssertEqual(brahms.count,10)
+        for (q,mark) in zip(mahler+brahms,expected) {
+            try q.validate()
+            let tempo = try XCTUnwrap(q.tempo)
+            try tempo.validate(meter:q.timeSignature)
+            XCTAssertEqual(tempo.beatUnit,mark.0); XCTAssertEqual(tempo.bpm,mark.1); XCTAssertEqual(tempo.quarterBpm,mark.2)
+            let name = "classical-\(q.id.uuidString.lowercased())"
+            let main = try MusicXMLParser.parseMXL(Data(contentsOf:resources.appendingPathComponent(name+"-main.mxl")),asset:q.scoreAssets.main)
+            let scale = try MusicXMLParser.parseMXL(Data(contentsOf:resources.appendingPathComponent(name+"-scale.mxl")),asset:q.scoreAssets.scale)
+            XCTAssertEqual(main.keySignature,q.keySignature); XCTAssertEqual(scale.keySignature,q.keySignature)
+            XCTAssertEqual(scale.events.compactMap(\.midi).count,15)
+            let plan = PlaybackPlan.exam(meter:q.timeSignature,setting:tempo,scaleMeasures:scale.measures)
+            try plan.validate(); XCTAssertEqual(plan.tempoBpm,mark.2)
+            for step in plan.steps {
+                let events = try main.segment(from:step.fromMeasure,through:step.toMeasure)
+                let midi = [UInt8](MIDIFile.withCountIn(events:events,totalTicks:(step.toMeasure-step.fromMeasure+1)*main.ticksPerMeasure,tempo:plan.tempoBpm,countIn:try XCTUnwrap(plan.countIn)))
+                let offset = try XCTUnwrap(midi.indices.first { $0+5 < midi.count && midi[$0] == 0xff && midi[$0+1] == 0x51 && midi[$0+2] == 3 })
+                let micros = Int(midi[offset+3]) << 16 | Int(midi[offset+4]) << 8 | Int(midi[offset+5])
+                XCTAssertEqual(micros,Int((60_000_000/mark.2).rounded()))
+            }
+        }
+        XCTAssertEqual(brahms.last?.tempo?.label,"𝅗𝅥. = 50")
+    }
+    func testMarkedTempoExceptionKeepsOrdinaryMeterPolicyStrict() throws {
+        let meter = TimeSignature(numerator:4,denominator:4)
+        var tempo = TempoSetting(policyId:"sori-score-tempo-1",beatUnit:"half",bpm:64,minimumBpm:64,maximumBpm:64)
+        XCTAssertNoThrow(try tempo.validate(meter:meter))
+        tempo.policyId = "sori-tempo-1"
+        XCTAssertThrowsError(try tempo.validate(meter:meter))
+        tempo.policyId = "sori-score-tempo-1"; tempo.maximumBpm = 65
+        XCTAssertThrowsError(try tempo.validate(meter:meter))
+        XCTAssertEqual(TempoDefaults.setting(for:meter).bpm,80)
+    }
 }

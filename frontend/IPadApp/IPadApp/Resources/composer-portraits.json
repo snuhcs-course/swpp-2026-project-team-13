@@ -1,5 +1,16 @@
 [
   {
+    "id": "mahler",
+    "name": "말러",
+    "english_name": "Gustav Mahler",
+    "years": "1860–1911",
+    "resource": "composer-mahler",
+    "source": "https://github.com/LiviuLvu/composers-list/blob/gh-pages/img/gustav-mahler.jpg",
+    "credit": "말러의 역사적 초상 사진 · 공개 영역 원작의 축소본 · composers-list 미러",
+    "download_source": "https://github.com/LiviuLvu/composers-list/blob/gh-pages/img/gustav-mahler.jpg",
+    "git_blob_sha": "8ad8b05323bf61dcf5574020806a504fcfa3e0fd"
+  },
+  {
     "id": "brahms",
     "name": "브람스",
     "english_name": "Johannes Brahms",

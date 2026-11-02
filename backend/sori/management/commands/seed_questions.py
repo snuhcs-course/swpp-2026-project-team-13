@@ -22,6 +22,9 @@ class Command(BaseCommand):
             if hashlib.sha256(png).hexdigest() != layout["template_sha256"]:
                 raise CommandError("Template hash mismatch")
             question, _ = Question.objects.get_or_create(id=metadata["id"], defaults={"order": item["order"], "current_version": metadata["version"]})
+            if question.order != item["order"]:
+                question.order = item["order"]
+                question.save(update_fields=["order"])
             old = QuestionVersion.objects.filter(question=question, version=metadata["version"]).first()
             if old and (old.metadata != metadata or old.main_path != item["main_path"] or old.scale_path != item["scale_path"]):
                 raise CommandError("An existing question version is immutable. Publish a new version instead.")

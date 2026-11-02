@@ -192,7 +192,7 @@ final class NoRedirectDelegate: NSObject, URLSessionTaskDelegate, @unchecked Sen
     }
     private func questionPage(page: Int, collection: String? = nil) async throws -> QuestionPage {
         var components = URLComponents(url: endpoint("questions/"), resolvingAgainstBaseURL: false)!
-        var queryItems = [URLQueryItem(name: "page", value: String(page)), URLQueryItem(name: "page_size", value: "20")]
+        var queryItems = [URLQueryItem(name: "page", value: String(page)), URLQueryItem(name: "page_size", value: collection == "classical" ? "50" : "20")]
         if let collection { queryItems.append(URLQueryItem(name: "collection", value: collection)) }
         components.queryItems = queryItems
         let data = try await execute(request(components.url!), limit: 2 * 1024 * 1024)

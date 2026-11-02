@@ -21,17 +21,19 @@ import Foundation
         let practice: [Question] = try Bundled.decode("practice-catalog")
         let classical: [Question] = try Bundled.decode("classical-catalog")
         let brahms: [Question] = try Bundled.decode("brahms-catalog")
+        let mahler: [Question] = try Bundled.decode("mahler-catalog")
         let additional: [Question] = try Bundled.decode("additional-practice-catalog")
         let revisions: [Question] = try Bundled.decode("sheet-revisions")
-        let current = Dictionary(uniqueKeysWithValues:revisions.map { ($0.id,$0) })
-        let values = (practice + classical + brahms + additional).map { current[$0.id] ?? $0 }
+        let tempoRevisions: [Question] = try Bundled.decode("classical-tempo-revisions")
+        let current = Dictionary(uniqueKeysWithValues:(revisions + tempoRevisions).map { ($0.id,$0) })
+        let values = (practice + classical + brahms + mahler + additional).map { current[$0.id] ?? $0 }
         let engraving: EngravingManifest = try Bundled.decode("engraving-manifest")
         return values.map { source in
             var q = source
             if let image = engraving.scores[q.scoreAssets.main.sha256] {
                 q.correctScore = ReferenceImage(url:q.scoreAssets.main.url.deletingLastPathComponent().deletingLastPathComponent().appendingPathComponent("display",isDirectory:true),contentType:image.contentType,sha256:image.sha256,sizeBytes:image.sizeBytes,pixelWidth:image.pixelWidth,pixelHeight:image.pixelHeight,renderer:image.renderer)
             }
-            q.tempo = TempoDefaults.setting(for:q.timeSignature); q.recommendedDurationSeconds = Int(ceil(PlaybackPlan.exam(meter:q.timeSignature,setting:q.tempo,scaleMeasures:q.scoreAssets.scale.measureCount).nominalDurationSeconds(meter:q.timeSignature))); return q
+            q.tempo = q.tempo ?? TempoDefaults.setting(for:q.timeSignature); q.recommendedDurationSeconds = Int(ceil(PlaybackPlan.exam(meter:q.timeSignature,setting:q.tempo,scaleMeasures:q.scoreAssets.scale.measureCount).nominalDurationSeconds(meter:q.timeSignature))); return q
         }
     }
     func questions(page: Int) async throws -> QuestionPage {
@@ -39,7 +41,9 @@ import Foundation
         return QuestionPage(count: values.count, next: nil, previous: nil, results: values.map { q in QuestionSummary(id:q.id,version:q.version,title:q.title,source:q.source,keySignature:q.keySignature,timeSignature:q.timeSignature,measureCount:q.measureCount,recommendedDurationSeconds:q.recommendedDurationSeconds,tempo:q.tempo,difficulty:q.practiceLevel.rawValue) })
     }
     func classicalQuestions(page: Int) async throws -> QuestionPage {
-        let values = try catalog().filter { $0.collection == "classical" }
+        let order: [UUID] = try Bundled.decode("classical-question-order")
+        let ranks = Dictionary(uniqueKeysWithValues:order.enumerated().map { ($0.element,$0.offset) })
+        let values = try catalog().filter { $0.collection == "classical" }.sorted { (ranks[$0.id] ?? Int.max) < (ranks[$1.id] ?? Int.max) }
         return QuestionPage(count:values.count,next:nil,previous:nil,results:values.map { q in
             QuestionSummary(id:q.id,version:q.version,title:q.title,source:q.source,keySignature:q.keySignature,timeSignature:q.timeSignature,measureCount:q.measureCount,recommendedDurationSeconds:q.recommendedDurationSeconds,tempo:q.tempo,collection:q.collection,composer:q.composer)
         })
