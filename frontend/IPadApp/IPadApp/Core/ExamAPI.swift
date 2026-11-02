@@ -141,7 +141,18 @@ final class NoRedirectDelegate: NSObject, URLSessionTaskDelegate, @unchecked Sen
     func profile() async throws -> UserProfile { try await json("me/") }
     func login(username: String, password: String) async throws -> LoginResponse {
         let body = try JSONSerialization.data(withJSONObject: ["username": username, "password": password])
-        let r = try request(endpoint("auth/login/"), method: "POST", authenticated: false, body: body, contentType: "application/json")
+        return try await credentialResponse("auth/login/", body: body)
+    }
+    func signupAvailability() async throws -> SignupAvailability {
+        let r = try request(endpoint("auth/signup-availability/"), authenticated: false)
+        return try ContractJSON.decoder().decode(SignupAvailability.self, from: await execute(r, limit: 256 * 1024, retry: false))
+    }
+    func signup(username: String, displayName: String, learningGoal: String, password: String) async throws -> LoginResponse {
+        let body = try JSONSerialization.data(withJSONObject: ["username": username, "display_name": displayName, "learning_goal": learningGoal, "password": password])
+        return try await credentialResponse("auth/signup/", body: body)
+    }
+    private func credentialResponse(_ path: String, body: Data) async throws -> LoginResponse {
+        let r = try request(endpoint(path), method: "POST", authenticated: false, body: body, contentType: "application/json")
         let value = try ContractJSON.decoder().decode(LoginResponse.self, from: await execute(r, limit: 256 * 1024, retry: false))
         guard value.tokenType == "Bearer", !value.accessToken.isEmpty, !value.accessToken.contains("\r"), !value.accessToken.contains("\n") else { throw SORIError.transport("로그인 응답을 확인해 주세요.") }
         return value

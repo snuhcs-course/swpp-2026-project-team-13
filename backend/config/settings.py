@@ -1,13 +1,27 @@
 """Shared settings. Local configuration is loaded from backend/.env."""
 
+import ipaddress
 import os
 from pathlib import Path
+import re
 
 from django.core.exceptions import ImproperlyConfigured
 from dotenv import load_dotenv
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 load_dotenv(BASE_DIR / ".env")
+
+
+def limit_setting(name, default=None):
+    """A count of at least 1. A blank value counts as unset."""
+    raw = os.getenv(name, "").strip()
+    if not raw:
+        return default
+    if not re.fullmatch(r"-?[0-9]+", raw) or int(raw) < 1:
+        raise ImproperlyConfigured(f"{name} must be an integer of at least 1.")
+    return int(raw)
+
+
 DEBUG = os.getenv("DJANGO_DEBUG", "false").lower() == "true"
 SECRET_KEY = os.getenv("DJANGO_SECRET_KEY", "")
 if not SECRET_KEY:
@@ -35,6 +49,7 @@ INSTALLED_APPS = [
 ]
 MIDDLEWARE = [
     "sori.errors.RequestMiddleware",
+    "sori.errors.ProxyPathMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
@@ -43,6 +58,8 @@ MIDDLEWARE = [
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
+# Only the URL scheme of that request's responses depends on this header.
+SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 ROOT_URLCONF = "config.urls"
 DEFAULT_EXCEPTION_REPORTER_FILTER = "sori.exception_filters.AuthenticationExceptionReporterFilter"
 TEMPLATES = [
@@ -107,3 +124,29 @@ AI_PROMPT_VERSION = "sori-feedback-2-notation-1"
 AI_TIMEOUT_SECONDS = int(os.getenv("AI_TIMEOUT_SECONDS", "240"))
 AI_MAX_OUTPUT_TOKENS = int(os.getenv("AI_MAX_OUTPUT_TOKENS", "16000"))
 AI_MAX_JOBS_PER_ATTEMPT = int(os.getenv("AI_MAX_JOBS_PER_ATTEMPT", "3"))
+AI_MAX_JOBS_PER_USER_PER_DAY = limit_setting("AI_MAX_JOBS_PER_USER_PER_DAY")
+AI_MAX_JOBS_PER_DAY = limit_setting("AI_MAX_JOBS_PER_DAY")
+SIGNUP_ENABLED = os.getenv("SIGNUP_ENABLED", "false").lower() == "true"
+if SIGNUP_ENABLED and (AI_MAX_JOBS_PER_USER_PER_DAY is None or AI_MAX_JOBS_PER_DAY is None):
+    raise ImproperlyConfigured("Set AI_MAX_JOBS_PER_USER_PER_DAY and AI_MAX_JOBS_PER_DAY when SIGNUP_ENABLED is true.")
+LOGIN_MAX_REQUESTS_PER_IP = limit_setting("LOGIN_MAX_REQUESTS_PER_IP", 30)
+SIGNUP_MAX_REQUESTS_PER_IP = limit_setting("SIGNUP_MAX_REQUESTS_PER_IP", 30)
+SIGNUP_MAX_SUCCESSES_PER_IP = limit_setting("SIGNUP_MAX_SUCCESSES_PER_IP", 20)
+try:
+    TRUSTED_PROXIES = tuple(
+        ipaddress.ip_network(entry.strip())
+        for entry in os.getenv("TRUSTED_PROXIES", "").split(",")
+        if entry.strip()
+    )
+except ValueError as error:
+    raise ImproperlyConfigured("TRUSTED_PROXIES must be a comma-separated list of CIDR networks.") from error
+CLIENT_IP_HEADER = os.getenv("CLIENT_IP_HEADER", "").strip()
+if bool(TRUSTED_PROXIES) != bool(CLIENT_IP_HEADER):
+    raise ImproperlyConfigured("Set TRUSTED_PROXIES and CLIENT_IP_HEADER together.")
+# Attempt logs carry only a keyed prefix of the client IP; see sori.auth_views.
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "handlers": {"console": {"class": "logging.StreamHandler"}},
+    "loggers": {"sori": {"handlers": ["console"], "level": "INFO", "propagate": False}},
+}

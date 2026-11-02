@@ -3,6 +3,9 @@ import uuid
 from django.http import JsonResponse
 from rest_framework.exceptions import APIException
 from rest_framework.views import exception_handler as default_handler
+from .client_ip import from_trusted_proxy
+
+BOUNDED_BODY_PATHS = {"/api/v1/auth/login/", "/api/v1/auth/signup/"}
 
 class ContractError(APIException):
     def __init__(self, code, message, status=400, fields=None, retry_after_ms=None):
@@ -37,16 +40,22 @@ class RequestMiddleware:
             too_large = int(request.META.get("CONTENT_LENGTH") or 0) > 11 * 1024 * 1024
         except ValueError:
             too_large = True
-        if request.path == "/api/v1/auth/login/" and request.method == "POST":
+        if request.path in BOUNDED_BODY_PATHS and request.method == "POST":
             # Bound the raw bytes before JSON parsing and attempt accounting.
             # For lengthless WSGI requests the server supplies the body stream.
             stream = request.META.get("wsgi.input", request) if not request.META.get("CONTENT_LENGTH") else request
             body = stream.read(32769)
             if len(body) > 32768:
-                response = JsonResponse(envelope(request, "REQUEST_TOO_LARGE", "로그인 요청은 32 KiB 이하여야 합니다."), status=413)
+                # Closing with unread bytes can reset the connection before the client reads the 413.
+                drained = 0
+                while drained < 1024 * 1024 and (chunk := stream.read(65536)):
+                    drained += len(chunk)
+                response = JsonResponse(envelope(request, "REQUEST_TOO_LARGE", "요청 본문은 32 KiB 이하여야 합니다."), status=413)
             else:
                 request._body = body
                 request._stream = io.BytesIO(body)
+                # DRF treats a missing length as an empty body.
+                request.META["CONTENT_LENGTH"] = str(len(body))
                 response = self.get_response(request)
         elif request.path.startswith("/api/v1/") and too_large:
             response = JsonResponse(envelope(request, "IMAGE_TOO_LARGE", "업로드 용량을 초과했습니다."), status=413)
@@ -56,3 +65,12 @@ class RequestMiddleware:
         if request.path.startswith("/api/v1/"):
             response["Cache-Control"] = "private, no-store"
         return response
+
+class ProxyPathMiddleware:
+    # The admin site stays reachable only without the tunnel, e.g. on localhost.
+    def __init__(self, get_response):
+        self.get_response = get_response
+    def __call__(self, request):
+        if from_trusted_proxy(request) and not request.path.startswith(("/api/", "/assets/")):
+            return JsonResponse(envelope(request, "RESOURCE_NOT_FOUND", "리소스를 찾을 수 없습니다."), status=404)
+        return self.get_response(request)

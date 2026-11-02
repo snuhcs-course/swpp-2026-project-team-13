@@ -1,7 +1,10 @@
 import time
 from django.core.management.base import BaseCommand
 from django.db import close_old_connections
+from sori.auth_views import purge_stale_throttles
 from sori.grading import claim_job, execute_job
+
+PURGE_INTERVAL_SECONDS = 3600
 
 class Command(BaseCommand):
     help = "Process durable AI jobs. Runs independently of the HTTP server."
@@ -9,9 +12,13 @@ class Command(BaseCommand):
         parser.add_argument("--once", action="store_true")
     def handle(self, *args, **options):
         self.stdout.write("SORI grading worker started")
+        next_purge = 0
         try:
             while True:
                 close_old_connections()
+                if time.monotonic() >= next_purge:
+                    purge_stale_throttles()
+                    next_purge = time.monotonic() + PURGE_INTERVAL_SECONDS
                 job = claim_job()
                 if job:
                     execute_job(job)

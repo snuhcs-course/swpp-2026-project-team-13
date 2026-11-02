@@ -67,6 +67,122 @@ final class DelayedAuthProtocol: URLProtocol {
         }
         StubProtocol.handler = nil
     }
+    func requestBody(_ request: URLRequest) throws -> Data {
+        if let bytes = request.httpBody { return bytes }
+        let stream = try XCTUnwrap(request.httpBodyStream); stream.open(); defer { stream.close() }
+        var bytes = [UInt8](repeating: 0, count: 4096)
+        let count = stream.read(&bytes, maxLength: bytes.count)
+        return Data(bytes.prefix(max(0, count)))
+    }
+    func testSignupSendsExactFieldsWithoutBearerIdempotencyKeyOrConfirmation() async throws {
+        let response = LoginResponse(accessToken: "opaque-token", tokenType: "Bearer", user: user)
+        let data = try ContractJSON.encoder().encode(response)
+        let api = try client(token: "stale-token")
+        StubProtocol.handler = { [self] request in
+            XCTAssertEqual(request.url?.absoluteString, "https://api.sori.example/api/v1/auth/signup/")
+            XCTAssertEqual(request.httpMethod, "POST")
+            XCTAssertNil(request.value(forHTTPHeaderField: "Authorization"))
+            XCTAssertNil(request.value(forHTTPHeaderField: "Idempotency-Key"))
+            XCTAssertEqual(request.value(forHTTPHeaderField: "Content-Type"), "application/json")
+            let fields = try JSONSerialization.jsonObject(with: requestBody(request)) as? [String: String]
+            XCTAssertEqual(fields, ["username": "student01", "display_name": " 청음 ", "learning_goal": "teacher_exam", "password": " password \n"])
+            return (201, "application/json", data)
+        }
+        defer { StubProtocol.handler = nil }
+        let actual = try await api.signup(username: "student01", displayName: " 청음 ", learningGoal: "teacher_exam", password: " password \n")
+        XCTAssertEqual(actual.accessToken, "opaque-token"); XCTAssertEqual(actual.user, user)
+    }
+    func testSignupNeverAutomaticallyRetriesAnyFailure() async throws {
+        for (status, code) in [(429, "RATE_LIMITED"), (503, "UNAVAILABLE"), (500, "INTERNAL"), (409, "USERNAME_TAKEN"), (403, "SIGNUP_DISABLED"), (400, "VALIDATION_ERROR"), (0, "")] {
+            let api = try client()
+            var calls = 0
+            let data = try errorData(code, retry: status == 429 ? 9000 : nil)
+            StubProtocol.handler = { _ in
+                calls += 1
+                if status == 0 { throw URLError(.networkConnectionLost) }
+                return (status, "application/json", data)
+            }
+            do { _ = try await api.signup(username: "user", displayName: "n", learningGoal: "other", password: "p"); XCTFail("Expected failure") }
+            catch { XCTAssertEqual(calls, 1, "status \(status)") }
+        }
+        StubProtocol.handler = nil
+    }
+    func testSignupRejectsAnUnusableTokenResponse() async throws {
+        for (type, token) in [("Basic", "token"), ("Bearer", ""), ("Bearer", "bad\ntoken")] {
+            let api = try client()
+            let data = try ContractJSON.encoder().encode(LoginResponse(accessToken: token, tokenType: type, user: user))
+            StubProtocol.handler = { _ in (201, "application/json", data) }
+            do { _ = try await api.signup(username: "user", displayName: "n", learningGoal: "other", password: "p"); XCTFail("Expected rejection") }
+            catch { XCTAssertTrue(error is SORIError) }
+        }
+        StubProtocol.handler = nil
+    }
+    func testSignupErrorsKeepFieldCodesEvenWhenAFieldRepeats() async throws {
+        let api = try client()
+        let codes = ["password_too_short", "password_too_common", "password_entirely_numeric"]
+        let data = try ContractJSON.encoder().encode(ErrorEnvelope(error: ErrorDetail(code: "VALIDATION_ERROR", message: "확인", fields: codes.map { FieldError(field: "password", code: $0, message: $0) }, retryAfterMs: nil), requestId: "request"))
+        StubProtocol.handler = { _ in (400, "application/json", data) }
+        defer { StubProtocol.handler = nil }
+        do { _ = try await api.signup(username: "user", displayName: "n", learningGoal: "other", password: "1234"); XCTFail("Expected failure") }
+        catch SORIError.server(400, let envelope, _) { XCTAssertEqual(envelope?.error.fields.map(\.code), codes) }
+    }
+    func testSignupAvailabilityIsPublicAndIgnoresUnknownFields() async throws {
+        let api = try client(token: "stale-token")
+        for enabled in [true, false] {
+            StubProtocol.handler = { request in
+                XCTAssertEqual(request.url?.absoluteString, "https://api.sori.example/api/v1/auth/signup-availability/")
+                XCTAssertEqual(request.httpMethod, "GET")
+                XCTAssertNil(request.value(forHTTPHeaderField: "Authorization"))
+                XCTAssertNil(request.httpBody)
+                return (200, "application/json", Data("{\"signup_enabled\": \(enabled), \"future\": 1}".utf8))
+            }
+            let value = try await api.signupAvailability()
+            XCTAssertEqual(value.signupEnabled, enabled)
+        }
+        StubProtocol.handler = nil
+    }
+    func testGenerationRejectsLateSignupResponse() async throws {
+        let state = AuthenticationState(), old = state.begin(base: base)
+        let api = try client(delayed: true)
+        api.isCurrent = { state.matches(old) }
+        let started = expectation(description: "signup")
+        var pending: DelayedAuthProtocol?
+        DelayedAuthProtocol.started = { pending = $0; started.fulfill() }
+        defer { DelayedAuthProtocol.started = nil }
+        let request = Task { @MainActor in
+            do { _ = try await api.signup(username: "user", displayName: "n", learningGoal: "other", password: "p"); XCTFail("Stale signup was accepted") }
+            catch is CancellationError { } catch { XCTFail("Unexpected error: \(error)") }
+        }
+        await fulfillment(of: [started], timeout: 5)
+        let fresh = state.begin(base: base)
+        try XCTUnwrap(pending).complete(status: 201, body: try ContractJSON.encoder().encode(LoginResponse(accessToken: "late", tokenType: "Bearer", user: user)), mime: "application/json")
+        await request.value
+        XCTAssertFalse(state.accept("late", for: old))
+        XCTAssertTrue(state.matches(fresh)); XCTAssertNil(state.token)
+    }
+    func testUsernameRuleMatchesTheWholeString() {
+        for valid in ["abcd", "student01", "a_b_", "a2345678901234567890".prefix(20).description] { XCTAssertTrue(SignupRules.usernameIsValid(valid), valid) }
+        for invalid in ["", "abc", "Ab", "1abc", "_abc", "Student01", "student01\n", "student01 ", " student", "stu-dent", "학생학생", "a23456789012345678901", "abcd\u{301}"] {
+            XCTAssertFalse(SignupRules.usernameIsValid(invalid), invalid)
+        }
+    }
+    func testDisplayNameRuleCountsScalarsAndRejectsContractCharacters() {
+        for valid in ["가", "청음 연습생", String(repeating: "🎵", count: 20), "👩\u{200D}🎓", "e\u{301}"] { XCTAssertTrue(SignupRules.displayNameIsValid(valid), valid) }
+        // Twenty-one scalars can render as fewer than twenty-one characters.
+        XCTAssertFalse(SignupRules.displayNameIsValid(String(repeating: "e\u{301}", count: 11)))
+        XCTAssertTrue(String(repeating: "e\u{301}", count: 11).count <= 20)
+        for invalid in ["", " 이름", "이름 ", "\u{3000}이름", "이름\u{00A0}", " ", "이\n름", "이\u{0}름", "이\u{85}름", "이\u{2028}름", "이\u{2029}름", String(repeating: "가", count: 21)] {
+            XCTAssertFalse(SignupRules.displayNameIsValid(invalid), invalid)
+        }
+        for scalar in [0x061C, 0x200E, 0x200F, 0x202A, 0x202B, 0x202C, 0x202D, 0x202E, 0x2066, 0x2067, 0x2068, 0x2069] {
+            XCTAssertFalse(SignupRules.displayNameIsValid("이" + String(UnicodeScalar(scalar)!) + "름"), String(scalar, radix: 16))
+        }
+    }
+    func testPasswordLengthCountsScalars() {
+        XCTAssertFalse(SignupRules.passwordLengthIsValid(""))
+        XCTAssertTrue(SignupRules.passwordLengthIsValid(String(repeating: "x", count: 1024)))
+        XCTAssertFalse(SignupRules.passwordLengthIsValid(String(repeating: "x", count: 1025)))
+    }
     func testLogoutAccepts204WithoutBodyOrContentType() async throws {
         let api = try client(token: "token")
         StubProtocol.handler = { request in

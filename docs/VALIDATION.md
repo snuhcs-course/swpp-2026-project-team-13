@@ -1,5 +1,20 @@
 # 검증 기록
 
+## 2026-11-02: 회원가입 계약 v0.8.0
+
+macOS에서 Python 3.14, 고정된 의존성과 테스트 전용 PostgreSQL 17 컨테이너를 사용했습니다. SQLite나 유료 AI 호출은 사용하지 않았습니다. 대상은 회원가입과 그에 필요한 클라이언트 IP 판정, 프록시 경유 요청 처리, 운영 설정, gunicorn 실행입니다.
+
+- `manage.py test api sori --noinput` 전체 144개 통과(기존 38개 포함). 시스템 검사, migration 일치 검사, scripts의 콘텐츠·채점·재생·음원 검사 5개도 통과.
+- 필드별 code 우선순위, password 다중 오류, 413·403·429·415·400·409·201 판정 순서, 두 IP 제한과 해제, 공통 대기 시간 규칙, 대소문자 무시 유일성, 동시 가입, 일부만 생성되지 않음, 클라이언트 IP 판정, HMAC 키와 로그, 오래된 행 정리, 마이그레이션 업그레이드·중단, 관리 화면, 관리 명령, 설정 시작 실패를 검증했습니다.
+- `boot.py`로 실행한 gunicorn(worker 2개)에서 실제 HTTP 점검 46개 통과. Content-Length 유무별 32 KiB 경계, chunked 요청, 위조 전달 헤더, 공개 origin, 프로세스 간 동시 가입과 성공 한도를 포함합니다. 서버 로그에서 IP 원문과 비밀번호가 없음을 확인했습니다.
+- Docker 이미지 빌드, 컨테이너 시작, `PORT` 적용, 헬스체크 통과. 기존 볼륨을 쓰는 Compose 전체 구성은 실행하지 않았습니다.
+- `swift test --package-path frontend` 전체 53개 통과. iPad Pro 13-inch (M5) 시뮬레이터에서 가입 18개, 로그인 7개, 기존 통합 5개, 총 30개 통과.
+- 임시 테스트로 앱 모델과 실제 Keychain을 로컬 gunicorn 서버에 직접 연결해 가입, 재실행 복구, 로그아웃, 재로그인, 409, 가입 꺼짐 403을 확인했습니다. 화면은 캡처로 확인했으며 입력과 버튼 탭을 자동화한 UI 테스트는 없습니다.
+
+미검증: 실제 iPad, Cloudflare Tunnel을 거친 [배포 테스트](sori-api/AUTH-IMPLEMENTATION.md#배포-테스트), Windows Docker Desktop. 본문이 1 MiB를 넘는 초과 요청은 서버가 끝까지 읽지 않으므로 413을 받기 전에 연결이 끊길 수 있습니다.
+
+미구현: 계정 삭제, AI 채점 사용량 상한의 적용(설정 검증만 구현), compose의 cloudflared 구성과 api 포트 제한.
+
 ## 2026-10-28: 로그인 계약 v0.7.0
 
 macOS에서 Python 3.14, 고정된 Django 5.2.18 의존성과 테스트 전용 PostgreSQL 17 컨테이너를 사용했습니다. SQLite나 유료 AI 호출은 사용하지 않았습니다.

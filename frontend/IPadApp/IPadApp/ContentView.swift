@@ -28,7 +28,7 @@ struct ContentView: View {
                 ZStack {
                     SORITheme.background.ignoresSafeArea()
                     if !model.demo && !model.connected && model.screen != .settings {
-                        LoginView(model: model)
+                        if model.showingSignup { SignupView(model: model) } else { LoginView(model: model) }
                     } else { switch model.screen {
                     case .home: HomeView(model: model)
                     case .question: QuestionView(model: model)

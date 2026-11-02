@@ -30,6 +30,11 @@ import PencilKit
     @Published var demoOutcome: String
     @Published var authenticating = false
     @Published var loginRetryUntil: Date?
+    @Published var showingSignup = false
+    @Published var signupEnabled = true
+    @Published var signupRetryUntil: Date?
+    @Published var signupFieldErrors: [FieldError] = []
+    @Published var loginPrefill: String?
     @Published var logoutNeedsConfirmation = false
     @Published var logoutFailure: String?
     @Published private(set) var instrumentVoices: [InstrumentVoice] = []
@@ -41,6 +46,9 @@ import PencilKit
     private let httpSession: URLSession?
     private var operationGeneration = UUID()
     private var loginDeadlines: [String: Date] = [:]
+    private var signupDeadlines: [String: Date] = [:]
+    // A signup whose outcome is unknown: it may have created the account.
+    private var uncertainSignup: (origin: String, username: String)?
     private var pendingLocalLogout: (base: URL, token: String, ticket: AuthenticationTicket)?
     private var store: LocalStore?
     private var clock = AdvisoryClock()
@@ -133,6 +141,7 @@ import PencilKit
             } else {
                 _ = try HTTPExamAPI(base: base) // Validate HTTPS and base path before Keychain lookup.
                 loginRetryUntil = loginDeadlines[Origin(base)!.key]
+                signupRetryUntil = signupDeadlines[Origin(base)!.key]
                 let value = try token ?? TokenVault.read(server: server)
                 guard !value.isEmpty else { return }
                 authentication.accept(value, for: ticket)
@@ -163,12 +172,69 @@ import PencilKit
             try await activateUser(result.user, candidate: candidate, current: { self.authentication.matches(ticket, token: result.accessToken) })
         } catch {
             guard authentication.matches(ticket) else { return }
-            if case SORIError.server(429, let envelope, let header) = error {
-                let seconds = max(header ?? 0, Double(envelope?.error.retryAfterMs ?? 0) / 1000)
-                let deadline = Date().addingTimeInterval(max(1, seconds))
-                loginDeadlines[origin.key] = deadline; loginRetryUntil = deadline
-            }
+            if let deadline = Self.rateLimitDeadline(error) { loginDeadlines[origin.key] = deadline; loginRetryUntil = deadline }
             report(error)
+        }
+    }
+    private static func rateLimitDeadline(_ error: Error) -> Date? {
+        guard case SORIError.server(429, let envelope, let header) = error else { return nil }
+        let seconds = max(header ?? 0, Double(envelope?.error.retryAfterMs ?? 0) / 1000)
+        return Date().addingTimeInterval(max(1, seconds))
+    }
+    // Advisory only: a failed lookup keeps the entry visible, and signup's 403 has the final say.
+    func refreshSignupAvailability() async {
+        let requested = server
+        guard !demo, let base = URL(string: requested), let client = try? HTTPExamAPI(base: base, session: httpSession) else { return }
+        let enabled = (try? await client.signupAvailability().signupEnabled) ?? true
+        guard !Task.isCancelled, server == requested else { return }
+        signupEnabled = enabled
+    }
+    func openSignup() { signupFieldErrors = []; showingSignup = true }
+    func closeSignup() { signupFieldErrors = []; showingSignup = false }
+    func clearSignupError(_ field: String) { signupFieldErrors.removeAll { $0.field == field } }
+    func signup(username: String, displayName: String, learningGoal: String, password: String) async {
+        guard let base = URL(string: server), let origin = Origin(base) else { report(SORIError.configuration("API 주소를 확인해 주세요.")); return }
+        if let deadline = signupDeadlines[origin.key], deadline > Date() { signupRetryUntil = deadline; return }
+        authentication.cancel(); clearUserState(); demo = false; saveConnection()
+        let ticket = authentication.begin(base: base)
+        authenticating = true; busyText = "계정을 만드는 중"; signupFieldErrors = []
+        defer { if authentication.matches(ticket) { authenticating = false } }
+        let retried = uncertainSignup?.origin == origin.key && uncertainSignup?.username == username
+        uncertainSignup = (origin.key, username)
+        do {
+            let client = try HTTPExamAPI(base: base, session: httpSession)
+            client.isCurrent = { [weak self] in self?.authentication.matches(ticket) == true }
+            let result = try await client.signup(username: username, displayName: displayName, learningGoal: learningGoal, password: password)
+            guard authentication.accept(result.accessToken, for: ticket) else { return }
+            uncertainSignup = nil; signupDeadlines[origin.key] = nil; signupRetryUntil = nil; showingSignup = false
+            try TokenVault.save(result.accessToken, server: base.absoluteString)
+            let candidate = try securedAPI(base: base, token: result.accessToken, ticket: ticket)
+            try await activateUser(result.user, candidate: candidate, current: { self.authentication.matches(ticket, token: result.accessToken) })
+        } catch {
+            guard authentication.matches(ticket) else { return }
+            signupFailed(error, origin: origin, username: username, retried: retried)
+        }
+    }
+    private func signupFailed(_ error: Error, origin: Origin, username: String, retried: Bool) {
+        if let deadline = Self.rateLimitDeadline(error) { signupDeadlines[origin.key] = deadline; signupRetryUntil = deadline }
+        // Without a contract error the server may still have created the account.
+        guard case SORIError.server(let status, let envelope?, _) = error, status < 500 else { report(error); return }
+        if !retried { uncertainSignup = nil }
+        switch envelope.error.code {
+        case "USERNAME_TAKEN" where retried:
+            uncertainSignup = nil; loginPrefill = username; showingSignup = false
+            self.error = "직전 가입이 이미 완료되었을 수 있어요. 같은 아이디와 비밀번호로 로그인해 보세요."
+        case "USERNAME_TAKEN", "VALIDATION_ERROR":
+            signupFieldErrors = envelope.error.fields
+            if envelope.error.fields.isEmpty { report(error) }
+        case "SIGNUP_DISABLED":
+            signupEnabled = false; showingSignup = false
+            self.error = "현재 회원가입을 제공하지 않습니다. 계정이 있다면 로그인해 주세요."
+        case "RATE_LIMITED" where retried:
+            loginPrefill = username
+            let wait = max(1, Int(ceil(signupRetryUntil?.timeIntervalSinceNow ?? 1)))
+            self.error = "\(wait)초 후 다시 시도할 수 있어요. 직전 가입이 이미 완료되었을 수 있으니 같은 아이디로 로그인을 먼저 시도해 보세요."
+        default: report(error)
         }
     }
     func cancelLogin() {

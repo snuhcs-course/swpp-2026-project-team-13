@@ -164,6 +164,7 @@ class LoginTests(TestCase):
             request = RequestFactory().generic("POST", LOGIN, b" " * 32769, content_type="text/plain")
             if not has_length:
                 request.META.pop("CONTENT_LENGTH", None)
+                request.META["wsgi.input"] = io.BytesIO(b" " * 32769)
             middleware = RequestMiddleware(lambda r: self.fail("Oversized body reached view"))
             response = middleware(request)
             detail = self.assert_error(response, 413, "REQUEST_TOO_LARGE")

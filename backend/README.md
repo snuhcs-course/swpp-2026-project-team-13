@@ -38,6 +38,18 @@ macOS/Linux에서는 실행 경로를 .venv/bin/python으로 바꿉니다. 기�
 
 로그인과 로그아웃은 사용자 행을 잠급니다. migration 0002의 PostgreSQL 트리거는 비밀번호 변경과 비활성화를 같은 트랜잭션 안에서 토큰 폐기에 연결합니다. Django 관리자·changepassword·계정 생성 명령 및 ORM 갱신에서도 적용됩니다. 자동 만료·refresh·기기별 세션은 없습니다.
 
+## 회원가입 계약 v0.8.0
+
+가입은 기본으로 꺼져 있습니다(`SIGNUP_ENABLED=false`). 설정 이름과 기본값은 `.env.example`과 [AUTH-IMPLEMENTATION.md](../docs/sori-api/AUTH-IMPLEMENTATION.md#운영-설정과-한도)를 따릅니다.
+
+`SIGNUP_ENABLED=true`로 켜려면 `AI_MAX_JOBS_PER_USER_PER_DAY`와 `AI_MAX_JOBS_PER_DAY`도 함께 정해야 서버가 시작됩니다. 다만 현재는 두 값의 설정 검증만 구현되어 있고, 채점 요청에서 상한을 적용하는 코드와 계정 삭제 API는 아직 없습니다. 그동안 비용은 OpenRouter API 키의 지출 한도로만 제한되므로, 터널을 연 채 가입을 켜지 않습니다.
+
+`.env`를 수정한 뒤에는 `docker compose --env-file backend/.env up -d --build`로 컨테이너를 다시 만듭니다. 이번 변경으로 API가 runserver 대신 gunicorn으로 실행되어 이미지를 다시 빌드해야 합니다. gunicorn은 정적 파일을 제공하지 않으므로 관리 화면에 스타일이 적용되지 않을 수 있습니다.
+
+배포 전에 대소문자만 다른 기존 계정이 없는지 [배포 점검 항목](../docs/sori-api/AUTH-IMPLEMENTATION.md#배포-점검-항목)의 조회로 확인합니다. 있으면 `0003_signup` 마이그레이션이 계정 목록을 출력하고 중단합니다.
+
+가입 계정의 정리는 관리 화면의 UserProfile 목록에서 `created_via` 필터로 찾습니다. `create_practice_user`는 가입 계정의 비밀번호를 재설정하지 않습니다.
+
 ## Mac에서 로그인 E2E 테스트
 
 실제 iPad 앱 → HTTP API → PostgreSQL → Keychain → 앱 재실행 복구를 확인하는 수동 테스트입니다. 모든 터미널 명령은 **프로젝트 루트**에서 실행합니다. 처음에는 같은 Mac의 iPad 시뮬레이터를 사용하면 LAN 설정 없이 확인할 수 있습니다.

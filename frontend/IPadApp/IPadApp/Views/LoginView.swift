@@ -10,7 +10,7 @@ struct LoginView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 28) {
-                SectionCaption(eyebrow: "WELCOME TO SORI", title: "나의 연습실에 로그인", subtitle: "관리자에게 받은 아이디와 비밀번호를 입력해 주세요.")
+                SectionCaption(eyebrow: "WELCOME TO SORI", title: "나의 연습실에 로그인", subtitle: "아이디와 비밀번호를 입력해 주세요.")
                 Card {
                     VStack(alignment: .leading, spacing: 20) {
                         Text("아이디").font(.subheadline.bold())
@@ -41,9 +41,17 @@ struct LoginView: View {
                             .font(.caption).foregroundStyle(.secondary).lineSpacing(4)
                     }
                 }
+                if model.signupEnabled {
+                    Button { model.openSignup() } label: { Label("새 계정 만들기", systemImage: "person.badge.plus") }
+                        .disabled(model.authenticating).accessibilityIdentifier("open-signup")
+                }
                 Button { model.navigate(.settings) } label: { Label("서버 연결 설정", systemImage: "slider.horizontal.3") }
             }.padding(32).frame(maxWidth: 600).frame(maxWidth: .infinity)
-        }.onDisappear { password = "" }
+        }
+        .task(id: model.server) { await model.refreshSignupAvailability() }
+        .onAppear { if let name = model.loginPrefill { username = name; model.loginPrefill = nil } }
+        .onChange(of: model.loginPrefill) { _, name in if let name { username = name; model.loginPrefill = nil } }
+        .onDisappear { password = "" }
     }
 
     private func submit() {
