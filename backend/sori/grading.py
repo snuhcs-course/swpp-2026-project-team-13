@@ -10,6 +10,7 @@ from django.utils import timezone
 from .models import GradingJob
 
 from .assessment import ANNOTATION_TYPES, RESULT_SCHEMA, validate_result
+from .exam_observations import build_error_observations
 
 
 def claim_job():
@@ -47,7 +48,7 @@ def execute_job(job):
                 if choice.get("finish_reason") != "stop" or choice["message"].get("refusal"):
                     raise ValueError("incomplete or refused response")
                 result = validate_result(json.loads(choice["message"]["content"]), job.attempt.question_snapshot["sheet_layout"])
-                updates.update(status=result["status"], stage="done" if result["status"] == "completed" else "recognizing", score=result["score"], pitch_accuracy=result["pitch_accuracy"], rhythm_accuracy=result["rhythm_accuracy"], feedback=result["feedback"], annotations=result["annotations"], recognized_musicxml=result["recognized_musicxml"])
+                updates.update(status=result["status"], stage="done" if result["status"] == "completed" else "recognizing", score=result["score"], pitch_accuracy=result["pitch_accuracy"], rhythm_accuracy=result["rhythm_accuracy"], feedback=result["feedback"], annotations=result["annotations"], recognized_musicxml=result["recognized_musicxml"], error_observations=build_error_observations(result, job.attempt.feature_analysis_id))
     except subprocess.TimeoutExpired:
         updates.update(status="failed", failure={"code": "RECOGNITION_TIMEOUT", "message": "AI 평가 시간이 초과되었습니다. 제출한 답안은 보관되어 있습니다.", "retryable": True})
     except (OSError, subprocess.SubprocessError, ValueError, KeyError, IndexError, TypeError, zipfile.BadZipFile):

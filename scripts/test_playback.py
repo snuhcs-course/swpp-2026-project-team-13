@@ -15,14 +15,14 @@ CATALOG=json.loads((ROOT/"backend/content/catalog.json").read_text(encoding="utf
 
 class PlaybackTests(unittest.TestCase):
     def test_waits_countins_and_real_scale_length_for_all_meters(self):
-        expected={(4,4):(80,456),(3,4):(80,425.25),(6,8):(82.5,422.1818181818182)}
+        expected={(4,4):(80,456),(3,4):(80,425.25),(6,8):(82.5,422.1818181818182),(2,4):(80,393),(7,8):(80,442.125),(9,8):(82.5,468),(12,8):(82.5,516)}
         for item in CATALOG:
             metadata=item["metadata"];original=copy.deepcopy(metadata);meter=metadata["time_signature"]
             key=(meter["numerator"],meter["denominator"]);bpm,seconds=expected[key]
             plan=playback.make_playback_plan(metadata)
             self.assertEqual(plan["version"],4)
             self.assertEqual(plan["tempo_bpm"],bpm)
-            self.assertEqual(plan["scale"]["to_measure"],2 if key==(4,4) else 3)
+            self.assertEqual(plan["scale"]["to_measure"],metadata["score_assets"]["scale"]["measure_count"])
             self.assertEqual([s["pause_after_ms"] for s in plan["steps"]],[20000]*10+[120000])
             self.assertEqual((plan["initial_delay_ms"],plan["pause_after_scale_ms"]),(2000,2000))
             self.assertEqual(plan["count_in"]["before_step_orders"],[1,11])

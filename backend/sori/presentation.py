@@ -26,7 +26,15 @@ def answer_json(request, answer):
 
 def attempt_json(request, attempt):
     latest = attempt.answers.order_by("-revision").first()
-    return {"id": str(attempt.id), "status": attempt.status, "grading_mode": attempt.grading_mode, "created_at": timestamp(attempt.created_at), "started_at": timestamp(attempt.started_at), "recommended_end_at": timestamp(attempt.recommended_end_at), "submitted_at": timestamp(attempt.submitted_at), "submitted_answer_id": str(attempt.submitted_answer_id) if attempt.submitted_answer_id else None, "latest_answer": answer_json(request, latest) if latest else None, "question": question_json(request, attempt.question_snapshot), "playback_plan": attempt.playback_plan, "server_time": timestamp(timezone.now())}
+    return {"id": str(attempt.id), "status": attempt.status, "mode": attempt.mode, "feature_analysis_id": str(attempt.feature_analysis_id) if attempt.feature_analysis_id else None, "grading_mode": attempt.grading_mode, "created_at": timestamp(attempt.created_at), "started_at": timestamp(attempt.started_at), "recommended_end_at": timestamp(attempt.recommended_end_at), "submitted_at": timestamp(attempt.submitted_at), "submitted_answer_id": str(attempt.submitted_answer_id) if attempt.submitted_answer_id else None, "latest_answer": answer_json(request, latest) if latest else None, "question": question_json(request, attempt.question_snapshot), "playback_plan": attempt.playback_plan, "server_time": timestamp(timezone.now())}
+
+def self_assessment_json(assessment, attempt):
+    return {"attempt_id": str(attempt.id), "answer_id": str(attempt.submitted_answer_id),
+            "mode": "practice", "grading_mode": "self", "source": "self",
+            "feature_analysis_id": str(attempt.feature_analysis_id) if attempt.feature_analysis_id else None,
+            "status": "completed" if assessment.completed else "pending", "revision": assessment.revision,
+            "errors": assessment.errors, "completed_at": timestamp(assessment.completed_at),
+            "updated_at": timestamp(assessment.created_at), "server_time": timestamp(timezone.now())}
 
 def grading_json(job):
     return {"attempt_id": str(job.attempt_id), "answer_id": str(job.answer_id), "job_id": str(job.id), "grading_mode": job.attempt.grading_mode, "grading_version": job.grading_version, "status": job.status, "stage": job.stage, "score": job.score, "pitch_accuracy": job.pitch_accuracy, "rhythm_accuracy": job.rhythm_accuracy, "feedback": job.feedback, "annotations": job.annotations, "failure": job.failure, "poll_after_ms": 2000 if job.status in ("queued", "processing") else 0, "created_at": timestamp(job.created_at), "updated_at": timestamp(job.updated_at), "server_time": timestamp(timezone.now())}

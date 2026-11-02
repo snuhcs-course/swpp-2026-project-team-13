@@ -62,6 +62,31 @@ final class StubProtocol:URLProtocol {
         XCTAssertEqual(mxl.sha256,question.scoreAssets.main.sha256);XCTAssertEqual(calls.count,13)
         XCTAssertTrue(calls.contains("GET questions/?page=1&page_size=20"));XCTAssertTrue(calls.contains("PATCH me/"))
     }
+    func testClassicalFilterDoesNotChangePracticePagination() async throws {
+        let config=URLSessionConfiguration.ephemeral;config.protocolClasses=[StubProtocol.self]
+        let base=URL(string:"https://api.sori.example/api/v1/")!
+        let api=try HTTPExamAPI(base:base,token:"test-token",session:URLSession(configuration:config))
+        let response=try Data(contentsOf:root.appendingPathComponent("examples/questions.json"))
+        var paths:[String]=[]
+        StubProtocol.handler={ request in
+            XCTAssertEqual(request.httpMethod,"GET")
+            XCTAssertEqual(request.value(forHTTPHeaderField:"Authorization"),"Bearer test-token")
+            XCTAssertEqual(request.value(forHTTPHeaderField:"Accept"),"application/json")
+            paths.append(request.url!.absoluteString.replacingOccurrences(of:base.absoluteString,with:""))
+            return (200,"application/json",response)
+        }
+        defer {StubProtocol.handler=nil}
+        _=try await api.questions(page:1)
+        _=try await api.classicalQuestions(page:1)
+        _=try await api.classicalQuestions(page:2)
+        _=try await api.questions(page:2)
+        XCTAssertEqual(paths,[
+            "questions/?page=1&page_size=20",
+            "questions/?page=1&page_size=20&collection=classical",
+            "questions/?page=2&page_size=20&collection=classical",
+            "questions/?page=2&page_size=20"
+        ])
+    }
     func test401IsSurfacedWithoutAutomaticRepeat() async throws {
         let config=URLSessionConfiguration.ephemeral;config.protocolClasses=[StubProtocol.self]
         let api=try HTTPExamAPI(base:URL(string:"https://api.example/api/v1/")!,token:"bad",session:URLSession(configuration:config))
@@ -69,5 +94,75 @@ final class StubProtocol:URLProtocol {
         defer {StubProtocol.handler=nil}
         do {_=try await api.profile();XCTFail("Expected 401")}catch {XCTAssertTrue(error.localizedDescription.contains("인증"))}
         XCTAssertEqual(calls,1)
+    }
+    func testPracticeUsesExplicitModeAndSelfAssessmentWithoutGradingRetries() async throws {
+        let config = URLSessionConfiguration.ephemeral; config.protocolClasses = [StubProtocol.self]
+        let api = try HTTPExamAPI(base:URL(string:"https://api.sori.example/api/v1/")!,token:"test-token",session:URLSession(configuration:config))
+        let question = try ContractJSON.decoder().decode(Question.self,from:Data(contentsOf:root.appendingPathComponent("examples/question.json")))
+        var attemptObject = try XCTUnwrap(JSONSerialization.jsonObject(with:Data(contentsOf:root.appendingPathComponent("examples/attempt-ready.json"))) as? [String:Any])
+        attemptObject["mode"] = "practice"; attemptObject["grading_mode"] = "self"
+        let attemptData = try JSONSerialization.data(withJSONObject:attemptObject)
+        let pending = try Data(contentsOf:root.appendingPathComponent("examples/practice-assessment-pending.json"))
+        let completed = try Data(contentsOf:root.appendingPathComponent("examples/practice-assessment-completed.json"))
+        let attemptId = UUID(uuidString:"33333333-3333-4333-8333-333333333333")!
+        let answerId = UUID(uuidString:"44444444-4444-4444-8444-444444444444")!
+        var calls: [String] = []
+        func body(_ request: URLRequest) throws -> [String:Any] {
+            var bytes = request.httpBody ?? Data()
+            if bytes.isEmpty, let stream = request.httpBodyStream {
+                stream.open(); defer { stream.close() }
+                var buffer = [UInt8](repeating:0,count:4096)
+                while stream.hasBytesAvailable {
+                    let count = stream.read(&buffer,maxLength:4096)
+                    if count <= 0 { break }
+                    bytes.append(contentsOf:buffer.prefix(count))
+                }
+            }
+            return try XCTUnwrap(JSONSerialization.jsonObject(with:bytes) as? [String:Any])
+        }
+        StubProtocol.handler = { request in
+            // URL.path may omit the trailing slash on Apple platforms. Keep the
+            // serialized request path so the mock checks the actual API contract.
+            let url = try XCTUnwrap(request.url)
+            let path = try XCTUnwrap(URLComponents(url:url,resolvingAgainstBaseURL:false)).percentEncodedPath
+            let method = try XCTUnwrap(request.httpMethod)
+            calls.append(method + " " + path)
+            XCTAssertEqual(request.value(forHTTPHeaderField:"Authorization"),"Bearer test-token")
+            if method != "GET" { XCTAssertNotNil(request.value(forHTTPHeaderField:"Idempotency-Key")) }
+            if path == "/api/v1/attempts/" {
+                XCTAssertEqual(try body(request)["mode"] as? String,"practice")
+                return (201,"application/json",attemptData)
+            }
+            if path.hasSuffix("/self-assessment/") {
+                XCTAssertEqual(method,"PUT")
+                let payload = try body(request)
+                XCTAssertEqual(payload["expected_revision"] as? Int,0)
+                XCTAssertEqual(payload["completed"] as? Bool,true)
+                XCTAssertEqual(Set(payload.keys),Set(["expected_revision","errors","completed"]))
+                return (200,"application/json",completed)
+            }
+            if path.hasSuffix("/submit/") {
+                XCTAssertEqual(try body(request)["answer_id"] as? String,answerId.uuidString.lowercased())
+                return (200,"application/json",pending)
+            }
+            if path.hasSuffix("/result/") {
+                XCTAssertEqual(method,"GET")
+                return (200,"application/json",pending)
+            }
+            XCTFail("Unexpected Practice request: \(method) \(url.absoluteString)")
+            throw URLError(.unsupportedURL)
+        }
+        defer { StubProtocol.handler = nil }
+        let attempt = try await api.createAttempt(question:question,mode:.practice,key:UUID())
+        XCTAssertEqual(attempt.studyMode,.practice)
+        let review = try await api.submitPractice(attemptId,answerId:answerId,key:UUID())
+        XCTAssertEqual(review.status,"pending")
+        _ = try await api.practiceAssessment(attemptId)
+        let saved = try await api.saveSelfAssessment(attemptId,request:SelfAssessmentWrite(expectedRevision:0,errors:[MeasureError(measure:3,types:["pitch","rhythm"])],completed:true),key:UUID())
+        XCTAssertEqual(saved.revision,1)
+        XCTAssertEqual(saved.errors,[MeasureError(measure:3,types:["pitch","rhythm"])])
+        let prefix = "/api/v1/attempts/\(attemptId.uuidString.lowercased())/"
+        XCTAssertEqual(calls,["POST /api/v1/attempts/", "POST " + prefix + "submit/",
+                              "GET " + prefix + "result/", "PUT " + prefix + "self-assessment/"])
     }
 }

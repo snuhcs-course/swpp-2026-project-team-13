@@ -2,8 +2,8 @@
   "openapi": "3.0.3",
   "info": {
     "title": "SORI iPad Exam API",
-    "version": "0.6.0",
-    "description": "Personal-practice iPad API with three immutable MusicXML questions (6/8, 4/4, 3/4), local piano playback and asynchronous OpenRouter AI grading and Korean feedback. AI values are estimates; API-CONTRACT.md defines invariants. Legacy v1 fixtures remain for regression checks. Playback v3 adds meter-matched, accented count-ins before both full replays, 20-second writing pauses and a final 120 seconds."
+    "version": "0.7.0",
+    "description": "SORI iPad practice and exam API. Practice uses immediate measure-level self-assessment without an AI job; Exam retains asynchronous OpenRouter grading and Korean feedback. Attempt snapshots pin the problem, playback plan and Feature v1 analysis. API-CONTRACT.md defines invariants; legacy requests without mode remain Exam."
   },
   "servers": [
     {
@@ -1469,8 +1469,8 @@
         "tags": [
           "Attempts"
         ],
-        "summary": "Freeze a chosen answer and queue grading",
-        "description": "Atomically freeze answer_id and create one grading job using a transactional outbox. Same answer on an already submitted attempt returns the existing result with 202; a different answer returns ATTEMPT_ALREADY_SUBMITTED.",
+        "summary": "Freeze the answer and begin self-assessment or AI grading",
+        "description": "Practice returns 200 PracticeAssessment at revision 0, pending, without creating any AI job. Exam returns 202 Grading. Both freeze the selected answer; repeat submission of the same answer cannot create duplicate work.",
         "parameters": [
           {
             "$ref": "#/components/parameters/attempt_id"
@@ -1481,7 +1481,7 @@
         ],
         "responses": {
           "202": {
-            "description": "Success",
+            "description": "Exam AI job queued.",
             "headers": {
               "X-Request-ID": {
                 "description": "Server-generated request correlation ID.",
@@ -1566,6 +1566,64 @@
           },
           "default": {
             "$ref": "#/components/responses/UnexpectedError"
+          },
+          "200": {
+            "description": "Practice submission committed; comparison and self-assessment can begin immediately.",
+            "headers": {
+              "X-Request-ID": {
+                "description": "Server-generated request correlation ID.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Cache-Control": {
+                "description": "API and private answer images: private, no-store.",
+                "schema": {
+                  "type": "string",
+                  "example": "private, no-store"
+                }
+              },
+              "Date": {
+                "description": "Current HTTP response time in RFC 9110 HTTP-date format.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Location": {
+                "description": "URI of the created resource, or the result resource for 202.",
+                "schema": {
+                  "type": "string",
+                  "format": "uri"
+                }
+              },
+              "Idempotency-Replayed": {
+                "description": "true when returning a previously committed response.",
+                "schema": {
+                  "type": "boolean"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PracticeAssessment"
+                },
+                "example": {
+                  "attempt_id": "33333333-3333-4333-8333-333333333333",
+                  "answer_id": "44444444-4444-4444-8444-444444444444",
+                  "mode": "practice",
+                  "grading_mode": "self",
+                  "source": "self",
+                  "feature_analysis_id": null,
+                  "status": "pending",
+                  "revision": 0,
+                  "errors": [],
+                  "completed_at": null,
+                  "updated_at": "2026-11-01T06:00:00Z",
+                  "server_time": "2026-11-01T06:00:00Z"
+                }
+              }
+            }
           }
         },
         "requestBody": {
@@ -1586,8 +1644,8 @@
         "tags": [
           "Grading"
         ],
-        "summary": "Get grading state or terminal result",
-        "description": "200 for all existing grading statuses, including queued and failed. Before submission return 409 NOT_SUBMITTED. poll_after_ms controls the next foreground poll.",
+        "summary": "Get the latest self-assessment or Exam grading state",
+        "description": "Practice returns its latest PracticeAssessment revision; do not poll for an AI job. Exam returns Grading; poll_after_ms controls foreground polling. Both return 409 NOT_SUBMITTED before submission.",
         "parameters": [
           {
             "$ref": "#/components/parameters/attempt_id"
@@ -1620,7 +1678,14 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Grading"
+                  "oneOf": [
+                    {
+                      "$ref": "#/components/schemas/Grading"
+                    },
+                    {
+                      "$ref": "#/components/schemas/PracticeAssessment"
+                    }
+                  ]
                 },
                 "example": {
                   "attempt_id": "33333333-3333-4333-8333-333333333333",
@@ -1693,7 +1758,7 @@
           "Grading"
         ],
         "summary": "Retry a retryable failed job with the frozen answer",
-        "description": "No request body. Only failed with failure.retryable=true. Create a new job_id, keep answer_id, grading_mode and grading_version unchanged. Concurrent distinct retries conflict; transport replay returns the original retry receipt.",
+        "description": "Exam only. Practice returns 409 AI_GRADING_NOT_AVAILABLE. No request body. Only failed with failure.retryable=true. Create a new job_id, keep answer_id, grading_mode and grading_version unchanged. Concurrent distinct retries conflict; transport replay returns the original retry receipt.",
         "parameters": [
           {
             "$ref": "#/components/parameters/attempt_id"
@@ -1979,6 +2044,126 @@
           },
           "404": {
             "description": "Version or rendering is unavailable"
+          }
+        }
+      }
+    },
+    "/attempts/{attempt_id}/self-assessment/": {
+      "put": {
+        "operationId": "saveSelfAssessment",
+        "tags": [
+          "Self assessment"
+        ],
+        "summary": "Save a full Practice self-assessment snapshot",
+        "description": "Practice only. Send the whole errors list, expected_revision and completed. The first submission is revision 0. Each successful save appends one revision. A stale expected_revision returns 409 SELF_ASSESSMENT_REVISION_CONFLICT and preserves both server history and the client draft. Use the same Idempotency-Key and payload to recover an uncertain response. A completed empty list explicitly means no errors found; pending does not. Exam returns 409 SELF_ASSESSMENT_NOT_AVAILABLE.",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/attempt_id"
+          },
+          {
+            "$ref": "#/components/parameters/IdempotencyKey"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SelfAssessmentWrite"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Saved a new self-assessment revision, or replayed the original save receipt.",
+            "headers": {
+              "X-Request-ID": {
+                "description": "Server-generated request correlation ID.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Cache-Control": {
+                "description": "API and private answer images: private, no-store.",
+                "schema": {
+                  "type": "string",
+                  "example": "private, no-store"
+                }
+              },
+              "Date": {
+                "description": "Current HTTP response time in RFC 9110 HTTP-date format.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Location": {
+                "description": "URI of the created resource, or the result resource for 202.",
+                "schema": {
+                  "type": "string",
+                  "format": "uri"
+                }
+              },
+              "Idempotency-Replayed": {
+                "description": "true when returning a previously committed response.",
+                "schema": {
+                  "type": "boolean"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PracticeAssessment"
+                },
+                "example": {
+                  "attempt_id": "33333333-3333-4333-8333-333333333333",
+                  "answer_id": "44444444-4444-4444-8444-444444444444",
+                  "mode": "practice",
+                  "grading_mode": "self",
+                  "source": "self",
+                  "feature_analysis_id": null,
+                  "status": "completed",
+                  "revision": 1,
+                  "errors": [
+                    {
+                      "measure": 3,
+                      "types": [
+                        "pitch",
+                        "rhythm"
+                      ]
+                    }
+                  ],
+                  "completed_at": "2026-11-01T06:01:00Z",
+                  "updated_at": "2026-11-01T06:01:00Z",
+                  "server_time": "2026-11-01T06:01:00Z"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Error400"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error401"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error404"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error409"
+          },
+          "415": {
+            "$ref": "#/components/responses/Error415"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error429"
+          },
+          "503": {
+            "$ref": "#/components/responses/Error503"
+          },
+          "default": {
+            "$ref": "#/components/responses/UnexpectedError"
           }
         }
       }
@@ -2933,6 +3118,15 @@
           "question_version": {
             "type": "integer",
             "minimum": 1
+          },
+          "mode": {
+            "type": "string",
+            "enum": [
+              "practice",
+              "exam"
+            ],
+            "default": "exam",
+            "description": "Explicit study mode. Omission is legacy Exam behavior."
           }
         },
         "required": [
@@ -3056,7 +3250,8 @@
             "type": "string",
             "enum": [
               "demo",
-              "automatic"
+              "automatic",
+              "self"
             ]
           },
           "created_at": {
@@ -3170,6 +3365,18 @@
           "server_time": {
             "type": "string",
             "format": "date-time"
+          },
+          "mode": {
+            "type": "string",
+            "enum": [
+              "practice",
+              "exam"
+            ]
+          },
+          "feature_analysis_id": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
           }
         },
         "required": [
@@ -4003,6 +4210,145 @@
           "pixel_height",
           "renderer"
         ]
+      },
+      "MeasureError": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "measure",
+          "types"
+        ],
+        "properties": {
+          "measure": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 8
+          },
+          "types": {
+            "type": "array",
+            "minItems": 1,
+            "maxItems": 3,
+            "uniqueItems": true,
+            "items": {
+              "type": "string",
+              "enum": [
+                "pitch",
+                "rhythm",
+                "other"
+              ]
+            }
+          }
+        }
+      },
+      "SelfAssessmentWrite": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "expected_revision",
+          "errors",
+          "completed"
+        ],
+        "properties": {
+          "expected_revision": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "errors": {
+            "type": "array",
+            "maxItems": 8,
+            "items": {
+              "$ref": "#/components/schemas/MeasureError"
+            },
+            "description": "At most one entry per measure. Canonical order: measure ascending; types pitch, rhythm, other."
+          },
+          "completed": {
+            "type": "boolean"
+          }
+        }
+      },
+      "PracticeAssessment": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "attempt_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "answer_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "mode": {
+            "type": "string",
+            "enum": [
+              "practice"
+            ]
+          },
+          "grading_mode": {
+            "type": "string",
+            "enum": [
+              "self"
+            ]
+          },
+          "source": {
+            "type": "string",
+            "enum": [
+              "self"
+            ]
+          },
+          "feature_analysis_id": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "pending",
+              "completed"
+            ]
+          },
+          "revision": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "errors": {
+            "type": "array",
+            "maxItems": 8,
+            "items": {
+              "$ref": "#/components/schemas/MeasureError"
+            },
+            "description": "At most one entry per measure. Canonical order: measure ascending; types pitch, rhythm, other."
+          },
+          "completed_at": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "server_time": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "attempt_id",
+          "answer_id",
+          "mode",
+          "grading_mode",
+          "source",
+          "feature_analysis_id",
+          "status",
+          "revision",
+          "errors",
+          "completed_at",
+          "updated_at",
+          "server_time"
+        ],
+        "description": "No numeric score or job. Pending is unreviewed/draft, not a correct answer. completed_at is non-null exactly when status is completed."
       }
     },
     "responses": {

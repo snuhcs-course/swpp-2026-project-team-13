@@ -12,6 +12,10 @@ import AudioToolbox
     @Published private(set) var isPlaying = false
     @Published private(set) var cursor = PlaybackCursor()
     @Published private(set) var message = "재생 준비 중"
+    @Published private(set) var scaleKey: KeySignature?
+    @Published private(set) var scaleStartedAt: Date?
+    @Published private(set) var scaleDuration: TimeInterval = 0
+    var showsScaleNotice: Bool { prepared && cursor.index == 0 }
     var onCursor: ((PlaybackCursor) throws -> Void)?
     var onError: ((Error) -> Void)?
     var voiceId = "grand-piano"
@@ -35,6 +39,24 @@ import AudioToolbox
     private var bankMSB: UInt8 = 121
     private var bankLSB: UInt8 = 0
     private var outputGain: Float = 1
+    private var noteVelocity = 80
+    var canSkipWritingWait: Bool { prepared && isPlaying && cursor.canSkipForward }
+
+    func skipWritingWait() {
+        guard prepared, isPlaying else { return }
+        checkpointWait()
+        var next = cursor
+        guard next.skipForward() else { return }
+        // Stop the active sequencer and cancel its runner before scheduling a
+        // single replacement. Repeated taps update that pending target safely.
+        playbackGeneration = UUID(); runner?.cancel(); runner = nil
+        waitAnchor = nil; silence(); isPlaying = false; cursor = next
+        // Keep the live audio graph warm. Loading the piano bank again on
+        // every tap would make the requested short lead feel much longer.
+        message = "\(next.index + 1) / 11 재생 준비 · 1.5초"
+        do { try onCursor?(cursor); resume() }
+        catch { pause(); onError?(error) }
+    }
 
     func prepare(main: MusicScore, scale: MusicScore, plan: PlaybackPlan) throws {
         prepared = false; pause()
@@ -46,21 +68,29 @@ import AudioToolbox
         }
         struct Bank: Decodable { var sha256:String; var sizeBytes:Int }
         let choices: InstrumentChoices = try Bundled.decode("instruments")
-        guard let voice = choices.voices.first(where: { $0.id == voiceId }),
-              let url = Bundle.main.url(forResource:"GeneralUser-GS",withExtension:"sf2") else {
+        guard let voice = choices.voices.first(where: { $0.id == voiceId }) else {
             throw SORIError.invalidScore("음원 리소스가 없습니다. 음원이 포함된 최신 앱으로 설치해 주세요.")
         }
-        let bank: Bank = try Bundled.decode("instrument-bank")
-        let data = try Data(contentsOf:url)
-        guard data.count == bank.sizeBytes, data.sha256 == bank.sha256 else { throw SORIError.invalidScore("SOUND_BANK_UNAVAILABLE: 음원 리소스가 손상되었습니다.") }
-        instrumentURL = url; instrumentProgram = voice.program; bankMSB = 121; bankLSB = 0
-        outputGain = pow(10,voice.gainDb / 20)
+        if voiceId == "grand-piano" {
+            let piano = try ClassicalPiano.load()
+            instrumentURL = piano.url; instrumentProgram = piano.program; bankMSB = piano.bankMsb; bankLSB = piano.bankLsb
+            outputGain = pow(10,piano.gainDb/20); noteVelocity = Int(piano.noteVelocity)
+        } else {
+            guard let url = Bundle.main.url(forResource:"GeneralUser-GS",withExtension:"sf2") else { throw SORIError.invalidScore("음원 리소스가 없습니다.") }
+            let bank: Bank = try Bundled.decode("instrument-bank")
+            let data = try Data(contentsOf:url)
+            guard data.count == bank.sizeBytes, data.sha256 == bank.sha256 else { throw SORIError.invalidScore("SOUND_BANK_UNAVAILABLE: 음원 리소스가 손상되었습니다.") }
+            instrumentURL = url; instrumentProgram = voice.program; bankMSB = 121; bankLSB = 0
+            outputGain = pow(10,voice.gainDb / 20); noteVelocity = plan.velocity
+        }
         clickURL = nil
         if let count = plan.countIn {
             guard let url = Bundle.main.url(forResource:count.profileId,withExtension:"wav") else { throw SORIError.invalidScore("예비박 소리 리소스가 없습니다.") }
             clickURL = url
         }
         self.main = main; self.scale = scale; self.plan = plan
+        scaleKey = scale.keySignature; scaleStartedAt = nil
+        scaleDuration = Double(scale.totalTicks)/480*60/Double(plan.tempoBpm)
         for i in 0...11 { _ = try midi(index:i) }
         try rebuildAudioGraph()
         prepared = true; message = "스케일·예비박·11개 구간이 준비되었어요"
@@ -98,8 +128,8 @@ import AudioToolbox
         let through = index == 0 ? plan.scale.toMeasure : plan.steps[index-1].toMeasure
         let events = try score.segment(from:from,through:through)
         let ticks = (through-from+1)*score.ticksPerMeasure
-        if let count = countIn(index:index) { return MIDIFile.withCountIn(events:events,totalTicks:ticks,tempo:plan.tempoBpm,countIn:count) }
-        return MIDIFile.make(events:events,totalTicks:ticks,tempo:plan.tempoBpm)
+        if let count = countIn(index:index) { return MIDIFile.withCountIn(events:events,totalTicks:ticks,tempo:plan.tempoBpm,countIn:count,velocity:noteVelocity) }
+        return MIDIFile.make(events:events,totalTicks:ticks,tempo:plan.tempoBpm,velocity:noteVelocity)
     }
     private func route(_ seq:AVAudioSequencer,index:Int) {
         for (trackIndex,track) in seq.tracks.enumerated() {
@@ -120,12 +150,13 @@ import AudioToolbox
         while (cursor.remainingWaitMs ?? 0) > 0 {
             try Task.checkCancellation()
             let remaining = cursor.remainingWaitMs ?? 0
-            message = "\(label) · \((remaining+999)/1000)초"
+            let seconds = cursor.shortenedGap == true ? String(format:"%.1f",Double(remaining)/1000) : String((remaining+999)/1000)
+            message = "\(cursor.shortenedGap == true ? "\(cursor.index + 1) / 11 재생 준비" : label) · \(seconds)초"
             // Natural piano release occupies the beginning of the prescribed pause, not extra time.
             if !released, remaining <= waitInitialMs-min(plan?.releaseTailMs ?? 0,waitInitialMs) {
                 silence(); released = true
             }
-            try await Task.sleep(for:.milliseconds(min(remaining,released ? 1000 : 100)))
+            try await Task.sleep(for:.milliseconds(min(remaining,cursor.shortenedGap == true || !released ? 50 : 1000)))
             checkpointWait()
             try onCursor?(cursor)
         }
@@ -143,7 +174,7 @@ import AudioToolbox
                 guard generation == playbackGeneration else { throw CancellationError() }
                 if graphNeedsRebuild { try rebuildAudioGraph() }
                 try AVAudioSession.sharedInstance().setActive(true)
-                try engine.start()
+                if !engine.isRunning { try engine.start() }
                 if cursor.index == 0, cursor.phase == "initial" {
                     try await wait(plan.initialDelayMs ?? 0,label:"시작 대기")
                     cursor.phase = "segment"; try onCursor?(cursor)
@@ -162,6 +193,7 @@ import AudioToolbox
                         message = count.map { "예비박 · \($0.beatsPerMeasure)/\($0.beatUnit) · \($0.beatsPerMeasure)박" }
                             ?? (index == 0 ? "스케일 제시" : "\(index) / 11 · \(plan.steps[index-1].fromMeasure)–\(plan.steps[index-1].toMeasure)마디")
                         try seq.start()
+                        if index == 0 { scaleStartedAt = Date() }
                         let began = ProcessInfo.processInfo.systemUptime
                         let bars = index == 0 ? plan.scale.toMeasure-plan.scale.fromMeasure+1 : plan.steps[index-1].toMeasure-plan.steps[index-1].fromMeasure+1
                         let countTicks = count?.totalTicks ?? 0
@@ -173,14 +205,15 @@ import AudioToolbox
                         let remaining = max(0,seconds-(ProcessInfo.processInfo.systemUptime-began))
                         if remaining > 0 { try await Task.sleep(for:.seconds(remaining)) }
                         seq.stop()
+                        if index == 0 { scaleStartedAt = nil }
                         sampler.sendController(123,withValue:0,onChannel:0)
                         metronome.sendController(123,withValue:0,onChannel:0)
-                        cursor.phase = "gap"; cursor.remainingWaitMs = nil; try onCursor?(cursor)
+                        cursor.phase = "gap"; cursor.remainingWaitMs = nil; cursor.shortenedGap = nil; try onCursor?(cursor)
                     }
                     let gap = index == 0 ? plan.pauseAfterScaleMs : plan.steps[index-1].pauseAfterMs
                     let label = index == 0 ? "예비박까지" : index == 11 ? "마지막 필기 시간" : "필기 시간"
                     try await wait(gap,label:label,releaseTail:true)
-                    cursor.index += 1; cursor.phase = "segment"; try onCursor?(cursor)
+                    cursor.index += 1; cursor.phase = "segment"; cursor.shortenedGap = nil; try onCursor?(cursor)
                 }
                 message = "필기 시간 종료 · 답안을 제출해 주세요"
                 isPlaying = false; engine.pause()
@@ -200,7 +233,7 @@ import AudioToolbox
         playbackGeneration = UUID(); graphNeedsRebuild = true
         runner?.cancel(); runner = nil
         checkpointWait(); waitAnchor = nil
-        silence(); engine.pause(); isPlaying = false
+        silence(); engine.pause(); isPlaying = false; scaleStartedAt = nil
         if prepared, cursor.index <= 11 {
             if wasPlaying { do { try onCursor?(cursor) } catch { onError?(error) } }
             message = "일시 정지 · 재생 구간은 처음부터, 필기 시간은 남은 시간부터 이어져요"

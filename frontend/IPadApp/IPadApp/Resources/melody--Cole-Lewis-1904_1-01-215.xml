@@ -1,0 +1,276 @@
+<?xml version='1.0' encoding='utf-8'?>
+<score-partwise version="3.0">
+ <part-list>
+  <score-part id="P1">
+   <part-name>P1</part-name>
+  </score-part>
+ </part-list>
+ <part id="P1">
+  <measure number="1" width="272">
+   <attributes>
+    <divisions>256</divisions>
+    <key color="#000000">
+     <fifths>0</fifths>
+     <mode>major</mode>
+    </key>
+    <time color="#000000">
+     <beats>4</beats>
+     <beat-type>2</beat-type>
+    </time>
+    <staves>1</staves>
+    <clef number="1" color="#000000">
+     <sign>F</sign>
+     <line>4</line>
+    </clef>
+   </attributes>
+   <note color="#000000" default-x="76">
+    <pitch>
+     <step>C</step>
+     <octave>3</octave>
+    </pitch>
+    <duration>1024</duration>
+    <voice>1</voice>
+    <type>whole</type>
+    <staff>1</staff>
+   </note>
+   <note color="#000000" default-x="174">
+    <pitch>
+     <step>D</step>
+     <octave>3</octave>
+    </pitch>
+    <duration>1024</duration>
+    <voice>1</voice>
+    <type>whole</type>
+    <staff>1</staff>
+   </note>
+  </measure>
+  <measure number="2" width="300">
+   <note color="#000000" default-x="15" default-y="-50">
+    <pitch>
+     <step>E</step>
+     <octave>3</octave>
+    </pitch>
+    <duration>512</duration>
+    <voice>1</voice>
+    <type>half</type>
+    <stem>down</stem>
+    <staff>1</staff>
+   </note>
+   <note color="#000000" default-x="86" default-y="-45">
+    <pitch>
+     <step>F</step>
+     <octave>3</octave>
+    </pitch>
+    <duration>512</duration>
+    <voice>1</voice>
+    <type>half</type>
+    <stem>down</stem>
+    <staff>1</staff>
+   </note>
+   <note color="#000000" default-x="157" default-y="-40">
+    <pitch>
+     <step>G</step>
+     <octave>3</octave>
+    </pitch>
+    <duration>512</duration>
+    <voice>1</voice>
+    <type>half</type>
+    <stem>down</stem>
+    <staff>1</staff>
+   </note>
+   <note color="#000000" default-x="229" default-y="-45">
+    <pitch>
+     <step>F</step>
+     <octave>3</octave>
+    </pitch>
+    <duration>512</duration>
+    <voice>1</voice>
+    <type>half</type>
+    <stem>down</stem>
+    <staff>1</staff>
+   </note>
+  </measure>
+  <measure number="3" width="211">
+   <note color="#000000" default-x="15">
+    <pitch>
+     <step>E</step>
+     <octave>3</octave>
+    </pitch>
+    <duration>1024</duration>
+    <voice>1</voice>
+    <type>whole</type>
+    <staff>1</staff>
+   </note>
+   <note color="#000000" default-x="113">
+    <pitch>
+     <step>F</step>
+     <octave>3</octave>
+    </pitch>
+    <duration>1024</duration>
+    <voice>1</voice>
+    <type>whole</type>
+    <staff>1</staff>
+   </note>
+  </measure>
+  <measure number="4" width="255">
+   <note color="#000000" default-x="15" default-y="-40">
+    <pitch>
+     <step>G</step>
+     <octave>3</octave>
+    </pitch>
+    <duration>512</duration>
+    <voice>1</voice>
+    <type>half</type>
+    <stem>down</stem>
+    <staff>1</staff>
+   </note>
+   <note color="#000000" default-x="86" default-y="-35">
+    <pitch>
+     <step>A</step>
+     <octave>3</octave>
+    </pitch>
+    <duration>512</duration>
+    <voice>1</voice>
+    <type>half</type>
+    <stem>down</stem>
+    <staff>1</staff>
+   </note>
+   <note color="#000000" default-x="157">
+    <pitch>
+     <step>B</step>
+     <octave>3</octave>
+    </pitch>
+    <duration>1024</duration>
+    <voice>1</voice>
+    <type>whole</type>
+    <staff>1</staff>
+   </note>
+  </measure>
+  <measure number="5" width="255">
+   <attributes>
+    </attributes>
+   <note color="#000000" default-x="57">
+    <pitch>
+     <step>C</step>
+     <octave>4</octave>
+    </pitch>
+    <duration>1024</duration>
+    <voice>1</voice>
+    <type>whole</type>
+    <staff>1</staff>
+   </note>
+   <note color="#000000" default-x="156">
+    <pitch>
+     <step>B</step>
+     <octave>3</octave>
+    </pitch>
+    <duration>1024</duration>
+    <voice>1</voice>
+    <type>whole</type>
+    <staff>1</staff>
+   </note>
+  </measure>
+  <measure number="6" width="301">
+   <note color="#000000" default-x="15" default-y="-35">
+    <pitch>
+     <step>A</step>
+     <octave>3</octave>
+    </pitch>
+    <duration>512</duration>
+    <voice>1</voice>
+    <type>half</type>
+    <stem>down</stem>
+    <staff>1</staff>
+   </note>
+   <note color="#000000" default-x="86" default-y="-30">
+    <pitch>
+     <step>B</step>
+     <octave>3</octave>
+    </pitch>
+    <duration>512</duration>
+    <voice>1</voice>
+    <type>half</type>
+    <stem>down</stem>
+    <staff>1</staff>
+   </note>
+   <note color="#000000" default-x="158" default-y="-35">
+    <pitch>
+     <step>A</step>
+     <octave>3</octave>
+    </pitch>
+    <duration>512</duration>
+    <voice>1</voice>
+    <type>half</type>
+    <stem>down</stem>
+    <staff>1</staff>
+   </note>
+   <note color="#000000" default-x="229" default-y="-40">
+    <pitch>
+     <step>G</step>
+     <octave>3</octave>
+    </pitch>
+    <duration>512</duration>
+    <voice>1</voice>
+    <type>half</type>
+    <stem>down</stem>
+    <staff>1</staff>
+   </note>
+  </measure>
+  <measure number="7" width="212">
+   <note color="#000000" default-x="15">
+    <pitch>
+     <step>F</step>
+     <octave>3</octave>
+    </pitch>
+    <duration>1024</duration>
+    <voice>1</voice>
+    <type>whole</type>
+    <staff>1</staff>
+   </note>
+   <note color="#000000" default-x="113">
+    <pitch>
+     <step>E</step>
+     <octave>3</octave>
+    </pitch>
+    <duration>1024</duration>
+    <voice>1</voice>
+    <type>whole</type>
+    <staff>1</staff>
+   </note>
+  </measure>
+  <measure number="8" width="272">
+   <note color="#000000" default-x="15" default-y="-50">
+    <pitch>
+     <step>E</step>
+     <octave>3</octave>
+    </pitch>
+    <duration>512</duration>
+    <voice>1</voice>
+    <type>half</type>
+    <stem>down</stem>
+    <staff>1</staff>
+   </note>
+   <note color="#000000" default-x="86" default-y="-55">
+    <pitch>
+     <step>D</step>
+     <octave>3</octave>
+    </pitch>
+    <duration>512</duration>
+    <voice>1</voice>
+    <type>half</type>
+    <stem>down</stem>
+    <staff>1</staff>
+   </note>
+   <note color="#000000" default-x="158">
+    <pitch>
+     <step>C</step>
+     <octave>3</octave>
+    </pitch>
+    <duration>1024</duration>
+    <voice>1</voice>
+    <type>whole</type>
+    <staff>1</staff>
+   </note>
+  </measure>
+ </part>
+</score-partwise>

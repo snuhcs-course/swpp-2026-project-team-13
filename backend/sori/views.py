@@ -8,7 +8,7 @@ from django.conf import settings
 from django.core.files.base import ContentFile
 from django.core.files.storage import default_storage
 from django.db import transaction
-from django.db.models import Max
+from django.db.models import Max, F, Q
 from django.http import FileResponse
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
@@ -23,8 +23,12 @@ from .engraving import reference_asset
 from .playback import make_playback_plan, timed_question
 from .errors import ContractError
 from .idempotency import run_idempotent, uuid_value
-from .models import Answer, Attempt, GradingJob, Question, QuestionVersion, UserProfile
-from .presentation import absolute, answer_json, attempt_json, grading_json, question_json
+from .models import Answer, Attempt, GradingJob, Question, QuestionVersion, SelfAssessmentRevision, UserProfile
+from .presentation import absolute, answer_json, attempt_json, grading_json, question_json, self_assessment_json
+from .features import FeatureError
+from .features.registration import ensure_question_analysis
+from .self_assessment import normalize_errors
+from .catalogs import shipped_questions, practice_difficulty
 
 GOALS = {"arts_school_entrance", "arts_school_student", "college_entrance", "teacher_exam", "other"}
 
@@ -40,6 +44,8 @@ def result_location(request, attempt):
     return absolute(request, f"/api/v1/attempts/{attempt.id}/result/")
 
 def new_job(attempt, answer):
+    if attempt.mode != "exam":
+        raise ContractError("AI_GRADING_NOT_AVAILABLE", "Practice는 자기채점으로 진행합니다.", 409)
     job = GradingJob.objects.create(attempt=attempt, answer=answer, grading_version=attempt.grading_version, model=settings.OPENROUTER_MODEL, reasoning_effort=settings.OPENROUTER_REASONING_EFFORT, prompt_version=settings.AI_PROMPT_VERSION, timeout_seconds=settings.AI_TIMEOUT_SECONDS, max_output_tokens=settings.AI_MAX_OUTPUT_TOKENS, prompt_text=(settings.BASE_DIR / "sori" / "grading-prompt-v2.txt").read_text(encoding="utf-8") + "\n" + (settings.BASE_DIR / "sori" / "notation-rules-v1.txt").read_text(encoding="utf-8"))
     attempt.current_job = job
     return job
@@ -65,18 +71,27 @@ def questions(request):
             raise ValueError
     except ValueError:
         raise ContractError("INVALID_PAGE", "페이지 범위를 확인해 주세요.") from None
-    items = Question.objects.filter(published=True)
+    collection = request.query_params.get("collection", "practice")
+    if collection not in ("practice", "classical"):
+        raise ContractError("VALIDATION_ERROR", "문제 분류를 확인해 주세요.")
+    items = QuestionVersion.objects.filter(question__published=True, version=F("question__current_version"))
+    items = items.filter(metadata__collection="classical") if collection == "classical" else items.filter(Q(metadata__collection__isnull=True) | ~Q(metadata__collection="classical"))
+    items = items.order_by("question__order", "question_id")
     count = items.count()
     if page > max(1, (count + size - 1) // size):
         raise ContractError("INVALID_PAGE", "없는 페이지입니다.")
     # Select exactly the advertised current version, even when old versions remain for existing attempts.
     result = []
-    for question in items[(page - 1) * size:page * size]:
-        version = QuestionVersion.objects.get(question=question, version=question.current_version)
+    for version in items[(page - 1) * size:page * size]:
         metadata = timed_question(version.metadata)
-        result.append({k: metadata[k] for k in ("id", "version", "title", "source", "key_signature", "time_signature", "measure_count", "recommended_duration_seconds", "tempo")})
+        summary = {k: metadata[k] for k in ("id", "version", "title", "source", "key_signature", "time_signature", "measure_count", "recommended_duration_seconds", "tempo")}
+        summary.update({k: metadata[k] for k in ("collection", "composer") if k in metadata})
+        difficulty = practice_difficulty(metadata)
+        if difficulty is not None:
+            summary["difficulty"] = difficulty
+        result.append(summary)
     def url(p):
-        return absolute(request, f"/api/v1/questions/?page={p}&page_size={size}")
+        return absolute(request, f"/api/v1/questions/?page={p}&page_size={size}&collection={collection}")
     return Response({"count": count, "next": url(page + 1) if page * size < count else None, "previous": url(page - 1) if page > 1 else None, "results": result})
 
 @api_view(["GET"])
@@ -88,7 +103,10 @@ def question_detail(request, question_id):
 @api_view(["POST"])
 @parser_classes([JSONParser])
 def create_attempt(request):
-    fields(request.data, {"question_id", "question_version"})
+    fields(request.data, {"question_id", "question_version"}, {"mode"})
+    mode = request.data.get("mode", "exam")
+    if not isinstance(mode, str) or mode not in ("practice", "exam"):
+        raise ContractError("VALIDATION_ERROR", "mode는 practice 또는 exam이어야 합니다.")
     question_id = uuid_value(request.data["question_id"], "question_id")
     version_number = request.data["question_version"]
     if type(version_number) is not int or version_number < 1:
@@ -100,7 +118,14 @@ def create_attempt(request):
         version = get_object_or_404(QuestionVersion, question=question, version=version_number)
         snapshot = timed_question(version.metadata)
         plan = make_playback_plan(snapshot)
-        attempt = Attempt.objects.create(user=request.user, question_version=version, question_snapshot=snapshot, playback_plan=plan)
+        try:
+            analysis = ensure_question_analysis(version)
+        except (FeatureError, OSError):
+            raise ContractError("QUESTION_ANALYSIS_UNAVAILABLE", "문제 분석 데이터를 준비하지 못했습니다. 다시 시도해 주세요.", 503) from None
+        attempt = Attempt.objects.create(user=request.user, question_version=version, question_snapshot=snapshot, playback_plan=plan,
+                                         mode=mode, feature_analysis=analysis,
+                                         grading_mode="self" if mode == "practice" else "automatic",
+                                         grading_version="self-measure-v1" if mode == "practice" else "ai-melodic-v1")
         return attempt_json(request, attempt), 201, absolute(request, f"/api/v1/attempts/{attempt.id}/")
     return run_idempotent(request, dict(request.data), operation)
 
@@ -195,10 +220,19 @@ def submit_attempt(request, attempt_id):
         if attempt.status == "submitted":
             if attempt.submitted_answer_id != answer.id:
                 raise ContractError("ATTEMPT_ALREADY_SUBMITTED", "다른 답안으로 이미 제출했습니다.", 409)
+            if attempt.mode == "practice":
+                assessment = attempt.self_assessments.order_by("-revision").first()
+                if assessment is None:
+                    raise ContractError("SELF_ASSESSMENT_UNAVAILABLE", "자기채점 기록을 불러오지 못했습니다.", 503)
+                return self_assessment_json(assessment, attempt), 200, result_location(request, attempt)
             return grading_json(attempt.current_job), 202, result_location(request, attempt)
         if attempt.status != "in_progress":
             raise ContractError("ATTEMPT_NOT_STARTED", "아직 시작하지 않은 응시입니다.", 409)
         attempt.status, attempt.submitted_at, attempt.submitted_answer = "submitted", timezone.now(), answer
+        if attempt.mode == "practice":
+            assessment = SelfAssessmentRevision.objects.create(attempt=attempt, revision=0)
+            attempt.save(update_fields=["status", "submitted_at", "submitted_answer"])
+            return self_assessment_json(assessment, attempt), 200, result_location(request, attempt)
         job = new_job(attempt, answer)
         attempt.save(update_fields=["status", "submitted_at", "submitted_answer", "current_job"])
         return grading_json(job), 202, result_location(request, attempt)
@@ -207,9 +241,40 @@ def submit_attempt(request, attempt_id):
 @api_view(["GET"])
 def result(request, attempt_id):
     attempt = owned(request, attempt_id)
+    if attempt.mode == "practice":
+        assessment = attempt.self_assessments.order_by("-revision").first()
+        if attempt.status != "submitted" or assessment is None:
+            raise ContractError("NOT_SUBMITTED", "아직 제출하지 않았습니다.", 409)
+        return Response(self_assessment_json(assessment, attempt))
     if not attempt.current_job_id:
         raise ContractError("NOT_SUBMITTED", "아직 제출하지 않았습니다.", 409)
     return Response(grading_json(attempt.current_job))
+
+@api_view(["PUT"])
+@parser_classes([JSONParser])
+def save_self_assessment(request, attempt_id):
+    attempt = owned(request, attempt_id)
+    fields(request.data, {"expected_revision", "errors", "completed"})
+    revision, completed = request.data["expected_revision"], request.data["completed"]
+    if type(revision) is not int or revision < 0 or type(completed) is not bool:
+        raise ContractError("VALIDATION_ERROR", "자기채점 버전과 완료 여부를 확인해 주세요.")
+    try:
+        errors = normalize_errors(request.data["errors"], attempt.question_snapshot["measure_count"])
+    except ValueError:
+        raise ContractError("VALIDATION_ERROR", "마디 번호와 음정·리듬·기타 항목을 확인해 주세요.") from None
+    def operation():
+        attempt = owned(request, attempt_id, lock=True)
+        if attempt.mode != "practice":
+            raise ContractError("SELF_ASSESSMENT_NOT_AVAILABLE", "Exam은 AI 채점으로 진행합니다.", 409)
+        current = attempt.self_assessments.order_by("-revision").first()
+        if attempt.status != "submitted" or current is None:
+            raise ContractError("NOT_SUBMITTED", "답안을 먼저 제출해 주세요.", 409)
+        if current.revision != revision:
+            raise ContractError("SELF_ASSESSMENT_REVISION_CONFLICT", "채점 기록이 변경됐습니다. 최신 기록을 확인해 주세요.", 409)
+        saved = SelfAssessmentRevision.objects.create(attempt=attempt, revision=revision + 1, errors=errors,
+                                                      completed=completed, completed_at=timezone.now() if completed else None)
+        return self_assessment_json(saved, attempt), 200, result_location(request, attempt)
+    return run_idempotent(request, {"expected_revision": revision, "errors": errors, "completed": completed}, operation)
 
 @api_view(["POST"])
 @parser_classes([JSONParser])
@@ -219,6 +284,8 @@ def retry_grading(request, attempt_id):
         raise ContractError("VALIDATION_ERROR", "재시도 요청은 본문을 보내지 않습니다.")
     def operation():
         attempt = owned(request, attempt_id, lock=True)
+        if attempt.mode != "exam":
+            raise ContractError("AI_GRADING_NOT_AVAILABLE", "Practice는 자기채점으로 진행합니다.", 409)
         previous = attempt.current_job
         if previous is None:
             raise ContractError("NOT_SUBMITTED", "아직 제출하지 않았습니다.", 409)
@@ -251,7 +318,7 @@ def score_asset(request, question_id, version, kind):
 def sheet_asset(request, layout_id):
     # Names come from a fixed manifest, never from a filesystem path supplied by the client.
     import json
-    manifest = json.loads((settings.CONTENT_ROOT / "catalog.json").read_text(encoding="utf-8"))
+    manifest = shipped_questions()
     allowed = {item["metadata"]["sheet_layout"]["id"] for item in manifest}
     if layout_id not in allowed:
         raise ContractError("RESOURCE_NOT_FOUND", "오선 템플릿을 찾을 수 없습니다.", 404)

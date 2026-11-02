@@ -9,8 +9,10 @@ import FoundationNetworking
     func profile() async throws -> UserProfile
     func updateGoal(_ goal: String) async throws -> UserProfile
     func questions(page: Int) async throws -> QuestionPage
+    func classicalQuestions(page: Int) async throws -> QuestionPage
     func question(_ id: UUID) async throws -> Question
     func createAttempt(question: Question, key: UUID) async throws -> Attempt
+    func createAttempt(question: Question, mode: StudyMode, key: UUID) async throws -> Attempt
     func attempt(_ id: UUID) async throws -> Attempt
     func start(_ id: UUID) async throws -> Attempt
     func upload(_ id: UUID, png: Data, clientId: UUID, layout: String, key: UUID) async throws -> Answer
@@ -18,7 +20,23 @@ import FoundationNetworking
     func submit(_ id: UUID, answerId: UUID, key: UUID) async throws -> Grading
     func result(_ id: UUID) async throws -> Grading
     func retryGrading(_ id: UUID, key: UUID) async throws -> Grading
+    func submitPractice(_ id: UUID, answerId: UUID, key: UUID) async throws -> PracticeAssessment
+    func practiceAssessment(_ id: UUID) async throws -> PracticeAssessment
+    func saveSelfAssessment(_ id: UUID, request: SelfAssessmentWrite, key: UUID) async throws -> PracticeAssessment
     func asset(_ url: URL, authenticated: Bool, limit: Int) async throws -> Data
+}
+
+extension ExamAPI {
+    func createAttempt(question: Question, mode: StudyMode, key: UUID) async throws -> Attempt {
+        guard mode == .exam else { throw SORIError.unsupported("이 연결은 Practice를 지원하지 않습니다. 앱과 서버를 업데이트해 주세요.") }
+        return try await createAttempt(question:question,key:key)
+    }
+    func submitPractice(_ id: UUID, answerId: UUID, key: UUID) async throws -> PracticeAssessment { throw SORIError.unsupported("자기채점을 지원하지 않는 연결입니다.") }
+    func practiceAssessment(_ id: UUID) async throws -> PracticeAssessment { throw SORIError.unsupported("자기채점을 지원하지 않는 연결입니다.") }
+    func saveSelfAssessment(_ id: UUID, request: SelfAssessmentWrite, key: UUID) async throws -> PracticeAssessment { throw SORIError.unsupported("자기채점을 지원하지 않는 연결입니다.") }
+    func classicalQuestions(page: Int) async throws -> QuestionPage {
+        QuestionPage(count:0,next:nil,previous:nil,results:[])
+    }
 }
 
 extension Data {
@@ -125,8 +143,16 @@ final class NoRedirectDelegate: NSObject, URLSessionTaskDelegate, @unchecked Sen
     func profile() async throws -> UserProfile { try await json("me/") }
     func updateGoal(_ goal: String) async throws -> UserProfile { try await json("me/", method: "PATCH", body: JSONSerialization.data(withJSONObject: ["learning_goal": goal])) }
     func questions(page: Int) async throws -> QuestionPage {
+        try await questionPage(page:page)
+    }
+    func classicalQuestions(page: Int) async throws -> QuestionPage {
+        try await questionPage(page:page,collection:"classical")
+    }
+    private func questionPage(page: Int, collection: String? = nil) async throws -> QuestionPage {
         var components = URLComponents(url: endpoint("questions/"), resolvingAgainstBaseURL: false)!
-        components.queryItems = [URLQueryItem(name: "page", value: String(page)), URLQueryItem(name: "page_size", value: "20")]
+        var queryItems = [URLQueryItem(name: "page", value: String(page)), URLQueryItem(name: "page_size", value: "20")]
+        if let collection { queryItems.append(URLQueryItem(name: "collection", value: collection)) }
+        components.queryItems = queryItems
         let data = try await execute(request(components.url!), limit: 2 * 1024 * 1024)
         return try ContractJSON.decoder().decode(QuestionPage.self, from: data)
     }
@@ -134,10 +160,13 @@ final class NoRedirectDelegate: NSObject, URLSessionTaskDelegate, @unchecked Sen
     func createAttempt(question: Question, key: UUID) async throws -> Attempt {
         try await json("attempts/", method: "POST", body: JSONSerialization.data(withJSONObject: ["question_id": question.id.uuidString.lowercased(), "question_version": question.version]), key: key)
     }
+    func createAttempt(question: Question, mode: StudyMode, key: UUID) async throws -> Attempt {
+        try await json("attempts/", method:"POST", body:JSONSerialization.data(withJSONObject:["question_id":question.id.uuidString.lowercased(),"question_version":question.version,"mode":mode.rawValue]), key:key)
+    }
     func attempt(_ id: UUID) async throws -> Attempt { try await json("attempts/\(id.uuidString.lowercased())/") }
     func start(_ id: UUID) async throws -> Attempt { try await json("attempts/\(id.uuidString.lowercased())/start/", method: "POST") }
     static func multipart(png: Data, clientId: UUID, layout: String, boundary: String) throws -> Data {
-        guard png.count <= 10 * 1024 * 1024, ["staff-8bars-v1", "staff-8bars-4-4-v2", "staff-8bars-3-4-v2", "staff-8bars-6-8-v2"].contains(layout) else { throw SORIError.configuration("답안 이미지의 규격을 확인해 주세요.") }
+        guard png.count <= 10 * 1024 * 1024, SheetLayout.supports(layout) else { throw SORIError.configuration("답안 이미지의 규격을 확인해 주세요.") }
         var body = Data()
         func append(_ text: String) { body.append(Data(text.utf8)) }
         for (name, value) in [("client_answer_id", clientId.uuidString.lowercased()), ("answer_format_version", "1"), ("sheet_layout_id", layout)] {
@@ -159,6 +188,13 @@ final class NoRedirectDelegate: NSObject, URLSessionTaskDelegate, @unchecked Sen
     }
     func result(_ id: UUID) async throws -> Grading { try await json("attempts/\(id.uuidString.lowercased())/result/") }
     func retryGrading(_ id: UUID, key: UUID) async throws -> Grading { try await json("attempts/\(id.uuidString.lowercased())/grading-retries/", method: "POST", key: key) }
+    func submitPractice(_ id: UUID, answerId: UUID, key: UUID) async throws -> PracticeAssessment {
+        try await json("attempts/\(id.uuidString.lowercased())/submit/",method:"POST",body:JSONSerialization.data(withJSONObject:["answer_id":answerId.uuidString.lowercased()]),key:key)
+    }
+    func practiceAssessment(_ id: UUID) async throws -> PracticeAssessment { try await json("attempts/\(id.uuidString.lowercased())/result/") }
+    func saveSelfAssessment(_ id: UUID, request: SelfAssessmentWrite, key: UUID) async throws -> PracticeAssessment {
+        try await json("attempts/\(id.uuidString.lowercased())/self-assessment/",method:"PUT",body:ContractJSON.encoder().encode(request),key:key)
+    }
     func asset(_ url: URL, authenticated: Bool, limit: Int) async throws -> Data {
         let accept = url.path.trimmingCharacters(in: CharacterSet(charactersIn: "/")).hasSuffix("/scores/main") || url.path.trimmingCharacters(in: CharacterSet(charactersIn: "/")).hasSuffix("/scores/scale") ? "application/vnd.recordare.musicxml" : "image/png"
         return try await execute(request(url, authenticated: authenticated, accept: accept), limit: limit)
