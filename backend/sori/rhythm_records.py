@@ -1,7 +1,7 @@
 """Bounded client telemetry, independently regraded before database storage."""
 from datetime import datetime
 import uuid
-from .rhythm import VERSION, grade
+from .rhythm import grade
 
 
 def validate_record(payload, catalog, catalog_sha256):
@@ -14,7 +14,7 @@ def validate_record(payload, catalog, catalog_sha256):
             raise ValueError("invalid_event_id")
         return uuid.UUID(value)
     ident(payload["client_play_id"])
-    if payload["game_version"] != VERSION or payload["catalog_sha256"] != catalog_sha256:
+    if payload["game_version"] != catalog["version"] or payload["catalog_sha256"] != catalog_sha256:
         raise ValueError("catalog_version_mismatch")
     r = next((r for r in catalog["rounds"] if r["id"] == payload["round_id"]), None)
     if r is None:

@@ -27,7 +27,7 @@ struct HomeView: View {
                 Button { model.navigate(.minigames) } label: {
                     Card { HStack(spacing:18) {
                         Image(systemName:"pianokeys").font(.system(size:34)).foregroundStyle(SORITheme.violet)
-                        VStack(alignment:.leading,spacing:6) { Text("멜로디 런 · 미니게임").font(.headline).foregroundStyle(SORITheme.ink); Text("듣고 기억한 멜로디를 건반으로 복원해 보세요").font(.subheadline).foregroundStyle(.secondary) }
+                        VStack(alignment:.leading,spacing:6) { Text("Memory run · 미니게임").font(.headline).foregroundStyle(SORITheme.ink); Text("듣고 기억한 멜로디를 건반으로 복원해 보세요").font(.subheadline).foregroundStyle(.secondary) }
                         Spacer(); Image(systemName:"arrow.up.right").foregroundStyle(SORITheme.violet)
                     } }
                 }.buttonStyle(.plain)

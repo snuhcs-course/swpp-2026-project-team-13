@@ -58,6 +58,8 @@ jobs:
         run: python ../scripts/test_features.py
       - name: Verify score-derived Rhythm Puzzle pool and deterministic grading
         run: python ../scripts/test_rhythm_game.py
+      - name: Verify compact MuseScore rhythm drawings and notehead anchors
+        run: python ../scripts/test_rhythm_engraving.py
       - run: python manage.py test api sori --noinput
 
   frontend:

@@ -217,13 +217,13 @@ def rhythm_burden(attacks, pulse, bar, total, tuplet_share=0):
     return dict(raw=round(raw, 6), components=components)
 
 
-def build_catalog(root):
+def build_catalog(root, *, version=VERSION, levels=("intermediate", "advanced")):
     root = Path(root)
     rounds, all_tiles, exceptions = [], {}, []
     for row in current_sources(root):
         m = row["metadata"]
         level = m.get("difficulty", "intermediate" if row["order"] <= 3 else "advanced")
-        if level not in ("intermediate", "advanced") or m.get("collection") == "classical":
+        if level not in levels or m.get("collection") == "classical":
             continue
         path = root / row["main_path"]
         data = path.read_bytes()
@@ -254,7 +254,7 @@ def build_catalog(root):
                 policies = json.loads((root / "playback-settings.json").read_text(encoding="utf-8"))["meters"]
                 policy = policies[f'{meter["numerator"]}/{meter["denominator"]}']
                 bpm = policy["default_bpm"] * (1.5 if policy["beat_unit"] == "dotted_quarter" else 2 if policy["beat_unit"] == "half" else 1)
-                round_ = dict(id=digest([VERSION, record["analysis_key"], first]), question_id=m["id"], question_version=m["version"],
+                round_ = dict(id=digest([version, record["analysis_key"], first]), question_id=m["id"], question_version=m["version"],
                               analysis_key=record["analysis_key"], source_xml_sha256=record["source_xml_sha256"],
                               title=m["title"], level=level, first_measure=first, meter=meter, pulse=bar["pulse_qn"],
                               measure_duration=bar["actual_duration_qn"], total_duration=str(total), tempo_bpm=bpm,
@@ -267,6 +267,16 @@ def build_catalog(root):
                 rounds.append(round_)
             except (ValueError, FeatureError) as error:
                 exceptions.append(dict(question_id=m["id"], title=m["title"], first_measure=first, reason=str(error)))
+    if "beginner" in levels:
+        def simple(value, typ, rest=False, dots=0):
+            return dict(duration=value, rest=rest, type=typ, dots=dots, actual=1, normal=1,
+                        group=0, tie_next=False, group_end=False)
+        basics = [[simple(value, typ, rest, dots)] for value, typ, dots in
+                  (("1", "quarter", 0), ("1/2", "eighth", 0), ("2", "half", 0), ("3/2", "quarter", 1)) for rest in (False, True)]
+        basics += [[simple("1/2", "eighth", a), simple("1/2", "eighth", b)] for a in (False, True) for b in (False, True)]
+        for symbols_ in basics:
+            t = tile(symbols_)
+            all_tiles[t["id"]] = t
     # Freeze a same-meter reference cohort. A score is a relative rank, not a success probability.
     for r in rounds:
         cohort = [q["difficulty"]["raw"] for q in rounds if q["meter"] == r["meter"]]
@@ -276,12 +286,19 @@ def build_catalog(root):
         required = list(dict.fromkeys(p["tile_id"] for p in r["solution"]))
         # Similar lengths first; deterministic order, shuffled only when a play starts.
         wanted = {all_tiles[k]["duration"] for k in required}
-        candidates = sorted((t for t in all_tiles.values() if t["id"] not in required and F(t["duration"]) <= F(r["measure_duration"])),
+        # Beginner distractors stay in the source's rhythmic vocabulary: no
+        # surprise tuplets or sixteenth-note patterns in a quarter/eighth task.
+        source_symbols_ = [n for key in required for n in all_tiles[key]["symbols"]]
+        min_value = min(F(1, 2), min(F(n["duration"]) for n in source_symbols_))
+        tuplets = any(n["actual"] != n["normal"] for n in source_symbols_)
+        def appropriate(t):
+            return r["level"] != "beginner" or all(F(n["duration"]) >= min_value and (tuplets or n["actual"] == n["normal"]) for n in t["symbols"])
+        candidates = sorted((t for t in all_tiles.values() if t["id"] not in required and F(t["duration"]) <= F(r["measure_duration"]) and appropriate(t)),
                             key=lambda t: (t["duration"] not in wanted, abs(float(F(t["duration"]) - F(r["pulse"]))), digest([r["id"], t["id"]])))
         r["choices"] = required + [t["id"] for t in candidates[:12 - len(required)]]
         if len(r["choices"]) != 12:
             raise ValueError("not_enough_choices")
-    return dict(version=VERSION, difficulty_version=DIFFICULTY_VERSION, tiles=sorted(all_tiles.values(), key=lambda t: t["id"]),
+    return dict(version=version, difficulty_version=DIFFICULTY_VERSION, tiles=sorted(all_tiles.values(), key=lambda t: t["id"]),
                 rounds=rounds, exceptions=exceptions, source_count=len({r["question_id"] for r in rounds}))
 
 

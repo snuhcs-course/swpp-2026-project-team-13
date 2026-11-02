@@ -14,7 +14,7 @@ ROOT = Path(__file__).resolve().parents[1]
 
 def record_for(catalog, sha, r=None):
     r = r or catalog["rounds"][0]
-    return dict(client_play_id=str(uuid.uuid4()), catalog_sha256=sha, round_id=r["id"], game_version=VERSION,
+    return dict(client_play_id=str(uuid.uuid4()), catalog_sha256=sha, round_id=r["id"], game_version=catalog["version"],
                 choice_order=r["choices"], started_at="2026-11-03T00:00:00Z", finished_at="2026-11-03T00:01:00Z",
                 outcome="correct", active_ms=60000, interruptions=0, prior_exposures=0, prior_pattern_exposures=0,
                 listens=[dict(id=str(uuid.uuid4()), reason="initial", started_ms=0, ended_ms=30000, completed=True)],
@@ -140,6 +140,47 @@ class RhythmTests(unittest.TestCase):
             p[key] = value
             with self.subTest(key=key), self.assertRaises((ValueError, TypeError)):
                 validate_record(p, self.catalog, self.sha)
+
+
+class RhythmV2Tests(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        data = (ROOT / "content/rhythm-puzzle-v2.json").read_bytes()
+        cls.catalog, cls.sha = json.loads(data), digest_bytes(data)
+
+    def test_beginner_pool_and_all_real_excerpt_solutions(self):
+        tiles = {t["id"]: t for t in self.catalog["tiles"]}
+        beginner = [r for r in self.catalog["rounds"] if r["level"] == "beginner"]
+        self.assertEqual(len(beginner), 156)
+        self.assertEqual(len({r["question_id"] for r in beginner}), 39)
+        for r in self.catalog["rounds"]:
+            with self.subTest(round=r["id"]):
+                self.assertEqual(len(set(r["choices"])), 12)
+                self.assertTrue(grade(r, dict(placements=r["solution"], ties=r["solution_ties"]), tiles)["correct"])
+                self.assertEqual(r["rhythm"], [{k: n[k] for k in ("onset", "duration")} for n in r["audio"]])
+                self.assertTrue(validate_record(record_for(self.catalog, self.sha, r), self.catalog, self.sha)[1]["first_correct"])
+
+    def test_frozen_v2_reproduces_without_rewriting_v1(self):
+        self.assertEqual(build_catalog(ROOT / "content", version="rhythm-puzzle-v2", levels=("beginner", "intermediate", "advanced")), self.catalog)
+        self.assertEqual(digest_bytes((ROOT / "content/rhythm-puzzle-v1.json").read_bytes()), "215c1afd72d3766c43d2676f0be9e41595dd7b2c36cd35280c953c303317e1c0")
+
+    def test_beginner_distractors_do_not_introduce_finer_subdivisions_or_tuplets(self):
+        tiles = {t["id"]: t for t in self.catalog["tiles"]}
+        for r in self.catalog["rounds"]:
+            if r["level"] != "beginner": continue
+            originals = [n for p in r["solution"] for n in tiles[p["tile_id"]]["symbols"]]
+            minimum = min(F(1, 2), min(F(n["duration"]) for n in originals))
+            tuplets = any(n["actual"] != n["normal"] for n in originals)
+            for key in r["choices"]:
+                for n in tiles[key]["symbols"]:
+                    self.assertGreaterEqual(F(n["duration"]), minimum)
+                    self.assertTrue(tuplets or n["actual"] == n["normal"])
+
+    def test_version_and_hash_cannot_be_crossed_between_catalogs(self):
+        p = record_for(self.catalog, self.sha)
+        p["game_version"] = "rhythm-puzzle-v1"
+        with self.assertRaisesRegex(ValueError, "catalog_version_mismatch"):
+            validate_record(p, self.catalog, self.sha)
 
 
 if __name__ == "__main__":

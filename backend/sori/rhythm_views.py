@@ -18,8 +18,10 @@ from .rhythm_records import validate_record
 
 
 @lru_cache(maxsize=4)
-def catalog_at(root):
-    raw = (root / "rhythm-puzzle-v1.json").read_bytes()
+def catalog_at(root, version="rhythm-puzzle-v1"):
+    if version not in ("rhythm-puzzle-v1", "rhythm-puzzle-v2"):
+        raise ValueError("catalog_version_mismatch")
+    raw = (root / (version + ".json")).read_bytes()
     return json.loads(raw), hashlib.sha256(raw).hexdigest()
 
 
@@ -43,7 +45,9 @@ def plays(request):
     if len(request.body) > 128 * 1024:
         raise ContractError("RECORD_TOO_LARGE", "연습 기록이 허용 크기를 초과했습니다.", 413)
     try:
-        catalog, sha = catalog_at(settings.CONTENT_ROOT)
+        if not isinstance(request.data, dict):
+            raise ValueError("invalid_record_fields")
+        catalog, sha = catalog_at(settings.CONTENT_ROOT, request.data.get("game_version", "rhythm-puzzle-v1"))
         round_, result = validate_record(request.data, catalog, sha)
     except (ValueError, TypeError, KeyError, ZeroDivisionError) as error:
         code = "RHYTHM_CATALOG_MISMATCH" if str(error) == "catalog_version_mismatch" else "VALIDATION_ERROR"

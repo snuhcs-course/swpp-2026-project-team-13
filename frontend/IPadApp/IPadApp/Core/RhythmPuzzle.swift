@@ -64,7 +64,7 @@ struct RhythmCatalog: Decodable {
     var version: String; var difficultyVersion: String; var tiles: [RhythmTile]; var rounds: [RhythmRound]
     var tileMap: [String:RhythmTile] { Dictionary(uniqueKeysWithValues:tiles.map { ($0.id,$0) }) }
     func validate() throws {
-        guard version == "rhythm-puzzle-v1", !rounds.isEmpty, Set(tiles.map(\.id)).count == tiles.count else { throw SORIError.invalidScore("리듬 문제 버전을 확인해 주세요.") }
+        guard ["rhythm-puzzle-v1", "rhythm-puzzle-v2"].contains(version), !rounds.isEmpty, Set(tiles.map(\.id)).count == tiles.count else { throw SORIError.invalidScore("리듬 문제 버전을 확인해 주세요.") }
         let map = tileMap
         for t in tiles {
             guard !t.symbols.isEmpty, t.duration > .zero, t.symbols.reduce(.zero, { $0+$1.duration }) == t.duration,

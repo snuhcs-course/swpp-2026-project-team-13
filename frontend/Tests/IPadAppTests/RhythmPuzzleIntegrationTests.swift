@@ -138,16 +138,54 @@ import SwiftUI
         try store.save(RhythmJournal(draft:RhythmDraft(setIds:[round.id],index:0,record:record)))
         let game = RhythmPuzzleModel(connection:connection)
         defer { game.close() }
-        game.resume(); XCTAssertNil(game.error); XCTAssertTrue(game.playing)
-        try await Task.sleep(for:.milliseconds(100))
+        game.resume(); XCTAssertNil(game.error); XCTAssertTrue(game.waitingToPlay); XCTAssertFalse(game.playing)
+        try await Task.sleep(for:.milliseconds(1100))
+        XCTAssertTrue(game.playing)
         game.pause(); XCTAssertFalse(game.playing); XCTAssertEqual(game.draft?.hasListened,false)
         XCTAssertEqual(game.draft?.record.listens.count,1); XCTAssertEqual(game.draft?.record.listens.first?.completed,false)
         game.resume(); XCTAssertNil(game.error)
-        let deadline = MonotonicTime.now+12
-        while game.playing && MonotonicTime.now < deadline { try await Task.sleep(for:.milliseconds(25)) }
+        XCTAssertTrue(game.waitingToPlay); XCTAssertFalse(game.playing)
+        let deadline = MonotonicTime.now+14
+        while (game.playing || game.waitingToPlay) && MonotonicTime.now < deadline { try await Task.sleep(for:.milliseconds(25)) }
         XCTAssertFalse(game.playing); XCTAssertNil(game.error)
         XCTAssertEqual(game.draft?.hasListened,true)
         XCTAssertEqual(game.draft?.record.listens.count,2)
         XCTAssertEqual(game.draft?.record.listens.last?.completed,true)
+    }
+    func testOneSecondStartAndReplayWaitAreCancelledOnPauseAndClose() async throws {
+        let game = RhythmPuzzleModel(connection:try connection())
+        game.newSet(); XCTAssertNil(game.error)
+        XCTAssertEqual(game.round?.level,"beginner"); XCTAssertEqual(game.draft?.record.gameVersion,"rhythm-puzzle-v2")
+        XCTAssertTrue(game.waitingToPlay); XCTAssertFalse(game.playing)
+        try await Task.sleep(for:.milliseconds(150))
+        game.pause(); XCTAssertFalse(game.waitingToPlay)
+        try await Task.sleep(for:.milliseconds(1050))
+        XCTAssertFalse(game.playing); XCTAssertTrue(game.draft?.record.listens.isEmpty == true)
+        game.listen(); XCTAssertTrue(game.waitingToPlay)
+        game.listen(); game.close()
+        try await Task.sleep(for:.milliseconds(1050))
+        XCTAssertFalse(game.playing); XCTAssertFalse(game.waitingToPlay)
+        XCTAssertTrue(game.draft?.record.listens.isEmpty == true)
+    }
+    func testTieModeConnectsActualAdjacentNotesAcrossTheBarlineAndCanRemoveIt() throws {
+        let context = try connection()
+        let bank: RhythmCatalog = try Bundled.decode("rhythm-puzzle-v2")
+        let round = try XCTUnwrap(bank.rounds.first { $0.solutionTies.contains($0.measureDuration) })
+        let raw = try Bundled.data("rhythm-puzzle-v2",ext:"json")
+        let now = Date()
+        var record = RhythmPlayRecord(catalogSha256:raw.sha256,roundId:round.id,choiceOrder:round.choices,startedAt:now,finishedAt:now)
+        record.gameVersion = bank.version
+        var draft = RhythmDraft(setIds:[round.id],index:0,record:record)
+        draft.board = RhythmBoard(placements:round.solution,ties:[])
+        let store = try RhythmPuzzleStore(root:LocalStore(scope:context.scope).root)
+        try store.save(RhythmJournal(draft:draft))
+        let game = RhythmPuzzleModel(connection:context)
+        defer { game.close() }
+        let first = try XCTUnwrap(game.board.placements.first { game.board.end($0,tiles:game.tiles) == round.measureDuration })
+        let second = try XCTUnwrap(game.board.placements.first { $0.start == round.measureDuration })
+        game.toggleTieMode(); game.tapPiece(first); game.tapPiece(second)
+        XCTAssertTrue(game.board.ties.contains(round.measureDuration)); XCTAssertFalse(game.tieMode)
+        game.toggleTieMode(); game.tapPiece(second); game.tapPiece(first)
+        XCTAssertFalse(game.board.ties.contains(round.measureDuration)); XCTAssertFalse(game.tieMode)
     }
 }

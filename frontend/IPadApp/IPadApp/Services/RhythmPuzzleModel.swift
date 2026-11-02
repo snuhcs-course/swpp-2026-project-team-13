@@ -7,30 +7,36 @@ import SwiftUI
     @Published private(set) var catalog: RhythmCatalog?
     @Published private(set) var tiles: [String:RhythmTile] = [:]
     @Published private(set) var playing = false
+    @Published private(set) var waitingToPlay = false
     @Published private(set) var syncing = false
     @Published private(set) var storageFailed = false
     @Published var tieMode = false
     @Published var error: String?
     @Published var message = ""
     @Published var syncMessage = ""
-    @Published var level = "mixed"
+    @Published var level = "beginner"
+    @Published private(set) var selectedTiePiece: RhythmPlacement?
+    private(set) var engraving: RhythmEngraving?
     @Published var exportURL: URL?
     let audio = RhythmPuzzleAudio()
     let connection: RhythmConnection?
     private var store: RhythmPuzzleStore?
     private var catalogHash = ""
     private var runner: Task<Void,Never>?
+    private var startTask: Task<Void,Never>?
     private var syncTask: Task<Void,Never>?
     private var anchor: TimeInterval?
     private var anchorMs = 0
     private var listening: (id: UUID, reason: String, start: Int)?
     private var playbackId = UUID()
+    private var catalogVersions: [String:String] = [:]
+    private var currentRoundIds: Set<String> = []
     var draft: RhythmDraft? { journal.draft }
     var round: RhythmRound? { catalog?.rounds.first { $0.id == draft?.record.roundId } }
     var board: RhythmBoard { draft?.board ?? RhythmBoard() }
-    var canSubmit: Bool { !storageFailed && !playing && draft?.finished == false && draft?.hasListened == true && round.map { board.complete(round:$0,tiles:tiles) } == true }
+    var canSubmit: Bool { !storageFailed && !playing && !waitingToPlay && draft?.finished == false && draft?.hasListened == true && round.map { board.complete(round:$0,tiles:tiles) } == true }
     var pending: Int { journal.records.filter { !journal.synced.contains($0.id) }.count }
-    var canResume: Bool { draft != nil && draft?.record.catalogSha256 == catalogHash && round != nil }
+    var canResume: Bool { draft.map { catalogVersions[$0.record.catalogSha256] != nil } == true && round != nil }
     var canEdit: Bool { draft?.finished == false && !storageFailed }
     var hintPositions: [RhythmTime] {
         guard let draft, let round, draft.hintLevel >= 2, draft.record.outcome != "correct",
@@ -46,19 +52,30 @@ import SwiftUI
             let pulse = ((t-round.measureDuration*bar)/round.pulse).floor
             return "힌트 · \(bar+1)마디 \(pulse+1)박 주변에서 새로 소리가 나는지, 앞 음이 이어지는지 들어보세요."
         }
-        return "조각을 탭하거나 끌어서 리듬을 완성하세요."
+        return ""
     }
     init(connection: RhythmConnection?) {
         self.connection = connection
         do {
-            let data = try Bundled.data("rhythm-puzzle-v1",ext:"json")
-            let bank = try ContractJSON.decoder().decode(RhythmCatalog.self,from:data)
-            try bank.validate(); catalog = bank; tiles = bank.tileMap; catalogHash = data.sha256
+            let data = try Bundled.data("rhythm-puzzle-v2",ext:"json")
+            var bank = try ContractJSON.decoder().decode(RhythmCatalog.self,from:data)
+            try bank.validate(); catalogHash = data.sha256
+            currentRoundIds = Set(bank.rounds.map(\.id)); catalogVersions[catalogHash] = bank.version
+            let ink: RhythmEngraving = try Bundled.decode("rhythm-engraving-v2")
+            guard ink.catalogSha256 == catalogHash, bank.tiles.allSatisfy({ ink.tiles[$0.id]?.symbolXs.count == $0.symbols.count }) else {
+                throw SORIError.invalidScore("리듬 악보와 문제 버전이 다릅니다.")
+            }
+            engraving = ink
+            let legacyData = try Bundled.data("rhythm-puzzle-v1",ext:"json")
+            let legacy = try ContractJSON.decoder().decode(RhythmCatalog.self,from:legacyData)
+            catalogVersions[legacyData.sha256] = legacy.version
+            bank.rounds += legacy.rounds
+            catalog = bank; tiles = bank.tileMap
             guard let connection else { return }
             let root = try LocalStore(scope:connection.scope).root
             let local = try RhythmPuzzleStore(root:root)
             store = local; journal = try local.load()
-            if let draft, draft.record.catalogSha256 != catalogHash {
+            if let draft, catalogVersions[draft.record.catalogSha256] == nil {
                 message = "저장된 진행은 이전 문제 버전이에요. 기록은 보관되며 새 세트를 시작할 수 있어요."
             }
         } catch { self.error = error.localizedDescription }
@@ -73,21 +90,24 @@ import SwiftUI
     func newSet() {
         guard let catalog, connection != nil, !storageFailed else { return }
         if draft != nil && draft?.finished == false { abandon() }
-        var bank = catalog
+        var bank = catalog; bank.rounds = bank.rounds.filter { currentRoundIds.contains($0.id) }
         if level != "mixed" { bank.rounds = bank.rounds.filter { $0.level == level } }
         let selected = bank.set()
         guard !selected.isEmpty else { error = "이 난이도의 문제가 없어요."; return }
         begin(set:selected.map(\.id),index:0)
     }
-    private func begin(set: [String], index: Int) {
+    private func begin(set: [String], index: Int, hash: String? = nil) {
         guard let r = catalog?.rounds.first(where: { $0.id == set[index] }) else { return }
         let now = Date()
-        var record = RhythmPlayRecord(catalogSha256:catalogHash,roundId:r.id,choiceOrder:r.choices.shuffled(),startedAt:now,finishedAt:now)
-        record.priorExposures = journal.records.filter { $0.roundId == r.id }.count
+        let hash = hash ?? catalogHash
+        var record = RhythmPlayRecord(catalogSha256:hash,roundId:r.id,choiceOrder:r.choices.shuffled(),startedAt:now,finishedAt:now)
+        record.gameVersion = catalogVersions[hash] ?? "rhythm-puzzle-v2"
+        let equivalent = Set(catalog?.rounds.filter { $0.questionId == r.questionId && $0.questionVersion == r.questionVersion && $0.firstMeasure == r.firstMeasure }.map(\.id) ?? [])
+        record.priorExposures = journal.records.filter { equivalent.contains($0.roundId) }.count
         let related = Set(catalog?.rounds.filter { $0.rhythmKey == r.rhythmKey }.map(\.id) ?? [])
         record.priorPatternExposures = journal.records.filter { related.contains($0.roundId) }.count
         journal.draft = RhythmDraft(setIds:set,index:index,record:record)
-        tieMode = false; message = ""; page = .playing; activate(); save()
+        tieMode = false; selectedTiePiece = nil; message = ""; page = .playing; activate(); save()
         listen(reason:"initial")
     }
     func resume() {
@@ -103,6 +123,7 @@ import SwiftUI
         if let anchor { journal.draft?.record.activeMs = min(86_400_000,anchorMs+max(0,Int((MonotonicTime.now-anchor)*1000))) }
     }
     private func stopListening(completed: Bool) {
+        startTask?.cancel(); startTask = nil; waitingToPlay = false
         playbackId = UUID(); runner?.cancel(); runner = nil
         checkpoint()
         if let listening, let index = draft?.record.listens.firstIndex(where: { $0.id == listening.id }) {
@@ -113,8 +134,17 @@ import SwiftUI
         listening = nil; playing = false; audio.stop()
     }
     func listen(reason: String = "replay") {
-        guard let round, !storageFailed, !playing, (draft?.record.listens.count ?? 0) < 200 else { return }
+        guard round != nil, !storageFailed, !playing, !waitingToPlay, (draft?.record.listens.count ?? 0) < 200 else { return }
         if draft?.finished == true && reason != "reference" { return }
+        checkpoint(); anchor = nil; waitingToPlay = true
+        startTask = Task { [weak self] in
+            do { try await Task.sleep(for:.seconds(1)) } catch { return }
+            guard let self, !Task.isCancelled, self.page == .playing else { return }
+            self.waitingToPlay = false; self.startTask = nil; self.startListening(reason:reason)
+        }
+    }
+    private func startListening(reason: String) {
+        guard let round, !storageFailed else { return }
         let recording = draft?.finished == false
         if recording { activate(); checkpoint(); anchor = nil }
         do {
@@ -144,9 +174,9 @@ import SwiftUI
         } catch { audio.invalidate(); if recording { activate() }; self.error = error.localizedDescription }
     }
     func pause() {
-        guard page == .playing, playing || anchor != nil else { return }
+        guard page == .playing, playing || waitingToPlay || anchor != nil else { return }
         checkpoint()
-        if playing { stopListening(completed:false); message = "재생이 중단됐어요. 다시 듣기로 이어가세요." }
+        if playing || waitingToPlay { stopListening(completed:false); message = "재생이 중단됐어요. 다시 듣기로 이어가세요." }
         journal.draft?.record.interruptions += 1
         anchor = nil; audio.invalidate(); save()
     }
@@ -158,7 +188,7 @@ import SwiftUI
         guard draft.board.place(id,at:at,round:round,tiles:tiles) else { message = "이 조각이 들어갈 빈 공간을 확인해 주세요."; return }
         if tieMode {
             guard draft.board.toggleTie(target,tiles:tiles) else { message = "바로 앞 음표와 연결할 수 있는 위치에 넣어 주세요."; return }
-            tieMode = false
+            tieMode = false; selectedTiePiece = nil
         }
         draft.undo.append(before); draft.undo = Array(draft.undo.suffix(100)); journal.draft = draft
         checkpoint(); message = ""; save()
@@ -173,6 +203,19 @@ import SwiftUI
         let previous = draft.board
         guard draft.board.toggleTie(t,tiles:tiles) else { return }
         draft.undo.append(previous); journal.draft = draft; checkpoint(); save()
+    }
+    func toggleTieMode() { tieMode.toggle(); selectedTiePiece = nil }
+    func tapPiece(_ p: RhythmPlacement) {
+        guard canEdit else { return }
+        guard tieMode else { remove(p); return }
+        guard let first = selectedTiePiece else { selectedTiePiece = p; return }
+        if first == p { selectedTiePiece = nil; return }
+        let a = min(first.start,p.start), b = max(first.start,p.start)
+        guard let left = board.placements.first(where: { $0.start == a }), board.end(left,tiles:tiles) == b,
+              board.validBoundaries(tiles:tiles).contains(b) else {
+            selectedTiePiece = p; return
+        }
+        toggleTie(b); selectedTiePiece = nil; tieMode = false
     }
     func undo() {
         guard canEdit, let previous = journal.draft?.undo.popLast() else { return }
@@ -195,7 +238,7 @@ import SwiftUI
     func next() {
         guard let draft, draft.finished else { return }
         stopListening(completed:false)
-        if draft.index+1 < draft.setIds.count { begin(set:draft.setIds,index:draft.index+1) }
+        if draft.index+1 < draft.setIds.count { begin(set:draft.setIds,index:draft.index+1,hash:draft.record.catalogSha256) }
         else { journal.draft = nil; page = .summary; anchor = nil; save(); makeExport() }
     }
     private func abandon() {

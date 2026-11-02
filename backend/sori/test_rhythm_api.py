@@ -43,6 +43,25 @@ class RhythmAPITests(TestCase):
         self.assertEqual(row.result["source"], "deterministic")
         self.assertEqual(GradingJob.objects.count(), before)
 
+    def test_v2_beginner_and_existing_v1_clients_both_save_against_their_frozen_catalog(self):
+        self.assertEqual(self.send().status_code, 201)
+        data = (settings.CONTENT_ROOT / "rhythm-puzzle-v2.json").read_bytes()
+        catalog = json.loads(data)
+        question = next(r for r in catalog["rounds"] if r["level"] == "beginner")
+        self.payload = record_for(catalog, digest_bytes(data), question)
+        response = self.send()
+        self.assertEqual(response.status_code, 201, response.data)
+        self.assertEqual(RhythmPlay.objects.count(), 2)
+        row = RhythmPlay.objects.get(client_play_id=self.payload["client_play_id"])
+        self.assertEqual(row.payload["game_version"], "rhythm-puzzle-v2")
+        self.assertEqual(row.feature_analysis.analysis_key, question["analysis_key"])
+
+    def test_non_object_record_is_an_input_error_instead_of_a_catalog_mismatch(self):
+        response = self.client.post(self.url, [], format="json", HTTP_IDEMPOTENCY_KEY=str(uuid.uuid4()))
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.data["error"]["code"], "VALIDATION_ERROR")
+        self.assertFalse(RhythmPlay.objects.exists())
+
     def test_receipt_replay_and_new_transport_key_do_not_duplicate_a_round(self):
         first = self.send()
         second = self.send()
