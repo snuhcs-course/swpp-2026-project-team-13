@@ -42,7 +42,7 @@ struct ContentView: View {
                     case .result: ResultView(model: model)
                     case .history: HistoryView(model: model)
                     case .settings: SettingsView(model: model)
-                    case .minigames: MiniGameHubView()
+                    case .minigames: MiniGameHubView(connection:model.rhythmConnection).id(model.rhythmConnection?.identity ?? "disconnected")
                     case .classical: ClassicalExamLibraryView(model:model)
                     } }
                 }

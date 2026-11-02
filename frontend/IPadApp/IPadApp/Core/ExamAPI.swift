@@ -6,6 +6,7 @@ import FoundationNetworking
 
 @MainActor protocol ExamAPI {
     var scope: String { get }
+    func saveRhythmPlay(_ record: RhythmPlayRecord) async throws -> RhythmReceipt
     func profile() async throws -> UserProfile
     func updateGoal(_ goal: String) async throws -> UserProfile
     func questions(page: Int) async throws -> QuestionPage
@@ -27,6 +28,7 @@ import FoundationNetworking
 }
 
 extension ExamAPI {
+    func saveRhythmPlay(_ record: RhythmPlayRecord) async throws -> RhythmReceipt { throw SORIError.unsupported("서버를 리듬 게임 지원 버전으로 업데이트해 주세요.") }
     func createAttempt(question: Question, mode: StudyMode, key: UUID) async throws -> Attempt {
         guard mode == .exam else { throw SORIError.unsupported("이 연결은 Practice를 지원하지 않습니다. 앱과 서버를 업데이트해 주세요.") }
         return try await createAttempt(question:question,key:key)
@@ -234,6 +236,9 @@ final class NoRedirectDelegate: NSObject, URLSessionTaskDelegate, @unchecked Sen
     func practiceAssessment(_ id: UUID) async throws -> PracticeAssessment { try await json("attempts/\(id.uuidString.lowercased())/result/") }
     func saveSelfAssessment(_ id: UUID, request: SelfAssessmentWrite, key: UUID) async throws -> PracticeAssessment {
         try await json("attempts/\(id.uuidString.lowercased())/self-assessment/",method:"PUT",body:ContractJSON.encoder().encode(request),key:key)
+    }
+    func saveRhythmPlay(_ record: RhythmPlayRecord) async throws -> RhythmReceipt {
+        try await json("drills/rhythm/plays/", method:"POST", body:ContractJSON.encoder().encode(record), key:record.clientPlayId)
     }
     func asset(_ url: URL, authenticated: Bool, limit: Int) async throws -> Data {
         let accept = url.path.trimmingCharacters(in: CharacterSet(charactersIn: "/")).hasSuffix("/scores/main") || url.path.trimmingCharacters(in: CharacterSet(charactersIn: "/")).hasSuffix("/scores/scale") ? "application/vnd.recordare.musicxml" : "image/png"

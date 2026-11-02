@@ -173,3 +173,21 @@ class IdempotencyRecord(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     class Meta:
         constraints = [models.UniqueConstraint(fields=["user", "method", "path", "key"], name="idempotency_scope_unique")]
+
+
+class RhythmPlay(models.Model):
+    """A frozen drill round. Deleting an account cascades to all its telemetry."""
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="rhythm_plays")
+    client_play_id = models.UUIDField()
+    question_version = models.ForeignKey(QuestionVersion, on_delete=models.PROTECT)
+    feature_analysis = models.ForeignKey(FeatureAnalysis, on_delete=models.PROTECT)
+    round_id = models.CharField(max_length=64)
+    catalog_sha256 = models.CharField(max_length=64)
+    payload_sha256 = models.CharField(max_length=64)
+    payload = models.JSONField()
+    result = models.JSONField()
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        constraints = [models.UniqueConstraint(fields=["user", "client_play_id"], name="rhythm_play_client_unique")]

@@ -50,6 +50,10 @@ import PencilKit
     let player = PianoPlayback()
     private var api: (any ExamAPI)?
     private let authentication = AuthenticationState()
+    var rhythmConnection: RhythmConnection? {
+        guard connected, !authenticating, let api, let profile, let ticket = authentication.ticket else { return nil }
+        return RhythmConnection(api:api,profileId:profile.id,demo:demo,generation:ticket.generation)
+    }
     private let httpSession: URLSession?
     private var operationGeneration = UUID()
     private var loginDeadlines: [String: Date] = [:]

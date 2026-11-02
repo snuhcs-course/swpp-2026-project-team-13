@@ -3,7 +3,9 @@ import UniformTypeIdentifiers
 import AVFoundation
 
 struct MiniGameHubView: View {
+    var connection: RhythmConnection? = nil
     @State private var playing = false
+    @State private var playingRhythm = false
     var body: some View {
         ScrollView {
             VStack(alignment:.leading,spacing:26) {
@@ -23,17 +25,18 @@ struct MiniGameHubView: View {
                     }.foregroundStyle(.white).padding(32).frame(maxWidth:.infinity,alignment:.leading)
                         .background(LinearGradient(colors:[SORITheme.violet,Color(red:0.47,green:0.40,blue:0.92)],startPoint:.topLeading,endPoint:.bottomTrailing),in:RoundedRectangle(cornerRadius:26))
                 }.buttonStyle(.plain)
-                Card {
+                Button { playingRhythm = true } label: { Card {
                     HStack(spacing:18) {
                         Image(systemName:"metronome").font(.largeTitle).foregroundStyle(SORITheme.violet.opacity(0.4))
-                        VStack(alignment:.leading,spacing:6) { Text("리듬 런").font(.headline); Text("다음 소리 놀이를 준비하고 있어요").font(.subheadline).foregroundStyle(.secondary) }
-                        Spacer(); Pill(text:"COMING SOON")
+                        VStack(alignment:.leading,spacing:6) { Text("리듬 퍼즐").font(.headline); Text("실제 선율 두 마디를 듣고, 리듬 조각과 타이로 완성해요").font(.subheadline).foregroundStyle(.secondary) }
+                        Spacer(); Pill(text:"NEW · 5문제")
                     }
-                }
+                } }.buttonStyle(.plain).disabled(connection == nil)
                 Label("서버 연결 없이도 모든 미니게임 문제를 플레이할 수 있어요",systemImage:"wifi.slash").font(.footnote).foregroundStyle(.secondary)
             }.padding(32).frame(maxWidth:1060).frame(maxWidth:.infinity)
         }
         .fullScreenCover(isPresented:$playing) { MelodyRunView() }
+        .fullScreenCover(isPresented:$playingRhythm) { RhythmPuzzleView(connection:connection) }
     }
 }
 
