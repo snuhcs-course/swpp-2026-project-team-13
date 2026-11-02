@@ -32,16 +32,6 @@
 
 새 문제는 별도 `additional-practice-catalog.json`과 UUID 기반 자산 이름을 사용한다. 기존 62문제·클래식 11문제의 ID, 버전, XML, 빈 오선, 정답 그림과 과거 응시 스냅샷을 변경하지 않는다. 조표는 두 단의 빈 오선에 표시하며, 자연 장·단음계와 MuseScore Studio 4.6.3 정답 그림을 함께 제공한다.
 
-## 개발 토큰 저장
-
-연결 설정에서 **이 서버의 토큰을 기기에 저장**을 선택하고 서버에 연결한다. 다음 실행·업데이트부터 입력칸을 비워 두어도 저장한 토큰을 재사용한다. 입력칸에 토큰을 다시 표시하지 않고 **저장된 토큰이 있어요**라는 상태를 표시한다. 체크를 해제하면 이 서버의 저장 사본을 지우며 현재 실행 중의 연결은 메모리의 토큰으로 계속 사용할 수 있다.
-
-이전 Keychain 토큰은 성공적으로 연결한 뒤 새 저장소로 옮긴다. 앱 컨테이너 안에 iPad의 파일 보호를 적용한 사본을 보관하고 Keychain에도 저장을 시도한다. 이 폴더는 백업에서 제외하고 파일 권한을 0600으로 제한한다. 토큰 값은 UserDefaults·로그·Git에 기록하지 않는다. Keychain 접근 그룹이 바뀐 업데이트에서도 같은 앱 데이터가 보존되면 저장 사본으로 복구할 수 있다. 서버 주소의 대소문자·기본 포트·끝 슬래시는 저장 계정 비교 때 정규화한다.
-
-이미 이전 Keychain 접근을 잃었다면 이번 버전에서 한 번 입력해 저장해야 한다. 앱을 삭제하거나 다른 Bundle ID로 설치하면 보존되는 업데이트가 아니므로 앱 데이터와 토큰 복구를 보장하지 않는다. 서버의 `issue_dev_token`은 기존 사용자 토큰을 재사용하며 서버 재시작마다 새 토큰을 발급하지 않는다.
-
-설계 근거: [Apple의 Keychain 접근 그룹](https://developer.apple.com/documentation/security/sharing-access-to-keychain-items-among-a-collection-of-apps), [파일 보호 등급](https://support.apple.com/en-ca/guide/security/secb010e978a/web).
-
 ## 앱과 서버에 반영
 
 GitHub 공유 폴더에서 수정본을 업로드한다. 이 작업은 로컬 커밋까지 저장하며 push는 일반 PowerShell에서 실행한다.
@@ -75,4 +65,4 @@ python scripts/import_practice_questions.py --render
 python -m unittest discover -s scripts -p "test_*.py"
 ```
 
-`test_practice_import.py`는 11구간·40개 선정·원본 음표·온전한 마디·자산 해시·조표·정답 번들을 검사한다. Swift의 `PracticeImportTests`는 실제 51개 XML과 모든 시험 구간 및 서버 페이지 이동을 검사한다. `SavedTokenStoreTests`는 업데이트에 따른 Keychain 접근 실패를 모사해 파일 복구·계정 분리·저장 해제를 검사한다. iPad의 `PracticeLibraryIntegrationTests`는 데모 자산·시험·기록 복구와 난이도 화면 캡처를 검사한다. 이 테스트들은 CI에 포함한다.
+`test_practice_import.py`는 11구간·40개 선정·원본 음표·온전한 마디·자산 해시·조표·정답 번들을 검사한다. Swift의 `PracticeImportTests`는 실제 51개 XML과 모든 시험 구간 및 서버 페이지 이동을 검사한다. iPad의 `PracticeLibraryIntegrationTests`는 데모 자산·시험·기록 복구와 난이도 화면 캡처를 검사한다. 이 테스트들은 CI에 포함한다.

@@ -35,18 +35,32 @@ import PencilKit
     @Published var demo: Bool
     @Published var server: String
     @Published var demoOutcome: String
-    @Published var rememberToken: Bool
+    @Published var authenticating = false
+    @Published var loginRetryUntil: Date?
+    @Published var showingSignup = false
+    @Published var signupEnabled = true
+    @Published var signupRetryUntil: Date?
+    @Published var signupFieldErrors: [FieldError] = []
+    @Published var loginPrefill: String?
+    @Published var logoutNeedsConfirmation = false
+    @Published var logoutFailure: String?
     @Published private(set) var instrumentVoices: [InstrumentVoice] = []
     @Published private(set) var selectedVoice = "grand-piano"
     let drawing = DrawingController()
     let player = PianoPlayback()
     private var api: (any ExamAPI)?
+    private let authentication = AuthenticationState()
+    private let httpSession: URLSession?
+    private var operationGeneration = UUID()
+    private var loginDeadlines: [String: Date] = [:]
+    private var signupDeadlines: [String: Date] = [:]
+    // A signup whose outcome is unknown: it may have created the account.
+    private var uncertainSignup: (origin: String, username: String)?
+    private var pendingLocalLogout: (base: URL, token: String, ticket: AuthenticationTicket)?
     private var store: LocalStore?
     private var clock = AdvisoryClock()
-    private var connectionToken: String?
-    private var connectionTokenServer: String?
     @Published private var saveFailed = false
-    var isLocked: Bool { session?.frozen == true || session?.attempt.status != "in_progress" || drawingMissing || saveFailed }
+    var isLocked: Bool { !connected || authenticating || session?.frozen == true || session?.attempt.status != "in_progress" || drawingMissing || saveFailed }
     var remaining: Int { clock.remaining() }
     var pendingCreation: Bool { (try? store?.pending()) != nil }
     var libraryScreen: Screen { selectedMode == .practice ? .home : .examLibrary }
@@ -60,12 +74,13 @@ import PencilKit
         submittedImage != nil && (correctScoreImage != nil || (session?.attempt.question.correctScore == nil && mainScore != nil))
     }
 
-    init() {
+    init(httpSession: URLSession? = nil) {
+        self.httpSession = httpSession
         let d = UserDefaults.standard
         demo = d.object(forKey: "sori.demo") as? Bool ?? true
         server = d.string(forKey: "sori.server") ?? Self.defaultServer
         demoOutcome = d.string(forKey: "sori.demoOutcome") ?? "completed"
-        rememberToken = d.object(forKey:"sori.rememberToken") as? Bool ?? true
+        TokenVault.removeLegacyPlaintextCopies()
         if let choices: InstrumentChoices = try? Bundled.decode("instruments") {
             instrumentVoices = choices.voices
             let saved = d.string(forKey:"sori.voice") ?? choices.defaultVoice
@@ -78,6 +93,7 @@ import PencilKit
         player.onError = { [weak self] error in self?.error = error.localizedDescription }
         drawing.onChange = { [weak self] value in self?.saveDrawing(value) }
     }
+    private static let demoBase = "https://demo.invalid/api/v1/"
     static var defaultServer: String {
         let configured = Bundle.main.object(forInfoDictionaryKey: "APIBaseURL") as? String ?? ""
         if configured.isEmpty { return "https://your-server.example/api/v1/" }
@@ -88,47 +104,236 @@ import PencilKit
         self.error = error.localizedDescription
     }
     func run(_ label: String, operation: () async throws -> Void) async {
-        guard !busy else { return }; busy = true; busyText = label
-        defer { busy = false }
-        do { try await operation() } catch { report(error) }
+        guard !busy, !authenticating else { return }; busy = true; busyText = label
+        let generation = UUID(); operationGeneration = generation
+        defer { if operationGeneration == generation { busy = false } }
+        do { try await operation() } catch { if operationGeneration == generation { report(error) } }
+    }
+    private func clearUserState() {
+        if !isLocked { saveDrawing(drawing.canvas.drawing) }
+        player.stopForPreparation(); drawing.freeze(true)
+        operationGeneration = UUID(); busy = false; pollGeneration = UUID()
+        api = nil; store = nil; profile = nil; questions = []; history = []; session = nil
+        classicalQuestions = []; classicalLoaded = false; classicalPage = 0; classicalHasNextPage = false; selectedComposer = nil; selectedPracticeLevel = nil
+        selectedQuestion = nil; template = nil; submittedImage = nil; mainScore = nil
+        correctScoreImage = nil; correctScoreError = nil; prepared = false; connected = false
+        waitingSince = nil; error = nil; screen = .home
+        authenticating = false; logoutNeedsConfirmation = false; logoutFailure = nil; pendingLocalLogout = nil
+    }
+    private func saveConnection() {
+        let defaults = UserDefaults.standard
+        defaults.set(demo, forKey: "sori.demo"); defaults.set(server, forKey: "sori.server"); defaults.set(demoOutcome, forKey: "sori.demoOutcome")
+    }
+    private func securedAPI(base: URL, token: String, ticket: AuthenticationTicket) throws -> HTTPExamAPI {
+        let candidate = try HTTPExamAPI(base: base, token: token, session: httpSession)
+        candidate.isCurrent = { [weak self] in self?.authentication.matches(ticket, token: token) == true }
+        candidate.onUnauthorized = { [weak self] in
+            guard let self, self.authentication.matches(ticket, token: token) else { return }
+            do {
+                if try TokenVault.read(server: base.absoluteString) == token { try TokenVault.delete(server: base.absoluteString) }
+            } catch { self.report(error) }
+            self.authentication.invalidate(ticket, token: token)
+            self.clearUserState()
+        }
+        return candidate
+    }
+    private func activateUser(_ user: UserProfile, candidate: any ExamAPI, destination: Screen = .home, current: () -> Bool) async throws {
+        let local = try LocalStore(scope: candidate.scope + ":" + user.id.uuidString)
+        let records = try local.all()
+        // Keep valid credentials after network/5xx failures so recovery is explicit.
+        guard current() else { throw CancellationError() }
+        api = candidate; store = local; profile = user; history = records; connected = true
+        let list = try await PracticeQuestionList.load { try await candidate.questions(page:$0) }
+        guard current() else { throw CancellationError() }
+        questions = list.questions; page = list.lastPage; hasNextPage = false; screen = destination
     }
     func connect(token: String? = nil, destination: Screen = .home) async {
-        await run("학습 공간을 불러오는 중") {
-            self.error = nil
-            self.player.pause(); self.prepared = false; self.connected = false
-            self.api = nil; self.store = nil; self.profile = nil; self.questions = []; self.history = []; self.session = nil
-            self.classicalQuestions = []; self.classicalLoaded = false; self.classicalPage = 0; self.classicalHasNextPage = false; self.selectedComposer = nil
-            self.selectedPracticeLevel = nil
-            let candidate: any ExamAPI
-            var activeToken: String?
-            if self.demo { candidate = try DemoExamAPI(outcome: self.demoOutcome) }
-            else {
-                guard let url = URL(string: self.server) else { throw SORIError.configuration("API 주소를 확인해 주세요.") }
-                let memoryToken = self.connectionTokenServer == SavedTokenStore.account(self.server) ? self.connectionToken : nil
-                let value: String
-                if let token { value = token.trimmingCharacters(in:.whitespacesAndNewlines) }
-                else if let memoryToken { value = memoryToken }
-                else if self.rememberToken { value = try TokenVault.read(server:self.server) }
-                else { value = "" }
-                candidate = try HTTPExamAPI(base: url, token: value)
-                activeToken = value
+        authentication.cancel(); clearUserState(); saveConnection()
+        screen = destination
+        // The demo never contacts the saved address, so an invalid one must not block it.
+        guard let base = URL(string: demo ? Self.demoBase : server), Origin(base) != nil else { report(SORIError.configuration("API 주소를 확인해 주세요.")); return }
+        let ticket = authentication.begin(base: base)
+        authenticating = true; busyText = "학습 공간을 불러오는 중"
+        defer { if authentication.matches(ticket) { authenticating = false } }
+        do {
+            if demo {
+                let candidate = try DemoExamAPI(outcome: demoOutcome)
+                let user = try await candidate.profile()
+                try await activateUser(user, candidate: candidate, destination: destination, current: { self.authentication.matches(ticket) })
+            } else {
+                _ = try HTTPExamAPI(base: base) // Validate HTTPS and base path before Keychain lookup.
+                loginRetryUntil = loginDeadlines[Origin(base)!.key]
+                signupRetryUntil = signupDeadlines[Origin(base)!.key]
+                let value = try token ?? TokenVault.read(server: server)
+                guard !value.isEmpty else { return }
+                authentication.accept(value, for: ticket)
+                let candidate = try securedAPI(base: base, token: value, ticket: ticket)
+                let user = try await candidate.profile()
+                guard authentication.matches(ticket, token: value) else { return }
+                if let token { try TokenVault.save(token, server: server) }
+                try await activateUser(user, candidate: candidate, destination: destination, current: { self.authentication.matches(ticket, token: value) })
             }
-            let user = try await candidate.profile()
-            if let value = activeToken {
-                if self.rememberToken { try TokenVault.save(value,server:self.server) }
-                else { try TokenVault.delete(server:self.server) }
-                self.connectionToken = value; self.connectionTokenServer = SavedTokenStore.account(self.server)
+        } catch { if authentication.matches(ticket) { report(error) } }
+        if !authentication.matches(ticket), authentication.ticket == nil { authenticating = false }
+    }
+    func login(username: String, password: String) async {
+        guard let base = URL(string: server), let origin = Origin(base) else { report(SORIError.configuration("API 주소를 확인해 주세요.")); return }
+        if let deadline = loginDeadlines[origin.key], deadline > Date() { loginRetryUntil = deadline; return }
+        authentication.cancel(); clearUserState(); demo = false; saveConnection()
+        let ticket = authentication.begin(base: base)
+        authenticating = true; busyText = "로그인 확인 중"
+        defer { if authentication.matches(ticket) { authenticating = false } }
+        do {
+            let client = try HTTPExamAPI(base: base, session: httpSession)
+            client.isCurrent = { [weak self] in self?.authentication.matches(ticket) == true }
+            let result = try await client.login(username: username, password: password)
+            guard authentication.accept(result.accessToken, for: ticket) else { return }
+            try TokenVault.save(result.accessToken, server: base.absoluteString)
+            loginDeadlines[origin.key] = nil; loginRetryUntil = nil
+            let candidate = try securedAPI(base: base, token: result.accessToken, ticket: ticket)
+            try await activateUser(result.user, candidate: candidate, current: { self.authentication.matches(ticket, token: result.accessToken) })
+        } catch {
+            guard authentication.matches(ticket) else { return }
+            if let deadline = Self.rateLimitDeadline(error) { loginDeadlines[origin.key] = deadline; loginRetryUntil = deadline }
+            report(error)
+        }
+    }
+    private static func rateLimitDeadline(_ error: Error) -> Date? {
+        guard case SORIError.server(429, let envelope, let header) = error else { return nil }
+        let seconds = max(header ?? 0, Double(envelope?.error.retryAfterMs ?? 0) / 1000)
+        return Date().addingTimeInterval(max(1, seconds))
+    }
+    // Advisory only: a failed lookup keeps the entry visible, and signup's 403 has the final say.
+    func refreshSignupAvailability() async {
+        let requested = server
+        guard !demo, let base = URL(string: requested), let client = try? HTTPExamAPI(base: base, session: httpSession) else { return }
+        let enabled = (try? await client.signupAvailability().signupEnabled) ?? true
+        guard !Task.isCancelled, server == requested else { return }
+        signupEnabled = enabled
+    }
+    func openSignup() { signupFieldErrors = []; showingSignup = true }
+    func closeSignup() { signupFieldErrors = []; showingSignup = false }
+    func clearSignupError(_ field: String) { signupFieldErrors.removeAll { $0.field == field } }
+    func signup(username: String, displayName: String, learningGoal: String, password: String) async {
+        guard let base = URL(string: server), let origin = Origin(base) else { report(SORIError.configuration("API 주소를 확인해 주세요.")); return }
+        if let deadline = signupDeadlines[origin.key], deadline > Date() { signupRetryUntil = deadline; return }
+        authentication.cancel(); clearUserState(); demo = false; saveConnection()
+        let ticket = authentication.begin(base: base)
+        authenticating = true; busyText = "계정을 만드는 중"; signupFieldErrors = []
+        defer { if authentication.matches(ticket) { authenticating = false } }
+        let retried = uncertainSignup?.origin == origin.key && uncertainSignup?.username == username
+        uncertainSignup = (origin.key, username)
+        do {
+            let client = try HTTPExamAPI(base: base, session: httpSession)
+            client.isCurrent = { [weak self] in self?.authentication.matches(ticket) == true }
+            let result = try await client.signup(username: username, displayName: displayName, learningGoal: learningGoal, password: password)
+            guard authentication.accept(result.accessToken, for: ticket) else { return }
+            uncertainSignup = nil; signupDeadlines[origin.key] = nil; signupRetryUntil = nil; showingSignup = false
+            try TokenVault.save(result.accessToken, server: base.absoluteString)
+            let candidate = try securedAPI(base: base, token: result.accessToken, ticket: ticket)
+            try await activateUser(result.user, candidate: candidate, current: { self.authentication.matches(ticket, token: result.accessToken) })
+        } catch {
+            guard authentication.matches(ticket) else { return }
+            signupFailed(error, origin: origin, username: username, retried: retried)
+        }
+    }
+    private func signupFailed(_ error: Error, origin: Origin, username: String, retried: Bool) {
+        if let deadline = Self.rateLimitDeadline(error) { signupDeadlines[origin.key] = deadline; signupRetryUntil = deadline }
+        // Without a contract error the server may still have created the account.
+        guard case SORIError.server(let status, let envelope?, _) = error, status < 500 else { report(error); return }
+        if !retried { uncertainSignup = nil }
+        switch envelope.error.code {
+        case "USERNAME_TAKEN" where retried:
+            uncertainSignup = nil; loginPrefill = username; showingSignup = false
+            self.error = "직전 가입이 이미 완료되었을 수 있어요. 같은 아이디와 비밀번호로 로그인해 보세요."
+        case "USERNAME_TAKEN", "VALIDATION_ERROR":
+            signupFieldErrors = envelope.error.fields
+            if envelope.error.fields.isEmpty { report(error) }
+        case "SIGNUP_DISABLED":
+            signupEnabled = false; showingSignup = false
+            self.error = "현재 회원가입을 제공하지 않습니다. 계정이 있다면 로그인해 주세요."
+        case "RATE_LIMITED" where retried:
+            loginPrefill = username
+            let wait = max(1, Int(ceil(signupRetryUntil?.timeIntervalSinceNow ?? 1)))
+            self.error = "\(wait)초 후 다시 시도할 수 있어요. 직전 가입이 이미 완료되었을 수 있으니 같은 아이디로 로그인을 먼저 시도해 보세요."
+        default: report(error)
+        }
+    }
+    func cancelLogin() {
+        authentication.cancel(); authenticating = false; clearUserState()
+    }
+    func switchAccount() {
+        // Preserve the server token until a new login replaces it. The new
+        // operation generation immediately hides this user's local records.
+        cancelLogin()
+    }
+    func logout() async {
+        guard let base = URL(string: server), Origin(base) != nil, let token = authentication.token else { return }
+        if !isLocked { saveDrawing(drawing.canvas.drawing) }
+        player.pause(); drawing.freeze(true)
+        operationGeneration = UUID(); busy = false; pollGeneration = UUID()
+        logoutNeedsConfirmation = false; logoutFailure = nil; pendingLocalLogout = nil
+        let ticket = authentication.begin(base: base)
+        authentication.accept(token, for: ticket); authenticating = true; busyText = "로그아웃 중"
+        defer { if authentication.matches(ticket) { authenticating = false; drawing.freeze(isLocked) } }
+        do {
+            let candidate = try securedAPI(base: base, token: token, ticket: ticket)
+            api = candidate
+            // 401 also confirms that this token can no longer authenticate.
+            do { try await candidate.logout() }
+            catch SORIError.server(401, _, _) { }
+            guard authentication.matches(ticket, token: token) else { authenticating = false; return }
+            if try TokenVault.read(server: base.absoluteString) == token { try TokenVault.delete(server: base.absoluteString) }
+            cancelLogin()
+        } catch {
+            guard authentication.matches(ticket, token: token) else { return }
+            logoutFailure = "서버에서 로그아웃을 확인하지 못했습니다. 기기에서만 로그아웃하면 서버 토큰이 남아 있을 수 있습니다.\n" + error.localizedDescription
+            pendingLocalLogout = (base, token, ticket)
+            logoutNeedsConfirmation = true
+        }
+    }
+    func localLogout() {
+        guard let pending = pendingLocalLogout, authentication.matches(pending.ticket, token: pending.token) else { return }
+        do {
+            if try TokenVault.read(server: pending.base.absoluteString) == pending.token { try TokenVault.delete(server: pending.base.absoluteString) }
+            cancelLogin()
+        }
+        catch { report(error) }
+    }
+    func deleteAccount() async {
+        guard let base = URL(string: server), Origin(base) != nil, let token = authentication.token else { return }
+        let local = store
+        player.pause(); drawing.freeze(true)
+        operationGeneration = UUID(); busy = false; pollGeneration = UUID()
+        logoutNeedsConfirmation = false; logoutFailure = nil; pendingLocalLogout = nil
+        let ticket = authentication.begin(base: base)
+        authentication.accept(token, for: ticket); authenticating = true; busyText = "계정을 삭제하는 중"
+        defer { if authentication.matches(ticket) { authenticating = false; drawing.freeze(isLocked) } }
+        do {
+            let candidate = try securedAPI(base: base, token: token, ticket: ticket)
+            let expire = candidate.onUnauthorized
+            candidate.onUnauthorized = { [weak self] in
+                guard let self, self.authentication.matches(ticket, token: token) else { return }
+                expire()
+                self.error = "계정이 이미 삭제됐거나 다른 기기에서 로그아웃했을 수 있어요. 같은 아이디로 다시 로그인되면 계정이 남아 있는 거예요."
             }
-            let local = try LocalStore(scope: candidate.scope + ":" + user.id.uuidString)
-            let records = try local.all()
-            let list = try await PracticeQuestionList.load { try await candidate.questions(page:$0) }
-            self.api = candidate; self.store = local; self.profile = user; self.history = records
-            self.questions = list.questions; self.page = list.lastPage; self.hasNextPage = false
-            self.session = nil; self.template = nil; self.submittedImage = nil; self.mainScore = nil; self.correctScoreImage = nil; self.correctScoreError = nil
-            self.connected = true; self.screen = destination
-            let defaults = UserDefaults.standard
-            defaults.set(self.demo, forKey: "sori.demo"); defaults.set(self.server, forKey: "sori.server"); defaults.set(self.demoOutcome, forKey: "sori.demoOutcome")
-            defaults.set(self.rememberToken,forKey:"sori.rememberToken")
+            api = candidate
+            try await candidate.deleteAccount()
+            guard authentication.matches(ticket, token: token) else { authenticating = false; return }
+            // The account is gone, so local failures must not keep this user signed in.
+            var cleaned = true
+            do { if try TokenVault.read(server: base.absoluteString) == token { try TokenVault.delete(server: base.absoluteString) } } catch { cleaned = false }
+            // Remove the records last: leaving the session saves its drawing into this store.
+            cancelLogin()
+            do { try local?.removeAll() } catch { cleaned = false }
+            if !cleaned { self.error = "계정은 삭제했지만 이 기기에 저장된 정보 일부를 지우지 못했어요." }
+        } catch {
+            guard authentication.matches(ticket, token: token), !(error is CancellationError) else { return }
+            if case SORIError.server(403, let envelope?, _) = error, envelope.error.code == "ACCOUNT_DELETION_NOT_ALLOWED" {
+                self.error = "관리자 계정은 앱에서 삭제할 수 없어요."
+            } else {
+                self.error = "계정이 삭제됐는지 확인하지 못했어요. 연결을 확인한 뒤 다시 시도해 주세요.\n" + error.localizedDescription
+            }
         }
     }
     func setDemoMode(_ enabled: Bool) async {
@@ -139,6 +344,14 @@ import PencilKit
         // connection still needs a server/token. Never keep the old API active.
         UserDefaults.standard.set(enabled,forKey:"sori.demo")
         await connect(destination:.settings)
+    }
+    // Reconnecting would clear the signed-in state and show the login gate mid-refresh.
+    func refreshLibrary(destination: Screen) async {
+        guard connected, let api else { await connect(destination:destination); return }
+        await run("문제 목록을 불러오는 중") {
+            let list = try await PracticeQuestionList.load { try await api.questions(page:$0) }
+            self.questions = list.questions; self.page = list.lastPage; self.hasNextPage = false
+        }
     }
     func loadMore() async {
         await run("문제 목록을 불러오는 중") {
@@ -153,16 +366,6 @@ import PencilKit
         player.stopForPreparation(); prepared = false
         selectedVoice = id; player.voiceId = id
         UserDefaults.standard.set(id,forKey:"sori.voice")
-    }
-    func setRememberToken(_ enabled: Bool, server: String) {
-        do {
-            if !enabled { try TokenVault.delete(server:server) }
-            else if connectionTokenServer == SavedTokenStore.account(server), let value = connectionToken {
-                try TokenVault.save(value,server:server)
-            }
-            rememberToken = enabled
-            UserDefaults.standard.set(enabled,forKey:"sori.rememberToken")
-        } catch { report(error) }
     }
     func loadClassical(reset: Bool = false) async {
         await run("클래식 문제를 불러오는 중") {

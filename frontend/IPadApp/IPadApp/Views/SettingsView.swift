@@ -2,15 +2,13 @@ import SwiftUI
 
 struct SettingsView: View {
     @ObservedObject var model:AppModel
-    @State private var token=""
     @State private var address = ""
     @State private var outcome = "completed"
     @State private var showSoundLicense = false
-    @State private var rememberToken = true
-    @State private var hasSavedToken = false
+    @State private var confirmingDeletion = false
     var body: some View {
         ScrollView { VStack(alignment:.leading,spacing:28) {
-            SectionCaption(eyebrow:"CONNECTION & PREFERENCES",title:"연결 설정",subtitle:"로컬 데모 또는 개발 중인 Django 서버에 연결하세요.")
+            SectionCaption(eyebrow:"CONNECTION & PREFERENCES",title:"연결 설정",subtitle:"로컬 데모 또는 SORI 서버에 연결하세요.")
             Card { VStack(alignment:.leading,spacing:20) {
                 Toggle("로컬 데모 사용",isOn:Binding(get:{model.demo},set:{ value in Task { await model.setDemoMode(value) } })).font(.headline).disabled(model.busy).accessibilityIdentifier("use-local-demo")
                 if model.demo {
@@ -19,18 +17,11 @@ struct SettingsView: View {
                 } else {
                     Text("API 기준 주소").font(.subheadline.bold())
                     TextField("https://server/api/v1/",text:$address).textInputAutocapitalization(.never).autocorrectionDisabled().keyboardType(.URL).textFieldStyle(.roundedBorder).accessibilityIdentifier("api-base-url")
-                    Text("개발용 Bearer 토큰").font(.subheadline.bold())
-                    SecureField(hasSavedToken ? "저장된 토큰 사용 · 변경할 때만 입력" : "개발 토큰 입력",text:$token).textInputAutocapitalization(.never).autocorrectionDisabled().textFieldStyle(.roundedBorder).accessibilityIdentifier("development-token")
-                    Toggle("이 서버의 토큰을 기기에 저장",isOn:$rememberToken).toggleStyle(TokenCheckboxStyle()).accessibilityIdentifier("remember-development-token")
-                    if hasSavedToken && rememberToken { Label("저장된 토큰이 있어요. 비워 두고 연결해도 됩니다.",systemImage:"checkmark.shield.fill").font(.caption).foregroundStyle(.green).accessibilityIdentifier("saved-token-status") }
-                    Text("저장을 선택하면 다음 앱 업데이트에도 토큰을 다시 사용할 수 있어요. 체크를 해제하면 이 서버에 저장한 토큰을 지웁니다.").font(.caption).foregroundStyle(.secondary)
-                    Text("실제 iPad에서는 서버 PC의 LAN IP 주소를 사용해 주세요.").font(.caption).foregroundStyle(.secondary)
+                    Text("서버 연결 후 아이디와 비밀번호로 로그인합니다. 로그인 정보는 이 기기의 Keychain에 보관하며 비밀번호는 저장하지 않습니다. 실제 iPad에서는 PC의 LAN IP 주소를 사용해 주세요.").font(.caption).foregroundStyle(.secondary)
                 }
                 Button { Task {
                     model.server=address.trimmingCharacters(in:.whitespacesAndNewlines); model.demoOutcome=outcome
-                    model.rememberToken=rememberToken
-                    await model.connect(token:token.trimmingCharacters(in:.whitespacesAndNewlines).isEmpty ? nil : token); token=""
-                    updateSavedStatus()
+                    await model.connect()
                 } } label: { Label(model.demo ? "데모 시작" : "서버 연결",systemImage:"arrow.right.circle") }.buttonStyle(PrimaryButton())
             } }
             Card { VStack(alignment:.leading,spacing:16) {
@@ -47,11 +38,31 @@ struct SettingsView: View {
                     Text("나의 학습 목표").font(.headline)
                     Picker("학습 목표",selection:Binding(get:{user.learningGoal},set:{ goal in Task { await model.updateGoal(goal) } })) { ForEach(SORITheme.goals,id:\.0) { key,title in Text(title).tag(key) } }
                 } }
+                if !model.demo {
+                    Card { VStack(alignment: .leading, spacing: 16) {
+                        Label(user.displayName, systemImage: "person.crop.circle").font(.headline)
+                        Text("로그아웃하면 같은 계정으로 로그인한 모든 기기의 토큰이 무효화됩니다. 이 기기의 필기와 연습 기록은 보관합니다.").font(.subheadline).foregroundStyle(.secondary)
+                        HStack(spacing: 24) {
+                            Button("계정 전환") { model.switchAccount() }
+                            Button("로그아웃", role: .destructive) { Task { await model.logout() } }
+                        }.disabled(model.authenticating)
+                        Divider()
+                        Text("계정을 삭제하면 서버의 응시·답안·채점 결과와 이 기기의 연습 기록·필기가 함께 지워지며 되돌릴 수 없습니다.").font(.subheadline).foregroundStyle(.secondary)
+                        Button("계정 삭제", role: .destructive) { confirmingDeletion = true }
+                            .disabled(model.authenticating).accessibilityIdentifier("delete-account")
+                    } }
+                    .alert("계정을 삭제할까요?", isPresented: $confirmingDeletion) {
+                        Button("삭제", role: .destructive) { Task { await model.deleteAccount() } }
+                        Button("취소", role: .cancel) { }
+                    } message: {
+                        Text("\(user.displayName) 계정과 서버의 응시·답안·채점 결과, 이 기기의 연습 기록·필기·미제출 답안이 영구 삭제되며 되돌릴 수 없습니다.")
+                    }
+                }
             }
             Card { VStack(alignment:.leading,spacing:12) {
                 Label("필기와 응시 복구",systemImage:"externaldrive").font(.headline)
                 Text("필기 원본, 고정된 제출 이미지와 요청 키는 사용자·서버별로 이 iPad에 보관합니다. 앱을 지우거나 기기를 바꾸면 편집 가능한 필기를 복구할 수 없습니다.").font(.subheadline).foregroundStyle(.secondary).lineSpacing(5)
-                Text("API 계약 v0.6.0 · MusicXML 4.0 · GeneralUser GS").font(.caption).foregroundStyle(.tertiary)
+                Text("API 계약 v0.8.0 · MusicXML 4.0 · GeneralUser GS").font(.caption).foregroundStyle(.tertiary)
             } }
         }.padding(32).frame(maxWidth:900).frame(maxWidth:.infinity) }
         .sheet(isPresented:$showSoundLicense) {
@@ -64,20 +75,6 @@ struct SettingsView: View {
                     .toolbar { ToolbarItem(placement:.confirmationAction) { Button("닫기") { showSoundLicense = false } } }
             }
         }
-        .onAppear { address=model.server; outcome=model.demoOutcome; rememberToken=model.rememberToken; updateSavedStatus() }
-        .onChange(of:address) { _,_ in updateSavedStatus() }
-        .onChange(of:rememberToken) { _,value in model.setRememberToken(value,server:address); updateSavedStatus() }
-    }
-    private func updateSavedStatus() { hasSavedToken = !((try? TokenVault.read(server:address)) ?? "").isEmpty }
-}
-
-private struct TokenCheckboxStyle: ToggleStyle {
-    func makeBody(configuration: Configuration) -> some View {
-        Button { configuration.isOn.toggle() } label: {
-            HStack(spacing:12) {
-                Image(systemName:configuration.isOn ? "checkmark.square.fill" : "square").font(.title2).foregroundStyle(SORITheme.violet)
-                configuration.label.foregroundStyle(.primary)
-            }.frame(maxWidth:.infinity,alignment:.leading).contentShape(Rectangle())
-        }.buttonStyle(.plain).accessibilityValue(configuration.isOn ? "선택됨" : "선택 안 됨")
+        .onAppear { address=model.server; outcome=model.demoOutcome }
     }
 }

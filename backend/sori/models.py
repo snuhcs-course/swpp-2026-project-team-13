@@ -1,12 +1,42 @@
+import hashlib
+import hmac
 import uuid
 from django.conf import settings
+from django.contrib.auth import get_user_model
 from django.db import models
+from django.db.models import Value
+from django.db.models.functions import Lower
+
+def usernames_differing_by_case(username):
+    # The same lower(username) expression as the unique index; never iexact or Python lower().
+    return get_user_model().objects.annotate(lowered=Lower("username")).filter(lowered=Lower(Value(username)))
+
+def throttle_key(kind, value):
+    # Keyed so the short, enumerable IP and username space cannot be reversed from the table.
+    return hmac.new(settings.SECRET_KEY.encode("utf-8"), (kind + "\0" + value).encode("utf-8"), hashlib.sha256).hexdigest()
+
+class LoginThrottle(models.Model):
+    # Database rows (and row locks) are shared by every API process.
+    key = models.CharField(max_length=64, primary_key=True)
+    events = models.JSONField(default=list)
+    blocked_until = models.DateTimeField(null=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+def locked_throttle(kind, value):
+    key = throttle_key(kind, value)
+    while True:
+        LoginThrottle.objects.get_or_create(key=key)
+        # The hourly purge can delete the row between these two queries.
+        row = LoginThrottle.objects.select_for_update().filter(key=key).first()
+        if row is not None:
+            return row
 
 class UserProfile(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     display_name = models.CharField(max_length=80, default="학습자")
     learning_goal = models.CharField(max_length=40, default="other")
+    created_via = models.CharField(max_length=10, choices=[("admin", "admin"), ("signup", "signup")], default="admin")
 
 class Question(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)

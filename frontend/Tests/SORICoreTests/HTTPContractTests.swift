@@ -3,13 +3,15 @@ import Foundation
 @testable import SORICore
 
 final class StubProtocol:URLProtocol {
-    static var handler:((URLRequest)throws->(Int,String,Data))?
+    static var handler:((URLRequest)throws->(Int,String?,Data))?
     override class func canInit(with request:URLRequest)->Bool { true }
     override class func canonicalRequest(for request:URLRequest)->URLRequest { request }
     override func startLoading() {
         do {
             let (status,mime,data)=try Self.handler!(request)
-            let response=HTTPURLResponse(url:request.url!,statusCode:status,httpVersion:"HTTP/1.1",headerFields:["Content-Type":mime,"X-Request-ID":"test-request"])!
+            var headers = ["X-Request-ID":"test-request"]
+            if let mime { headers["Content-Type"] = mime }
+            let response=HTTPURLResponse(url:request.url!,statusCode:status,httpVersion:"HTTP/1.1",headerFields:headers)!
             client?.urlProtocol(self,didReceive:response,cacheStoragePolicy:.notAllowed);client?.urlProtocol(self,didLoad:data);client?.urlProtocolDidFinishLoading(self)
         } catch { client?.urlProtocol(self,didFailWithError:error) }
     }

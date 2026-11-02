@@ -87,7 +87,7 @@ struct HomeView: View {
                     if model.demo { DemoBadge() }
                 }
             }.padding(32).frame(maxWidth: 1150, alignment: .leading).frame(maxWidth: .infinity)
-        }.refreshable { let level = model.selectedPracticeLevel; await model.connect(destination:mode == .practice ? .home : .examLibrary); model.selectedPracticeLevel = level }
+        }.refreshable { let level = model.selectedPracticeLevel; await model.refreshLibrary(destination:mode == .practice ? .home : .examLibrary); model.selectedPracticeLevel = level }
     }
     private var visibleQuestions: [QuestionSummary] {
         guard let level = model.selectedPracticeLevel else { return model.questions }

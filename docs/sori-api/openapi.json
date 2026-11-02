@@ -3,12 +3,26 @@
   "info": {
     "title": "SORI iPad Exam API",
     "version": "0.7.0",
-    "description": "SORI iPad practice and exam API. Practice uses immediate measure-level self-assessment without an AI job; Exam retains asynchronous OpenRouter grading and Korean feedback. Attempt snapshots pin the problem, playback plan and Feature v1 analysis. API-CONTRACT.md defines invariants; legacy requests without mode remain Exam."
+    "description": "SORI iPad practice and exam API. Practice uses immediate measure-level self-assessment without an AI job; Exam retains asynchronous OpenRouter grading and Korean feedback. Attempt snapshots pin the problem, playback plan and Feature v1 analysis. API-CONTRACT.md defines invariants; legacy requests without mode remain Exam. Password login uses one persistent, revocable DRF bearer token per user and shared PostgreSQL login limits. Signup, signup availability and account deletion from API contract v0.8.0 are implemented. Items marked x-status: planned (grading quotas) are defined by contract v0.8.0 and are not implemented yet. From contract v0.8.0, absolute URLs in responses (asset urls, image_url, template_png_url, next/previous, Location) use the public origin that received the request, including behind an HTTPS proxy. A proxy in front of the server may return non-contract error responses (HTML body, no X-Request-ID) when the server is unavailable or the request is blocked; clients treat an undecodable error other than 401 as a server connection problem, do not branch on error.code, and never change authentication state for it. Server 401 responses always use the contract format."
   },
   "servers": [
     {
-      "url": "https://api.sori.example/api/v1",
-      "description": "Placeholder; replace with team staging origin."
+      "url": "https://{public_host}/api/v1",
+      "description": "Public HTTPS origin of the current deployment.",
+      "variables": {
+        "public_host": {
+          "default": "api.sori.example"
+        }
+      }
+    },
+    {
+      "url": "http://{lan_host}:8000/api/v1",
+      "description": "Direct LAN access for Debug builds only.",
+      "variables": {
+        "lan_host": {
+          "default": "localhost"
+        }
+      }
     }
   ],
   "security": [
@@ -17,6 +31,9 @@
     }
   ],
   "tags": [
+    {
+      "name": "Auth"
+    },
     {
       "name": "Profile"
     },
@@ -34,6 +51,276 @@
     }
   ],
   "paths": {
+    "/auth/login/": {
+      "post": {
+        "operationId": "login",
+        "tags": [
+          "Auth"
+        ],
+        "summary": "Log in with username and password",
+        "security": [],
+        "description": "Ignores Authorization, including invalid bearer headers. Body limit 32 KiB; then IP rolling limit 30 admitted requests/5 minutes (server setting LOGIN_MAX_REQUESTS_PER_IP from v0.8.0, default 30; from v0.8.0 the client IP is the address reported by a trusted proxy only for requests from that proxy); then input validation; then username block for 5 minutes after five authentication failures/5 minutes. An IP-limited request can only inspect a valid username block, never verify credentials. If both limits apply use the longer remaining delay and ceil Retry-After seconds. Do not automatically retry. No Idempotency-Key. Credentials are not normalized. Profile UUID matches /me/. Concurrent login and credential updates are serialized; password changes and deactivation revoke tokens atomically.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LoginRequest"
+              },
+              "example": {
+                "username": "student01",
+                "password": "example-password"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Authenticated; reuses the existing token and creates a profile if absent.",
+            "headers": {
+              "X-Request-ID": {
+                "description": "Server-generated request correlation ID.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Cache-Control": {
+                "description": "API and private answer images: private, no-store.",
+                "schema": {
+                  "type": "string",
+                  "example": "private, no-store"
+                }
+              },
+              "Date": {
+                "description": "Current HTTP response time in RFC 9110 HTTP-date format.",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LoginResponse"
+                },
+                "example": {
+                  "access_token": "<opaque-token>",
+                  "token_type": "Bearer",
+                  "user": {
+                    "id": "11111111-1111-4111-8111-111111111111",
+                    "display_name": "청음 학습자",
+                    "learning_goal": "college_entrance"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/LoginValidationError"
+          },
+          "401": {
+            "$ref": "#/components/responses/InvalidCredentials"
+          },
+          "405": {
+            "$ref": "#/components/responses/Error405"
+          },
+          "413": {
+            "$ref": "#/components/responses/LoginRequestTooLarge"
+          },
+          "415": {
+            "$ref": "#/components/responses/Error415"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error429"
+          }
+        }
+      }
+    },
+    "/auth/logout/": {
+      "post": {
+        "operationId": "logout",
+        "tags": [
+          "Auth"
+        ],
+        "summary": "Revoke the authenticated user token",
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "description": "No request body or Idempotency-Key. Revokes only the matching current token; a delayed logout cannot delete a replacement token. All devices sharing the token are signed out. User, profile and practice data remain. Repeating with the revoked token returns 401.",
+        "responses": {
+          "204": {
+            "description": "Token revoked. Empty body; Content-Type is not required.",
+            "headers": {
+              "X-Request-ID": {
+                "description": "Server-generated request correlation ID.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Cache-Control": {
+                "description": "API and private answer images: private, no-store.",
+                "schema": {
+                  "type": "string",
+                  "example": "private, no-store"
+                }
+              },
+              "Date": {
+                "description": "Current HTTP response time in RFC 9110 HTTP-date format.",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Error401"
+          },
+          "405": {
+            "$ref": "#/components/responses/Error405"
+          }
+        }
+      }
+    },
+    "/auth/signup-availability/": {
+      "get": {
+        "operationId": "getSignupAvailability",
+        "tags": [
+          "Auth"
+        ],
+        "summary": "Check whether signup is enabled",
+        "security": [],
+        "description": "Public. Ignores Authorization. No request body; not rate limited. Use only to show or hide the signup entry.",
+        "responses": {
+          "200": {
+            "description": "Current signup availability.",
+            "headers": {
+              "X-Request-ID": {
+                "description": "Server-generated request correlation ID.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Cache-Control": {
+                "description": "API and private answer images: private, no-store.",
+                "schema": {
+                  "type": "string",
+                  "example": "private, no-store"
+                }
+              },
+              "Date": {
+                "description": "Current HTTP response time in RFC 9110 HTTP-date format.",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SignupAvailability"
+                }
+              }
+            }
+          },
+          "405": {
+            "$ref": "#/components/responses/Error405"
+          }
+        }
+      }
+    },
+    "/auth/signup/": {
+      "post": {
+        "operationId": "signup",
+        "tags": [
+          "Auth"
+        ],
+        "summary": "Create an account and log in",
+        "security": [],
+        "description": "Ignores Authorization. Body limit 32 KiB. Order: 413, 403 SIGNUP_DISABLED, per-IP request limit 429, per-IP success limit 429, 415, 400, 409, 201. No Idempotency-Key and no automatic retry. Credentials are not normalized. Collects no personal information; forgotten passwords cannot be recovered.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SignupRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Account, profile and token created atomically. Same body as login.",
+            "headers": {
+              "X-Request-ID": {
+                "description": "Server-generated request correlation ID.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Cache-Control": {
+                "description": "API and private answer images: private, no-store.",
+                "schema": {
+                  "type": "string",
+                  "example": "private, no-store"
+                }
+              },
+              "Date": {
+                "description": "Current HTTP response time in RFC 9110 HTTP-date format.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Location": {
+                "description": "Absolute URL of the created profile resource, e.g. https://<public host>/api/v1/me/. Uses the public origin that received the request.",
+                "schema": {
+                  "type": "string",
+                  "format": "uri"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LoginResponse"
+                },
+                "example": {
+                  "access_token": "<opaque-token>",
+                  "token_type": "Bearer",
+                  "user": {
+                    "id": "11111111-1111-4111-8111-111111111111",
+                    "display_name": "청음 연습생",
+                    "learning_goal": "college_entrance"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/SignupValidationError"
+          },
+          "403": {
+            "$ref": "#/components/responses/SignupDisabled"
+          },
+          "405": {
+            "$ref": "#/components/responses/Error405"
+          },
+          "409": {
+            "$ref": "#/components/responses/UsernameTaken"
+          },
+          "413": {
+            "$ref": "#/components/responses/AuthRequestTooLarge"
+          },
+          "415": {
+            "$ref": "#/components/responses/Error415"
+          },
+          "429": {
+            "$ref": "#/components/responses/SignupRateLimited"
+          }
+        }
+      }
+    },
     "/me/": {
       "get": {
         "operationId": "getMe",
@@ -169,6 +456,57 @@
                 "$ref": "#/components/schemas/UserProfilePatch"
               }
             }
+          }
+        }
+      },
+      "delete": {
+        "operationId": "deleteAccount",
+        "tags": [
+          "Profile"
+        ],
+        "summary": "Permanently delete the authenticated account",
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "description": "No request body and no password re-confirmation: the app asks for confirmation, and any body is neither read nor validated. Order: 401, 403 ACCOUNT_DELETION_NOT_ALLOWED, 204. Deletes the user, profile, token, attempts, answers, grading jobs, idempotency receipts, the username's login failure record and answer images; AI usage records are kept without the user link. Requests from the same user that overlap the deletion and fail because the user no longer exists return 401, not 500. No Idempotency-Key and no automatic retry.",
+        "responses": {
+          "204": {
+            "description": "Account deleted. Empty body; Content-Type is not required.",
+            "headers": {
+              "X-Request-ID": {
+                "description": "Server-generated request correlation ID.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Cache-Control": {
+                "description": "API and private answer images: private, no-store.",
+                "schema": {
+                  "type": "string",
+                  "example": "private, no-store"
+                }
+              },
+              "Date": {
+                "description": "Current HTTP response time in RFC 9110 HTTP-date format.",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Error401"
+          },
+          "403": {
+            "$ref": "#/components/responses/AccountDeletionForbidden"
+          },
+          "405": {
+            "$ref": "#/components/responses/Error405"
+          },
+          "default": {
+            "$ref": "#/components/responses/UnexpectedError"
           }
         }
       }
@@ -1559,7 +1897,7 @@
             "$ref": "#/components/responses/Error415"
           },
           "429": {
-            "$ref": "#/components/responses/Error429"
+            "$ref": "#/components/responses/GradingRateLimited"
           },
           "503": {
             "$ref": "#/components/responses/Error503"
@@ -1844,7 +2182,7 @@
             "$ref": "#/components/responses/Error409"
           },
           "429": {
-            "$ref": "#/components/responses/Error429"
+            "$ref": "#/components/responses/GradingRateLimited"
           },
           "503": {
             "$ref": "#/components/responses/Error503"
@@ -4211,6 +4549,118 @@
           "renderer"
         ]
       },
+      "LoginRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "username",
+          "password"
+        ],
+        "properties": {
+          "username": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 150,
+            "description": "Case-sensitive account ID. Preserve all whitespace."
+          },
+          "password": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 1024,
+            "writeOnly": true,
+            "description": "Preserve all whitespace. Never persist or log."
+          }
+        }
+      },
+      "LoginResponse": {
+        "type": "object",
+        "required": [
+          "access_token",
+          "token_type",
+          "user"
+        ],
+        "properties": {
+          "access_token": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Opaque non-expiring token. Reused until revoked; one token per user."
+          },
+          "token_type": {
+            "type": "string",
+            "enum": [
+              "Bearer"
+            ]
+          },
+          "user": {
+            "$ref": "#/components/schemas/UserProfile"
+          }
+        }
+      },
+      "SignupAvailability": {
+        "type": "object",
+        "required": [
+          "signup_enabled"
+        ],
+        "properties": {
+          "signup_enabled": {
+            "type": "boolean",
+            "description": "Current SIGNUP_ENABLED value. Advisory only; POST /auth/signup/ 403 SIGNUP_DISABLED is authoritative."
+          }
+        },
+        "description": "Clients ignore unknown fields; more fields may be added.",
+        "example": {
+          "signup_enabled": true
+        }
+      },
+      "SignupRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "username",
+          "display_name",
+          "learning_goal",
+          "password"
+        ],
+        "properties": {
+          "username": {
+            "type": "string",
+            "minLength": 4,
+            "maxLength": 20,
+            "pattern": "^[a-z][a-z0-9_]{3,19}$",
+            "description": "Whole-string match; no trailing newline. Duplicates are compared case-insensitively against all accounts. Do not use names, student IDs or other personal information."
+          },
+          "display_name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 20,
+            "description": "1-20 Unicode code points. No leading/trailing White_Space, Cc, Zl, Zp or Bidi_Control characters. Not unique. Cannot be changed after signup. Use a nickname, not personal information."
+          },
+          "learning_goal": {
+            "type": "string",
+            "enum": [
+              "arts_school_entrance",
+              "arts_school_student",
+              "college_entrance",
+              "teacher_exam",
+              "other"
+            ],
+            "description": "Chosen by the user on the signup screen; the server does not default it."
+          },
+          "password": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 1024,
+            "writeOnly": true,
+            "description": "Must pass server password validators. Not normalized. Never persist or log. Unrecoverable if forgotten."
+          }
+        },
+        "example": {
+          "username": "student01",
+          "display_name": "청음 연습생",
+          "learning_goal": "college_entrance",
+          "password": "example-password"
+        }
+      },
       "MeasureError": {
         "type": "object",
         "additionalProperties": false,
@@ -4417,6 +4867,15 @@
           "application/json": {
             "schema": {
               "$ref": "#/components/schemas/ErrorEnvelope"
+            },
+            "example": {
+              "error": {
+                "code": "AUTHENTICATION_REQUIRED",
+                "message": "로그인이 필요합니다.",
+                "fields": [],
+                "retry_after_ms": null
+              },
+              "request_id": "22222222-2222-4222-8222-222222222222"
             }
           }
         }
@@ -4610,6 +5069,15 @@
           "application/json": {
             "schema": {
               "$ref": "#/components/schemas/ErrorEnvelope"
+            },
+            "example": {
+              "error": {
+                "code": "RATE_LIMITED",
+                "message": "잠시 후 다시 로그인해 주세요.",
+                "fields": [],
+                "retry_after_ms": 300000
+              },
+              "request_id": "22222222-2222-4222-8222-222222222222"
             }
           }
         }
@@ -4679,6 +5147,516 @@
           "application/json": {
             "schema": {
               "$ref": "#/components/schemas/ErrorEnvelope"
+            }
+          }
+        }
+      },
+      "InvalidCredentials": {
+        "description": "Unknown username, incorrect password, inactive account or unusable password. Identical error for all cases.",
+        "headers": {
+          "X-Request-ID": {
+            "description": "Server-generated request correlation ID.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          "Cache-Control": {
+            "description": "API and private answer images: private, no-store.",
+            "schema": {
+              "type": "string",
+              "example": "private, no-store"
+            }
+          },
+          "Date": {
+            "description": "Current HTTP response time in RFC 9110 HTTP-date format.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          "WWW-Authenticate": {
+            "schema": {
+              "type": "string",
+              "enum": [
+                "Bearer"
+              ]
+            }
+          }
+        },
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ErrorEnvelope"
+            },
+            "example": {
+              "error": {
+                "code": "INVALID_CREDENTIALS",
+                "message": "아이디 또는 비밀번호를 확인해 주세요.",
+                "fields": [],
+                "retry_after_ms": null
+              },
+              "request_id": "22222222-2222-4222-8222-222222222222"
+            }
+          }
+        }
+      },
+      "LoginValidationError": {
+        "description": "Malformed JSON, invalid shape, missing/unknown fields, incorrect field types or lengths.",
+        "headers": {
+          "X-Request-ID": {
+            "description": "Server-generated request correlation ID.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          "Cache-Control": {
+            "description": "API and private answer images: private, no-store.",
+            "schema": {
+              "type": "string",
+              "example": "private, no-store"
+            }
+          },
+          "Date": {
+            "description": "Current HTTP response time in RFC 9110 HTTP-date format.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        },
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ErrorEnvelope"
+            },
+            "example": {
+              "error": {
+                "code": "VALIDATION_ERROR",
+                "message": "입력한 내용을 확인해 주세요.",
+                "fields": [
+                  {
+                    "field": "password",
+                    "code": "required",
+                    "message": "password은 1~1024자의 문자열이어야 합니다."
+                  }
+                ],
+                "retry_after_ms": null
+              },
+              "request_id": "22222222-2222-4222-8222-222222222222"
+            }
+          }
+        }
+      },
+      "LoginRequestTooLarge": {
+        "description": "Raw UTF-8 body exceeds 32768 bytes, with or without Content-Length. Checked before parsing and rate limits; does not consume attempts.",
+        "headers": {
+          "X-Request-ID": {
+            "description": "Server-generated request correlation ID.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          "Cache-Control": {
+            "description": "API and private answer images: private, no-store.",
+            "schema": {
+              "type": "string",
+              "example": "private, no-store"
+            }
+          },
+          "Date": {
+            "description": "Current HTTP response time in RFC 9110 HTTP-date format.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        },
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ErrorEnvelope"
+            },
+            "example": {
+              "error": {
+                "code": "REQUEST_TOO_LARGE",
+                "message": "로그인 요청은 32 KiB 이하여야 합니다.",
+                "fields": [],
+                "retry_after_ms": null
+              },
+              "request_id": "22222222-2222-4222-8222-222222222222"
+            }
+          }
+        }
+      },
+      "Error405": {
+        "description": "Unsupported HTTP method.",
+        "headers": {
+          "X-Request-ID": {
+            "description": "Server-generated request correlation ID.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          "Cache-Control": {
+            "description": "API and private answer images: private, no-store.",
+            "schema": {
+              "type": "string",
+              "example": "private, no-store"
+            }
+          },
+          "Date": {
+            "description": "Current HTTP response time in RFC 9110 HTTP-date format.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        },
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ErrorEnvelope"
+            },
+            "example": {
+              "error": {
+                "code": "METHOD_NOT_ALLOWED",
+                "message": "지원하지 않는 요청입니다.",
+                "fields": [],
+                "retry_after_ms": null
+              },
+              "request_id": "22222222-2222-4222-8222-222222222222"
+            }
+          }
+        }
+      },
+      "AuthRequestTooLarge": {
+        "description": "Raw UTF-8 body exceeds 32768 bytes, with or without Content-Length. Checked before parsing and rate limits; does not consume attempts.",
+        "headers": {
+          "X-Request-ID": {
+            "description": "Server-generated request correlation ID.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          "Cache-Control": {
+            "description": "API and private answer images: private, no-store.",
+            "schema": {
+              "type": "string",
+              "example": "private, no-store"
+            }
+          },
+          "Date": {
+            "description": "Current HTTP response time in RFC 9110 HTTP-date format.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        },
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ErrorEnvelope"
+            },
+            "example": {
+              "error": {
+                "code": "REQUEST_TOO_LARGE",
+                "message": "요청 본문은 32 KiB 이하여야 합니다.",
+                "fields": [],
+                "retry_after_ms": null
+              },
+              "request_id": "22222222-2222-4222-8222-222222222222"
+            }
+          }
+        }
+      },
+      "SignupValidationError": {
+        "description": "Malformed JSON, invalid shape, unknown fields (fields=[]), or per-field violations. Each field reports the first matching code in order: required, invalid, blank, max_length, invalid (not UTF-8 encodable), min_length, invalid_format, invalid_choice. password may contain several password policy errors.",
+        "headers": {
+          "X-Request-ID": {
+            "description": "Server-generated request correlation ID.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          "Cache-Control": {
+            "description": "API and private answer images: private, no-store.",
+            "schema": {
+              "type": "string",
+              "example": "private, no-store"
+            }
+          },
+          "Date": {
+            "description": "Current HTTP response time in RFC 9110 HTTP-date format.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        },
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ErrorEnvelope"
+            },
+            "example": {
+              "error": {
+                "code": "VALIDATION_ERROR",
+                "message": "입력한 내용을 확인해 주세요.",
+                "fields": [
+                  {
+                    "field": "password",
+                    "code": "password_too_short",
+                    "message": "비밀번호가 너무 짧습니다."
+                  },
+                  {
+                    "field": "password",
+                    "code": "password_too_common",
+                    "message": "너무 흔한 비밀번호입니다."
+                  },
+                  {
+                    "field": "password",
+                    "code": "password_entirely_numeric",
+                    "message": "비밀번호가 숫자로만 되어 있습니다."
+                  }
+                ],
+                "retry_after_ms": null
+              },
+              "request_id": "22222222-2222-4222-8222-222222222222"
+            }
+          }
+        }
+      },
+      "SignupDisabled": {
+        "description": "Signup is disabled on this server.",
+        "headers": {
+          "X-Request-ID": {
+            "description": "Server-generated request correlation ID.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          "Cache-Control": {
+            "description": "API and private answer images: private, no-store.",
+            "schema": {
+              "type": "string",
+              "example": "private, no-store"
+            }
+          },
+          "Date": {
+            "description": "Current HTTP response time in RFC 9110 HTTP-date format.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        },
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ErrorEnvelope"
+            },
+            "example": {
+              "error": {
+                "code": "SIGNUP_DISABLED",
+                "message": "현재 회원가입을 제공하지 않습니다.",
+                "fields": [],
+                "retry_after_ms": null
+              },
+              "request_id": "22222222-2222-4222-8222-222222222222"
+            }
+          }
+        }
+      },
+      "UsernameTaken": {
+        "description": "Username already exists, compared case-insensitively. Returned only when every field is valid.",
+        "headers": {
+          "X-Request-ID": {
+            "description": "Server-generated request correlation ID.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          "Cache-Control": {
+            "description": "API and private answer images: private, no-store.",
+            "schema": {
+              "type": "string",
+              "example": "private, no-store"
+            }
+          },
+          "Date": {
+            "description": "Current HTTP response time in RFC 9110 HTTP-date format.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        },
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ErrorEnvelope"
+            },
+            "example": {
+              "error": {
+                "code": "USERNAME_TAKEN",
+                "message": "이미 사용 중인 아이디입니다.",
+                "fields": [
+                  {
+                    "field": "username",
+                    "code": "taken",
+                    "message": "이미 사용 중인 아이디입니다."
+                  }
+                ],
+                "retry_after_ms": null
+              },
+              "request_id": "22222222-2222-4222-8222-222222222222"
+            }
+          }
+        }
+      },
+      "SignupRateLimited": {
+        "description": "Per-IP signup request limit or per-IP signup success limit. Uses the longer remaining delay. Respect Retry-After.",
+        "headers": {
+          "X-Request-ID": {
+            "description": "Server-generated request correlation ID.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          "Cache-Control": {
+            "description": "API and private answer images: private, no-store.",
+            "schema": {
+              "type": "string",
+              "example": "private, no-store"
+            }
+          },
+          "Date": {
+            "description": "Current HTTP response time in RFC 9110 HTTP-date format.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          "Retry-After": {
+            "description": "Integer seconds to wait.",
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            }
+          }
+        },
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ErrorEnvelope"
+            },
+            "example": {
+              "error": {
+                "code": "RATE_LIMITED",
+                "message": "잠시 후 다시 가입해 주세요.",
+                "fields": [],
+                "retry_after_ms": 60000
+              },
+              "request_id": "22222222-2222-4222-8222-222222222222"
+            }
+          }
+        }
+      },
+      "AccountDeletionForbidden": {
+        "description": "Admin account that cannot be deleted in the app. The token is kept.",
+        "headers": {
+          "X-Request-ID": {
+            "description": "Server-generated request correlation ID.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          "Cache-Control": {
+            "description": "API and private answer images: private, no-store.",
+            "schema": {
+              "type": "string",
+              "example": "private, no-store"
+            }
+          },
+          "Date": {
+            "description": "Current HTTP response time in RFC 9110 HTTP-date format.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        },
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ErrorEnvelope"
+            },
+            "examples": {
+              "admin_account": {
+                "value": {
+                  "error": {
+                    "code": "ACCOUNT_DELETION_NOT_ALLOWED",
+                    "message": "관리자 계정은 앱에서 삭제할 수 없습니다.",
+                    "fields": [],
+                    "retry_after_ms": null
+                  },
+                  "request_id": "22222222-2222-4222-8222-222222222222"
+                }
+              }
+            }
+          }
+        }
+      },
+      "GradingRateLimited": {
+        "description": "Rate limited, or (planned for contract v0.8.0) GRADING_QUOTA_EXCEEDED when the per-user or server-wide 24-hour grading job cap is reached. Nothing is stored and the response is not saved as an idempotency receipt; retry later with the same Idempotency-Key. Respect Retry-After.",
+        "headers": {
+          "X-Request-ID": {
+            "description": "Server-generated request correlation ID.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          "Cache-Control": {
+            "description": "API and private answer images: private, no-store.",
+            "schema": {
+              "type": "string",
+              "example": "private, no-store"
+            }
+          },
+          "Date": {
+            "description": "Current HTTP response time in RFC 9110 HTTP-date format.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          "Retry-After": {
+            "description": "Integer seconds to wait.",
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            }
+          }
+        },
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ErrorEnvelope"
+            },
+            "examples": {
+              "rate_limited": {
+                "value": {
+                  "error": {
+                    "code": "RATE_LIMITED",
+                    "message": "잠시 후 다시 로그인해 주세요.",
+                    "fields": [],
+                    "retry_after_ms": 300000
+                  },
+                  "request_id": "22222222-2222-4222-8222-222222222222"
+                }
+              },
+              "grading_quota_exceeded": {
+                "summary": "x-status: planned (v0.8.0)",
+                "value": {
+                  "error": {
+                    "code": "GRADING_QUOTA_EXCEEDED",
+                    "message": "AI 채점 사용량 한도에 도달했습니다. 잠시 후 다시 시도해 주세요.",
+                    "fields": [],
+                    "retry_after_ms": 3600000
+                  },
+                  "request_id": "22222222-2222-4222-8222-222222222222"
+                }
+              }
             }
           }
         }
