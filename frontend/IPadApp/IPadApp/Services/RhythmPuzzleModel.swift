@@ -219,7 +219,7 @@ import SwiftUI
             guard let self else { return }
             defer { syncing = false }
             do {
-                for record in journal.records.filter({ !journal.synced.contains($0.id) }).prefix(30) {
+                for record in journal.records.filter({ !self.journal.synced.contains($0.id) }).prefix(30) {
                     try Task.checkCancellation()
                     let receipt = try await connection.api.saveRhythmPlay(record)
                     guard receipt.clientPlayId == record.id, receipt.roundId == record.roundId, receipt.catalogSha256 == record.catalogSha256 else {

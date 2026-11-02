@@ -52,6 +52,57 @@ import SwiftUI
         try a.removeAll()
         XCTAssertFalse(FileManager.default.fileExists(atPath:store.file.path))
     }
+    func testCSVExportKeepsFirstAttemptReplayCountsAndSourceMetadata() throws {
+        let connection = try connection()
+        let accountStore = try LocalStore(scope:connection.scope)
+        defer { try? accountStore.removeAll() }
+        let store = try RhythmPuzzleStore(root:accountStore.root)
+        let catalog: RhythmCatalog = try Bundled.decode("rhythm-puzzle-v1")
+        let round = try XCTUnwrap(catalog.rounds.first { !$0.solutionTies.isEmpty })
+        let now = Date()
+        var record = RhythmPlayRecord(catalogSha256:"catalog-test",roundId:round.id,choiceOrder:round.choices,startedAt:now,finishedAt:now)
+        // A corrected retry must not replace the unaided first-attempt result.
+        record.submissions = [
+            RhythmSubmission(activeMs:1000,placements:round.solution,ties:[]),
+            RhythmSubmission(activeMs:2000,placements:round.solution,ties:round.solutionTies)
+        ]
+        record.outcome = "correct"; record.activeMs = 3000
+        record.interruptions = 1; record.priorExposures = 2; record.priorPatternExposures = 3
+        record.listens = [
+            RhythmListen(reason:"initial",startedMs:0,endedMs:200,completed:true),
+            RhythmListen(reason:"replay",startedMs:200,endedMs:300,completed:false),
+            RhythmListen(reason:"replay",startedMs:300,endedMs:500,completed:true),
+            RhythmListen(reason:"reference",startedMs:2000,endedMs:2500,completed:true)
+        ]
+        let journal = RhythmJournal(records:[record],synced:[record.id])
+        let url = try store.csv(journal,catalog:catalog)
+        let data = try Data(contentsOf:url)
+        XCTAssertEqual(Array(data.prefix(3)),[0xEF,0xBB,0xBF])
+        let text = String(decoding:data.dropFirst(3),as:UTF8.self)
+        let lines = text.components(separatedBy:"\r\n")
+        XCTAssertEqual(lines.count,3); XCTAssertEqual(lines.last,"")
+        func cells(_ line: String) -> [String] {
+            String(line.dropFirst().dropLast()).components(separatedBy:"\",\"")
+        }
+        let header = cells(lines[0]), values = cells(lines[1])
+        XCTAssertEqual(header.count,20); XCTAssertEqual(values.count,header.count)
+        let row = Dictionary(uniqueKeysWithValues:zip(header,values))
+        XCTAssertEqual(row["play_id"],record.id.uuidString)
+        XCTAssertEqual(row["question_id"],round.questionId.uuidString)
+        XCTAssertEqual(row["source_bars"],"\(round.firstMeasure)-\(round.firstMeasure+1)")
+        XCTAssertEqual(row["meter"],"\(round.meter.numerator)/\(round.meter.denominator)")
+        XCTAssertEqual(row["tempo_quarter_bpm"],String(round.tempoBpm))
+        XCTAssertEqual(row["difficulty"],String(round.difficulty.score))
+        XCTAssertEqual(row["difficulty_version"],round.difficulty.version)
+        XCTAssertEqual(row["catalog_sha256"],"catalog-test")
+        XCTAssertEqual(row["outcome"],"correct"); XCTAssertEqual(row["first_correct"],"false")
+        XCTAssertEqual(row["submissions"],"2")
+        XCTAssertEqual(row["replays_started"],"2"); XCTAssertEqual(row["replays_completed"],"1")
+        XCTAssertEqual(row["active_ms"],"3000"); XCTAssertEqual(row["interruptions"],"1")
+        XCTAssertEqual(row["prior_exposures"],"2"); XCTAssertEqual(row["prior_pattern_exposures"],"3")
+        XCTAssertEqual(row["choice_order"],round.choices.joined(separator:";"))
+        XCTAssertEqual(row["server_synced"],"true")
+    }
     func testLandscapeAndPortraitRhythmBoardsAndTwelveChoiceValuesRender() throws {
         let connection = try connection()
         let catalog: RhythmCatalog = try Bundled.decode("rhythm-puzzle-v1")

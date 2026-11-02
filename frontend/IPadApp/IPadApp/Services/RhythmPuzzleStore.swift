@@ -42,9 +42,22 @@ final class RhythmPuzzleStore {
             if let sub = p.submissions.first, let r {
                 correct = String((try? RhythmBoard(placements:sub.placements,ties:sub.ties).sounds(round:r,tiles:catalog.tileMap)) == r.rhythm)
             } else { correct = "" }
-            let values = [p.id.uuidString,p.roundId,r?.questionId.uuidString ?? "",r.map { "\($0.firstMeasure)-\($0.firstMeasure+1)" } ?? "",
-                r.map { "\($0.meter.numerator)/\($0.meter.denominator)" } ?? "",r.map { String($0.tempoBpm) } ?? "",r.map { String($0.difficulty.score) } ?? "",r?.difficulty.version ?? "",p.catalogSha256,p.outcome,correct,String(p.submissions.count),
-                String(p.listens.filter { $0.reason == "replay" }.count),String(p.listens.filter { $0.reason == "replay" && $0.completed }.count),String(p.activeMs),String(p.interruptions),String(p.priorExposures),String(p.priorPatternExposures),p.choiceOrder.joined(separator:";"),String(journal.synced.contains(p.id))]
+            // Keep each conversion separate so Swift can type-check this export
+            // without solving all optional maps and overloaded initializers at once.
+            let sourceBars = r.map { "\($0.firstMeasure)-\($0.firstMeasure+1)" } ?? ""
+            let meter = r.map { "\($0.meter.numerator)/\($0.meter.denominator)" } ?? ""
+            let tempo = r.map { String($0.tempoBpm) } ?? ""
+            let difficulty = r.map { String($0.difficulty.score) } ?? ""
+            let replays = p.listens.filter { $0.reason == "replay" }
+            let completedReplays = replays.filter { $0.completed }.count
+            let values: [String] = [
+                p.id.uuidString, p.roundId, r?.questionId.uuidString ?? "", sourceBars,
+                meter, tempo, difficulty, r?.difficulty.version ?? "",
+                p.catalogSha256, p.outcome, correct, String(p.submissions.count),
+                String(replays.count), String(completedReplays), String(p.activeMs),
+                String(p.interruptions), String(p.priorExposures), String(p.priorPatternExposures),
+                p.choiceOrder.joined(separator:";"), String(journal.synced.contains(p.id))
+            ]
             lines.append(values.map(cell).joined(separator:","))
         }
         let url = root.appendingPathComponent("rhythm-observations.csv")
