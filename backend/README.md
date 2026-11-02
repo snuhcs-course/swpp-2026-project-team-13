@@ -200,6 +200,8 @@ docker compose --env-file backend/.env ps
 
 종료 후 `ps`에 실행 중인 서비스가 없어야 합니다. `down -v`는 사용하지 않습니다.
 
+카탈로그에는 기본 3개와 고난도 59개, 총 62문항이 포함됩니다. 컨테이너 시작 시 기존 문제 버전을 유지하면서 새 문항을 등록합니다. 데이터와 앱 재설치는 [고난도 문제 안내](../docs/NAVER-QUESTIONS.md)를 확인하세요.
+
 ## 확인
 
     python manage.py check

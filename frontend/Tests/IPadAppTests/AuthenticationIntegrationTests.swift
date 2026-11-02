@@ -214,4 +214,67 @@ final class AuthenticationAppProtocol: URLProtocol {
         XCTAssertEqual(try TokenVault.read(server: fixture.base), "")
         XCTAssertFalse(model.logoutNeedsConfirmation); XCTAssertNil(model.profile)
     }
+
+    func testRefreshKeepsTheSignedInStateAndScreen() async throws {
+        let fixture = try AuthenticationFixture(); defer { fixture.cleanup() }
+        let model = fixture.model(); await model.connect()
+        model.navigate(.examLibrary)
+        var connectedDuringReload: Bool?
+        fixture.held = { request in
+            if request.request.url!.path.contains("/questions") { connectedDuringReload = model.connected }
+            return false
+        }
+        await model.refreshLibrary(destination: .examLibrary)
+        XCTAssertEqual(connectedDuringReload, true)
+        XCTAssertTrue(model.connected); XCTAssertNotNil(model.profile); XCTAssertEqual(model.screen, .examLibrary)
+    }
+
+    func testConnectLoadsEveryQuestionPageAndOpensTheDestination() async throws {
+        let fixture = try AuthenticationFixture(); defer { fixture.cleanup() }
+        var body = try XCTUnwrap(JSONSerialization.jsonObject(with: Bundled.data("questions", ext: "json")) as? [String: Any])
+        var results = try XCTUnwrap(body["results"] as? [[String: Any]])
+        var extra = try XCTUnwrap(results.first); extra["id"] = UUID().uuidString
+        results.append(extra)
+        let pages = results
+        fixture.held = { request in
+            guard request.request.url!.path.contains("/questions") else { return false }
+            let second = request.request.url!.query?.contains("page=2") == true
+            body["results"] = second ? Array(pages.suffix(1)) : Array(pages.dropLast())
+            body["next"] = second ? NSNull() : fixture.base + "questions/?page=2"
+            request.respond(200, data: try! JSONSerialization.data(withJSONObject: body))
+            return true
+        }
+        let model = fixture.model(); await model.connect(destination: .examLibrary)
+        XCTAssertNil(model.error)
+        XCTAssertEqual(model.questions.count, results.count); XCTAssertFalse(model.hasNextPage)
+        XCTAssertEqual(model.screen, .examLibrary)
+    }
+
+    func testTurningDemoOffStaysInSettingsWithoutAStoredLogin() async throws {
+        let fixture = try AuthenticationFixture(); defer { fixture.cleanup() }
+        try TokenVault.delete(server: fixture.base)
+        let model = fixture.model(); model.demo = true
+        await model.setDemoMode(false)
+        XCTAssertFalse(model.connected); XCTAssertEqual(model.screen, .settings)
+    }
+
+    func testSwitchingAccountClearsClassicalAndPracticeSelections() async throws {
+        let fixture = try AuthenticationFixture(); defer { fixture.cleanup() }
+        let model = fixture.model(); await model.connect()
+        model.classicalLoaded = true; model.classicalHasNextPage = true; model.selectedComposer = "브람스"
+        model.classicalQuestions = model.questions; model.selectedPracticeLevel = PracticeLevel.allCases.first
+        model.switchAccount()
+        XCTAssertFalse(model.classicalLoaded); XCTAssertFalse(model.classicalHasNextPage)
+        XCTAssertNil(model.selectedComposer); XCTAssertTrue(model.classicalQuestions.isEmpty); XCTAssertNil(model.selectedPracticeLevel)
+    }
+
+    func testLaunchRemovesPlaintextTokenCopiesFromEarlierBuilds() throws {
+        let fixture = try AuthenticationFixture(); defer { fixture.cleanup() }
+        let app = try FileManager.default.url(for: .applicationSupportDirectory, in: .userDomainMask, appropriateFor: nil, create: true)
+        let folder = app.appendingPathComponent("SORI/ConnectionCredentials", isDirectory: true)
+        try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
+        try Data("{}".utf8).write(to: folder.appendingPathComponent("legacy.json"))
+        _ = fixture.model()
+        XCTAssertFalse(FileManager.default.fileExists(atPath: folder.path))
+    }
 }

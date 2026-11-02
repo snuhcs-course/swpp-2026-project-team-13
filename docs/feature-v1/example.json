@@ -1,0 +1,546 @@
+{
+  "schema_version": "1.0.0",
+  "analysis_status": "complete",
+  "question_id": "fixture-v1",
+  "question_version": 1,
+  "source_xml_sha256": "582a8cb62eafe7267aa513103583b0aed0ab6842882f4278e5692a23c20c6ed7",
+  "extractor_version": "documentation-example-1.0.0",
+  "config": {
+    "intervals_across_rests": true,
+    "missing_key_policy": "unknown"
+  },
+  "source_review": {
+    "status": "reviewed",
+    "scope": "synthetic specification fixture only"
+  },
+  "written_order": true,
+  "measures": [
+    {
+      "number": 1,
+      "written_number": "1",
+      "meter": "4/4",
+      "beat_grouping": [
+        1,
+        1,
+        1,
+        1
+      ],
+      "pulse_qn": "1",
+      "key_signature": {
+        "fifths": 0,
+        "mode": "major"
+      },
+      "actual_duration_qn": "4",
+      "expected_duration_qn": "4",
+      "event_ids": [
+        "fixture-v1:m1:n1",
+        "fixture-v1:m1:n2",
+        "fixture-v1:m1:n3",
+        "fixture-v1:m1:n4"
+      ],
+      "rhythm_pattern_canonical": "[\"4/4\",[1,1,1,1],\"4\",[[\"N\",\"0\",\"1\"],[\"N\",\"1\",\"1\"],[\"N\",\"2\",\"1\"],[\"N\",\"3\",\"1\"]]]",
+      "rhythm_pattern_id": "5581c53f9692c68b02c673cc5a86c9b774754618ede8079fc7e68f024fd527c5",
+      "repeat_of": null,
+      "standalone_status": "ready",
+      "metrics": {
+        "written_note_count": 4,
+        "rest_event_count": 0,
+        "attack_count": 4,
+        "tie_chain_count": 0,
+        "interval_count": 3,
+        "mean_abs_semitones": 4.333333333333333,
+        "large_up_count": 1,
+        "large_down_count": 0,
+        "pitch_range_semitones": 7,
+        "duration_pulses": "4",
+        "attacks_per_pulse": 1.0,
+        "dotted_event_count": 0,
+        "tuplet_event_count": 0,
+        "tuplet_attack_share": 0.0,
+        "exact_rhythm_repeat_fraction": 0.0,
+        "explicit_accidental_count": 0,
+        "cautionary_accidental_count": 0,
+        "editorial_accidental_count": 0,
+        "key_relative_alteration_count": 0,
+        "offbeat_sustain_candidate_count": 0,
+        "cross_pulse_beam_candidate_count": 0
+      }
+    },
+    {
+      "number": 2,
+      "written_number": "2",
+      "meter": "4/4",
+      "beat_grouping": [
+        1,
+        1,
+        1,
+        1
+      ],
+      "pulse_qn": "1",
+      "key_signature": {
+        "fifths": 0,
+        "mode": "major"
+      },
+      "actual_duration_qn": "4",
+      "expected_duration_qn": "4",
+      "event_ids": [
+        "fixture-v1:m2:n1",
+        "fixture-v1:m2:n2",
+        "fixture-v1:m2:n3",
+        "fixture-v1:m2:n4"
+      ],
+      "rhythm_pattern_canonical": "[\"4/4\",[1,1,1,1],\"4\",[[\"N\",\"0\",\"1\"],[\"N\",\"1\",\"1\"],[\"N\",\"2\",\"1\"],[\"N\",\"3\",\"1\"]]]",
+      "rhythm_pattern_id": "5581c53f9692c68b02c673cc5a86c9b774754618ede8079fc7e68f024fd527c5",
+      "repeat_of": 1,
+      "standalone_status": "ready",
+      "metrics": {
+        "written_note_count": 4,
+        "rest_event_count": 0,
+        "attack_count": 4,
+        "tie_chain_count": 0,
+        "interval_count": 3,
+        "mean_abs_semitones": 1.6666666666666667,
+        "large_up_count": 0,
+        "large_down_count": 0,
+        "pitch_range_semitones": 5,
+        "duration_pulses": "4",
+        "attacks_per_pulse": 1.0,
+        "dotted_event_count": 0,
+        "tuplet_event_count": 0,
+        "tuplet_attack_share": 0.0,
+        "exact_rhythm_repeat_fraction": 0.0,
+        "explicit_accidental_count": 0,
+        "cautionary_accidental_count": 0,
+        "editorial_accidental_count": 0,
+        "key_relative_alteration_count": 0,
+        "offbeat_sustain_candidate_count": 0,
+        "cross_pulse_beam_candidate_count": 0
+      }
+    }
+  ],
+  "events": [
+    {
+      "id": "fixture-v1:m1:n1",
+      "measure": 1,
+      "index": 1,
+      "onset_qn": "0",
+      "absolute_onset_qn": "0",
+      "duration_qn": "1",
+      "kind": "note",
+      "step": "C",
+      "alter": 0,
+      "octave": 4,
+      "midi": 60,
+      "type": "quarter",
+      "dots": 0,
+      "tuplet_ratio": [
+        1,
+        1
+      ],
+      "accidental": null,
+      "beams": [],
+      "tie_start": false,
+      "tie_stop": false,
+      "attack_id": "fixture-v1:m1:n1"
+    },
+    {
+      "id": "fixture-v1:m1:n2",
+      "measure": 1,
+      "index": 2,
+      "onset_qn": "1",
+      "absolute_onset_qn": "1",
+      "duration_qn": "1",
+      "kind": "note",
+      "step": "G",
+      "alter": 0,
+      "octave": 4,
+      "midi": 67,
+      "type": "quarter",
+      "dots": 0,
+      "tuplet_ratio": [
+        1,
+        1
+      ],
+      "accidental": null,
+      "beams": [],
+      "tie_start": false,
+      "tie_stop": false,
+      "attack_id": "fixture-v1:m1:n2"
+    },
+    {
+      "id": "fixture-v1:m1:n3",
+      "measure": 1,
+      "index": 3,
+      "onset_qn": "2",
+      "absolute_onset_qn": "2",
+      "duration_qn": "1",
+      "kind": "note",
+      "step": "E",
+      "alter": 0,
+      "octave": 4,
+      "midi": 64,
+      "type": "quarter",
+      "dots": 0,
+      "tuplet_ratio": [
+        1,
+        1
+      ],
+      "accidental": null,
+      "beams": [],
+      "tie_start": false,
+      "tie_stop": false,
+      "attack_id": "fixture-v1:m1:n3"
+    },
+    {
+      "id": "fixture-v1:m1:n4",
+      "measure": 1,
+      "index": 4,
+      "onset_qn": "3",
+      "absolute_onset_qn": "3",
+      "duration_qn": "1",
+      "kind": "note",
+      "step": "G",
+      "alter": 0,
+      "octave": 4,
+      "midi": 67,
+      "type": "quarter",
+      "dots": 0,
+      "tuplet_ratio": [
+        1,
+        1
+      ],
+      "accidental": null,
+      "beams": [],
+      "tie_start": false,
+      "tie_stop": false,
+      "attack_id": "fixture-v1:m1:n4"
+    },
+    {
+      "id": "fixture-v1:m2:n1",
+      "measure": 2,
+      "index": 1,
+      "onset_qn": "0",
+      "absolute_onset_qn": "4",
+      "duration_qn": "1",
+      "kind": "note",
+      "step": "C",
+      "alter": 0,
+      "octave": 4,
+      "midi": 60,
+      "type": "quarter",
+      "dots": 0,
+      "tuplet_ratio": [
+        1,
+        1
+      ],
+      "accidental": null,
+      "beams": [],
+      "tie_start": false,
+      "tie_stop": false,
+      "attack_id": "fixture-v1:m2:n1"
+    },
+    {
+      "id": "fixture-v1:m2:n2",
+      "measure": 2,
+      "index": 2,
+      "onset_qn": "1",
+      "absolute_onset_qn": "5",
+      "duration_qn": "1",
+      "kind": "note",
+      "step": "D",
+      "alter": 0,
+      "octave": 4,
+      "midi": 62,
+      "type": "quarter",
+      "dots": 0,
+      "tuplet_ratio": [
+        1,
+        1
+      ],
+      "accidental": null,
+      "beams": [],
+      "tie_start": false,
+      "tie_stop": false,
+      "attack_id": "fixture-v1:m2:n2"
+    },
+    {
+      "id": "fixture-v1:m2:n3",
+      "measure": 2,
+      "index": 3,
+      "onset_qn": "2",
+      "absolute_onset_qn": "6",
+      "duration_qn": "1",
+      "kind": "note",
+      "step": "E",
+      "alter": 0,
+      "octave": 4,
+      "midi": 64,
+      "type": "quarter",
+      "dots": 0,
+      "tuplet_ratio": [
+        1,
+        1
+      ],
+      "accidental": null,
+      "beams": [],
+      "tie_start": false,
+      "tie_stop": false,
+      "attack_id": "fixture-v1:m2:n3"
+    },
+    {
+      "id": "fixture-v1:m2:n4",
+      "measure": 2,
+      "index": 4,
+      "onset_qn": "3",
+      "absolute_onset_qn": "7",
+      "duration_qn": "1",
+      "kind": "note",
+      "step": "F",
+      "alter": 0,
+      "octave": 4,
+      "midi": 65,
+      "type": "quarter",
+      "dots": 0,
+      "tuplet_ratio": [
+        1,
+        1
+      ],
+      "accidental": null,
+      "beams": [],
+      "tie_start": false,
+      "tie_stop": false,
+      "attack_id": "fixture-v1:m2:n4"
+    }
+  ],
+  "attacks": [
+    {
+      "id": "fixture-v1:m1:n1",
+      "member_event_ids": [
+        "fixture-v1:m1:n1"
+      ],
+      "onset_qn": "0",
+      "absolute_onset_qn": "0",
+      "sounding_duration_qn": "1",
+      "midi": 60
+    },
+    {
+      "id": "fixture-v1:m1:n2",
+      "member_event_ids": [
+        "fixture-v1:m1:n2"
+      ],
+      "onset_qn": "1",
+      "absolute_onset_qn": "1",
+      "sounding_duration_qn": "1",
+      "midi": 67
+    },
+    {
+      "id": "fixture-v1:m1:n3",
+      "member_event_ids": [
+        "fixture-v1:m1:n3"
+      ],
+      "onset_qn": "2",
+      "absolute_onset_qn": "2",
+      "sounding_duration_qn": "1",
+      "midi": 64
+    },
+    {
+      "id": "fixture-v1:m1:n4",
+      "member_event_ids": [
+        "fixture-v1:m1:n4"
+      ],
+      "onset_qn": "3",
+      "absolute_onset_qn": "3",
+      "sounding_duration_qn": "1",
+      "midi": 67
+    },
+    {
+      "id": "fixture-v1:m2:n1",
+      "member_event_ids": [
+        "fixture-v1:m2:n1"
+      ],
+      "onset_qn": "0",
+      "absolute_onset_qn": "4",
+      "sounding_duration_qn": "1",
+      "midi": 60
+    },
+    {
+      "id": "fixture-v1:m2:n2",
+      "member_event_ids": [
+        "fixture-v1:m2:n2"
+      ],
+      "onset_qn": "1",
+      "absolute_onset_qn": "5",
+      "sounding_duration_qn": "1",
+      "midi": 62
+    },
+    {
+      "id": "fixture-v1:m2:n3",
+      "member_event_ids": [
+        "fixture-v1:m2:n3"
+      ],
+      "onset_qn": "2",
+      "absolute_onset_qn": "6",
+      "sounding_duration_qn": "1",
+      "midi": 64
+    },
+    {
+      "id": "fixture-v1:m2:n4",
+      "member_event_ids": [
+        "fixture-v1:m2:n4"
+      ],
+      "onset_qn": "3",
+      "absolute_onset_qn": "7",
+      "sounding_duration_qn": "1",
+      "midi": 65
+    }
+  ],
+  "intervals": [
+    {
+      "from_event_id": "fixture-v1:m1:n1",
+      "to_event_id": "fixture-v1:m1:n2",
+      "semitones": 7,
+      "generic": 5,
+      "direction": "up",
+      "across_rest": false,
+      "scope": "local"
+    },
+    {
+      "from_event_id": "fixture-v1:m1:n2",
+      "to_event_id": "fixture-v1:m1:n3",
+      "semitones": -3,
+      "generic": 3,
+      "direction": "down",
+      "across_rest": false,
+      "scope": "local"
+    },
+    {
+      "from_event_id": "fixture-v1:m1:n3",
+      "to_event_id": "fixture-v1:m1:n4",
+      "semitones": 3,
+      "generic": 3,
+      "direction": "up",
+      "across_rest": false,
+      "scope": "local"
+    },
+    {
+      "from_event_id": "fixture-v1:m1:n4",
+      "to_event_id": "fixture-v1:m2:n1",
+      "semitones": -7,
+      "generic": 5,
+      "direction": "down",
+      "across_rest": false,
+      "scope": "connection"
+    },
+    {
+      "from_event_id": "fixture-v1:m2:n1",
+      "to_event_id": "fixture-v1:m2:n2",
+      "semitones": 2,
+      "generic": 2,
+      "direction": "up",
+      "across_rest": false,
+      "scope": "local"
+    },
+    {
+      "from_event_id": "fixture-v1:m2:n2",
+      "to_event_id": "fixture-v1:m2:n3",
+      "semitones": 2,
+      "generic": 2,
+      "direction": "up",
+      "across_rest": false,
+      "scope": "local"
+    },
+    {
+      "from_event_id": "fixture-v1:m2:n3",
+      "to_event_id": "fixture-v1:m2:n4",
+      "semitones": 1,
+      "generic": 2,
+      "direction": "up",
+      "across_rest": false,
+      "scope": "local"
+    }
+  ],
+  "features": [
+    {
+      "code": "large_up",
+      "kind": "rule",
+      "scope": "local",
+      "event_ids": [
+        "fixture-v1:m1:n1",
+        "fixture-v1:m1:n2"
+      ],
+      "measure_ids": [
+        1
+      ],
+      "details": {
+        "semitones": 7,
+        "generic": 5
+      }
+    },
+    {
+      "code": "large_down",
+      "kind": "rule",
+      "scope": "connection",
+      "event_ids": [
+        "fixture-v1:m1:n4",
+        "fixture-v1:m2:n1"
+      ],
+      "measure_ids": [
+        1,
+        2
+      ],
+      "details": {
+        "semitones": -7,
+        "generic": 5
+      }
+    },
+    {
+      "code": "exact_rhythm_repeat",
+      "kind": "rule",
+      "scope": "context",
+      "event_ids": [
+        "fixture-v1:m1:n1",
+        "fixture-v1:m1:n2",
+        "fixture-v1:m1:n3",
+        "fixture-v1:m1:n4",
+        "fixture-v1:m2:n1",
+        "fixture-v1:m2:n2",
+        "fixture-v1:m2:n3",
+        "fixture-v1:m2:n4"
+      ],
+      "measure_ids": [
+        1,
+        2
+      ],
+      "details": {
+        "first_measure": 1,
+        "repeated_measure": 2,
+        "rhythm_pattern_id": "5581c53f9692c68b02c673cc5a86c9b774754618ede8079fc7e68f024fd527c5"
+      }
+    }
+  ],
+  "metrics": {
+    "written_note_count": 8,
+    "rest_event_count": 0,
+    "attack_count": 8,
+    "tie_chain_count": 0,
+    "interval_count": 7,
+    "mean_abs_semitones": 3.5714285714285716,
+    "large_up_count": 1,
+    "large_down_count": 1,
+    "pitch_range_semitones": 7,
+    "duration_pulses": "8",
+    "attacks_per_pulse": 1.0,
+    "dotted_event_count": 0,
+    "tuplet_event_count": 0,
+    "tuplet_attack_share": 0.0,
+    "exact_rhythm_repeat_fraction": 0.5,
+    "explicit_accidental_count": 0,
+    "cautionary_accidental_count": 0,
+    "editorial_accidental_count": 0,
+    "key_relative_alteration_count": 0,
+    "offbeat_sustain_candidate_count": 0,
+    "cross_pulse_beam_candidate_count": 0
+  },
+  "unavailable_reasons": {},
+  "experimental": {}
+}

@@ -1,6 +1,10 @@
 # SORI — iPad 청음 연습
 
-세 문제(6/8·4/4·3/4)를 듣고 Apple Pencil로 작성한 뒤, Django 서버를 통해 AI 평가와 한국어 피드백을 받는 개인 연습용 앱입니다. 기본 로컬 데모에서는 같은 세 문제의 재생·필기를 서버 없이 확인할 수 있으며, 예시 결과임을 표시합니다.
+초급 40개·중급 14개·고급 59개, 총 113문제를 듣고 Apple Pencil로 작성하는 개인 연습용 앱입니다. **Practice**에서는 난이도를 골라 풀고 정답과 직접 비교해 마디별 자기채점을, **Exam**에서는 Django 서버를 통한 AI 평가와 한국어 피드백을 받습니다. 로컬 데모에서도 재생·필기·자기채점을 확인할 수 있으며 Exam 결과는 예시임을 표시합니다. [모드 분리와 확인 절차](docs/PRACTICE-EXAM.md), [새 문제·난이도·토큰 저장·서버 반영 안내](docs/PRACTICE-LEVELS.md)를 확인하세요.
+
+Practice와 Exam 안의 **클래식 선율 문제**에서 작곡가를 고르고 같은 형식으로 문제를 풀 수 있습니다. 원본부터 완전한 8마디인 7명·11개 선율만 수록하며, 조성별 빈 오선·음계와 MuseScore 정답 악보를 제공합니다. 기본 그랜드 피아노는 일반 청음·클래식·미니게임에서 같은 YDP Grand Piano를 사용합니다. [클래식 수록·서버 반영·검증 안내](docs/CLASSICAL-EXAMS.md), [HTML 미리듣기](classical-library/CLASSICAL.html)를 확인하세요.
+
+시험의 필기 대기는 **대기 건너뛰기 → 3초 후 다음 재생**으로 줄일 수 있습니다. 로컬 데모 토글은 즉시 저장·전환되며, 새 응시는 더 가까운 두 단 오선과 끝세로줄을 사용합니다. [변경 사항·음계 안내 제안·업데이트](docs/EXAM-CONTROLS.md)를 확인하세요.
 
 ## 먼저 확인할 문서
 
@@ -8,8 +12,13 @@
 - Windows 서버 실행과 연결: [docs/IPAD-SETUP.md](docs/IPAD-SETUP.md)
 - 친구의 Mac에서 빌드 확인: [docs/MAC-HANDOFF.md](docs/MAC-HANDOFF.md)
 - API 계약: [docs/sori-api/API-CONTRACT.md](docs/sori-api/API-CONTRACT.md)
+- 악보 Feature v1 명세와 활용 원칙: [docs/FEATURE-V1.md](docs/FEATURE-V1.md)
 - 실제 검증 상태: [docs/VALIDATION.md](docs/VALIDATION.md)
 - MuseScore 악보와 외부 음원 준비: [docs/ASSETS.md](docs/ASSETS.md)
+
+## 미니게임: 멜로디 런
+
+사이드바의 **Drills**에서 기존 미니게임의 **메모리 / 그루브** 모드를 선택해 피아노로 선율을 복원할 수 있습니다. **Daily Training**은 준비 중인 메뉴입니다. 현재 데모는 다장조·가단조 197개를 제공하며, 박자표에 맞춘 예비박, 2·4·8마디 구간, 입력 시간·조기 진행 설정과 마디별 결과 비교를 지원합니다. YDP Grand Piano 실녹음 음원은 빌드 전에 `python scripts/fetch_classical_piano.py`로 준비합니다(CI 자동 실행). 설계, XML 추가, 검사 명령은 [멜로디 런 안내](docs/MELODY-RUN.md)를 확인하세요.
 
 ## 구성
 
@@ -42,7 +51,7 @@
 
 - frontend/: 기존 앱을 확장한 SwiftUI·PencilKit 코드와 원본 피아노 리소스
 - backend/: Django API, PostgreSQL 모델·migration, 별도 AI 워커
-- backend/content/source/: 사용자가 제공한 정답 XML 3개
+- backend/content/source/: 기본 정답 XML 3개와 Naver 최종 채보 XML 59개·출처 기록
 - backend/content/questions/: 앱·채점이 공유하는 버전 고정 MXL
 - docs/: 공유 API와 설치·검증 안내
 - scripts/: 데이터 확인과 실행·전달 도구

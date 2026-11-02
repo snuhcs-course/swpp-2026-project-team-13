@@ -22,6 +22,15 @@ class LoginThrottle(models.Model):
     blocked_until = models.DateTimeField(null=True)
     updated_at = models.DateTimeField(auto_now=True)
 
+def locked_throttle(kind, value):
+    key = throttle_key(kind, value)
+    while True:
+        LoginThrottle.objects.get_or_create(key=key)
+        # The hourly purge can delete the row between these two queries.
+        row = LoginThrottle.objects.select_for_update().filter(key=key).first()
+        if row is not None:
+            return row
+
 class UserProfile(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
@@ -46,12 +55,38 @@ class QuestionVersion(models.Model):
     class Meta:
         constraints = [models.UniqueConstraint(fields=["question", "version"], name="question_version_unique")]
 
+class FeatureAnalysis(models.Model):
+    """Append-only musical analysis; selecting a newer analysis is explicit."""
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    question_version = models.ForeignKey(QuestionVersion, on_delete=models.PROTECT, related_name="feature_analyses")
+    analysis_key = models.CharField(max_length=64, unique=True)
+    schema_version = models.CharField(max_length=40)
+    extractor_version = models.CharField(max_length=80)
+    source_xml_sha256 = models.CharField(max_length=64)
+    payload_sha256 = models.CharField(max_length=64)
+    analysis_status = models.CharField(max_length=20)
+    config = models.JSONField()
+    payload = models.JSONField()
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def save(self, *args, **kwargs):
+        if not self._state.adding or kwargs.get("force_update"):
+            from django.core.exceptions import ValidationError
+            raise ValidationError("Feature analyses are immutable. Create a new analysis version.")
+        kwargs["force_insert"] = True
+        return super().save(*args, **kwargs)
+
+    class Meta:
+        constraints = [models.CheckConstraint(condition=models.Q(analysis_status__in=["complete", "partial"]), name="feature_analysis_status_valid")]
+
 class Attempt(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT)
     question_version = models.ForeignKey(QuestionVersion, on_delete=models.PROTECT)
     question_snapshot = models.JSONField()
     playback_plan = models.JSONField()
+    mode = models.CharField(max_length=20, default="exam", db_index=True)
+    feature_analysis = models.ForeignKey(FeatureAnalysis, null=True, on_delete=models.PROTECT, related_name="attempts")
     status = models.CharField(max_length=20, default="ready")
     grading_mode = models.CharField(max_length=20, default="automatic")
     grading_version = models.CharField(max_length=60, default="ai-melodic-v1")
@@ -99,6 +134,7 @@ class GradingJob(models.Model):
     annotations = models.JSONField(default=list)
     failure = models.JSONField(null=True)
     recognized_musicxml = models.TextField(blank=True)
+    error_observations = models.JSONField(default=list)
     usage = models.JSONField(default=dict)
     provider_request_id = models.CharField(max_length=200, blank=True)
     raw_response = models.JSONField(default=dict)
@@ -108,6 +144,22 @@ class GradingJob(models.Model):
     lease_expires_at = models.DateTimeField(null=True, db_index=True)
     class Meta:
         constraints = [models.CheckConstraint(condition=models.Q(score__isnull=True) | models.Q(score__lte=100), name="score_range")]
+
+class SelfAssessmentRevision(models.Model):
+    """One complete snapshot of a student's own measure-level review."""
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    attempt = models.ForeignKey(Attempt, on_delete=models.PROTECT, related_name="self_assessments")
+    revision = models.PositiveIntegerField()
+    errors = models.JSONField(default=list)
+    completed = models.BooleanField(default=False)
+    completed_at = models.DateTimeField(null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=["attempt", "revision"], name="self_assessment_revision_unique"),
+            models.CheckConstraint(condition=(models.Q(completed=True, completed_at__isnull=False) | models.Q(completed=False, completed_at__isnull=True)), name="self_assessment_completion_valid"),
+        ]
 
 class IdempotencyRecord(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)

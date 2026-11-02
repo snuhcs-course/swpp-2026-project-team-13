@@ -29,6 +29,1205 @@
       "pixel_width": 2600,
       "pixel_height": 463,
       "renderer": "MuseScore Studio 4.6.3"
+    },
+    "0882bcdcadc55c51c46e122a917f1a2372c31dbe76ab82108ad51bdbec894b4f": {
+      "resource": "naver-001-reference-v1",
+      "content_type": "image/png",
+      "sha256": "0325cf0447e4ca96d5904d3bac662227e4acaca6579ab52c0388f49d4db73cd0",
+      "size_bytes": 109953,
+      "pixel_width": 3200,
+      "pixel_height": 740,
+      "renderer": "Supplied final transcription / 2026-10-29"
+    },
+    "1f4a0042ff10684bf3889b5ec46dad57b3db6f2be54192ae0cd4dbbf91ed748b": {
+      "resource": "naver-002-reference-v1",
+      "content_type": "image/png",
+      "sha256": "311d94387921e8a0a33fb712f1c93a64172c118c9e255274553202ee6a0efdc9",
+      "size_bytes": 113112,
+      "pixel_width": 3200,
+      "pixel_height": 753,
+      "renderer": "Supplied final transcription / 2026-10-29"
+    },
+    "1089755dcce10b55c0e5407d336c8cc0d5db7eb912cc92894f8d50621d3566da": {
+      "resource": "naver-003-reference-v1",
+      "content_type": "image/png",
+      "sha256": "f892e346ff2944fe71d996ae661c7eac0c1e4920330563bd5285953008884100",
+      "size_bytes": 126974,
+      "pixel_width": 3200,
+      "pixel_height": 764,
+      "renderer": "Supplied final transcription / 2026-10-29"
+    },
+    "52dd926b7200d841621056f78d3e63eb398b2c90f2014a42e74b433a45e10eb4": {
+      "resource": "naver-004-reference-v1",
+      "content_type": "image/png",
+      "sha256": "5b29d71252ebd1a7842859f48c74e3c2d1aef4aa208cb92a75457a0bf2e16bbf",
+      "size_bytes": 119786,
+      "pixel_width": 3200,
+      "pixel_height": 749,
+      "renderer": "Supplied final transcription / 2026-10-29"
+    },
+    "fcb5ba0404e241a5dfb316d67418cb245613c66353c6ec0cb82509f842043bfb": {
+      "resource": "naver-005-reference-v1",
+      "content_type": "image/png",
+      "sha256": "5d6eeebe77af825062c502c43dd1ec74f530d24259b1e25a8620c4971f714c0d",
+      "size_bytes": 108596,
+      "pixel_width": 3200,
+      "pixel_height": 740,
+      "renderer": "Supplied final transcription / 2026-10-29"
+    },
+    "5ee531b4cc7f815651cac3556fbc5438af33fe94f3f59672a00d79ccfe7a3c59": {
+      "resource": "naver-006-reference-v1",
+      "content_type": "image/png",
+      "sha256": "4e7d7be1968698f6b055de9d31d376d4c0b69099857fa37ef8d01ee03541e5cb",
+      "size_bytes": 127831,
+      "pixel_width": 3200,
+      "pixel_height": 749,
+      "renderer": "Supplied final transcription / 2026-10-29"
+    },
+    "05d5ca2086253e88ea6472a5bf13935f3391e29839458cc109ebbb729d73646b": {
+      "resource": "naver-007-reference-v1",
+      "content_type": "image/png",
+      "sha256": "e0612ce9da9c73776b4bbc7b5a177ef8afe77bf85d8bd0ffe6f988c1c2f206db",
+      "size_bytes": 113728,
+      "pixel_width": 3200,
+      "pixel_height": 755,
+      "renderer": "Supplied final transcription / 2026-10-29"
+    },
+    "5c09e3c335998c7455096dbab42cf1e25515597427a1167d58372ea52277783f": {
+      "resource": "naver-008-reference-v1",
+      "content_type": "image/png",
+      "sha256": "f8956e85fc70f899d5abf09dd27c306029669f34f742cdd6ea46592a77c8f78c",
+      "size_bytes": 106617,
+      "pixel_width": 3200,
+      "pixel_height": 740,
+      "renderer": "Supplied final transcription / 2026-10-29"
+    },
+    "2614f4f0e3d0a8b6507fff97cd050d00cb7577aa76d0b301d10d500a2067925c": {
+      "resource": "naver-009-reference-v1",
+      "content_type": "image/png",
+      "sha256": "3dd278dae084a4f2bd79b20f6e6ecb3015d275cb66dcd096793a360cf2438bea",
+      "size_bytes": 116899,
+      "pixel_width": 3200,
+      "pixel_height": 749,
+      "renderer": "Supplied final transcription / 2026-10-29"
+    },
+    "23c9c6f3b515bce22308cc6d243222286af96146abc2d9c38c1c421ca82024e0": {
+      "resource": "naver-010-reference-v1",
+      "content_type": "image/png",
+      "sha256": "9b051c71421397ad951ed5b3e1c94bad9f72ebef472b28cd6f03d10f8200277d",
+      "size_bytes": 109797,
+      "pixel_width": 3200,
+      "pixel_height": 753,
+      "renderer": "Supplied final transcription / 2026-10-29"
+    },
+    "efbf89eecc6a367b023b21165f09a5883b3b02d087be6bcbbbb5d2a44d6793e5": {
+      "resource": "naver-011-reference-v1",
+      "content_type": "image/png",
+      "sha256": "e66e980bbdd6ad5371f79a28c6ce5948dcfad06899d512204b9b00843f4a0124",
+      "size_bytes": 113484,
+      "pixel_width": 3200,
+      "pixel_height": 745,
+      "renderer": "Supplied final transcription / 2026-10-29"
+    },
+    "af9b9672f0155f3e1d018819bc50ea443f1eda94f1b79e3395ab0bc2ddfa87d0": {
+      "resource": "naver-012-reference-v1",
+      "content_type": "image/png",
+      "sha256": "86355a14b5e76ea416265589008129ad8e5ddc07109f177812fbe1d9e09fa938",
+      "size_bytes": 119154,
+      "pixel_width": 3200,
+      "pixel_height": 791,
+      "renderer": "Supplied final transcription / 2026-10-29"
+    },
+    "63df0c936ce0da106795167d8f65f31b39e34319d12e5917e6e92d306f61e349": {
+      "resource": "naver-013-reference-v1",
+      "content_type": "image/png",
+      "sha256": "accc511848d474ca2f94aea7771e40035cf49850e6d299051d18ae7bcb191572",
+      "size_bytes": 119975,
+      "pixel_width": 3200,
+      "pixel_height": 764,
+      "renderer": "Supplied final transcription / 2026-10-29"
+    },
+    "ed2fd1b204ba0fb1541d619179e09d65aca3249acf5554098b169b55bbe92e52": {
+      "resource": "naver-014-reference-v1",
+      "content_type": "image/png",
+      "sha256": "1f931e9460902b57148b00e39587923017c3bb51b9003a9c2698bf0a78b7768c",
+      "size_bytes": 114266,
+      "pixel_width": 3200,
+      "pixel_height": 744,
+      "renderer": "Supplied final transcription / 2026-10-29"
+    },
+    "74506987d21483d5da0bd4fb1716f488e0fa84c53f77da7f12080bef9d060581": {
+      "resource": "naver-015-reference-v1",
+      "content_type": "image/png",
+      "sha256": "c46e1f55b562c098004da82433129958ee84c89eca05ff87fa88f6e5e8a54e70",
+      "size_bytes": 113144,
+      "pixel_width": 3200,
+      "pixel_height": 740,
+      "renderer": "Supplied final transcription / 2026-10-29"
+    },
+    "f585840c18e7abf89ff7a31626891325a3b6d17f770c89dcaf171c01e330de3e": {
+      "resource": "naver-016-reference-v1",
+      "content_type": "image/png",
+      "sha256": "b4c6ab8c67a7a2ea1d1f968bbe0a1e8f973c1f5ac0820febdd7792187abbb0f5",
+      "size_bytes": 121390,
+      "pixel_width": 3200,
+      "pixel_height": 742,
+      "renderer": "Supplied final transcription / 2026-10-29"
+    },
+    "4ee33504768844cbf25104fcd2c230c2ac1e0f817a7d9cbdd2ca7ca8e7c87edb": {
+      "resource": "naver-017-reference-v1",
+      "content_type": "image/png",
+      "sha256": "4891d72a3798213eed3ae98b49de298e3de2c3b8b6c9acc45724bc05e02eb1c0",
+      "size_bytes": 118402,
+      "pixel_width": 3200,
+      "pixel_height": 751,
+      "renderer": "Supplied final transcription / 2026-10-29"
+    },
+    "3a671c678e4de179df6ad41e29c993c7201ea576813c251362b6df6a38342ba9": {
+      "resource": "naver-018-reference-v1",
+      "content_type": "image/png",
+      "sha256": "45d33950b21e34a2fd3be64a5e52b035ff7a319b3a0df14c4394185b141e6d17",
+      "size_bytes": 117881,
+      "pixel_width": 3200,
+      "pixel_height": 755,
+      "renderer": "Supplied final transcription / 2026-10-29"
+    },
+    "a42de2598bc9e61c4f1a83453fb7cb39ee5cb50b575376b16249dab89184dbdb": {
+      "resource": "naver-019-reference-v1",
+      "content_type": "image/png",
+      "sha256": "80eb7517261627d3dd9e5719d7aada211b0b1c82f23564106deb917f54b07fb6",
+      "size_bytes": 121610,
+      "pixel_width": 3200,
+      "pixel_height": 772,
+      "renderer": "Supplied final transcription / 2026-10-29"
+    },
+    "8010d61ebc1dc29173f553815b70528552c02bbd78fa9f5faa1fff761c0854eb": {
+      "resource": "naver-020-reference-v1",
+      "content_type": "image/png",
+      "sha256": "450fd6a1490a38b92aea2b461e4af19d8c12c6b939ec36a288bfc1de26373779",
+      "size_bytes": 125234,
+      "pixel_width": 3200,
+      "pixel_height": 808,
+      "renderer": "Supplied final transcription / 2026-10-29"
+    },
+    "c7e5b6133e655ef046921014dd7f0e2373441797d7d514874ac7579caaff7b5c": {
+      "resource": "naver-021-reference-v1",
+      "content_type": "image/png",
+      "sha256": "1aa5bb2c1320b84cfbb4b0f81fccbe4aa65ec90e3ca9a9a44a51330698e228a1",
+      "size_bytes": 123001,
+      "pixel_width": 3200,
+      "pixel_height": 753,
+      "renderer": "Supplied final transcription / 2026-10-29"
+    },
+    "e69452b0b67d1fbd33422eec0bec95e8833e4e879d5bafd2c49e0ed494b8f247": {
+      "resource": "naver-022-reference-v1",
+      "content_type": "image/png",
+      "sha256": "ab15b535b0c2ae8ed6a6974bd9b188f5f75c8e0fc936ceb3e67b2b02ac131050",
+      "size_bytes": 127511,
+      "pixel_width": 3200,
+      "pixel_height": 749,
+      "renderer": "Supplied final transcription / 2026-10-29"
+    },
+    "9aadcab11ff0b35259ef434318c574cdf09c9985d83cb77c22405a4bb344ab41": {
+      "resource": "naver-023-reference-v1",
+      "content_type": "image/png",
+      "sha256": "600835914106cf733ba3ccee6cdfb6148587e9665302e7a56cf0da6beb294171",
+      "size_bytes": 145351,
+      "pixel_width": 3200,
+      "pixel_height": 798,
+      "renderer": "Supplied final transcription / 2026-10-29"
+    },
+    "8c65faf7470333dafdd67588711fce08180038bb68ffd203feb4ec9c9d102b58": {
+      "resource": "naver-024-reference-v1",
+      "content_type": "image/png",
+      "sha256": "ccadff082b60f9fbe7f31d429eaa66716887cf448f2491492a7fbe9b326605cd",
+      "size_bytes": 124144,
+      "pixel_width": 3200,
+      "pixel_height": 613,
+      "renderer": "Supplied final transcription / 2026-10-29"
+    },
+    "7ed5a29e0375c3c5395d3c3efae8368e218e307abd1bdd9ac8348189a2584e32": {
+      "resource": "naver-025-reference-v1",
+      "content_type": "image/png",
+      "sha256": "ec2363a2ac16720dce4ec5923cca88f9a1b465717ed3aaf5aa8abfd48534b41b",
+      "size_bytes": 121552,
+      "pixel_width": 3200,
+      "pixel_height": 742,
+      "renderer": "Supplied final transcription / 2026-10-29"
+    },
+    "437f5f55b619d6499c6588e720eb9cb83a436c23f480b22055ff7a4f0d12f3ee": {
+      "resource": "naver-026-reference-v1",
+      "content_type": "image/png",
+      "sha256": "b0f52aa111154d15a639a092349319ed06102f0053b760f504a6909b72041df3",
+      "size_bytes": 136324,
+      "pixel_width": 3200,
+      "pixel_height": 740,
+      "renderer": "Supplied final transcription / 2026-10-29"
+    },
+    "7ccd3fb926b5a573eade511bba5b8dda530916e45124dfaf2d21ef29dca77f54": {
+      "resource": "naver-027-reference-v1",
+      "content_type": "image/png",
+      "sha256": "043c131ac54b5dac04ee0b428e1ab726eed495188d4b1d1c3fb04c3f4733adfb",
+      "size_bytes": 134658,
+      "pixel_width": 3200,
+      "pixel_height": 794,
+      "renderer": "Supplied final transcription / 2026-10-29"
+    },
+    "6f37b6f732ba050f83ad6dc903a871e4c23454477d9ee4e280c3104b7dfe420b": {
+      "resource": "naver-028-reference-v1",
+      "content_type": "image/png",
+      "sha256": "1be142380af910397c76d95ad2a94d9951c894db9328c8b199b45dd18485448e",
+      "size_bytes": 132476,
+      "pixel_width": 3200,
+      "pixel_height": 742,
+      "renderer": "Supplied final transcription / 2026-10-29"
+    },
+    "d35824116975b53fc895e0bb546ce7ad6777da24a6827a4a7ff42c0dbf4d4779": {
+      "resource": "naver-029-reference-v1",
+      "content_type": "image/png",
+      "sha256": "7620d7aee6f127336df7546c3cdcd840ef1d37ca29dcb89d9a781f606135cf67",
+      "size_bytes": 133574,
+      "pixel_width": 3200,
+      "pixel_height": 772,
+      "renderer": "Supplied final transcription / 2026-10-29"
+    },
+    "2721bd8bdcbf9e7c9361f9a046f4c0b72859aa17917c6828b63d1c0babd68157": {
+      "resource": "naver-030-reference-v1",
+      "content_type": "image/png",
+      "sha256": "3dee3d85123252a2046f00eaa33e4f351af3e5addcd156fe2ae0df9ef5222b6e",
+      "size_bytes": 123484,
+      "pixel_width": 3200,
+      "pixel_height": 751,
+      "renderer": "Supplied final transcription / 2026-10-29"
+    },
+    "6e1388f2c975b9dfab68be40ec81d3d54e2c4125bcd1c2ef15dc1d5ef41b260f": {
+      "resource": "naver-031-reference-v1",
+      "content_type": "image/png",
+      "sha256": "a9757a14b78a7a42541e2543798e14276c0b0adbbc34ffc00e496e3e1298c06a",
+      "size_bytes": 133129,
+      "pixel_width": 3200,
+      "pixel_height": 764,
+      "renderer": "Supplied final transcription / 2026-10-29"
+    },
+    "8e0243e2a782b5644bedf4d6f86570f3d8b9880b4f7ddadc9a3108eabab9465e": {
+      "resource": "naver-032-reference-v1",
+      "content_type": "image/png",
+      "sha256": "037c95c717f749a7edb98e0ad6a4ab05e9316922811d3751d739598dc38d50a1",
+      "size_bytes": 133754,
+      "pixel_width": 3200,
+      "pixel_height": 808,
+      "renderer": "Supplied final transcription / 2026-10-29"
+    },
+    "422f4ebfe3453f8fd5b9ebc8b65e3ca35f414fcf7f02ecc1386af014717b5091": {
+      "resource": "naver-033-reference-v1",
+      "content_type": "image/png",
+      "sha256": "e1cce3ecc22956161adb7b51936389d7df53cbe2fffde53f3b3c0c57ba6a27a0",
+      "size_bytes": 130730,
+      "pixel_width": 3200,
+      "pixel_height": 619,
+      "renderer": "Supplied final transcription / 2026-10-29"
+    },
+    "e60f6b2d1e4daf63382768f18aee0936c8fcf88b0255d914b843703df05c50ad": {
+      "resource": "naver-034-reference-v1",
+      "content_type": "image/png",
+      "sha256": "84b55dc30ea97d1bb2e2fd0b13f41ac8c82ab94716c8e46d6067f585ac9be8d7",
+      "size_bytes": 103810,
+      "pixel_width": 3200,
+      "pixel_height": 599,
+      "renderer": "Supplied final transcription / 2026-10-29"
+    },
+    "2c07ee77cb2fe495045e587a7896a688a1ded1b38c2fc71dd00d641657963cdb": {
+      "resource": "naver-035-reference-v1",
+      "content_type": "image/png",
+      "sha256": "42b197be737f86223f01d6ec983cd02f0d68c5985e11e65ceaab538abf0f945a",
+      "size_bytes": 122686,
+      "pixel_width": 3200,
+      "pixel_height": 628,
+      "renderer": "Supplied final transcription / 2026-10-29"
+    },
+    "911514408b1390141a660cb612b0a9a7600e7e379edd61290d7bc5d0e622f4dc": {
+      "resource": "naver-036-reference-v1",
+      "content_type": "image/png",
+      "sha256": "8c8f52f88fc701113ccc82949b81f5bc59395a8b4d06925440f42f1f72c42edf",
+      "size_bytes": 132646,
+      "pixel_width": 3200,
+      "pixel_height": 608,
+      "renderer": "Supplied final transcription / 2026-10-29"
+    },
+    "da643b443a4661b6d589281e97ef5e97f6fef094d939c70a4c33b86ce2fd9a8e": {
+      "resource": "naver-037-reference-v1",
+      "content_type": "image/png",
+      "sha256": "62ca0675d8dae1bc812c06cd4fec54a751beee94f4704ad60f5d2aff818911ad",
+      "size_bytes": 127177,
+      "pixel_width": 3200,
+      "pixel_height": 605,
+      "renderer": "Supplied final transcription / 2026-10-29"
+    },
+    "94513330dde03757d91c0728e3a5c85676224e65397ad87531ac8981a2b39fb1": {
+      "resource": "naver-038-reference-v1",
+      "content_type": "image/png",
+      "sha256": "20fe45b286dbd42b076ce847a87c001baca51a828cb1d9b979319ad5b7c2e51e",
+      "size_bytes": 127796,
+      "pixel_width": 3200,
+      "pixel_height": 749,
+      "renderer": "Supplied final transcription / 2026-10-29"
+    },
+    "a6e39f72b6cc852de9be01f96e5c0f2df8164573e3c1f97cf6653d99960a4ead": {
+      "resource": "naver-039-reference-v1",
+      "content_type": "image/png",
+      "sha256": "a8d545387bf49f48b82493151771b7a8bafcc21a7640e7dd1f200bcc65e95c05",
+      "size_bytes": 130031,
+      "pixel_width": 3200,
+      "pixel_height": 744,
+      "renderer": "Supplied final transcription / 2026-10-29"
+    },
+    "b94ba82f4a345f8272cba2736653df87eb97f5c0d5abf2977addd1df5f0e7cb8": {
+      "resource": "naver-040-reference-v1",
+      "content_type": "image/png",
+      "sha256": "50b8821a460a841448f206efda3a278e36b60cf9888ce6e745ab4da153eac27d",
+      "size_bytes": 115344,
+      "pixel_width": 3200,
+      "pixel_height": 777,
+      "renderer": "Supplied final transcription / 2026-10-29"
+    },
+    "a9821c521dfd407248f1bf83c2eff63c05e93d6c123d37bcac65fc0872b9a6fb": {
+      "resource": "naver-041-reference-v1",
+      "content_type": "image/png",
+      "sha256": "f385503b606bc4808e4f1074d517296dac22f6fb98db5f3f1594a91c0b46cb4f",
+      "size_bytes": 129709,
+      "pixel_width": 3200,
+      "pixel_height": 602,
+      "renderer": "Supplied final transcription / 2026-10-29"
+    },
+    "67e50464b04ab8aa802adb564610ea475c8b394ceb2f2a919160b9fda7d017af": {
+      "resource": "naver-042-reference-v1",
+      "content_type": "image/png",
+      "sha256": "c8886939545d172ce161db0297339ab7436c4062bb45c7f6d67ca5d0066af653",
+      "size_bytes": 132699,
+      "pixel_width": 3200,
+      "pixel_height": 740,
+      "renderer": "Supplied final transcription / 2026-10-29"
+    },
+    "cbcb55c32091d601196f981f3825049a6db0edadcf57b04b9b6e0b6528068e8e": {
+      "resource": "naver-043-reference-v1",
+      "content_type": "image/png",
+      "sha256": "03be3d9ba1922c5c14ec0af4082bd4ece3838e1fd5e79d08059743451b1463a4",
+      "size_bytes": 121196,
+      "pixel_width": 3200,
+      "pixel_height": 747,
+      "renderer": "Supplied final transcription / 2026-10-29"
+    },
+    "9d68b9f69ae0fd21f571f6def4ebccfa4b6f84cb9fce147d181aa7770d217c70": {
+      "resource": "naver-044-reference-v1",
+      "content_type": "image/png",
+      "sha256": "311d09677ca72716c5676fcb946a777fb5eca8065d5e1ade74e555e3294e160b",
+      "size_bytes": 118143,
+      "pixel_width": 3200,
+      "pixel_height": 749,
+      "renderer": "Supplied final transcription / 2026-10-29"
+    },
+    "f0ae4b4698fc859e7240f12ab7cb40f3418e98522b7493f2402032821e750e7b": {
+      "resource": "naver-045-reference-v1",
+      "content_type": "image/png",
+      "sha256": "49728b577637619605420fcac5e12e3cfba7fc634efdf4fb49f26f34a03a91f4",
+      "size_bytes": 131359,
+      "pixel_width": 3200,
+      "pixel_height": 747,
+      "renderer": "Supplied final transcription / 2026-10-29"
+    },
+    "847eb70e6c937a675ee504908fe9b484504a6b5c8fbcf5e3129c44b071d93c97": {
+      "resource": "naver-046-reference-v1",
+      "content_type": "image/png",
+      "sha256": "e23d3657325ed778b6222cf5bcf27469b0fd8cca8ce82c44c983094b0d48a4fe",
+      "size_bytes": 150736,
+      "pixel_width": 3200,
+      "pixel_height": 749,
+      "renderer": "Supplied final transcription / 2026-10-29"
+    },
+    "9406233af63d5940bc96d6520f4c8b73855695f8dd951d02b52e10d94076c477": {
+      "resource": "naver-047-reference-v1",
+      "content_type": "image/png",
+      "sha256": "05d55a9db1f9ea58b4efe4221f0384550351090ee073ea1dba0e762f58493a60",
+      "size_bytes": 121977,
+      "pixel_width": 3200,
+      "pixel_height": 616,
+      "renderer": "Supplied final transcription / 2026-10-29"
+    },
+    "0932b05943926e3e69c78bcb5ccef64ace94012600a02735ec95e54a30b084da": {
+      "resource": "naver-048-reference-v1",
+      "content_type": "image/png",
+      "sha256": "dc9282cc3ebe610ad008f768b0078a86efd7924c5c59c88a288d3721a02cdd96",
+      "size_bytes": 134393,
+      "pixel_width": 3200,
+      "pixel_height": 755,
+      "renderer": "Supplied final transcription / 2026-10-29"
+    },
+    "879fca90cf4b2d285431d10adc3e9b0e0d0b10d377a353580b1e12051590cbc9": {
+      "resource": "naver-049-reference-v1",
+      "content_type": "image/png",
+      "sha256": "d4253411ae7472471f27393a1676ebd4b8060e5dc2b4d9bf937c53edfad55d18",
+      "size_bytes": 121393,
+      "pixel_width": 3200,
+      "pixel_height": 623,
+      "renderer": "Supplied final transcription / 2026-10-29"
+    },
+    "2f45029ed6702c25afb5330301c9d419f035fa92279bf82b2fb86e20fda82c81": {
+      "resource": "naver-050-reference-v1",
+      "content_type": "image/png",
+      "sha256": "0fce3c650326709ca2e50e3aafd57877c0a77894ef29a4b64d564205eaf4af02",
+      "size_bytes": 111431,
+      "pixel_width": 3200,
+      "pixel_height": 828,
+      "renderer": "Supplied final transcription / 2026-10-29"
+    },
+    "1283f3f938f81b7407baaabd7c1d7db85f40fe44dd035ac73cbcc577cf215f11": {
+      "resource": "naver-051-reference-v1",
+      "content_type": "image/png",
+      "sha256": "8f48cf0667d132002a2dd43b6bdfafe3288d0e0bec4959e7fad763c8a6bc4389",
+      "size_bytes": 132941,
+      "pixel_width": 3200,
+      "pixel_height": 808,
+      "renderer": "Supplied final transcription / 2026-10-29"
+    },
+    "71a84c9170d7a87642b34a3acb65ac6f4bed50e91e9b6f376e09c0443ac02c55": {
+      "resource": "naver-052-reference-v1",
+      "content_type": "image/png",
+      "sha256": "1c0e4a1bbb4ea4a72d2e8f2a3fddd99e2d302bd4700e8a7514202a1e346534e8",
+      "size_bytes": 132002,
+      "pixel_width": 3200,
+      "pixel_height": 755,
+      "renderer": "Supplied final transcription / 2026-10-29"
+    },
+    "0f5c4c71e92c1209564ef60b43232956d909f87bca3f2915d217c1911927bc2a": {
+      "resource": "naver-053-reference-v1",
+      "content_type": "image/png",
+      "sha256": "069249bc974c3f856e5a5a7b99e787fce46695c7ec06fdcf13c1fad86ebb6049",
+      "size_bytes": 118589,
+      "pixel_width": 3200,
+      "pixel_height": 755,
+      "renderer": "Supplied final transcription / 2026-10-29"
+    },
+    "386de537fe72bdbf96a791a6736d5eb13707d611ad45b4ace9df8e05e2d70481": {
+      "resource": "naver-054-reference-v1",
+      "content_type": "image/png",
+      "sha256": "554b3d568dede797452c557490fb2383bbd38fe6ec9f725f674b4c3a980ca5d4",
+      "size_bytes": 127007,
+      "pixel_width": 3200,
+      "pixel_height": 821,
+      "renderer": "Supplied final transcription / 2026-10-29"
+    },
+    "4f14f1e7fedd0837c40d2f7f3a049048d94f4b64f9962754816d027492fb2360": {
+      "resource": "naver-055-reference-v1",
+      "content_type": "image/png",
+      "sha256": "23d99faf64dbeccd3b24364f95b8f35d0fffa35cd957c5769f06ef71f562bf84",
+      "size_bytes": 115511,
+      "pixel_width": 3200,
+      "pixel_height": 789,
+      "renderer": "Supplied final transcription / 2026-10-29"
+    },
+    "2fd27f631835dc0064158fffe389ee0bed1cbc4061abba126e0ee2249e7d0dbb": {
+      "resource": "naver-056-reference-v1",
+      "content_type": "image/png",
+      "sha256": "597fecf0f81223a840b08e8a8c2f5d00b59e7d3f911ba6382cc8486473d0347a",
+      "size_bytes": 137686,
+      "pixel_width": 3200,
+      "pixel_height": 847,
+      "renderer": "Supplied final transcription / 2026-10-29"
+    },
+    "e76076eb035657f6518f9889b22d2b714b9bfe6534e3fdce8e0f612a04ede045": {
+      "resource": "naver-057-reference-v1",
+      "content_type": "image/png",
+      "sha256": "0fe29ce98fd4c3c4395d7425c68de51af70970a8c0f482eeeb21eb4fdf035423",
+      "size_bytes": 159046,
+      "pixel_width": 3200,
+      "pixel_height": 655,
+      "renderer": "Supplied final transcription / 2026-10-29"
+    },
+    "79e4d1a3ed7215cf90504d65ebd330b9e53ddc33d44dc137d3b86df9af180220": {
+      "resource": "naver-058-reference-v1",
+      "content_type": "image/png",
+      "sha256": "ec8c7dbbc44a44ef442447581d4e882e34662050b090f7cc462d4f9cd06b446c",
+      "size_bytes": 125840,
+      "pixel_width": 3200,
+      "pixel_height": 599,
+      "renderer": "Supplied final transcription / 2026-10-29"
+    },
+    "aed36af0034d7af2c78b733ab9613189423d7f1485152e008dbf2a21b23fd401": {
+      "resource": "naver-059-reference-v1",
+      "content_type": "image/png",
+      "sha256": "f4ed2feca8b8f6610f489ac0c55fc7c98da122413a54ea507849d8c1c5361212",
+      "size_bytes": 125743,
+      "pixel_width": 3200,
+      "pixel_height": 640,
+      "renderer": "Supplied final transcription / 2026-10-29"
+    },
+    "2ea00638832a100618ba8d590269e86c1ca3f565ba5b6c17f21de96e899f3c05": {
+      "resource": "classical-gttm-189-reference-v1",
+      "content_type": "image/png",
+      "sha256": "6da4c504743b634bc6bff28808b6dc6d960b72e91c6927f03098dfdd788c3360",
+      "size_bytes": 69700,
+      "pixel_width": 2600,
+      "pixel_height": 419,
+      "renderer": "MuseScore Studio 4.6.3"
+    },
+    "6177e7274889bd0b98e97baa2c5c59d12b69873496629d0d645747815070110f": {
+      "resource": "classical-gttm-033-reference-v1",
+      "content_type": "image/png",
+      "sha256": "0185a68c1470861225fd92f4c8f043fbc22ccc17c91e6ab279a38ddfc1a9b778",
+      "size_bytes": 62263,
+      "pixel_width": 2600,
+      "pixel_height": 421,
+      "renderer": "MuseScore Studio 4.6.3"
+    },
+    "c42ec5a10b687152b191d6204c94d4405d0f61d0dec7fb3e64f7b153a3514637": {
+      "resource": "classical-gttm-041-reference-v1",
+      "content_type": "image/png",
+      "sha256": "86eb67a4776cd1a6e747ebe01f92ed553fe404e277476cd85c963a1d0c13075e",
+      "size_bytes": 70298,
+      "pixel_width": 2600,
+      "pixel_height": 427,
+      "renderer": "MuseScore Studio 4.6.3"
+    },
+    "0e5b8c47afabe3dd5c5a1a3e627ede0a0af5b90ef1b0c7d1a690cc08a87b02e6": {
+      "resource": "classical-gttm-042-reference-v1",
+      "content_type": "image/png",
+      "sha256": "ca170839998212f1921ff1ecccc602ce7744c86dfe2558015efb01f0da06e16f",
+      "size_bytes": 51897,
+      "pixel_width": 2600,
+      "pixel_height": 419,
+      "renderer": "MuseScore Studio 4.6.3"
+    },
+    "948242d1e864ff3e2cf17a5aaa9d17dcb66d1ad2d0e7b8ed7bd769a1b8f2da81": {
+      "resource": "classical-gttm-031-reference-v1",
+      "content_type": "image/png",
+      "sha256": "dabf836cffcefef9f797067db27b29d071d9b1d1150e1700e52f813126d70430",
+      "size_bytes": 46826,
+      "pixel_width": 2600,
+      "pixel_height": 419,
+      "renderer": "MuseScore Studio 4.6.3"
+    },
+    "e523ac3ec24e2e66091d52f0044258f38ce2ed14824e9e2ee5885cd2a6d8f2f2": {
+      "resource": "classical-gttm-098-reference-v1",
+      "content_type": "image/png",
+      "sha256": "54ff51e4fe55542a67006c056329f38dfb1ca43b0daae536acc96932c2f2ba87",
+      "size_bytes": 53074,
+      "pixel_width": 2600,
+      "pixel_height": 453,
+      "renderer": "MuseScore Studio 4.6.3"
+    },
+    "0a698f3d16470bf6518718897261c510183bbe8676c13137827b73abe2dc4f53": {
+      "resource": "classical-gttm-027-reference-v1",
+      "content_type": "image/png",
+      "sha256": "9733e010ac4da524b20472a747c087b507816b972daabd8e952caf53d0c69baf",
+      "size_bytes": 87786,
+      "pixel_width": 2600,
+      "pixel_height": 419,
+      "renderer": "MuseScore Studio 4.6.3"
+    },
+    "55c30e7e933f5f56147f31348c6349198359ef5d0953c13b950869fdab58995f": {
+      "resource": "classical-gttm-028-reference-v1",
+      "content_type": "image/png",
+      "sha256": "ebf2e4e01805cf8040a1e5d48c4e3214dab87583f207c5f42f26b180ba0b6700",
+      "size_bytes": 49593,
+      "pixel_width": 2600,
+      "pixel_height": 419,
+      "renderer": "MuseScore Studio 4.6.3"
+    },
+    "382449b3ce5dccd9867b6952caa72519d7edc90c1e97edf1d8b7b8150e97f33b": {
+      "resource": "classical-gttm-030-reference-v1",
+      "content_type": "image/png",
+      "sha256": "1da3e1dde2048ec7a7a20069696009b3e0df85e0dbb8605c5c53c3dbe5321784",
+      "size_bytes": 49455,
+      "pixel_width": 2600,
+      "pixel_height": 422,
+      "renderer": "MuseScore Studio 4.6.3"
+    },
+    "aabc6e7c5b27c33aeb383c87ed0f35483f9b17168d7c4b8a3c35b15742c80925": {
+      "resource": "classical-gttm-074-reference-v1",
+      "content_type": "image/png",
+      "sha256": "a479b0f3b75bbc030eee1fc9df9d0dd557979f5675a418f4f02f976b51c7f580",
+      "size_bytes": 106196,
+      "pixel_width": 2600,
+      "pixel_height": 441,
+      "renderer": "MuseScore Studio 4.6.3"
+    },
+    "444dc06ff5b96cb4ba59f8b4e605e0a8dd09414c263647170da51ade7edff55e": {
+      "resource": "classical-gttm-081-reference-v1",
+      "content_type": "image/png",
+      "sha256": "a1b37434878fb105d8860882520bfda0faa1583d014c0e54e3d1f8a914ce89e8",
+      "size_bytes": 58688,
+      "pixel_width": 2600,
+      "pixel_height": 419,
+      "renderer": "MuseScore Studio 4.6.3"
+    },
+    "74e0f4cf6de5fd070ad0915e04a2ae4d7fdbfcb2d45167e1cbeb40746be3af82": {
+      "resource": "practice-pages-1-2-01-reference-v1",
+      "content_type": "image/png",
+      "sha256": "00c898a8ab0bf9be3865085c7b0992f22ba63c84d108a82c2be4886722590ac4",
+      "size_bytes": 72682,
+      "pixel_width": 2600,
+      "pixel_height": 421,
+      "renderer": "MuseScore Studio 4.6.3"
+    },
+    "0043af878ef2169613d6d4f3338bdae09ac24360a478a8574db3314e8210d792": {
+      "resource": "practice-pages-1-2-02-reference-v1",
+      "content_type": "image/png",
+      "sha256": "bdca56591c30f702f3ebdf160e2043b518b38e8ff869e0303c61d9f40dc3cad8",
+      "size_bytes": 79631,
+      "pixel_width": 2600,
+      "pixel_height": 429,
+      "renderer": "MuseScore Studio 4.6.3"
+    },
+    "d4183909fc10b4bda71cb97cc5488370da1c1ae4eac94e7c8abbadcaa4c30fee": {
+      "resource": "practice-pages-1-2-03-reference-v1",
+      "content_type": "image/png",
+      "sha256": "d4e9afcc1a541989e96c47a9818bbaf4c55a196bbd456e39aa77458008df1913",
+      "size_bytes": 72301,
+      "pixel_width": 2600,
+      "pixel_height": 463,
+      "renderer": "MuseScore Studio 4.6.3"
+    },
+    "a96baebc308185d335f2e9b842b1eb6de1fbd908880d9f6ce44724a709c8eec9": {
+      "resource": "practice-pages-1-2-04-reference-v1",
+      "content_type": "image/png",
+      "sha256": "934bf8d9c14df93018dfb5ec355f9adc4a0a3828364b7c88af5f12a5d13b361b",
+      "size_bytes": 75980,
+      "pixel_width": 2600,
+      "pixel_height": 437,
+      "renderer": "MuseScore Studio 4.6.3"
+    },
+    "6b9a75b01d1d1dc2d6e557262e8cf42484e289dc403ef31b047daafb2850fb5f": {
+      "resource": "practice-pages-1-2-05-reference-v1",
+      "content_type": "image/png",
+      "sha256": "f597be7894d7150c8f6196663872c7b6e6654b043efcf28a424a12fd4b7fa239",
+      "size_bytes": 64720,
+      "pixel_width": 2600,
+      "pixel_height": 437,
+      "renderer": "MuseScore Studio 4.6.3"
+    },
+    "0fc6df92b05f7a9f462095ee82ce058ce1436eed8571d1709b07fce4f76f8d74": {
+      "resource": "practice-pages-1-2-07-reference-v1",
+      "content_type": "image/png",
+      "sha256": "7165a84a9a2b346462a37c083241fd3841b85c1942377785d0e46dc21381aead",
+      "size_bytes": 91715,
+      "pixel_width": 2600,
+      "pixel_height": 422,
+      "renderer": "MuseScore Studio 4.6.3"
+    },
+    "fd737f6976f14cd8809282bcb52798916c289efe5e661a7c5fec195b713a1808": {
+      "resource": "practice-pages-1-2-08-reference-v1",
+      "content_type": "image/png",
+      "sha256": "4a97ecf0214eafc42ad3dbc9f84a04156dca66fc02eba7dccd01137af6b5b5ab",
+      "size_bytes": 87810,
+      "pixel_width": 2600,
+      "pixel_height": 438,
+      "renderer": "MuseScore Studio 4.6.3"
+    },
+    "66db30d090ef656e115ca0b339d0f91d703d5a56601b73fb9f728b9a3c447fa2": {
+      "resource": "practice-pages-1-2-09-reference-v1",
+      "content_type": "image/png",
+      "sha256": "36ef0cb0034b3775296b5f393ae4c14c4e05ed56a726d58b578a0bba8bb1bba7",
+      "size_bytes": 68865,
+      "pixel_width": 2600,
+      "pixel_height": 441,
+      "renderer": "MuseScore Studio 4.6.3"
+    },
+    "987a36bdf9862e11dae6ea4755edd5cd1b83e249a58847201b09cd5ece9c1756": {
+      "resource": "practice-pages-1-2-10-reference-v1",
+      "content_type": "image/png",
+      "sha256": "c30b3f8278a968ea5f8063ab48decf18d76d230b1187c65b3baed720ca16f5bb",
+      "size_bytes": 73733,
+      "pixel_width": 2600,
+      "pixel_height": 426,
+      "renderer": "MuseScore Studio 4.6.3"
+    },
+    "1a939ef024e19aa922225de7ee227dfcc9afa3484d749fe58aab59b5f96114e5": {
+      "resource": "practice-pages-1-2-11-reference-v1",
+      "content_type": "image/png",
+      "sha256": "f6d66dda8781ecc6bb675e535c3f329a966847bdd8ceb64e6bb1181692b55ead",
+      "size_bytes": 97537,
+      "pixel_width": 2600,
+      "pixel_height": 455,
+      "renderer": "MuseScore Studio 4.6.3"
+    },
+    "2ba158f9c3586c2762e886f2768485a7d421e083b2e3b78e66406b6ca4ff97d9": {
+      "resource": "practice-pages-1-2-12-reference-v1",
+      "content_type": "image/png",
+      "sha256": "a1c576d2a91b96fb590400f4ae8b83f86f0c64c5e6359f42598f060dcd101b31",
+      "size_bytes": 83675,
+      "pixel_width": 2600,
+      "pixel_height": 432,
+      "renderer": "MuseScore Studio 4.6.3"
+    },
+    "6b992bdc9b3950fea59262d4bbb3a0f6845d28f1944ea2c149619fb776ee5d68": {
+      "resource": "practice-trained-ear-Cole-Lewis-1904_2-05-147-reference-v1",
+      "content_type": "image/png",
+      "sha256": "1c63e21d661b9eca6343d8c0023d0c9ca00155b4454916c8b7597bacf4d75bb0",
+      "size_bytes": 52670,
+      "pixel_width": 2600,
+      "pixel_height": 419,
+      "renderer": "MuseScore Studio 4.6.3"
+    },
+    "d5d85030e2ef100facfc7571898638c51b6d9579fafd324c74a5f6c0c9027e99": {
+      "resource": "practice-trained-ear-Batchellor-Charmbury-1884a_1-1-084-reference-v1",
+      "content_type": "image/png",
+      "sha256": "f9e4111754de964f031c6d952bfd5e6d8d3d248993958d1997b7774e82c83fa9",
+      "size_bytes": 49894,
+      "pixel_width": 2600,
+      "pixel_height": 419,
+      "renderer": "MuseScore Studio 4.6.3"
+    },
+    "d1fd8da82466d5f3a67d98561e91200e1b8db5752bd6e5f8c709150c5ace0d83": {
+      "resource": "practice-trained-ear-Hollis-1915_46-01-reference-v1",
+      "content_type": "image/png",
+      "sha256": "6ab9c2cdf920b8dab98e16c0bd3567f912552710e77c0613600741b466e3991f",
+      "size_bytes": 51560,
+      "pixel_width": 2600,
+      "pixel_height": 419,
+      "renderer": "MuseScore Studio 4.6.3"
+    },
+    "2f6d208dee5be9a155a894dad79e58c85814d7642e6e6e4a813bca713caae04e": {
+      "resource": "practice-trained-ear-Hollis-1915_42-02-reference-v1",
+      "content_type": "image/png",
+      "sha256": "e3a3c6a9a34a43c5dcfccc515a186ec38e2e379b4fe7d23c43bf43b3eeb7d9f0",
+      "size_bytes": 44767,
+      "pixel_width": 2600,
+      "pixel_height": 419,
+      "renderer": "MuseScore Studio 4.6.3"
+    },
+    "d4dac8c7cceee2edd8f706ac982a329d8280dd9fc55b610253792099d476dffb": {
+      "resource": "practice-trained-ear-Hollis-1915_59-02-reference-v1",
+      "content_type": "image/png",
+      "sha256": "2a2536e87bcd256a4780d4507e4a5f380a0497dae3d2ba68318d341461599c1b",
+      "size_bytes": 52783,
+      "pixel_width": 2600,
+      "pixel_height": 419,
+      "renderer": "MuseScore Studio 4.6.3"
+    },
+    "3e83316425e29e7143cfd837fba40e236c32db8c7a127ac988641d2491370957": {
+      "resource": "practice-trained-ear-Batchellor-Charmbury-1884b_2-1-007-reference-v1",
+      "content_type": "image/png",
+      "sha256": "55f5b386b7ece395556da779be090d6bfb955db79c59757148e5e69410fcc6b2",
+      "size_bytes": 38869,
+      "pixel_width": 2600,
+      "pixel_height": 419,
+      "renderer": "MuseScore Studio 4.6.3"
+    },
+    "a8bc965e59ee2262b4b2b1ca9d69c29fdd3ce84535e7163501edd9b9bedc3974": {
+      "resource": "practice-trained-ear-Hollis-1915_47-02-reference-v1",
+      "content_type": "image/png",
+      "sha256": "87bfc28f66d33121af8f9ee9570739f18879230cfdccdc424fa2e043a2998e82",
+      "size_bytes": 42097,
+      "pixel_width": 2600,
+      "pixel_height": 419,
+      "renderer": "MuseScore Studio 4.6.3"
+    },
+    "b79689f6e99eb03eb1fe5901bbda68b2cebf9410cfb54aa52c4c3846408147f2": {
+      "resource": "practice-trained-ear-Hollis-1915_56-02-reference-v1",
+      "content_type": "image/png",
+      "sha256": "2ef905a2adaf85b2d5499e5eb3f94b8770d4e3aa66863dd2157e2bbfa67dd24c",
+      "size_bytes": 41062,
+      "pixel_width": 2600,
+      "pixel_height": 419,
+      "renderer": "MuseScore Studio 4.6.3"
+    },
+    "1a11d22d98c96a00251e640b74c32b90aee4cc497b8cb33f787f6b206ed97c95": {
+      "resource": "practice-trained-ear-Sullivan_04-03-01_01-reference-v1",
+      "content_type": "image/png",
+      "sha256": "0d6c113eb1751e04b83078d6b21723b52caefbb21929f4849bb1b552e52e134e",
+      "size_bytes": 49145,
+      "pixel_width": 2600,
+      "pixel_height": 419,
+      "renderer": "MuseScore Studio 4.6.3"
+    },
+    "8807d1419135d1c04052c215c00bb05e43df6a37bdd6ca932233334b4b83d27b": {
+      "resource": "practice-trained-ear-Crowell-2004_139-reference-v1",
+      "content_type": "image/png",
+      "sha256": "6c5c64af721f4c5511cc58eca129312c25e392a7b451043988bcd1e3b4b1c6a8",
+      "size_bytes": 43168,
+      "pixel_width": 2600,
+      "pixel_height": 419,
+      "renderer": "MuseScore Studio 4.6.3"
+    },
+    "9c77e4f53733d6e8b17d13ea24f6adb7e3af0586c36bc37042a8353b06bf1ba3": {
+      "resource": "practice-trained-ear-Somervell-1911_438-reference-v1",
+      "content_type": "image/png",
+      "sha256": "34fac96c2f869a9d1c03864d50b8f43e0b435e551b8835f148c010518c0fe60c",
+      "size_bytes": 50687,
+      "pixel_width": 2600,
+      "pixel_height": 419,
+      "renderer": "MuseScore Studio 4.6.3"
+    },
+    "7492fbd63beab6997d5c536d04eb83054d3d761f8701b4998bf551b6799a024f": {
+      "resource": "practice-trained-ear-Crowell-2004_198-reference-v1",
+      "content_type": "image/png",
+      "sha256": "a09af4d0c136b163e4501529c3313ac3d4efc2f9422d6993ab7cd22953bf00ce",
+      "size_bytes": 48032,
+      "pixel_width": 2600,
+      "pixel_height": 419,
+      "renderer": "MuseScore Studio 4.6.3"
+    },
+    "8e03931683c46d8ace19e8dd1e3024d7ea246434727c60deb5ed55c6f56d2e8b": {
+      "resource": "practice-trained-ear-Crowell-2004_203-reference-v1",
+      "content_type": "image/png",
+      "sha256": "9a1a253f96387d748e64aec779a4e349a59435eabf731d1561a7ee27c895168a",
+      "size_bytes": 52546,
+      "pixel_width": 2600,
+      "pixel_height": 419,
+      "renderer": "MuseScore Studio 4.6.3"
+    },
+    "5c0a5ad5b07b45c0e9783fb50f2cfd81a7c43c2bffc60b1ec98ac46414d9e60f": {
+      "resource": "practice-trained-ear-Somervell-1911_221-reference-v1",
+      "content_type": "image/png",
+      "sha256": "3a0991cb9c49be29a759c514399b511eede854408251b5de85972c8852a2d07b",
+      "size_bytes": 45432,
+      "pixel_width": 2600,
+      "pixel_height": 432,
+      "renderer": "MuseScore Studio 4.6.3"
+    },
+    "c207ac51727fc7f3de3d00e93cda0cd1050d4d70d42f2662eff849b5387a3102": {
+      "resource": "practice-trained-ear-Batchellor-Charmbury-1884a_1-1-080-reference-v1",
+      "content_type": "image/png",
+      "sha256": "b5ad5e426228f8d9ed91a955733ffcd6c12e99a89ea8d7f36370b81f53c39439",
+      "size_bytes": 36634,
+      "pixel_width": 2600,
+      "pixel_height": 419,
+      "renderer": "MuseScore Studio 4.6.3"
+    },
+    "833e5e690b601705909c3688daa62426312e8def9bb0f9ce1e9818bfd9dd9216": {
+      "resource": "practice-trained-ear-Somervell-1911_209-reference-v1",
+      "content_type": "image/png",
+      "sha256": "ebcf8ed17d9609a70d64cb099248678465f58805f95041bfd43d890a77628c16",
+      "size_bytes": 52965,
+      "pixel_width": 2600,
+      "pixel_height": 419,
+      "renderer": "MuseScore Studio 4.6.3"
+    },
+    "f8c1bf1edcc77ff09478a8b5c797e497ea40a2f19ca1037f6939124ba747d7a6": {
+      "resource": "practice-trained-ear-Somervell-1911_211-reference-v1",
+      "content_type": "image/png",
+      "sha256": "0e3ef06fbf60d57c735bcf7d6ebf465e06922df8d0ec0087954ca6121ba1685f",
+      "size_bytes": 44479,
+      "pixel_width": 2600,
+      "pixel_height": 422,
+      "renderer": "MuseScore Studio 4.6.3"
+    },
+    "a89844b8d09693a6a94235d6def00b6f286ed31e2f58e19afe70651b91700ea3": {
+      "resource": "practice-trained-ear-Cole-Lewis-1904_2-05-201-reference-v1",
+      "content_type": "image/png",
+      "sha256": "9c53a8fb2e109c1cf15eab6f3e64723442f5e39bd29edbe99a5742e90e8c6c18",
+      "size_bytes": 46255,
+      "pixel_width": 2600,
+      "pixel_height": 419,
+      "renderer": "MuseScore Studio 4.6.3"
+    },
+    "e36b15a1edd0905d6223af0d91c7eba95b4b16f1d9613ade1df5dc1c28c3c0c6": {
+      "resource": "practice-trained-ear-Hollis-1915_55-01-reference-v1",
+      "content_type": "image/png",
+      "sha256": "ac608ef20cd88a1685e84f490b142a64240bcc1ac969408651bdd9e080dcfa36",
+      "size_bytes": 48596,
+      "pixel_width": 2600,
+      "pixel_height": 419,
+      "renderer": "MuseScore Studio 4.6.3"
+    },
+    "3332ea24881c08f3004830a1de0b72f6d23ebb0523268e27da867d422092e05d": {
+      "resource": "practice-trained-ear-Crowell-2004_200-reference-v1",
+      "content_type": "image/png",
+      "sha256": "7e4ecc19e54f465887d113da3e27a28c99d3c87c959d13f783125e2c675cb5a9",
+      "size_bytes": 51736,
+      "pixel_width": 2600,
+      "pixel_height": 419,
+      "renderer": "MuseScore Studio 4.6.3"
+    },
+    "27d00439e670a275d14fe5c08621f0481531f5bafd99e97fb51e48f7a42c99e4": {
+      "resource": "practice-trained-ear-Somervell-1911_175-reference-v1",
+      "content_type": "image/png",
+      "sha256": "222337b8d34beff3efcd1e03a2183b7e3ea18a2528ddf0067a36899e9f8096e2",
+      "size_bytes": 45275,
+      "pixel_width": 2600,
+      "pixel_height": 419,
+      "renderer": "MuseScore Studio 4.6.3"
+    },
+    "0d08dd80b172cd55d0287ac92b1249cefb34e4e01685e70af340272a40cb78db": {
+      "resource": "practice-trained-ear-Batchellor-Charmbury-1884a_1-1-106-reference-v1",
+      "content_type": "image/png",
+      "sha256": "13a9a6e82bb719c0967d86ffa7fd2c9cf72fdf1dfc93afe4cfa528c6949c31ea",
+      "size_bytes": 51090,
+      "pixel_width": 2600,
+      "pixel_height": 419,
+      "renderer": "MuseScore Studio 4.6.3"
+    },
+    "98fb2a90104f5ed60f9a05496d0050c26d5c04b21ec209874d182f7ae5775d1b": {
+      "resource": "practice-trained-ear-Batchellor-Charmbury-1884b_2-1-024-reference-v1",
+      "content_type": "image/png",
+      "sha256": "00cb765f04b96a5ac918a03a565655a204f40689e8ac2722c2d65e5466fb70a9",
+      "size_bytes": 47488,
+      "pixel_width": 2600,
+      "pixel_height": 419,
+      "renderer": "MuseScore Studio 4.6.3"
+    },
+    "98a92c5d0179616f83384836045356ef542fc9c6eacecb4a194c0f3803550f4a": {
+      "resource": "practice-trained-ear-Batchellor-Charmbury-1884b_2-1-051-reference-v1",
+      "content_type": "image/png",
+      "sha256": "9f0d5d963a0bd363eff20233389138618a7d572d8b875f729e85cc976bdecd7b",
+      "size_bytes": 54826,
+      "pixel_width": 2600,
+      "pixel_height": 419,
+      "renderer": "MuseScore Studio 4.6.3"
+    },
+    "f71a75ae16058fa593656a364534ac53b6d7a81caaee8dc4b3a8130a4fba31d0": {
+      "resource": "practice-trained-ear-Cole-Lewis-1904_2-03-186-reference-v1",
+      "content_type": "image/png",
+      "sha256": "ce8637578f5a7717ced6027d24405528c127922b95a2501d723347bf55bb23dd",
+      "size_bytes": 50519,
+      "pixel_width": 2600,
+      "pixel_height": 419,
+      "renderer": "MuseScore Studio 4.6.3"
+    },
+    "2a4e37ededd747cc195844b5efa64922ca7e3afeb84dcb9ffec103fce0cecb93": {
+      "resource": "practice-trained-ear-Somervell-1911_217-reference-v1",
+      "content_type": "image/png",
+      "sha256": "3df39ee968127985b8e215e350745f39eb03295f8b326db98a3638f0519ba621",
+      "size_bytes": 43475,
+      "pixel_width": 2600,
+      "pixel_height": 419,
+      "renderer": "MuseScore Studio 4.6.3"
+    },
+    "b8b9779c2e2e1ec9092e091d72f0a9574143f0efae1f3d70b05976aab07a51e1": {
+      "resource": "practice-trained-ear-Cringan-1901_092-reference-v1",
+      "content_type": "image/png",
+      "sha256": "5bf199a00c8c7869481458e054812abc8c66fc662006411a15bdca55534eb049",
+      "size_bytes": 43697,
+      "pixel_width": 2600,
+      "pixel_height": 419,
+      "renderer": "MuseScore Studio 4.6.3"
+    },
+    "ef63d0f4756d351fadadd3ba8316ca2214f70ca477b321d38fcdda092378ef3c": {
+      "resource": "practice-trained-ear-Batchellor-Charmbury-1887a_4-1-045-reference-v1",
+      "content_type": "image/png",
+      "sha256": "757e9d7cf024ce31e59af1eece2a31f4883a130ed40529b5892439e91fa16061",
+      "size_bytes": 57510,
+      "pixel_width": 2600,
+      "pixel_height": 419,
+      "renderer": "MuseScore Studio 4.6.3"
+    },
+    "408b20420eb7f9583523ff85d3daa61cf5b7571f48adcdaa1517c8de99496bae": {
+      "resource": "practice-trained-ear-Batchellor-Charmbury-1887a_4-3-001-reference-v1",
+      "content_type": "image/png",
+      "sha256": "e582303a5268f2a99445751c5a0ca604dba9cb4094615161fcba96e0ed096210",
+      "size_bytes": 47190,
+      "pixel_width": 2600,
+      "pixel_height": 426,
+      "renderer": "MuseScore Studio 4.6.3"
+    },
+    "1aa78018d081194f97d2f99d837c8881e1d46d53fdbf8d8f00683a423c424e95": {
+      "resource": "practice-trained-ear-Sullivan_04-02-04_01-reference-v1",
+      "content_type": "image/png",
+      "sha256": "45ceb9aca80eae32da860963038428751e1325ef8fa0095ad1db5e891ba5bda3",
+      "size_bytes": 59089,
+      "pixel_width": 2600,
+      "pixel_height": 419,
+      "renderer": "MuseScore Studio 4.6.3"
+    },
+    "b08c2fc47d5dea49c0cb75e6e896ad5cbe88459868f47aa1f8a834f65decf287": {
+      "resource": "practice-trained-ear-Crowell-2004_066-reference-v1",
+      "content_type": "image/png",
+      "sha256": "562d979cfea83e0f971a30d07abd4ad2fbdcd5d04f1dac5c3f341fe5f0da2ed6",
+      "size_bytes": 57729,
+      "pixel_width": 2600,
+      "pixel_height": 422,
+      "renderer": "MuseScore Studio 4.6.3"
+    },
+    "68c6bb42fce49a3b5efdc732b0e8d1e17d601604c68b58405ad9cfd66fddb3b9": {
+      "resource": "practice-trained-ear-Cole-Lewis-1904_1-01-177-reference-v1",
+      "content_type": "image/png",
+      "sha256": "dbf16674d7310956cec6e875000114e9c0d1d412a92b6db395bfdbb400cd8c06",
+      "size_bytes": 47229,
+      "pixel_width": 2600,
+      "pixel_height": 419,
+      "renderer": "MuseScore Studio 4.6.3"
+    },
+    "98de9074ee89add90d0cbd10ab55ab5d871fc10f6cd373a46e65afb2a275300c": {
+      "resource": "practice-trained-ear-Somervell-1911_334-reference-v1",
+      "content_type": "image/png",
+      "sha256": "8b1712159eb00e8900ff0595b0adbff831ef0ef715d97381b109114705685f7f",
+      "size_bytes": 54625,
+      "pixel_width": 2600,
+      "pixel_height": 419,
+      "renderer": "MuseScore Studio 4.6.3"
+    },
+    "4c18e9dc44f0fcf055dd43e5b3bd0e7b14e84c7043e00118d645438fce12291a": {
+      "resource": "practice-trained-ear-Cringan-1901_061-reference-v1",
+      "content_type": "image/png",
+      "sha256": "9c6ce61329fb2d2ef6aac0fc217eb298f8fac5b9db70c277a7d5d0b3f7c19309",
+      "size_bytes": 58350,
+      "pixel_width": 2600,
+      "pixel_height": 419,
+      "renderer": "MuseScore Studio 4.6.3"
+    },
+    "f239d57013c37a98b21aaedb40e042a3cff08448e76507b7ae388269a42e4fa0": {
+      "resource": "practice-trained-ear-Cringan-1901_062-reference-v1",
+      "content_type": "image/png",
+      "sha256": "b9d48fb7c4d0ac67fc3347a7133abdd7604c78a771c89351737bc08efbfd3722",
+      "size_bytes": 61613,
+      "pixel_width": 2600,
+      "pixel_height": 419,
+      "renderer": "MuseScore Studio 4.6.3"
+    },
+    "4454bcac0b8aa20d07ea40fe38519d8658afd619e1800e6101b06edc7686dd66": {
+      "resource": "practice-trained-ear-Crowell-2004_043-reference-v1",
+      "content_type": "image/png",
+      "sha256": "f242a8447b30c1e8004e34dae14a12c82f486ba0f27381f4b5ceb57f96c4f497",
+      "size_bytes": 55647,
+      "pixel_width": 2600,
+      "pixel_height": 419,
+      "renderer": "MuseScore Studio 4.6.3"
+    },
+    "0804d1b1a6584e8de26914b997b0d7fc617ee01634bbe58d28e046c8dd93d124": {
+      "resource": "practice-trained-ear-Cole-Lewis-1904_1-01-156-reference-v1",
+      "content_type": "image/png",
+      "sha256": "52e685534b7b207bd5504b6a7937951f2eb805f79844adc28ba2a605f3cbde9f",
+      "size_bytes": 50962,
+      "pixel_width": 2600,
+      "pixel_height": 419,
+      "renderer": "MuseScore Studio 4.6.3"
+    },
+    "5997232c3d62c5aa80911bfdf5448c9ed76bfa910a3a7b8e7fbebc0b16a45736": {
+      "resource": "practice-trained-ear-Cringan-1901_059-reference-v1",
+      "content_type": "image/png",
+      "sha256": "2a8ec1cf88b1e68958fd83968a0c347df55b02791f5e32917f70a8b84bbfe0d7",
+      "size_bytes": 61028,
+      "pixel_width": 2600,
+      "pixel_height": 432,
+      "renderer": "MuseScore Studio 4.6.3"
+    },
+    "aa0d5f7417c7ab6cdecef96de6c0e40e40f0ef84e5333a95555a0fa11d574b36": {
+      "resource": "practice-trained-ear-Cringan-1901_060-reference-v1",
+      "content_type": "image/png",
+      "sha256": "25891e6a4b6843e6123880d61a0afb2799dbb59751a39b247b44e446f900ac74",
+      "size_bytes": 55960,
+      "pixel_width": 2600,
+      "pixel_height": 432,
+      "renderer": "MuseScore Studio 4.6.3"
+    },
+    "6f0d5f2ff3c692b9bf0ef2383207bf6398263cb9f82885313c479686c97e1708": {
+      "resource": "practice-trained-ear-Cole-Lewis-1904_1-01-254-reference-v1",
+      "content_type": "image/png",
+      "sha256": "1370c2745647527c2a9e545da3d4da468b7418f96cd9a8eaf83b8d239bb09ba5",
+      "size_bytes": 59132,
+      "pixel_width": 2600,
+      "pixel_height": 419,
+      "renderer": "MuseScore Studio 4.6.3"
+    },
+    "28fc6b7f49bfdd41d5a2dc2f770625c441fb66ebe40943d9430a6bb20c922746": {
+      "resource": "brahms-01-reference-v1",
+      "content_type": "image/png",
+      "sha256": "0fc22d582e16a13c2933cf05509f6efb16989e1481ca73077d64febbed8f3653",
+      "size_bytes": 42713,
+      "pixel_width": 2600,
+      "pixel_height": 419,
+      "renderer": "MuseScore Studio 4.6.3",
+      "style": "compact-v1",
+      "style_sha256": "dd2f4368b5e7f8a294224647c1bcd570546a96940658a025e338aebc8f65ca28"
+    },
+    "93429ce30ee18a08ee9d45fedd7e1841907e055392934f32ec106b310f7f8c52": {
+      "resource": "brahms-02-reference-v1",
+      "content_type": "image/png",
+      "sha256": "736b6205dffcc9b0f62b360f62518b6f7fc8d77a4b2f0ced503d0744014a68d3",
+      "size_bytes": 58458,
+      "pixel_width": 2600,
+      "pixel_height": 419,
+      "renderer": "MuseScore Studio 4.6.3",
+      "style": "compact-v1",
+      "style_sha256": "dd2f4368b5e7f8a294224647c1bcd570546a96940658a025e338aebc8f65ca28"
+    },
+    "d04e96ddc3a9e00137ab08af516d306974a8018c8ba5154f7b81a4440e7d7122": {
+      "resource": "brahms-03-reference-v1",
+      "content_type": "image/png",
+      "sha256": "e9119c85f656ccc072df35d47b6034c665742de5cd079f9b2c5563c06e717125",
+      "size_bytes": 87246,
+      "pixel_width": 2600,
+      "pixel_height": 431,
+      "renderer": "MuseScore Studio 4.6.3",
+      "style": "compact-v1",
+      "style_sha256": "dd2f4368b5e7f8a294224647c1bcd570546a96940658a025e338aebc8f65ca28"
+    },
+    "be3cf4b91a922be9111c7541f11976732be4e095d5cd199f0d3a44cc8246cebe": {
+      "resource": "brahms-04-reference-v1",
+      "content_type": "image/png",
+      "sha256": "462467630f2c742a91503de906338977aa30b75db5429d87edf373ba01cfb979",
+      "size_bytes": 73810,
+      "pixel_width": 2600,
+      "pixel_height": 284,
+      "renderer": "MuseScore Studio 4.6.3",
+      "style": "brahms-dense-v1",
+      "style_sha256": "9b56328cf02790002eddc98318d73ca396076adec3ee903171cd8792650f5c57"
+    },
+    "3d43a75b72e5967262e383e5526ba8ef0ee83f996b045b6b20d4aa67ba232278": {
+      "resource": "brahms-05-reference-v1",
+      "content_type": "image/png",
+      "sha256": "be09a83de39b1328d59d5a6b1b66a013740d1b7f7b5bb2b96f23eed19de46637",
+      "size_bytes": 64925,
+      "pixel_width": 2600,
+      "pixel_height": 419,
+      "renderer": "MuseScore Studio 4.6.3",
+      "style": "compact-v1",
+      "style_sha256": "dd2f4368b5e7f8a294224647c1bcd570546a96940658a025e338aebc8f65ca28"
+    },
+    "73f5fc44a98652d6fd75830c2a3e28a37269121309f90e0fac4dfcc76fd2415a": {
+      "resource": "brahms-06-reference-v1",
+      "content_type": "image/png",
+      "sha256": "16184168d1740a9a1f64fef48cd33118efe8e3f68bdafac19a1fa7a5c48b5f73",
+      "size_bytes": 45863,
+      "pixel_width": 2600,
+      "pixel_height": 443,
+      "renderer": "MuseScore Studio 4.6.3",
+      "style": "compact-v1",
+      "style_sha256": "dd2f4368b5e7f8a294224647c1bcd570546a96940658a025e338aebc8f65ca28"
+    },
+    "bdee22d3517528b375b1597b4c743cfa32d27e607de5e4d2161045dab08afd7e": {
+      "resource": "brahms-07-reference-v1",
+      "content_type": "image/png",
+      "sha256": "10fe85281f5a6413555ccdfbbd86c47e3923b6c3f1ac6dea2e827a5ddaeaf670",
+      "size_bytes": 39005,
+      "pixel_width": 2600,
+      "pixel_height": 419,
+      "renderer": "MuseScore Studio 4.6.3",
+      "style": "compact-v1",
+      "style_sha256": "dd2f4368b5e7f8a294224647c1bcd570546a96940658a025e338aebc8f65ca28"
+    },
+    "31dd22ae728abf7a97b2fb8d3c7d0657134d01511638fc09f8d81ff1b74efd65": {
+      "resource": "brahms-09-reference-v1",
+      "content_type": "image/png",
+      "sha256": "3f2b53fe4efc799f187d0fe34b458c4595e1636b01cfc02df59b8b7cbca2dc6f",
+      "size_bytes": 53683,
+      "pixel_width": 2600,
+      "pixel_height": 437,
+      "renderer": "MuseScore Studio 4.6.3",
+      "style": "compact-v1",
+      "style_sha256": "dd2f4368b5e7f8a294224647c1bcd570546a96940658a025e338aebc8f65ca28"
+    },
+    "8a0f8decbfcf1192004144bc1fdaabe3eea82724a4de633d55431590c6c99c0f": {
+      "resource": "brahms-10-reference-v1",
+      "content_type": "image/png",
+      "sha256": "e6b9aeacb6529dfc6c69991bdcb9c102379a35e3bb67b229ddb8d051e827f9f8",
+      "size_bytes": 53720,
+      "pixel_width": 2600,
+      "pixel_height": 420,
+      "renderer": "MuseScore Studio 4.6.3",
+      "style": "compact-v1",
+      "style_sha256": "dd2f4368b5e7f8a294224647c1bcd570546a96940658a025e338aebc8f65ca28"
+    },
+    "4ae0808d783c7cda27c789983279c685187bef9423655bf5382d75d4e2c44af1": {
+      "resource": "brahms-11-reference-v1",
+      "content_type": "image/png",
+      "sha256": "db7b650a862b0dfbb9ad77f30cb624c36891f67674c111936c44da4a7d6c3641",
+      "size_bytes": 70039,
+      "pixel_width": 2600,
+      "pixel_height": 442,
+      "renderer": "MuseScore Studio 4.6.3",
+      "style": "compact-v1",
+      "style_sha256": "dd2f4368b5e7f8a294224647c1bcd570546a96940658a025e338aebc8f65ca28"
     }
   }
 }

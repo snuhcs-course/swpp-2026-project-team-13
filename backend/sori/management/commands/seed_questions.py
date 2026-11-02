@@ -1,15 +1,15 @@
 import hashlib
-import json
 from django.conf import settings
 from django.core.management.base import BaseCommand, CommandError
 from django.db import transaction
 from sori.models import Question, QuestionVersion
+from sori.catalogs import shipped_questions
 
 class Command(BaseCommand):
-    help = "Register the three immutable problem versions shipped with the application."
+    help = "Register immutable versions from all shipped practice and classical catalogs."
     @transaction.atomic
     def handle(self, *args, **options):
-        catalog = json.loads((settings.CONTENT_ROOT / "catalog.json").read_text(encoding="utf-8"))
+        catalog = shipped_questions()
         for item in catalog:
             metadata = item["metadata"]
             for kind in ("main", "scale"):

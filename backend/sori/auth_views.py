@@ -23,7 +23,7 @@ from rest_framework.views import APIView
 
 from .client_ip import client_ip_key
 from .errors import ContractError
-from .models import LoginThrottle, UserProfile, throttle_key, usernames_differing_by_case
+from .models import LoginThrottle, UserProfile, locked_throttle, throttle_key, usernames_differing_by_case
 from .presentation import absolute
 from .views import GOALS
 
@@ -39,16 +39,6 @@ SIGNUP_FIELD_RULES = {
 }
 
 logger = logging.getLogger(__name__)
-
-
-def locked_throttle(kind, value):
-    key = throttle_key(kind, value)
-    while True:
-        LoginThrottle.objects.get_or_create(key=key)
-        # The hourly purge can delete the row between these two queries.
-        row = LoginThrottle.objects.select_for_update().filter(key=key).first()
-        if row is not None:
-            return row
 
 
 def purge_stale_throttles():

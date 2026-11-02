@@ -1,0 +1,363 @@
+{
+  "policy": "원본부터 온전한 8마디, 못갖춘마디·마디 생략·쉼표 보충·MIDI 추정·미확인 조성 제외",
+  "license": "GTTM mirror CC BY-NC-SA 4.0; retain attribution and source links",
+  "accepted": [
+    {
+      "source_id": "gttm-189",
+      "file": "gttm-189.xml",
+      "sha256": "01d365f242a978af177eb9a956d9fb2c1f31d9bdf84fddbf2cce1e4b27db958d",
+      "source_url": "https://github.com/fosfrancesco/musicparser/blob/570df3ba3b2900f470ca2b16ac3fb415424c67ee/data/gttm/189/score.xml",
+      "database_url": "https://gttm.jp/gttm/database/",
+      "composer": "프로코피예프",
+      "title": "피터와 늑대 · Op.67",
+      "key": {
+        "tonic": "C",
+        "mode": "major",
+        "fifths": 0
+      },
+      "question_id": "76006a58-d8d6-5459-bb52-eedb49632079",
+      "verification": "원본 단선율 XML 자체가 8개의 완전한 마디. 원본의 음높이·기보 길이·쉼표·붙임줄 대조. 원곡 조성으로의 복원이나 이조는 하지 않음.",
+      "normalization": "선택적 이음줄과 아티큘레이션만 시험 프로필에서 생략. 음높이·리듬·붙임줄·조표는 유지."
+    },
+    {
+      "source_id": "gttm-033",
+      "file": "gttm-033.xml",
+      "sha256": "40594ed68affde40cd94281a997a8eb2f84d0a50dcf5fb07ca703d4e9ef41a33",
+      "source_url": "https://github.com/fosfrancesco/musicparser/blob/570df3ba3b2900f470ca2b16ac3fb415424c67ee/data/gttm/33/score.xml",
+      "database_url": "https://gttm.jp/gttm/database/",
+      "composer": "차이콥스키",
+      "title": "백조의 호수 · Op.20 · No.9",
+      "key": {
+        "tonic": "B",
+        "mode": "minor",
+        "fifths": 2
+      },
+      "question_id": "875f5168-068a-5e58-be5a-54b9f25394d8",
+      "verification": "원본 단선율 XML 자체가 8개의 완전한 마디. 원본의 음높이·기보 길이·쉼표·붙임줄 대조. 원곡 조성으로의 복원이나 이조는 하지 않음.",
+      "normalization": "선택적 이음줄과 아티큘레이션만 시험 프로필에서 생략. 음높이·리듬·붙임줄·조표는 유지."
+    },
+    {
+      "source_id": "gttm-041",
+      "file": "gttm-041.xml",
+      "sha256": "b41545406160eb94f9027a2466e1d9e75b7892a3f99f74ff41c1f1d2a9451caa",
+      "source_url": "https://github.com/fosfrancesco/musicparser/blob/570df3ba3b2900f470ca2b16ac3fb415424c67ee/data/gttm/41/score.xml",
+      "database_url": "https://gttm.jp/gttm/database/",
+      "composer": "차이콥스키",
+      "title": "나폴리의 노래 · 어린이 앨범 · Op.39 No.18",
+      "key": {
+        "tonic": "Eb",
+        "mode": "major",
+        "fifths": -3
+      },
+      "question_id": "0f8cc9b3-c20a-58ac-98ee-08fb9bd24a88",
+      "verification": "원본 단선율 XML 자체가 8개의 완전한 마디. 원본의 음높이·기보 길이·쉼표·붙임줄 대조. 원곡 조성으로의 복원이나 이조는 하지 않음.",
+      "normalization": "선택적 이음줄과 아티큘레이션만 시험 프로필에서 생략. 음높이·리듬·붙임줄·조표는 유지."
+    },
+    {
+      "source_id": "gttm-042",
+      "file": "gttm-042.xml",
+      "sha256": "b6d26c9f9bdbd0f2eef5d7eb6388afb0d7c6aeb2c4245fa179fbb2b8d270738d",
+      "source_url": "https://github.com/fosfrancesco/musicparser/blob/570df3ba3b2900f470ca2b16ac3fb415424c67ee/data/gttm/42/score.xml",
+      "database_url": "https://gttm.jp/gttm/database/",
+      "composer": "차이콥스키",
+      "title": "왈츠 · 어린이 앨범 · Op.39 No.9",
+      "key": {
+        "tonic": "Eb",
+        "mode": "major",
+        "fifths": -3
+      },
+      "question_id": "0b353d96-a50d-5cb6-8a83-655526a4f616",
+      "verification": "원본 단선율 XML 자체가 8개의 완전한 마디. 원본의 음높이·기보 길이·쉼표·붙임줄 대조. 원곡 조성으로의 복원이나 이조는 하지 않음.",
+      "normalization": "선택적 이음줄과 아티큘레이션만 시험 프로필에서 생략. 음높이·리듬·붙임줄·조표는 유지."
+    },
+    {
+      "source_id": "gttm-031",
+      "file": "gttm-031.xml",
+      "sha256": "d54a2e87b1b67f8468504853eeb3acbd9c92b7d53300ace7d2601c8e4d16c82c",
+      "source_url": "https://github.com/fosfrancesco/musicparser/blob/570df3ba3b2900f470ca2b16ac3fb415424c67ee/data/gttm/31/score.xml",
+      "database_url": "https://gttm.jp/gttm/database/",
+      "composer": "베토벤",
+      "title": "교향곡 9번: 환희의 송가 · Op.125 · 4악장",
+      "key": {
+        "tonic": "D",
+        "mode": "major",
+        "fifths": 2
+      },
+      "question_id": "67dc7c81-cb27-5af6-ba8b-79741c476889",
+      "verification": "원본 단선율 XML 자체가 8개의 완전한 마디. 원본의 음높이·기보 길이·쉼표·붙임줄 대조. 원곡 조성으로의 복원이나 이조는 하지 않음.",
+      "normalization": "선택적 이음줄과 아티큘레이션만 시험 프로필에서 생략. 음높이·리듬·붙임줄·조표는 유지."
+    },
+    {
+      "source_id": "gttm-098",
+      "file": "gttm-098.xml",
+      "sha256": "bfa275c85ea8ceeaaa743b0a5ea3ad6dc80215a57dc7914efb2611058ced6d92",
+      "source_url": "https://github.com/fosfrancesco/musicparser/blob/570df3ba3b2900f470ca2b16ac3fb415424c67ee/data/gttm/98/score.xml",
+      "database_url": "https://gttm.jp/gttm/database/",
+      "composer": "베토벤",
+      "title": "비창 소나타 · Op.13 · 2악장",
+      "key": {
+        "tonic": "Ab",
+        "mode": "major",
+        "fifths": -4
+      },
+      "question_id": "674f4d3b-1121-5932-bdbc-00abb48d0f9a",
+      "verification": "원본 단선율 XML 자체가 8개의 완전한 마디. 원본의 음높이·기보 길이·쉼표·붙임줄 대조. 원곡 조성으로의 복원이나 이조는 하지 않음.",
+      "normalization": "선택적 이음줄과 아티큘레이션만 시험 프로필에서 생략. 음높이·리듬·붙임줄·조표는 유지."
+    },
+    {
+      "source_id": "gttm-027",
+      "file": "gttm-027.xml",
+      "sha256": "df73bb4ef640a4a8e9f10368dbb5ba0e885b41af273b4eb422fa9b9a04f26990",
+      "source_url": "https://github.com/fosfrancesco/musicparser/blob/570df3ba3b2900f470ca2b16ac3fb415424c67ee/data/gttm/27/score.xml",
+      "database_url": "https://gttm.jp/gttm/database/",
+      "composer": "그리그",
+      "title": "아침의 기분 · 페르 귄트 · Op.46",
+      "key": {
+        "tonic": "F",
+        "mode": "major",
+        "fifths": -1
+      },
+      "question_id": "e50457cd-4da3-5f93-bda8-e916c7dd4fde",
+      "verification": "원본 단선율 XML 자체가 8개의 완전한 마디. 원본의 음높이·기보 길이·쉼표·붙임줄 대조. 원곡 조성으로의 복원이나 이조는 하지 않음.",
+      "normalization": "선택적 이음줄과 아티큘레이션만 시험 프로필에서 생략. 음높이·리듬·붙임줄·조표는 유지."
+    },
+    {
+      "source_id": "gttm-028",
+      "file": "gttm-028.xml",
+      "sha256": "3ba66cfe2445150c3b96f8f9023efb383ebca20c37ccac23a26b76fe45bda9b3",
+      "source_url": "https://github.com/fosfrancesco/musicparser/blob/570df3ba3b2900f470ca2b16ac3fb415424c67ee/data/gttm/28/score.xml",
+      "database_url": "https://gttm.jp/gttm/database/",
+      "composer": "생상스",
+      "title": "백조 · 동물의 사육제",
+      "key": {
+        "tonic": "G",
+        "mode": "major",
+        "fifths": 1
+      },
+      "question_id": "244e7301-ab54-500d-8745-676dbc5af60a",
+      "verification": "원본 단선율 XML 자체가 8개의 완전한 마디. 원본의 음높이·기보 길이·쉼표·붙임줄 대조. 원곡 조성으로의 복원이나 이조는 하지 않음.",
+      "normalization": "선택적 이음줄과 아티큘레이션만 시험 프로필에서 생략. 음높이·리듬·붙임줄·조표는 유지."
+    },
+    {
+      "source_id": "gttm-030",
+      "file": "gttm-030.xml",
+      "sha256": "6e2b169e29afe634950d29a82ebdfa918a66c07e27c17e94aa11010f01ec9568",
+      "source_url": "https://github.com/fosfrancesco/musicparser/blob/570df3ba3b2900f470ca2b16ac3fb415424c67ee/data/gttm/30/score.xml",
+      "database_url": "https://gttm.jp/gttm/database/",
+      "composer": "사티",
+      "title": "짐노페디 1번",
+      "key": {
+        "tonic": "D",
+        "mode": "major",
+        "fifths": 2
+      },
+      "question_id": "9e600680-6511-5dd0-b8cc-6102621f66a3",
+      "verification": "원본 단선율 XML 자체가 8개의 완전한 마디. 원본의 음높이·기보 길이·쉼표·붙임줄 대조. 원곡 조성으로의 복원이나 이조는 하지 않음.",
+      "normalization": "선택적 이음줄과 아티큘레이션만 시험 프로필에서 생략. 음높이·리듬·붙임줄·조표는 유지."
+    },
+    {
+      "source_id": "gttm-074",
+      "file": "gttm-074.xml",
+      "sha256": "1cf943da8ecdc72c52282b71564c8698679e12bd9c0e51f585add7b66b722953",
+      "source_url": "https://github.com/fosfrancesco/musicparser/blob/570df3ba3b2900f470ca2b16ac3fb415424c67ee/data/gttm/74/score.xml",
+      "database_url": "https://gttm.jp/gttm/database/",
+      "composer": "드보르자크",
+      "title": "유모레스크 · Op.101 No.7",
+      "key": {
+        "tonic": "G",
+        "mode": "major",
+        "fifths": 1
+      },
+      "question_id": "e9dc82c3-e60e-5809-913d-26c8c766db37",
+      "verification": "원본 단선율 XML 자체가 8개의 완전한 마디. 원본의 음높이·기보 길이·쉼표·붙임줄 대조. 원곡 조성으로의 복원이나 이조는 하지 않음.",
+      "normalization": "선택적 이음줄과 아티큘레이션만 시험 프로필에서 생략. 음높이·리듬·붙임줄·조표는 유지."
+    },
+    {
+      "source_id": "gttm-081",
+      "file": "gttm-081.xml",
+      "sha256": "47a0e79a7a7f977b20dea17a9ebb96ad6a8c9e1f9f04d1f69d01c931c439baa7",
+      "source_url": "https://github.com/fosfrancesco/musicparser/blob/570df3ba3b2900f470ca2b16ac3fb415424c67ee/data/gttm/81/score.xml",
+      "database_url": "https://gttm.jp/gttm/database/",
+      "composer": "드보르자크",
+      "title": "신세계 교향곡 · Op.95 · 2악장",
+      "key": {
+        "tonic": "D",
+        "mode": "major",
+        "fifths": 2
+      },
+      "question_id": "9d950dcb-f8e9-54f3-b7d5-4796ce3b0479",
+      "verification": "원본 단선율 XML 자체가 8개의 완전한 마디. 원본의 음높이·기보 길이·쉼표·붙임줄 대조. 원곡 조성으로의 복원이나 이조는 하지 않음.",
+      "normalization": "선택적 이음줄과 아티큘레이션만 시험 프로필에서 생략. 음높이·리듬·붙임줄·조표는 유지."
+    }
+  ],
+  "excluded": [
+    {
+      "id": "classical-gttm-114",
+      "composer": "브람스",
+      "title": "교향곡 1번",
+      "reason": "원본이 정확히 8개의 완전한 마디가 아님"
+    },
+    {
+      "id": "classical-gttm-215",
+      "composer": "브람스",
+      "title": "헝가리 무곡 1번",
+      "reason": "원본 장·단조 메타데이터와 선율의 조성에 불일치가 있어 제외"
+    },
+    {
+      "id": "classical-gttm-010",
+      "composer": "브람스",
+      "title": "자장가",
+      "reason": "원본이 정확히 8개의 완전한 마디가 아님"
+    },
+    {
+      "id": "classical-gttm-180",
+      "composer": "차이콥스키",
+      "title": "교향곡 6번 「비창」",
+      "reason": "원본이 정확히 8개의 완전한 마디가 아님"
+    },
+    {
+      "id": "classical-gttm-032",
+      "composer": "차이콥스키",
+      "title": "꽃의 왈츠",
+      "reason": "원본이 정확히 8개의 완전한 마디가 아님"
+    },
+    {
+      "id": "classical-gttm-066",
+      "composer": "차이콥스키",
+      "title": "호두까기 인형 행진곡",
+      "reason": "원본이 정확히 8개의 완전한 마디가 아님"
+    },
+    {
+      "id": "classical-gttm-113",
+      "composer": "차이콥스키",
+      "title": "피아노 협주곡 1번",
+      "reason": "원본이 정확히 8개의 완전한 마디가 아님"
+    },
+    {
+      "id": "classical-gttm-139",
+      "composer": "차이콥스키",
+      "title": "사계: 6월 뱃노래",
+      "reason": "원본이 정확히 8개의 완전한 마디가 아님"
+    },
+    {
+      "id": "classical-gttm-212",
+      "composer": "차이콥스키",
+      "title": "잠자는 숲속의 미녀",
+      "reason": "원본이 정확히 8개의 완전한 마디가 아님"
+    },
+    {
+      "id": "classical-gttm-079",
+      "composer": "모차르트",
+      "title": "아이네 클라이네 나흐트무지크",
+      "reason": "원본이 정확히 8개의 완전한 마디가 아님"
+    },
+    {
+      "id": "classical-gttm-080",
+      "composer": "모차르트",
+      "title": "교향곡 40번",
+      "reason": "원본이 정확히 8개의 완전한 마디가 아님"
+    },
+    {
+      "id": "classical-gttm-038",
+      "composer": "모차르트",
+      "title": "피아노 소나타 K.545",
+      "reason": "원본이 정확히 8개의 완전한 마디가 아님"
+    },
+    {
+      "id": "classical-gttm-100",
+      "composer": "모차르트",
+      "title": "피아노 소나타 K.331",
+      "reason": "원본 장·단조 메타데이터와 선율의 조성에 불일치가 있어 제외"
+    },
+    {
+      "id": "classical-gttm-003",
+      "composer": "베토벤",
+      "title": "엘리제를 위하여",
+      "reason": "원본이 정확히 8개의 완전한 마디가 아님"
+    },
+    {
+      "id": "classical-gttm-013",
+      "composer": "슈만",
+      "title": "트로이메라이",
+      "reason": "원본이 정확히 8개의 완전한 마디가 아님"
+    },
+    {
+      "id": "classical-gttm-026",
+      "composer": "바흐",
+      "title": "G선상의 아리아",
+      "reason": "원본이 정확히 8개의 완전한 마디가 아님"
+    },
+    {
+      "id": "classical-gttm-049",
+      "composer": "홀스트",
+      "title": "목성",
+      "reason": "원본이 정확히 8개의 완전한 마디가 아님"
+    },
+    {
+      "id": "classical-gttm-060",
+      "composer": "스메타나",
+      "title": "몰다우",
+      "reason": "원본이 정확히 8개의 완전한 마디가 아님"
+    },
+    {
+      "id": "classical-gttm-068",
+      "composer": "쇼팽",
+      "title": "이별의 곡",
+      "reason": "원본이 정확히 8개의 완전한 마디가 아님"
+    },
+    {
+      "id": "classical-gttm-073",
+      "composer": "라벨",
+      "title": "죽은 왕녀를 위한 파반느",
+      "reason": "원본이 정확히 8개의 완전한 마디가 아님"
+    },
+    {
+      "id": "classical-gttm-075",
+      "composer": "포레",
+      "title": "시실리엔느",
+      "reason": "원본이 정확히 8개의 완전한 마디가 아님"
+    },
+    {
+      "id": "classical-gttm-076",
+      "composer": "엘가",
+      "title": "사랑의 인사",
+      "reason": "원본이 정확히 8개의 완전한 마디가 아님"
+    },
+    {
+      "id": "classical-mahler-1-1",
+      "composer": "말러",
+      "title": "교향곡 1번 · 1악장",
+      "reason": "MIDI 추정 변환본이며 원전 마디와 기보를 확인하지 못함"
+    },
+    {
+      "id": "classical-mahler-1-3",
+      "composer": "말러",
+      "title": "교향곡 1번 · 3악장",
+      "reason": "MIDI 추정 변환본이며 원전 마디와 기보를 확인하지 못함"
+    },
+    {
+      "id": "classical-mahler-8-finale",
+      "composer": "말러",
+      "title": "교향곡 8번 · 종결부",
+      "reason": "총보 성부 선택과 추출 선율의 정확성을 독립 확인하지 못함"
+    },
+    {
+      "id": "shostakovich-7",
+      "composer": "쇼스타코비치",
+      "title": "교향곡 7번 「레닌그라드」",
+      "reason": "검증 가능한 MusicXML 미확보"
+    },
+    {
+      "id": "shostakovich-5",
+      "composer": "쇼스타코비치",
+      "title": "교향곡 5번",
+      "reason": "검증 가능한 MusicXML 미확보"
+    },
+    {
+      "id": "shostakovich-10",
+      "composer": "쇼스타코비치",
+      "title": "교향곡 10번",
+      "reason": "검증 가능한 MusicXML 미확보"
+    }
+  ]
+}

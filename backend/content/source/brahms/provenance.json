@@ -1,0 +1,262 @@
+{
+  "source": "User-provided classic/brahms.mscz and brahms.txt",
+  "source_sha256": "f223c832369a6427ff7dcd26922d598a273d916fdc93f6e28a290eb4cf2defd6",
+  "xml_sha256": "08393bb517a420b8d6eefc6485909ab726ccb05f30e3d14e4ce02d784a519ca6",
+  "policy": "Eight complete source measures; no pitch/rhythm edits, padding, pickup removal, grace removal or inferred global-key substitution.",
+  "accepted": [
+    {
+      "block": 1,
+      "measures": [
+        1,
+        8
+      ],
+      "file": "brahms-01.musicxml",
+      "sha256": "c432cee60c7dfdd6ab38291320adba7b11dd8e71f1b240cc67deaf99a9eeece1",
+      "title": "브람스 · 바이올린 협주곡 라장조 Op. 77, 제1악장",
+      "meter": [
+        3,
+        4
+      ],
+      "key": {
+        "fifths": 2,
+        "mode": "major",
+        "tonic": "D"
+      },
+      "mode_evidence": "Two sharps; D/F-sharp/A tonic material.",
+      "mode_source": "reviewed_signature_and_melody",
+      "question_id": "6ab09e5a-be17-5ab0-ba82-e153cc7809da"
+    },
+    {
+      "block": 2,
+      "measures": [
+        9,
+        16
+      ],
+      "file": "brahms-02.musicxml",
+      "sha256": "4e0f594f185152c703804818bed349e5c21b49798c73a56202496e21e3cbfd56",
+      "title": "브람스 · 바이올린 협주곡 라장조 Op. 77, 제3악장",
+      "meter": [
+        2,
+        4
+      ],
+      "key": {
+        "fifths": 2,
+        "mode": "minor",
+        "tonic": "B"
+      },
+      "mode_evidence": "Two sharps; F-sharp dominant material, A-sharp leading tone and closing B with rest: local B minor.",
+      "mode_source": "reviewed_signature_and_melody",
+      "question_id": "1a84b97a-f446-553a-9f85-138edaaec3e2"
+    },
+    {
+      "block": 3,
+      "measures": [
+        17,
+        24
+      ],
+      "file": "brahms-03.musicxml",
+      "sha256": "002b53f29a7a72ebc1f50a12a524ce035c2780187dd567d174487e70c37a4ede",
+      "title": "브람스 · 교향곡 제4번 마단조 Op. 98, 제1악장",
+      "meter": [
+        4,
+        4
+      ],
+      "key": {
+        "fifths": 1,
+        "mode": "minor",
+        "tonic": "E"
+      },
+      "mode_evidence": "One sharp; movement is E minor; mode requires confirmation because this chromatic excerpt is ambiguous.",
+      "mode_source": "user_confirmed",
+      "question_id": "6b850227-7816-5d5a-b325-2eae12bc4208"
+    },
+    {
+      "block": 4,
+      "measures": [
+        25,
+        32
+      ],
+      "file": "brahms-04.musicxml",
+      "sha256": "f4240d4213b97de9c3f3912e06b6c533a851d9f1ec6f025892f315e02631d233",
+      "title": "브람스 · 교향곡 제4번 마단조 Op. 98, 제4악장",
+      "meter": [
+        3,
+        2
+      ],
+      "key": {
+        "fifths": 1,
+        "mode": "minor",
+        "tonic": "E"
+      },
+      "mode_evidence": "One sharp; E-minor melodic material, raised D-sharp and closing E.",
+      "mode_source": "reviewed_signature_and_melody",
+      "question_id": "9b05b963-f37a-527e-ac03-4704f3450f7e"
+    },
+    {
+      "block": 5,
+      "measures": [
+        33,
+        40
+      ],
+      "file": "brahms-05.musicxml",
+      "sha256": "d1d58cde882c7d05bc2ce74048ddca911d32f614cf4b7f57b8a6824a03a0d41c",
+      "title": "브람스 · 교향곡 제4번 마단조 Op. 98, 제2악장",
+      "meter": [
+        6,
+        8
+      ],
+      "key": {
+        "fifths": 4,
+        "mode": "major",
+        "tonic": "E"
+      },
+      "mode_evidence": "Four sharps; E-major tonic material; use the excerpt key, not the symphony title E minor.",
+      "mode_source": "reviewed_signature_and_melody",
+      "question_id": "19052efc-b50b-5948-8a48-36c66da4a63c"
+    },
+    {
+      "block": 6,
+      "measures": [
+        41,
+        48
+      ],
+      "file": "brahms-06.musicxml",
+      "sha256": "8dbfed40a2b75829200250f0262c219a836fa4543a4a1a5e93a909e438f06cd8",
+      "title": "브람스 · 교향곡 제4번 마단조 Op. 98, 제3악장",
+      "meter": [
+        2,
+        4
+      ],
+      "key": {
+        "fifths": 0,
+        "mode": "major",
+        "tonic": "C"
+      },
+      "mode_evidence": "No signature; chromatic excerpt is ambiguous between relative candidates; requires confirmation.",
+      "mode_source": "user_confirmed",
+      "question_id": "8e31f5f1-2bc2-5edd-9997-46d5cfffbd26"
+    },
+    {
+      "block": 7,
+      "measures": [
+        49,
+        56
+      ],
+      "file": "brahms-07.musicxml",
+      "sha256": "8855975c207a5c515b363036bf6038b120cd60f3c410c7f8f97c4c8724857f65",
+      "title": "브람스 · 교향곡 제2번 라장조 Op. 73, 제1악장",
+      "meter": [
+        3,
+        4
+      ],
+      "key": {
+        "fifths": 2,
+        "mode": "major",
+        "tonic": "D"
+      },
+      "mode_evidence": "Two sharps; D-major tonic material and closing D.",
+      "mode_source": "reviewed_signature_and_melody",
+      "question_id": "83cc55f0-40de-5300-ae74-d8392ed14e0c"
+    },
+    {
+      "block": 9,
+      "measures": [
+        65,
+        72
+      ],
+      "file": "brahms-09.musicxml",
+      "sha256": "b592228c02323f45d8d0b56611a02f16a5e481145413dc76242a97e5bd48575c",
+      "title": "브람스 · 교향곡 제2번 라장조 Op. 73, 제4악장",
+      "meter": [
+        4,
+        4
+      ],
+      "key": {
+        "fifths": 2,
+        "mode": "major",
+        "tonic": "D"
+      },
+      "mode_evidence": "Two sharps; D-major fourth-movement context and D/F-sharp/A material.",
+      "mode_source": "reviewed_signature_and_melody",
+      "question_id": "95a25944-5c10-55b4-b9ed-935c449badcb"
+    },
+    {
+      "block": 10,
+      "measures": [
+        73,
+        80
+      ],
+      "file": "brahms-10.musicxml",
+      "sha256": "7b0908ef5f670d437e9378f7c5efeb65e06257a66ef7187e3f8f35d66063cdaf",
+      "title": "브람스 · 교향곡 제1번 다단조 Op. 68, 제3악장",
+      "meter": [
+        2,
+        4
+      ],
+      "key": {
+        "fifths": 0,
+        "mode": "major",
+        "tonic": "C"
+      },
+      "mode_evidence": "No signature; C-major descending scale and closing C, rather than the work title C minor.",
+      "mode_source": "reviewed_signature_and_melody",
+      "question_id": "6da9eb15-170a-5b39-b90b-1601d4f23f59"
+    },
+    {
+      "block": 11,
+      "measures": [
+        81,
+        88
+      ],
+      "file": "brahms-11.musicxml",
+      "sha256": "d41e56a8762b41864581fd60f014808961f3c110d06b8a46aaa7012769467713",
+      "title": "브람스 · 교향곡 제3번 바장조 Op. 90, 제1악장",
+      "meter": [
+        6,
+        4
+      ],
+      "key": {
+        "fifths": -1,
+        "mode": "major",
+        "tonic": "F"
+      },
+      "mode_evidence": "One flat; F-major first-movement context and F/A/C material.",
+      "mode_source": "reviewed_signature_and_melody",
+      "question_id": "fa447422-0bb6-5a52-aa9a-8a08abe0d806"
+    }
+  ],
+  "excluded": [
+    {
+      "block": 8,
+      "measures": [
+        57,
+        64
+      ],
+      "reason": "unsupported_grace_notes"
+    },
+    {
+      "block": 12,
+      "measures": [
+        89,
+        96
+      ],
+      "reason": "all_rests"
+    },
+    {
+      "block": 13,
+      "measures": [
+        97,
+        104
+      ],
+      "reason": "all_rests"
+    },
+    {
+      "block": 14,
+      "measures": [
+        105,
+        106
+      ],
+      "reason": "all_rests"
+    }
+  ]
+}

@@ -10,6 +10,7 @@ from django.test import override_settings
 from unittest.mock import patch
 from django.contrib.auth import get_user_model
 from django.core.management import call_command
+from django.db.models import F
 from django.test import TestCase, SimpleTestCase
 from PIL import Image
 from rest_framework.authtoken.models import Token
@@ -48,8 +49,11 @@ class FlowTests(TestCase):
         options = {"HTTP_IDEMPOTENCY_KEY": key or str(uuid.uuid4())}
         return self.client.post("/api/v1/"+path, data, format="json", **options, **kwargs)
 
+    def current_questions(self):
+        return QuestionVersion.objects.filter(version=F("question__current_version")).order_by("question__order")
+
     def begin(self):
-        q = QuestionVersion.objects.order_by("question__order").first().metadata
+        q = self.current_questions().first().metadata
         response = self.post("attempts/", {"question_id":q["id"], "question_version":q["version"]})
         self.assertEqual(response.status_code, 201, response.data)
         attempt = response.data
@@ -70,9 +74,54 @@ class FlowTests(TestCase):
         return attempt, answer.data, response.data
 
 
-    def test_exam_plan_countins_waits_and_timer_match_all_three_meters(self):
+    def test_classical_collection_is_separate_and_paginates_with_composer_and_key(self):
+        from urllib.parse import urlsplit
+        practice = self.client.get("/api/v1/questions/")
+        self.assertEqual(practice.data["count"],113)
+        url = "/api/v1/questions/?collection=classical&page_size=3"
+        results = []
+        while url:
+            response = self.client.get(url)
+            self.assertEqual(response.status_code,200,response.data)
+            self.assertEqual(response.data["count"],21)
+            results.extend(response.data["results"])
+            next_url = response.data["next"]
+            if next_url:
+                self.assertIn("collection=classical",next_url)
+                parts = urlsplit(next_url); url = parts.path+"?"+parts.query
+            else: url = None
+        self.assertEqual(len({q["id"] for q in results}),21)
+        self.assertEqual(len({q["composer"] for q in results}),8)
+        self.assertEqual(sum(q["composer"]=="브람스" for q in results),10)
+        for summary in results:
+            self.assertEqual(summary["collection"],"classical")
+            q = self.client.get(f'/api/v1/questions/{summary["id"]}/').data
+            self.assertEqual(q["key_signature"],summary["key_signature"])
+            template = self.client.get(urlsplit(q["sheet_layout"]["template_png_url"]).path)
+            self.assertEqual(template.status_code,200)
+            data = b"".join(template.streaming_content)
+            self.assertEqual(hashlib.sha256(data).hexdigest(),q["sheet_layout"]["template_sha256"])
+            self.assertEqual(q["correct_score"]["renderer"],"MuseScore Studio 4.6.3")
+        self.assertEqual(self.client.get("/api/v1/questions/?collection=unknown").status_code,400)
+
+    def test_classical_uses_the_same_immutable_attempt_upload_and_submission_flow(self):
+        q = self.client.get("/api/v1/questions/?collection=classical").data["results"][0]
+        response = self.post("attempts/",{"question_id":q["id"],"question_version":q["version"]})
+        self.assertEqual(response.status_code,201,response.data)
+        attempt = response.data
+        self.assertEqual(attempt["question"]["collection"],"classical")
+        self.assertEqual(self.post(f'attempts/{attempt["id"]}/start/').status_code,200)
+        answer = self.upload(attempt)
+        self.assertEqual(answer.status_code,201,answer.data)
+        submitted = self.post(f'attempts/{attempt["id"]}/submit/',{"answer_id":answer.data["id"]})
+        self.assertEqual(submitted.status_code,202,submitted.data)
+        restored = self.client.get(f'/api/v1/attempts/{attempt["id"]}/').data
+        self.assertEqual(restored["status"],"submitted")
+        self.assertEqual(restored["question"]["key_signature"],q["key_signature"])
+
+    def test_exam_plan_countins_waits_and_timer_match_all_catalog_meters(self):
         from datetime import datetime
-        for version in QuestionVersion.objects.order_by("question__order"):
+        for version in self.current_questions():
             original = dict(version.metadata)
             q = self.client.get(f"/api/v1/questions/{version.question_id}/").data
             a = self.post("attempts/", {"question_id":q["id"], "question_version":q["version"]}).data
@@ -85,7 +134,7 @@ class FlowTests(TestCase):
             self.assertEqual(plan["count_in"]["beat_unit"], q["time_signature"]["denominator"])
             self.assertEqual([s["pause_after_ms"] for s in plan["steps"]], [20000]*10+[120000])
             started = self.post(f'attempts/{a["id"]}/start/').data
-            expected = {(4,4):456,(3,4):426,(6,8):423}[(q["time_signature"]["numerator"],q["time_signature"]["denominator"])]
+            expected = {(2,2):434,(3,2):489,(4,4):456,(3,4):426,(6,4):489,(6,8):423,(2,4):393,(7,8):443,(9,8):468,(12,8):516}[(q["time_signature"]["numerator"],q["time_signature"]["denominator"])]
             self.assertEqual(q["recommended_duration_seconds"], expected)
             self.assertEqual(a["question"]["recommended_duration_seconds"], expected)
             self.assertEqual((datetime.fromisoformat(started["recommended_end_at"].replace("Z","+00:00")) -
@@ -95,7 +144,7 @@ class FlowTests(TestCase):
             version.refresh_from_db()
             self.assertEqual(version.metadata, original)
 
-    def test_publish_v2_preserves_the_old_version_and_attempt_plan(self):
+    def test_publish_current_sheet_preserves_the_old_version_and_attempt_plan(self):
         old_item=json.loads((settings.CONTENT_ROOT / "catalog-v1.json").read_text(encoding="utf-8"))[0]
         current=QuestionVersion.objects.get(question_id=old_item["metadata"]["id"],version=2)
         old=QuestionVersion.objects.create(question=current.question,version=1,metadata=old_item["metadata"],main_path=old_item["main_path"],scale_path=old_item["scale_path"])
@@ -109,17 +158,55 @@ class FlowTests(TestCase):
         attempt=Attempt.objects.create(user=self.user,question_version=old,question_snapshot=snapshot,playback_plan=legacy)
         call_command("seed_questions",verbosity=0)
         current.question.refresh_from_db();old.refresh_from_db()
-        self.assertEqual(current.question.current_version,2)
+        self.assertEqual(current.question.current_version,3)
         self.assertEqual(old.metadata,old_item["metadata"])
         response=self.client.get(f"/api/v1/attempts/{attempt.id}/")
         self.assertEqual(response.data["playback_plan"],legacy)
         self.assertEqual(response.data["question"]["version"],1)
 
-    def test_three_questions_assets_and_owner_visibility(self):
+    def test_compact_sheet_publication_keeps_existing_attempts_on_their_original_sheet(self):
+        from .playback import make_playback_plan, timed_question
+        original=QuestionVersion.objects.get(question_id=self.current_questions().first().question_id,version=2)
+        snapshot=timed_question(original.metadata)
+        existing=Attempt.objects.create(user=self.user,question_version=original,question_snapshot=snapshot,playback_plan=make_playback_plan(snapshot))
+        call_command("seed_questions",verbosity=0)
+        restored=self.client.get(f"/api/v1/attempts/{existing.id}/").data
+        self.assertEqual(restored["question"]["version"],2)
+        self.assertEqual(restored["question"]["sheet_layout"],snapshot["sheet_layout"] | {"template_png_url":restored["question"]["sheet_layout"]["template_png_url"]})
+        self.assertEqual(restored["question"]["sheet_layout"]["systems"][1]["staff_line_y"][0],499)
+        self.assertEqual(self.post(f"attempts/{existing.id}/start/").status_code,200)
+        old_answer=self.upload(restored)
+        self.assertEqual(old_answer.status_code,201,old_answer.data)
+        current=self.client.get(f"/api/v1/questions/{original.question_id}/").data
+        self.assertEqual(current["version"],3)
+        self.assertEqual(current["sheet_layout"]["display_height"],620)
+        self.assertEqual(current["sheet_layout"]["systems"][1]["staff_line_y"][0],386)
+        self.assertEqual(current["score_assets"]["main"]["sha256"],snapshot["score_assets"]["main"]["sha256"])
+        existing.refresh_from_db();original.refresh_from_db()
+        self.assertEqual(existing.question_snapshot,snapshot)
+
+    def test_full_catalog_pagination_and_owner_visibility(self):
         response = self.client.get("/api/v1/questions/")
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.data["count"], 3)
-        self.assertEqual([(q["time_signature"]["numerator"], q["time_signature"]["denominator"]) for q in response.data["results"]], [(6,8),(4,4),(3,4)])
+        self.assertEqual(response.data["count"], 113)
+        self.assertEqual([(q["time_signature"]["numerator"], q["time_signature"]["denominator"]) for q in response.data["results"][:3]], [(6,8),(4,4),(3,4)])
+        results=list(response.data["results"])
+        while response.data["next"]:
+            response=self.client.get(response.data["next"])
+            self.assertEqual(response.status_code,200)
+            results.extend(response.data["results"])
+        self.assertEqual(len(results),113)
+        self.assertEqual(len({q["id"] for q in results}),113)
+        self.assertTrue(all(q["title"].startswith("고난도 청음") for q in results[3:62]))
+        from collections import Counter
+        self.assertEqual(Counter(q["difficulty"] for q in results),{"beginner":40,"intermediate":14,"advanced":59})
+        # Every new problem resolves its authenticated score and final answer image.
+        for summary in results[3:]:
+            q=self.client.get(f'/api/v1/questions/{summary["id"]}/').data
+            for asset in [q["score_assets"]["main"],q["score_assets"]["scale"],q["correct_score"]]:
+                binary=self.client.get(asset["url"])
+                self.assertEqual(binary.status_code,200)
+                self.assertEqual(hashlib.sha256(b"".join(binary.streaming_content)).hexdigest(),asset["sha256"])
         attempt, answer, _ = self.submitted()
         image = self.client.get(answer["image_url"])
         self.assertEqual(hashlib.sha256(b"".join(image.streaming_content)).hexdigest(), answer["sha256"])
@@ -129,7 +216,7 @@ class FlowTests(TestCase):
         self.assertEqual(self.client.get(answer["image_url"]).status_code, 404)
 
     def test_binary_accept_headers_match_the_real_ipad_client(self):
-        q = QuestionVersion.objects.order_by("question__order").first().metadata
+        q = self.current_questions().first().metadata
         detail = self.client.get(f'/api/v1/questions/{q["id"]}/', HTTP_ACCEPT="application/json").data
         for kind, asset in detail["score_assets"].items():
             response = self.client.get(asset["url"], HTTP_ACCEPT="application/vnd.recordare.musicxml")
@@ -151,7 +238,7 @@ class FlowTests(TestCase):
         self.assertEqual(response["Content-Type"], "application/json")
 
     def test_reference_display_is_authenticated_and_pinned_to_source(self):
-        q = QuestionVersion.objects.order_by("question__order").first().metadata
+        q = self.current_questions().first().metadata
         preview = self.client.get(f'/api/v1/questions/{q["id"]}/').data["correct_score"]
         response = self.client.get(preview["url"], HTTP_ACCEPT="image/png")
         self.assertEqual(response.status_code,200)
@@ -178,7 +265,7 @@ class FlowTests(TestCase):
         self.assertEqual(job.annotations[1]["type"],"notation_suggestion")
 
     def test_repeated_create_upload_submit_never_duplicate(self):
-        q = QuestionVersion.objects.first().metadata
+        q = self.current_questions().first().metadata
         key = str(uuid.uuid4()); body={"question_id":q["id"], "question_version":q["version"]}
         first=self.post("attempts/",body,key); second=self.post("attempts/",body,key)
         self.assertEqual(first.data,second.data)

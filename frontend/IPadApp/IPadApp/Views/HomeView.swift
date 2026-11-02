@@ -2,26 +2,36 @@ import SwiftUI
 
 struct HomeView: View {
     @ObservedObject var model: AppModel
+    var mode: StudyMode = .practice
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 28) {
                 HStack(alignment: .top) {
-                    SectionCaption(eyebrow: "MY PRACTICE ROOM", title: "나의 연습실", subtitle: "오늘도 소리에 귀 기울여 볼까요?")
+                    SectionCaption(eyebrow:"MELODIC DICTATION",title:model.selectedPracticeLevel.map { "\(mode.title) · \($0.title)" } ?? mode.title,subtitle:mode.detail)
                     Spacer()
                     if let profile = model.profile {
                         Menu { ForEach(SORITheme.goals, id: \.0) { key, title in Button(title) { Task { await model.updateGoal(key) } } } } label: { Pill(text: SORITheme.goal(profile.learningGoal), icon: "scope") }
                     }
                 }
-                HStack(spacing: 20) {
+                if model.selectedPracticeLevel == nil {
+                  HStack(spacing: 20) {
                     VStack(alignment: .leading, spacing: 16) {
                         Text("MELODIC DICTATION").font(.caption.weight(.bold)).tracking(2).foregroundStyle(SORITheme.violet)
                         Text("소리를 듣고,\n음악을 기록하세요.").font(.system(size: 34, weight: .bold, design: .rounded)).lineSpacing(5).fixedSize(horizontal: false, vertical: true)
-                        Text("멜로디를 듣고 오선 위에 옮겨 적는 시간.\n작은 연습이 더 정확한 귀를 만들어요.").font(.subheadline).lineSpacing(6).foregroundStyle(.secondary)
+                        Text(mode == .practice ? "정답과 내 악보를 나란히 비교하고,\n틀린 마디를 직접 표시해 보세요." : "시험 순서대로 듣고 필기한 뒤,\nAI 채점과 피드백으로 답안을 돌아보세요.").font(.subheadline).lineSpacing(6).foregroundStyle(.secondary)
                         HStack { Pill(text: "Apple Pencil", icon: "pencil.tip"); Pill(text: "8마디 · 시험 순서", icon: "music.note.list") }
                     }
                     Spacer(minLength: 0)
                     Image(systemName: "waveform.path").font(.system(size: 96, weight: .ultraLight)).foregroundStyle(SORITheme.violet.opacity(0.45)).accessibilityHidden(true)
                 }.padding(32).frame(maxWidth: .infinity, alignment: .leading).background(SORITheme.soft, in: RoundedRectangle(cornerRadius: 24))
+                Button { model.navigate(.minigames) } label: {
+                    Card { HStack(spacing:18) {
+                        Image(systemName:"pianokeys").font(.system(size:34)).foregroundStyle(SORITheme.violet)
+                        VStack(alignment:.leading,spacing:6) { Text("멜로디 런 · 미니게임").font(.headline).foregroundStyle(SORITheme.ink); Text("듣고 기억한 멜로디를 건반으로 복원해 보세요").font(.subheadline).foregroundStyle(.secondary) }
+                        Spacer(); Image(systemName:"arrow.up.right").foregroundStyle(SORITheme.violet)
+                    } }
+                }.buttonStyle(.plain)
+                }
                 if !model.connected {
                     Card { VStack(alignment: .leading, spacing: 16) {
                         Label("학습 공간에 연결해 주세요", systemImage: "network")
@@ -30,30 +40,82 @@ struct HomeView: View {
                     } }
                 } else {
                     if model.pendingCreation { Button { Task { await model.recoverPending() } } label: { Label("응답을 받지 못한 연습 생성 요청 복구", systemImage: "arrow.clockwise") }.buttonStyle(.bordered) }
-                    if let unfinished = model.history.first(where: { $0.attempt.status != "submitted" }) {
+                    if let unfinished = model.history.first(where: { $0.attempt.studyMode == mode && ($0.attempt.status != "submitted" || (mode == .practice && ($0.selfAssessment?.isCompleted != true || $0.practiceEdits != nil || $0.selfAssessmentSave != nil))) }) {
                         Card { HStack {
-                            VStack(alignment: .leading, spacing: 6) { Text("이어서 연습하기").font(.headline); Text(unfinished.attempt.question.title).font(.subheadline).foregroundStyle(.secondary) }
+                            VStack(alignment: .leading, spacing: 6) { Text(mode.title + " 이어서 하기").font(.headline); Text(unfinished.attempt.question.title).font(.subheadline).foregroundStyle(.secondary) }
                             Spacer(); Button("계속하기") { Task { await model.open(unfinished) } }.buttonStyle(PrimaryButton(compact: true))
                         } }
                     }
-                    HStack { Text("청음 연습").font(.title2.bold()); Spacer(); Text("\(model.questions.count)개 문제").font(.subheadline).foregroundStyle(.secondary) }
+                    if model.selectedPracticeLevel != nil {
+                        Button { withAnimation { model.selectedPracticeLevel = nil } } label: { Label("난이도 선택",systemImage:"chevron.left") }.buttonStyle(.bordered)
+                    }
+                    HStack { Text(model.selectedPracticeLevel.map { "\($0.title) 청음 연습" } ?? "난이도를 골라보세요").font(.title2.bold()); Spacer(); Text("\(visibleQuestions.count)개 문제").font(.subheadline).foregroundStyle(.secondary) }
                     if model.questions.isEmpty { ContentUnavailableView("아직 등록된 문제가 없어요", systemImage: "music.note", description: Text("문제가 게시되면 이곳에서 연습을 시작할 수 있어요.")) }
-                    ForEach(Array(model.questions.enumerated()), id: \.element.id) { index, q in
-                        Button { Task { await model.choose(q.id) } } label: {
+                    if model.selectedPracticeLevel == nil {
+                        LazyVGrid(columns:[GridItem(.adaptive(minimum:260),spacing:20)],spacing:20) {
+                            ForEach(PracticeLevel.allCases) { level in
+                                Button { withAnimation { model.selectedPracticeLevel = level } } label: {
+                                    levelCard(level,count:model.questions.filter { $0.practiceLevel == level }.count)
+                                }.buttonStyle(.plain).accessibilityIdentifier("practice-level-\(level.rawValue)")
+                            }
+                        }
+                    } else {
+                    if mode == .practice, let q = suggestedQuestion {
+                        Card { VStack(alignment:.leading,spacing:12) {
+                            Label("다음 연습 추천",systemImage:"sparkles").font(.headline)
+                            Text(q.title).font(.subheadline)
+                            Text("선택한 난이도에서 자기채점을 완료한 횟수가 적은 문제를 먼저 제안해요.").font(.caption).foregroundStyle(.secondary)
+                            Button("이 문제 연습하기") { Task { await model.choose(q.id,mode:.practice) } }.buttonStyle(PrimaryButton(compact:true))
+                                .accessibilityIdentifier("practice-suggested-question")
+                        } }
+                    }
+                    ForEach(Array(visibleQuestions.enumerated()), id: \.element.id) { index, q in
+                        Button { Task { await model.choose(q.id,mode:mode) } } label: {
                             Card { HStack(spacing: 20) {
                                 Text(String(format: "%02d", index+1)).font(.system(size: 29, weight: .light, design: .rounded)).foregroundStyle(SORITheme.violet).frame(width: 48)
                                 VStack(alignment: .leading, spacing: 10) { Text(q.title).font(.headline).foregroundStyle(SORITheme.ink)
-                                    HStack { Text("\(q.keySignature.tonic) \(q.keySignature.mode.capitalized)"); Text("·"); Text("\(q.timeSignature.numerator)/\(q.timeSignature.denominator)"); Text("·"); Text("\(q.measureCount)마디"); Text("·"); Text("\(q.recommendedDurationSeconds / 60)분 \(q.recommendedDurationSeconds % 60)초") }.font(.caption).foregroundStyle(.secondary)
+                                    HStack { Text(q.keySignature.label); Text("·"); Text("\(q.timeSignature.numerator)/\(q.timeSignature.denominator)"); Text("·"); Text("\(q.measureCount)마디"); Text("·"); Text("\(q.recommendedDurationSeconds / 60)분 \(q.recommendedDurationSeconds % 60)초") }.font(.caption).foregroundStyle(.secondary)
                                 }
                                 Spacer(); Image(systemName: "arrow.up.right").font(.title3).foregroundStyle(SORITheme.violet).padding(14).background(SORITheme.soft, in: Circle())
                             } }
-                        }.buttonStyle(.plain)
+                        }.buttonStyle(.plain).accessibilityIdentifier("practice-question-\(q.id.uuidString.lowercased())")
+                    }
+                    if visibleQuestions.isEmpty { ContentUnavailableView("등록된 문제가 없어요",systemImage:"music.note") }
                     }
                     if model.hasNextPage { Button("문제 더 보기") { Task { await model.loadMore() } }.frame(maxWidth: .infinity) }
+                    Button { model.selectedMode = mode; model.navigate(.classical) } label: { Label("클래식 선율 문제",systemImage:"music.quarternote.3") }.buttonStyle(.bordered)
                     if model.demo { DemoBadge() }
                 }
             }.padding(32).frame(maxWidth: 1150, alignment: .leading).frame(maxWidth: .infinity)
-        }.refreshable { await model.connect() }
+        }.refreshable { let level = model.selectedPracticeLevel; await model.refreshLibrary(destination:mode == .practice ? .home : .examLibrary); model.selectedPracticeLevel = level }
+    }
+    private var visibleQuestions: [QuestionSummary] {
+        guard let level = model.selectedPracticeLevel else { return model.questions }
+        return model.questions.filter { $0.practiceLevel == level }
+    }
+    private var suggestedQuestion: QuestionSummary? {
+        var completed: [UUID:Int] = [:]
+        for record in model.history where record.attempt.studyMode == .practice && record.selfAssessment?.isCompleted == true {
+            completed[record.attempt.question.id,default:0] += 1
+        }
+        // Stable catalog order breaks ties; recommendations stay within the chosen level.
+        return visibleQuestions.enumerated().min { lhs, rhs in
+            let a = completed[lhs.element.id,default:0], b = completed[rhs.element.id,default:0]
+            return a == b ? lhs.offset < rhs.offset : a < b
+        }?.element
+    }
+    private func levelCard(_ level: PracticeLevel, count: Int) -> some View {
+        let color: Color = level == .beginner ? .teal : level == .intermediate ? SORITheme.violet : .orange
+        return ZStack(alignment:.bottomLeading) {
+            LinearGradient(colors:[color.opacity(0.1),color.opacity(0.2)],startPoint:.topLeading,endPoint:.bottomTrailing)
+            Image(systemName:level.symbol).font(.system(size:140,weight:.ultraLight)).foregroundStyle(color.opacity(0.15)).frame(maxWidth:.infinity,maxHeight:.infinity,alignment:.topTrailing).padding(22).accessibilityHidden(true)
+            VStack(alignment:.leading,spacing:14) {
+                Text(level.rawValue.uppercased()).font(.caption.weight(.bold)).tracking(2).foregroundStyle(color)
+                HStack { Text(level.title).font(.system(size:38,weight:.bold,design:.rounded)); Spacer(); Image(systemName:"arrow.up.right").font(.title2).foregroundStyle(color) }
+                Text(level.subtitle).font(.subheadline).foregroundStyle(.secondary).multilineTextAlignment(.leading).fixedSize(horizontal:false,vertical:true)
+                Text("\(count)개 문제 · 8마디").font(.caption.weight(.semibold)).foregroundStyle(color)
+            }.padding(28)
+        }.foregroundStyle(SORITheme.ink).frame(minHeight:280).clipShape(RoundedRectangle(cornerRadius:24))
     }
 }
 struct QuestionView: View {
@@ -61,9 +123,10 @@ struct QuestionView: View {
     var body: some View {
         ScrollView { if let q = model.selectedQuestion {
             VStack(alignment: .leading, spacing: 28) {
-                SectionCaption(eyebrow: "READY TO LISTEN", title: q.title, subtitle: q.description)
+                SectionCaption(eyebrow:"READY TO LISTEN",title:q.title,subtitle:model.selectedMode == .practice ? "멜로디를 듣고 빈 오선에 적은 뒤 정답과 직접 비교해요." : q.description)
+                Text(model.selectedMode.title + " · " + model.selectedMode.detail).font(.subheadline).foregroundStyle(SORITheme.violet)
                 HStack {
-                    Pill(text:"\(q.keySignature.tonic) Major",icon:"music.note")
+                    Pill(text:q.keySignature.label,icon:"music.note")
                     Pill(text:"\(q.timeSignature.numerator)/\(q.timeSignature.denominator) · 8마디")
                     if let tempo = q.tempo { Pill(text:tempo.label,icon:"metronome") }
                     Pill(text:"권장 \(q.recommendedDurationSeconds/60)분 \(q.recommendedDurationSeconds%60)초",icon:"clock")
@@ -72,12 +135,12 @@ struct QuestionView: View {
                     Text("연습은 이렇게 진행돼요").font(.title2.bold())
                     instruction("01", "스케일과 멜로디 듣기", "시작 2초 후 스케일을 듣고, 2초 뒤 예비박과 첫 전체 재생이 이어져요. 마지막 전체 재생 앞에도 예비박이 나와요.")
                     instruction("02", "Pencil로 오선에 기록하기", "검정 펜으로 자유롭게 적어 주세요. 필기는 이 iPad에 자동 저장돼요.")
-                    instruction("03", "답안을 제출하고 확인하기", "제출한 답안을 분석한 뒤 점수와 피드백, 정답 악보를 확인해요.")
+                    instruction("03", "답안을 제출하고 확인하기", model.selectedMode == .practice ? "정답과 내 악보를 나란히 보고 틀린 마디의 음정·리듬·기타를 직접 표시해요. 여러 항목을 함께 선택할 수 있어요." : "AI가 채점한 점수와 피드백을 정답 악보·내 답안과 함께 확인해요.")
                 } }
                 Label("이어폰과 음량을 확인해 주세요", systemImage: "headphones").font(.headline)
                 Text("악보와 피아노를 모두 준비한 뒤 시작 버튼이 나타나요. 권장 시간이 지나도 필기와 수동 제출을 계속할 수 있어요. 재생을 멈춘 시간에도 타이머는 흐릅니다.").font(.subheadline).foregroundStyle(.secondary).lineSpacing(6)
                 if model.demo { DemoBadge() }
-                Button { Task { await model.begin() } } label: { Label("연습 준비하기", systemImage: "arrow.right") }.buttonStyle(PrimaryButton())
+                Button { Task { await model.begin() } } label: { Label(model.selectedMode == .practice ? "연습 준비하기" : "시험 준비하기", systemImage:"arrow.right") }.buttonStyle(PrimaryButton())
             }.padding(36).frame(maxWidth: 960, alignment: .leading).frame(maxWidth: .infinity)
         } }
     }
@@ -98,9 +161,11 @@ struct HistoryView: View {
                 Button { Task { await model.open(r) } } label: {
                     Card { HStack {
                         VStack(alignment: .leading, spacing: 8) { Text(r.attempt.question.title).font(.headline); Text(r.attempt.createdAt, format: .dateTime.year().month().day().hour().minute()).font(.caption).foregroundStyle(.secondary)
+                            Text(r.attempt.studyMode.title).font(.caption.weight(.semibold)).foregroundStyle(SORITheme.violet)
                             if r.attempt.gradingMode == "demo" { Text("데모 연습").font(.caption).foregroundStyle(SORITheme.violet) }
                         }; Spacer()
-                        if r.grading?.status == "completed", let score = r.grading?.score { Text("\(score)점").font(.title2.bold()).foregroundStyle(SORITheme.violet) }
+                        if r.attempt.studyMode == .practice, r.attempt.status == "submitted" { Pill(text:r.selfAssessment?.isCompleted == true && r.practiceEdits == nil && r.selfAssessmentSave == nil ? "자기채점 완료" : "자기채점 중") }
+                        else if r.grading?.status == "completed", let score = r.grading?.score { Text("\(score)점").font(.title2.bold()).foregroundStyle(SORITheme.violet) }
                         else { Pill(text: r.attempt.status == "submitted" ? "결과 확인" : "이어서 연습") }
                         Image(systemName: "chevron.right")
                     } }

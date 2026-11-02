@@ -14,6 +14,7 @@ from django.core.files.storage import default_storage
 from django.core.management import call_command
 from django.core.management.base import CommandError
 from django.db import IntegrityError, close_old_connections, connection
+from django.db.models import F
 from django.test import RequestFactory, TestCase, TransactionTestCase, override_settings
 from PIL import Image
 from rest_framework.authtoken.models import Token
@@ -22,8 +23,8 @@ from rest_framework.test import APIClient
 from .accounts import delete_account
 from .errors import exception_handler
 from .grading import execute_job
-from .models import Answer, Attempt, GradingJob, IdempotencyRecord, LoginThrottle, QuestionVersion, UserProfile, throttle_key
-from . import views
+from .models import Answer, Attempt, GradingJob, IdempotencyRecord, LoginThrottle, QuestionVersion, SelfAssessmentRevision, UserProfile, throttle_key
+from . import auth_views, views
 
 ME = "/api/v1/me/"
 FAST_HASHERS = ["django.contrib.auth.hashers.MD5PasswordHasher"]
@@ -66,7 +67,7 @@ class AccountFlow:
         return client.post("/api/v1/" + path, data, format="json", HTTP_IDEMPOTENCY_KEY=str(uuid.uuid4()))
 
     def started_attempt(self, client):
-        question = QuestionVersion.objects.order_by("question__order").first().metadata
+        question = QuestionVersion.objects.filter(version=F("question__current_version")).order_by("question__order").first().metadata
         attempt = self.post(client, "attempts/", {"question_id": question["id"], "question_version": question["version"]})
         self.assertEqual(attempt.status_code, 201, attempt.data)
         self.assertEqual(self.post(client, f'attempts/{attempt.data["id"]}/start/').status_code, 200)
@@ -94,12 +95,27 @@ class AccountFlow:
         self.assertFalse(UserProfile.objects.filter(user_id=user_id).exists())
         self.assertFalse(Token.objects.filter(user_id=user_id).exists())
         self.assertFalse(Attempt.objects.filter(user_id=user_id).exists())
+        self.assertFalse(SelfAssessmentRevision.objects.filter(attempt__user_id=user_id).exists())
         self.assertFalse(IdempotencyRecord.objects.filter(user_id=user_id).exists())
 
     def assert_unauthorized(self, response):
         self.assertEqual(response.status_code, 401, getattr(response, "data", None))
         self.assertEqual(response.data["error"]["code"], "AUTHENTICATION_REQUIRED")
         self.assertEqual(response["WWW-Authenticate"], "Bearer")
+
+
+class SelfAssessmentDeletionTests(AccountFlow, TemporaryMedia, TestCase):
+    def setUp(self):
+        call_command("seed_questions", verbosity=0)
+
+    def test_account_with_practice_self_assessment_is_deleted(self):
+        user, client = self.account()
+        user_id = user.pk
+        attempt = Attempt.objects.get(pk=self.started_attempt(client)["id"])
+        SelfAssessmentRevision.objects.create(attempt=attempt, revision=1, errors=[], completed=False)
+        response = client.delete(ME)
+        self.assertEqual(response.status_code, 204, getattr(response, "data", None))
+        self.assert_owns_nothing(user_id)
 
 
 class AccountDeletionTests(AccountFlow, TemporaryMedia, TestCase):
@@ -421,7 +437,7 @@ class DeletionConcurrencyTests(AccountFlow, TemporaryMedia, TransactionTestCase)
     def test_attempt_created_during_deletion_gets_401_and_leaves_nothing(self):
         user, client = self.account()
         user_id = user.pk
-        question = QuestionVersion.objects.order_by("question__order").first().metadata
+        question = QuestionVersion.objects.filter(version=F("question__current_version")).order_by("question__order").first().metadata
         inserted, deleted = Event(), Event()
         original = views.attempt_json
 
@@ -442,7 +458,7 @@ class DeletionConcurrencyTests(AccountFlow, TemporaryMedia, TransactionTestCase)
     def test_attempt_committed_after_the_first_scan_is_also_deleted(self):
         user, client = self.account()
         user_id = user.pk
-        question = QuestionVersion.objects.order_by("question__order").first().metadata
+        question = QuestionVersion.objects.filter(version=F("question__current_version")).order_by("question__order").first().metadata
         original = get_user_model
 
         def commit_attempt_before_the_user_lock():
@@ -508,6 +524,33 @@ class DeletionConcurrencyTests(AccountFlow, TemporaryMedia, TransactionTestCase)
             responses = (submit.result(20), upload.result(20))
         self.assertEqual([response.status_code for response in responses], [404, 404])
         self.assertEqual(list(Path(settings.MEDIA_ROOT).rglob("*.png")), [])
+
+    @override_settings(PASSWORD_HASHERS=FAST_HASHERS)
+    def test_login_holding_its_throttle_row_does_not_deadlock_with_deletion(self):
+        user, _ = self.account(password="correct-horse-battery")
+        user_id = user.pk
+        locked, finish = Event(), Event()
+        original = auth_views.remaining
+
+        def hold_after_throttle_lock(*args, **kwargs):
+            locked.set()
+            self.assertTrue(finish.wait(20))
+            return original(*args, **kwargs)
+
+        login_client = APIClient()
+        login_client.raise_request_exception = False
+        with patch("sori.auth_views.remaining", side_effect=hold_after_throttle_lock), ThreadPoolExecutor(max_workers=2) as pool:
+            login = pool.submit(self.in_connection, lambda: login_client.post(
+                "/api/v1/auth/login/", {"username": "learner", "password": "correct-horse-battery"}, format="json"))
+            self.assertTrue(locked.wait(20))
+            deletion = pool.submit(self.in_connection, lambda: delete_account(user))
+            # The deletion must wait for the throttle row instead of taking the user row.
+            with self.assertRaises(TimeoutError):
+                deletion.result(1)
+            finish.set()
+            self.assertEqual(login.result(20).status_code, 200)
+            self.assertTrue(deletion.result(20))
+        self.assert_owns_nothing(user_id)
 
     def uploaded_response(self, client, attempt):
         file = io.BytesIO(PNG)

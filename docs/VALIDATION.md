@@ -1,5 +1,17 @@
 # 검증 기록
 
+## 2026-11-03: main 병합 (로그인·가입·삭제 + Practice/Exam)
+
+macOS에서 Python 3.14, 고정된 의존성과 테스트 전용 PostgreSQL 17 컨테이너를 사용했습니다. 유료 AI 호출은 사용하지 않았습니다.
+
+- `manage.py test api sori --noinput` 전체 239개 통과. 시스템 검사, migration 일치 검사와 CI의 scripts 검사 통과. `scripts/test_handwriting_evaluation.py`는 CI 대상이 아니며 저장소 밖 평가 이미지가 없어 병합 전 main에서도 같은 1개 오류가 납니다.
+- `swift test --package-path frontend` 전체 92개 통과. iPad Pro 13-inch (M5) 시뮬레이터에서 CI 범위 60개 통과(계정 삭제 9개, 로그인 12개, 가입 18개, 클래식 2개, 시험 조작 4개, 멜로디 런 6개, 연습 3개, 연습 목록 2개, 기존 통합 4개).
+- 갈라진 migration을 `0004_merge_0003_practice_and_exam_0003_signup`으로 합쳤습니다. 병합 전 두 브랜치 코드로 각각 DB를 만들고 사용자·응시를 넣은 뒤 올려, 데이터 유지, 토큰 조회, 로그인 200, 계정 삭제 204를 확인했습니다.
+- 삭제 계약에 자기채점 이력을 포함했고, 로그인과 같은 잠금 순서로 바꿔 교착을 막았습니다. 이 두 수정을 되돌리면 새 테스트가 실패합니다.
+- 앱 변이 5개(새로고침 재연결, 사용자 전환 시 클래식 초기화, 도착 화면, 전체 문제 페이지, 이전 평문 토큰 삭제)를 새 테스트가 모두 잡았습니다.
+
+미검증: 실제 iPad, Cloudflare Tunnel, Compose 전체 구성과 gunicorn HTTP 점검의 재실행, 당겨서 새로고침의 실제 제스처와 병합 후 화면 캡처.
+
 ## 2026-11-02: 계정 삭제 계약 v0.8.0
 
 macOS에서 Python 3.14, 고정된 의존성과 테스트 전용 PostgreSQL 17 컨테이너를 사용했습니다. 유료 AI 호출은 사용하지 않았습니다. 대상은 `DELETE /api/v1/me/`, 관리 명령 `delete_practice_user`, 앱의 계정 삭제입니다.
@@ -28,6 +40,16 @@ macOS에서 Python 3.14, 고정된 의존성과 테스트 전용 PostgreSQL 17 �
 미검증: 실제 iPad, Cloudflare Tunnel을 거친 [배포 테스트](sori-api/AUTH-IMPLEMENTATION.md#배포-테스트), Windows Docker Desktop. 본문이 1 MiB를 넘는 초과 요청은 서버가 끝까지 읽지 않으므로 413을 받기 전에 연결이 끊길 수 있습니다.
 
 미구현: AI 채점 사용량 상한의 적용(설정 검증만 구현), compose의 cloudflared 구성과 api 포트 제한.
+
+## 2026-11-01: Practice / Exam 분리
+
+- 서버 없는 Feature v1 검사 33개, 자기채점·AI XML 근거 검사 5개, 기존 채점 계약 검사 4개 통과.
+- 변경 Python 파일 문법, 새 JSON fixture 3개의 스키마 적합성, OpenAPI 내부 참조와 Git 공백 검사 확인.
+- Django 회귀 검사 9개를 추가했다. Practice에서 AI 작업을 만들지 않는지, 완료/미채점·복수 오류·수정 이력·재전송·충돌·권한·Exam XML 저장을 검사한다.
+- Swift 패키지의 모드·자기채점·마디 터치 영역·HTTP 검사와 iPad 호스트의 제출/복원/완료 검사를 추가하고 CI에 연결했다.
+- 이 개발 환경에서는 Django·Swift/Xcode 미설치와 Docker 엔진 접근 제한으로 새 DB·iPad 통합 검사를 실행하지 못했다. 서버 재빌드 후 전체 테스트와 GitHub CI 확인이 필요하다. 실제 iPad 새 화면·터치는 새 IPA 설치 후 확인해야 한다.
+
+이번 기능의 전체 흐름과 실행 명령은 [Practice / Exam 안내](PRACTICE-EXAM.md)에 있다. 아래 날짜별 기록은 당시 검증 범위를 보존한다.
 
 ## 2026-10-28: 로그인 계약 v0.7.0
 

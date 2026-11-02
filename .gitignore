@@ -38,3 +38,6 @@ frontend/IPadApp/IPadApp/Resources/GeneralUser-GS.sf2
 frontend/IPadApp/IPadApp/Resources/instrument-bank.json
 frontend/IPadApp/IPadApp/Resources/generaluser-license.txt
 frontend/IPadApp/IPadApp/Resources/*.download
+frontend/IPadApp/IPadApp/Resources/melody-classical-piano.sf2
+frontend/IPadApp/IPadApp/Resources/melody-piano-bank.json
+frontend/IPadApp/IPadApp/Resources/melody-piano-license.txt

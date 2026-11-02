@@ -9,11 +9,21 @@ struct UserProfile: Codable, Identifiable, Equatable {
     var displayName: String
     var learningGoal: String
 }
-struct KeySignature: Codable, Equatable { var tonic: String; var mode: String; var fifths: Int }
+struct KeySignature: Codable, Equatable {
+    var tonic: String; var mode: String; var fifths: Int
+    var label: String { mode == "unspecified" ? "조표 없음" : "\(tonic.replacingOccurrences(of:"b",with:"♭").replacingOccurrences(of:"#",with:"♯"))\(mode == "minor" ? "단조" : "장조")" }
+    var supported: Bool {
+        let major = ["Cb","Gb","Db","Ab","Eb","Bb","F","C","G","D","A","E","B","F#","C#"]
+        let minor = ["Ab","Eb","Bb","F","C","G","D","A","E","B","F#","C#","G#","D#","A#"]
+        guard (-7...7).contains(fifths) else { return false }
+        if mode == "unspecified" { return fifths == 0 && tonic == "C" }
+        return mode == "major" ? major[fifths+7] == tonic : mode == "minor" && minor[fifths+7] == tonic
+    }
+}
 struct TimeSignature: Codable, Equatable {
     var numerator: Int; var denominator: Int
     var ticksPerMeasure: Int { numerator * 480 * 4 / denominator }
-    var supported: Bool { [(4,4), (3,4), (6,8)].contains { $0.0 == numerator && $0.1 == denominator } }
+    var supported: Bool { [(2,2), (3,2), (2,4), (3,4), (4,4), (6,4), (3,8), (6,8), (7,8), (9,8), (12,8)].contains { $0.0 == numerator && $0.1 == denominator } }
 }
 struct SheetSystem: Codable, Equatable {
     var index: Int; var firstMeasure: Int; var lastMeasure: Int
@@ -24,11 +34,27 @@ struct SheetLayout: Codable, Equatable {
     var logicalWidth: Int; var logicalHeight: Int; var exportScale: Int
     var pixelWidth: Int; var pixelHeight: Int
     var templatePngUrl: URL; var templateSha256: String; var systems: [SheetSystem]
+    var displayHeight: Int? = nil
+    static func supports(_ id: String) -> Bool {
+        if ["staff-8bars-v1", "staff-8bars-4-4-v2", "staff-8bars-3-4-v2", "staff-8bars-6-8-v2", "staff-8bars-2-4-v2", "staff-8bars-7-8-v2", "staff-8bars-9-8-v2", "staff-8bars-12-8-v2"].contains(id) { return true }
+        for meter in [(2,2),(3,2),(2,4),(3,4),(4,4),(6,4),(3,8),(6,8),(7,8),(9,8),(12,8)] {
+            for fifths in -7...7 {
+                if [3,4].contains(where: { id == "staff-8bars-\(meter.0)-\(meter.1)-key\(fifths)-v\($0)" }) { return true }
+            }
+        }
+        return false
+    }
     func validate() throws {
-        guard ["staff-8bars-v1", "staff-8bars-4-4-v2", "staff-8bars-3-4-v2", "staff-8bars-6-8-v2"].contains(id), logicalWidth == 1330, logicalHeight == 846,
+        guard Self.supports(id), logicalWidth == 1330, logicalHeight == 846,
               exportScale == 2, pixelWidth == 2660, pixelHeight == 1692,
               systems.count == 2, systems.allSatisfy({ $0.staffLineY.count == 5 && $0.barlineX.count == 5 }) else {
             throw SORIError.unsupported("지원하지 않는 오선 템플릿입니다.")
+        }
+        if id.hasSuffix("-v4") {
+            guard displayHeight == 620, systems[0].staffLineY == [164,176,188,200,212],
+                  systems[1].staffLineY == [386,398,410,422,434] else { throw SORIError.unsupported("새 오선의 필기 좌표가 일치하지 않습니다.") }
+        } else if displayHeight != nil && displayHeight != logicalHeight {
+            throw SORIError.unsupported("이전 오선의 표시 크기를 변경할 수 없습니다.")
         }
     }
 }
@@ -47,6 +73,9 @@ struct QuestionSummary: Codable, Identifiable, Equatable {
     var keySignature: KeySignature; var timeSignature: TimeSignature
     var measureCount: Int; var recommendedDurationSeconds: Int
     var tempo: TempoSetting? = nil
+    var collection: String? = nil
+    var composer: String? = nil
+    var difficulty: String? = nil
 }
 struct Question: Codable, Identifiable, Equatable {
     var id: UUID; var version: Int; var title: String; var source: String
@@ -56,12 +85,23 @@ struct Question: Codable, Identifiable, Equatable {
     var sheetLayout: SheetLayout; var contentPolicy: String; var scoreVisibility: String; var scoreAssets: ScoreAssets
     var tempo: TempoSetting? = nil
     var correctScore: ReferenceImage? = nil
+    var collection: String? = nil
+    var composer: String? = nil
+    var difficulty: String? = nil
     func validate() throws {
         try sheetLayout.validate()
-        guard source == "practice", keySignature.tonic == "C", keySignature.mode == "major", keySignature.fifths == 0,
+        guard source == "practice", keySignature.supported,
               timeSignature.supported, measureCount == 8,
               timePolicy == "advisory", clef == "treble", contentPolicy == "client_readable_practice",
               scoreVisibility == "after_submission" else { throw SORIError.unsupported("지원하지 않는 문제 형식입니다.") }
+        if collection == "classical" || keySignature.fifths != 0 || keySignature.mode == "minor" || sheetLayout.id.hasSuffix("-v4") {
+            guard [3,4].contains(where: { sheetLayout.id == "staff-8bars-\(timeSignature.numerator)-\(timeSignature.denominator)-key\(keySignature.fifths)-v\($0)" })
+            else { throw SORIError.unsupported("문제의 조표·오선이 일치하지 않습니다.") }
+        }
+        if collection == "classical" {
+            guard composer?.isEmpty == false, ["major","minor"].contains(keySignature.mode), scoreAssets.main.profile == "sori-monophonic-v4"
+            else { throw SORIError.unsupported("검증된 클래식 문제 형식이 아닙니다.") }
+        }
     }
 }
 struct QuestionPage: Codable { var count: Int; var next: URL?; var previous: URL?; var results: [QuestionSummary] }
@@ -79,14 +119,14 @@ struct CountInPlayback: Codable, Equatable {
 struct TempoSetting: Codable, Equatable {
     var policyId: String; var beatUnit: String; var bpm: Int
     var minimumBpm: Int; var maximumBpm: Int
-    var quarterBpm: Double { Double(bpm) * (beatUnit == "dotted_quarter" ? 1.5 : 1) }
-    var label: String { "\(beatUnit == "dotted_quarter" ? "♩." : "♩") = \(bpm)" }
+    var quarterBpm: Double { Double(bpm) * (beatUnit == "half" ? 2 : beatUnit == "dotted_quarter" ? 1.5 : 1) }
+    var label: String { "\(beatUnit == "half" ? "𝅗𝅥" : beatUnit == "dotted_quarter" ? "♩." : "♩") = \(bpm)" }
     func validate(meter: TimeSignature? = nil) throws {
-        guard ["quarter","dotted_quarter"].contains(beatUnit), !policyId.isEmpty,
+        guard ["quarter","dotted_quarter","half"].contains(beatUnit), !policyId.isEmpty,
               minimumBpm > 0, maximumBpm >= minimumBpm, (minimumBpm...maximumBpm).contains(bpm),
               quarterBpm >= 40, quarterBpm <= 200 else { throw SORIError.unsupported("템포 설정을 확인해 주세요.") }
         if let meter {
-            guard beatUnit == (meter.denominator == 8 ? "dotted_quarter" : "quarter") else { throw SORIError.unsupported("템포의 기준 음표가 박자와 다릅니다.") }
+            guard beatUnit == (meter.denominator == 2 ? "half" : meter.denominator == 8 && meter.numerator % 3 == 0 ? "dotted_quarter" : "quarter") else { throw SORIError.unsupported("템포의 기준 음표가 박자와 다릅니다.") }
         }
     }
 }
@@ -104,7 +144,7 @@ struct PlaybackPlan: Codable, Equatable {
         let ranges = [(1,8),(1,2),(1,2),(1,4),(3,4),(3,6),(5,6),(5,8),(7,8),(7,8),(1,8)]
         return PlaybackPlan(version:4,engine:"local_midi",tempoBpm:selected.quarterBpm,instrumentProfileId:"sori-piano-v2",
             tuningHz:440,transposeSemitones:0,velocity:80,gateRatio:1,releaseTailMs:300,
-            scale:ScalePlayback(scoreKind:"scale",fromMeasure:1,toMeasure:scaleMeasures ?? (meter.numerator == 4 ? 2 : 3)),pauseAfterScaleMs:2000,
+            scale:ScalePlayback(scoreKind:"scale",fromMeasure:1,toMeasure:scaleMeasures ?? ((15*240+meter.ticksPerMeasure-1)/meter.ticksPerMeasure)),pauseAfterScaleMs:2000,
             allowManualPause:true,allowManualReplay:false,interruptionPolicy:"restart_current_segment",
             steps:ranges.enumerated().map { i, range in
                 PlaybackStep(order:i+1,fromMeasure:range.0,toMeasure:range.1,scoreKind:"main",pauseAfterMs:i == 10 ? 120000 : 20000)
@@ -126,7 +166,7 @@ struct PlaybackPlan: Codable, Equatable {
               transposeSemitones == 0, velocity == 80, gateRatio == 1, releaseTailMs == 300,
               tempoBpm.isFinite, (40...200).contains(tempoBpm), allowManualPause, !allowManualReplay,
               interruptionPolicy == "restart_current_segment", scale.scoreKind == "scale", scale.fromMeasure == 1,
-              (version == 4 ? [2,3].contains(scale.toMeasure) : scale.toMeasure == 2), pauseAfterScaleMs >= 0, steps.count == 11,
+              (version == 4 ? (1...5).contains(scale.toMeasure) : scale.toMeasure == 2), pauseAfterScaleMs >= 0, steps.count == 11,
               zip(steps,ranges).enumerated().allSatisfy({ i,pair in
                   pair.0.order == i+1 && pair.0.fromMeasure == pair.1.0 && pair.0.toMeasure == pair.1.1 && pair.0.scoreKind == "main" && pair.0.pauseAfterMs >= 0
               }) else { throw SORIError.unsupported("지원하지 않는 재생 계획입니다.") }
@@ -155,6 +195,9 @@ struct Attempt: Codable, Identifiable, Equatable {
     var id: UUID; var status: String; var gradingMode: String; var createdAt: Date
     var startedAt: Date?; var recommendedEndAt: Date?; var submittedAt: Date?; var submittedAnswerId: UUID?; var latestAnswer: Answer?
     var question: Question; var playbackPlan: PlaybackPlan; var serverTime: Date
+    var mode: String? = nil
+    var featureAnalysisId: UUID? = nil
+    var studyMode: StudyMode { mode.flatMap { StudyMode(rawValue:$0) } ?? (gradingMode == "self" ? .practice : .exam) }
 }
 struct BBox: Codable, Equatable {
     var x: Double; var y: Double; var width: Double; var height: Double

@@ -1,0 +1,13 @@
+{
+  "expected_revision": 0,
+  "errors": [
+    {
+      "measure": 3,
+      "types": [
+        "pitch",
+        "rhythm"
+      ]
+    }
+  ],
+  "completed": true
+}

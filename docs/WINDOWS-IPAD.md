@@ -48,7 +48,7 @@ IPA는 push로 실행한 CI에서 생성하며 보관 기간은 14일입니다. 
 4. SORI의 **연결 설정**에서 **로컬 데모 사용**을 끕니다.
 5. API 기준 주소를 http://<Windows PC의 LAN IPv4>:8000/api/v1/로 입력합니다. iPad의 localhost는 Windows 서버가 아닙니다.
 6. **서버 연결**을 누르고 관리자가 만든 아이디·비밀번호로 로그인합니다. 계정이 없다면 서버 PC에서 `docker compose --env-file backend/.env exec api python manage.py create_practice_user student01`로 비밀번호를 설정합니다. OpenRouter API 키는 앱에 입력하지 않습니다.
-7. 세 문제 중 하나를 준비 → 시작 → 청음·필기 → 제출하고 AI 결과를 확인합니다.
+7. 연습실의 초급·중급·고급 또는 클래식에서 문제를 골라 준비 → 시작 → 청음·필기 → 제출하고 AI 결과를 확인합니다. [난이도 안내](PRACTICE-LEVELS.md)를 참고하세요.
 
 처음에는 데모에서 소리·필기를 확인하고, 서버 연결 후 실제 AI 제출을 한 번 확인합니다. 데모 결과는 예시이고, 실제 서버로 제출하면 OpenRouter 사용량이 발생합니다.
 
@@ -78,7 +78,7 @@ GitHub 빌드 성공은 실제 iPad의 오디오·필기·서버 제출까지 �
 
 ## v0.5 업데이트 후 확인
 
-새 IPA를 같은 Apple 계정·Bundle ID로 기존 앱 위에 설치합니다. 서버 실행 폴더 sori에서 docker compose --env-file backend/.env up --build -d --wait를 실행해 API와 worker를 함께 갱신합니다. db·답안 볼륨은 유지하며 seed_questions가 현재 문제를 v2로 올립니다.
+새 IPA를 같은 Apple 계정·Bundle ID로 기존 앱 위에 설치합니다. 서버 실행 폴더 sori에서 docker compose --env-file backend/.env up --build -d --wait를 실행해 API와 worker를 함께 갱신합니다. db·답안 볼륨과 기존 응시를 유지하며 seed_questions가 현재 목록의 새 문제 버전을 등록합니다.
 
 새 응시에서 템포(4/4·3/4는 ♩=80, 6/8은 ♩.=55), 도레미파솔라시도시라솔파미레도 스케일과 새 합성 피아노를 확인합니다. 이전에 시작한 응시는 저장된 예전 계획을 사용합니다.
 

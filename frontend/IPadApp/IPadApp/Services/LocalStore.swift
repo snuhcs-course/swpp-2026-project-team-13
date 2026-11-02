@@ -2,11 +2,6 @@ import Foundation
 import PencilKit
 import Security
 
-struct PlaybackCursor: Codable, Equatable {
-    var index = 0 // 0 = scale, 1...11 = main, 12 = finished
-    var phase = "initial" // initial, segment, gap; legacy saved phases still decode
-    var remainingWaitMs: Int? = nil
-}
 struct SessionRecord: Codable, Identifiable {
     var id: UUID { attempt.id }
     var attempt: Attempt
@@ -18,10 +13,18 @@ struct SessionRecord: Codable, Identifiable {
     var uploaded: Answer?
     var gradingRetryKey: UUID?
     var grading: Grading?
+    var selfAssessment: PracticeAssessment? = nil
+    var practiceEdits: [MeasureError]? = nil
+    var practiceBaseRevision: Int? = nil
+    var selfAssessmentSave: PendingSelfAssessment? = nil
     var hasDrawing = false
     var parserVersion = MusicXMLParser.version
 }
-struct PendingCreation: Codable { var question: Question; var key: UUID }
+struct PendingCreation: Codable {
+    var question: Question; var key: UUID
+    var mode: StudyMode? = nil
+    var studyMode: StudyMode { mode ?? .exam }
+}
 
 final class LocalStore {
     let root: URL
@@ -84,6 +87,11 @@ enum TokenVault {
         let query: [String: Any] = [kSecClass as String: kSecClassGenericPassword, kSecAttrService as String: service, kSecAttrAccount as String: try account(server)]
         let status = SecItemDelete(query as CFDictionary)
         guard status == errSecSuccess || status == errSecItemNotFound else { throw SORIError.storage("Keychain의 토큰을 삭제하지 못했습니다.") }
+    }
+    // Builds before password login kept a plaintext token copy here.
+    static func removeLegacyPlaintextCopies() {
+        guard let app = try? FileManager.default.url(for: .applicationSupportDirectory, in: .userDomainMask, appropriateFor: nil, create: false) else { return }
+        try? FileManager.default.removeItem(at: app.appendingPathComponent("SORI/ConnectionCredentials", isDirectory: true))
     }
 }
 

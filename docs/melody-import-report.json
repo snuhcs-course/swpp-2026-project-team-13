@@ -1,0 +1,511 @@
+{
+  "imported": 923,
+  "skipped": 124,
+  "reasons": {
+    "pickup_or_not_eight_bars": 86,
+    "unsupported_rhythm": 19,
+    "repeat_or_multiple_voices": 7,
+    "unsupported_note_type": 7,
+    "chord_or_grace": 2,
+    "unsupported_clef": 1,
+    "inconsistent_rhythm": 2
+  },
+  "files": [
+    {
+      "file": "02_8_bars_with_pickup\\MusicXML\\Batchellor-Charmbury-1884a\\Batchellor-Charmbury-1884a_1-1-019.xml",
+      "reason": "pickup_or_not_eight_bars"
+    },
+    {
+      "file": "02_8_bars_with_pickup\\MusicXML\\Batchellor-Charmbury-1884a\\Batchellor-Charmbury-1884a_1-1-022.xml",
+      "reason": "pickup_or_not_eight_bars"
+    },
+    {
+      "file": "02_8_bars_with_pickup\\MusicXML\\Batchellor-Charmbury-1884a\\Batchellor-Charmbury-1884a_1-1-034.xml",
+      "reason": "pickup_or_not_eight_bars"
+    },
+    {
+      "file": "02_8_bars_with_pickup\\MusicXML\\Batchellor-Charmbury-1884a\\Batchellor-Charmbury-1884a_1-1-036.xml",
+      "reason": "pickup_or_not_eight_bars"
+    },
+    {
+      "file": "02_8_bars_with_pickup\\MusicXML\\Batchellor-Charmbury-1884a\\Batchellor-Charmbury-1884a_1-1-044.xml",
+      "reason": "pickup_or_not_eight_bars"
+    },
+    {
+      "file": "02_8_bars_with_pickup\\MusicXML\\Batchellor-Charmbury-1884a\\Batchellor-Charmbury-1884a_1-1-049.xml",
+      "reason": "pickup_or_not_eight_bars"
+    },
+    {
+      "file": "02_8_bars_with_pickup\\MusicXML\\Batchellor-Charmbury-1884a\\Batchellor-Charmbury-1884a_1-1-081.xml",
+      "reason": "pickup_or_not_eight_bars"
+    },
+    {
+      "file": "02_8_bars_with_pickup\\MusicXML\\Batchellor-Charmbury-1884a\\Batchellor-Charmbury-1884a_1-1-085.xml",
+      "reason": "pickup_or_not_eight_bars"
+    },
+    {
+      "file": "02_8_bars_with_pickup\\MusicXML\\Batchellor-Charmbury-1884a\\Batchellor-Charmbury-1884a_1-1-098.xml",
+      "reason": "pickup_or_not_eight_bars"
+    },
+    {
+      "file": "02_8_bars_with_pickup\\MusicXML\\Batchellor-Charmbury-1884a\\Batchellor-Charmbury-1884a_1-1-103.xml",
+      "reason": "pickup_or_not_eight_bars"
+    },
+    {
+      "file": "02_8_bars_with_pickup\\MusicXML\\Batchellor-Charmbury-1884a\\Batchellor-Charmbury-1884a_1-1-112.xml",
+      "reason": "pickup_or_not_eight_bars"
+    },
+    {
+      "file": "02_8_bars_with_pickup\\MusicXML\\Batchellor-Charmbury-1884b\\Batchellor-Charmbury-1884b_2-2-015.xml",
+      "reason": "pickup_or_not_eight_bars"
+    },
+    {
+      "file": "02_8_bars_with_pickup\\MusicXML\\Batchellor-Charmbury-1884b\\Batchellor-Charmbury-1884b_2-2-016.xml",
+      "reason": "pickup_or_not_eight_bars"
+    },
+    {
+      "file": "02_8_bars_with_pickup\\MusicXML\\Batchellor-Charmbury-1884b\\Batchellor-Charmbury-1884b_2-2-018.xml",
+      "reason": "pickup_or_not_eight_bars"
+    },
+    {
+      "file": "02_8_bars_with_pickup\\MusicXML\\Batchellor-Charmbury-1884b\\Batchellor-Charmbury-1884b_2-2-021.xml",
+      "reason": "pickup_or_not_eight_bars"
+    },
+    {
+      "file": "02_8_bars_with_pickup\\MusicXML\\Batchellor-Charmbury-1884b\\Batchellor-Charmbury-1884b_2-2-023.xml",
+      "reason": "pickup_or_not_eight_bars"
+    },
+    {
+      "file": "02_8_bars_with_pickup\\MusicXML\\Batchellor-Charmbury-1884b\\Batchellor-Charmbury-1884b_2-2-024.xml",
+      "reason": "pickup_or_not_eight_bars"
+    },
+    {
+      "file": "02_8_bars_with_pickup\\MusicXML\\Batchellor-Charmbury-1884c\\Batchellor-Charmbury-1884c_3-1-013.xml",
+      "reason": "pickup_or_not_eight_bars"
+    },
+    {
+      "file": "01_exact_8_bars\\MusicXML\\Batchellor-Charmbury-1887a\\Batchellor-Charmbury-1887a_4-1-002.xml",
+      "reason": "unsupported_rhythm"
+    },
+    {
+      "file": "02_8_bars_with_pickup\\MusicXML\\Batchellor-Charmbury-1887a\\Batchellor-Charmbury-1887a_4-1-012.xml",
+      "reason": "pickup_or_not_eight_bars"
+    },
+    {
+      "file": "02_8_bars_with_pickup\\MusicXML\\Batchellor-Charmbury-1887a\\Batchellor-Charmbury-1887a_4-1-046.xml",
+      "reason": "pickup_or_not_eight_bars"
+    },
+    {
+      "file": "02_8_bars_with_pickup\\MusicXML\\Batchellor-Charmbury-1887a\\Batchellor-Charmbury-1887a_4-1-047.xml",
+      "reason": "pickup_or_not_eight_bars"
+    },
+    {
+      "file": "02_8_bars_with_pickup\\MusicXML\\Batchellor-Charmbury-1887a\\Batchellor-Charmbury-1887a_4-2-013.xml",
+      "reason": "pickup_or_not_eight_bars"
+    },
+    {
+      "file": "02_8_bars_with_pickup\\MusicXML\\Batchellor-Charmbury-1887a\\Batchellor-Charmbury-1887a_4-2-017.xml",
+      "reason": "pickup_or_not_eight_bars"
+    },
+    {
+      "file": "02_8_bars_with_pickup\\MusicXML\\Batchellor-Charmbury-1887a\\Batchellor-Charmbury-1887a_4-3-003.xml",
+      "reason": "pickup_or_not_eight_bars"
+    },
+    {
+      "file": "02_8_bars_with_pickup\\MusicXML\\Batchellor-Charmbury-1887a\\Batchellor-Charmbury-1887a_4-3-004.xml",
+      "reason": "pickup_or_not_eight_bars"
+    },
+    {
+      "file": "02_8_bars_with_pickup\\MusicXML\\Batchellor-Charmbury-1887a\\Batchellor-Charmbury-1887a_4-3-005.xml",
+      "reason": "pickup_or_not_eight_bars"
+    },
+    {
+      "file": "02_8_bars_with_pickup\\MusicXML\\Batchellor-Charmbury-1887a\\Batchellor-Charmbury-1887a_4-3-006.xml",
+      "reason": "pickup_or_not_eight_bars"
+    },
+    {
+      "file": "02_8_bars_with_pickup\\MusicXML\\Batchellor-Charmbury-1887a\\Batchellor-Charmbury-1887a_4-3-007.xml",
+      "reason": "pickup_or_not_eight_bars"
+    },
+    {
+      "file": "01_exact_8_bars\\MusicXML\\Boissiere-1876\\Boissiere-1876-1-078.xml",
+      "reason": "repeat_or_multiple_voices"
+    },
+    {
+      "file": "01_exact_8_bars\\MusicXML\\Cole-Lewis-1904\\Cole-Lewis-1904_1-01-067.xml",
+      "reason": "unsupported_note_type"
+    },
+    {
+      "file": "01_exact_8_bars\\MusicXML\\Cole-Lewis-1904\\Cole-Lewis-1904_1-01-073.xml",
+      "reason": "unsupported_note_type"
+    },
+    {
+      "file": "01_exact_8_bars\\MusicXML\\Cole-Lewis-1904\\Cole-Lewis-1904_1-01-101.xml",
+      "reason": "unsupported_note_type"
+    },
+    {
+      "file": "01_exact_8_bars\\MusicXML\\Cole-Lewis-1904\\Cole-Lewis-1904_1-01-115.xml",
+      "reason": "unsupported_note_type"
+    },
+    {
+      "file": "01_exact_8_bars\\MusicXML\\Cole-Lewis-1904\\Cole-Lewis-1904_1-01-196.xml",
+      "reason": "unsupported_note_type"
+    },
+    {
+      "file": "01_exact_8_bars\\MusicXML\\Cole-Lewis-1904\\Cole-Lewis-1904_1-01-222.xml",
+      "reason": "unsupported_note_type"
+    },
+    {
+      "file": "01_exact_8_bars\\MusicXML\\Cole-Lewis-1904\\Cole-Lewis-1904_2-03-210.xml",
+      "reason": "unsupported_note_type"
+    },
+    {
+      "file": "01_exact_8_bars\\MusicXML\\Cole-Lewis-1904\\Cole-Lewis-1904_2-03-227.xml",
+      "reason": "unsupported_rhythm"
+    },
+    {
+      "file": "01_exact_8_bars\\MusicXML\\Cole-Lewis-1904\\Cole-Lewis-1904_2-03-228.xml",
+      "reason": "unsupported_rhythm"
+    },
+    {
+      "file": "01_exact_8_bars\\MusicXML\\Cole-Lewis-1904\\Cole-Lewis-1904_2-05-137.xml",
+      "reason": "unsupported_rhythm"
+    },
+    {
+      "file": "01_exact_8_bars\\MusicXML\\Cole-Lewis-1904\\Cole-Lewis-1904_2-05-216.xml",
+      "reason": "unsupported_rhythm"
+    },
+    {
+      "file": "01_exact_8_bars\\MusicXML\\Cole-Lewis-1904\\Cole-Lewis-1904_2-05-221.xml",
+      "reason": "unsupported_rhythm"
+    },
+    {
+      "file": "02_8_bars_with_pickup\\MusicXML\\Cole-Lewis-1904\\Cole-Lewis-1904_3-07-016.xml",
+      "reason": "pickup_or_not_eight_bars"
+    },
+    {
+      "file": "02_8_bars_with_pickup\\MusicXML\\Cole-Lewis-1904\\Cole-Lewis-1904_3-07-025.xml",
+      "reason": "pickup_or_not_eight_bars"
+    },
+    {
+      "file": "01_exact_8_bars\\MusicXML\\Cole-Lewis-1904\\Cole-Lewis-1904_3-07-123.xml",
+      "reason": "unsupported_rhythm"
+    },
+    {
+      "file": "01_exact_8_bars\\MusicXML\\Cole-Lewis-1904\\Cole-Lewis-1904_4-09-007.xml",
+      "reason": "chord_or_grace"
+    },
+    {
+      "file": "02_8_bars_with_pickup\\MusicXML\\Cole-Lewis-1904\\Cole-Lewis-1904_4-09-045.xml",
+      "reason": "pickup_or_not_eight_bars"
+    },
+    {
+      "file": "02_8_bars_with_pickup\\MusicXML\\Cringan-1901\\Cringan-1901_034.xml",
+      "reason": "pickup_or_not_eight_bars"
+    },
+    {
+      "file": "02_8_bars_with_pickup\\MusicXML\\Cringan-1901\\Cringan-1901_041.xml",
+      "reason": "pickup_or_not_eight_bars"
+    },
+    {
+      "file": "02_8_bars_with_pickup\\MusicXML\\Cringan-1901\\Cringan-1901_042.xml",
+      "reason": "pickup_or_not_eight_bars"
+    },
+    {
+      "file": "02_8_bars_with_pickup\\MusicXML\\Cringan-1901\\Cringan-1901_043.xml",
+      "reason": "pickup_or_not_eight_bars"
+    },
+    {
+      "file": "02_8_bars_with_pickup\\MusicXML\\Cringan-1901\\Cringan-1901_044.xml",
+      "reason": "pickup_or_not_eight_bars"
+    },
+    {
+      "file": "02_8_bars_with_pickup\\MusicXML\\Cringan-1901\\Cringan-1901_048.xml",
+      "reason": "pickup_or_not_eight_bars"
+    },
+    {
+      "file": "02_8_bars_with_pickup\\MusicXML\\Cringan-1901\\Cringan-1901_049.xml",
+      "reason": "pickup_or_not_eight_bars"
+    },
+    {
+      "file": "02_8_bars_with_pickup\\MusicXML\\Cringan-1901\\Cringan-1901_050.xml",
+      "reason": "pickup_or_not_eight_bars"
+    },
+    {
+      "file": "02_8_bars_with_pickup\\MusicXML\\Cringan-1901\\Cringan-1901_063.xml",
+      "reason": "pickup_or_not_eight_bars"
+    },
+    {
+      "file": "02_8_bars_with_pickup\\MusicXML\\Cringan-1901\\Cringan-1901_064.xml",
+      "reason": "pickup_or_not_eight_bars"
+    },
+    {
+      "file": "02_8_bars_with_pickup\\MusicXML\\Cringan-1901\\Cringan-1901_065.xml",
+      "reason": "pickup_or_not_eight_bars"
+    },
+    {
+      "file": "02_8_bars_with_pickup\\MusicXML\\Cringan-1901\\Cringan-1901_066.xml",
+      "reason": "pickup_or_not_eight_bars"
+    },
+    {
+      "file": "02_8_bars_with_pickup\\MusicXML\\Cringan-1901\\Cringan-1901_069.xml",
+      "reason": "pickup_or_not_eight_bars"
+    },
+    {
+      "file": "02_8_bars_with_pickup\\MusicXML\\Cringan-1901\\Cringan-1901_070.xml",
+      "reason": "pickup_or_not_eight_bars"
+    },
+    {
+      "file": "02_8_bars_with_pickup\\MusicXML\\Cringan-1901\\Cringan-1901_073.xml",
+      "reason": "pickup_or_not_eight_bars"
+    },
+    {
+      "file": "02_8_bars_with_pickup\\MusicXML\\Cringan-1901\\Cringan-1901_077.xml",
+      "reason": "pickup_or_not_eight_bars"
+    },
+    {
+      "file": "02_8_bars_with_pickup\\MusicXML\\Cringan-1901\\Cringan-1901_083.xml",
+      "reason": "pickup_or_not_eight_bars"
+    },
+    {
+      "file": "02_8_bars_with_pickup\\MusicXML\\Cringan-1901\\Cringan-1901_084.xml",
+      "reason": "pickup_or_not_eight_bars"
+    },
+    {
+      "file": "02_8_bars_with_pickup\\MusicXML\\Cringan-1901\\Cringan-1901_085.xml",
+      "reason": "pickup_or_not_eight_bars"
+    },
+    {
+      "file": "02_8_bars_with_pickup\\MusicXML\\Cringan-1901\\Cringan-1901_087.xml",
+      "reason": "pickup_or_not_eight_bars"
+    },
+    {
+      "file": "02_8_bars_with_pickup\\MusicXML\\Cringan-1901\\Cringan-1901_091.xml",
+      "reason": "pickup_or_not_eight_bars"
+    },
+    {
+      "file": "02_8_bars_with_pickup\\MusicXML\\Cringan-1901\\Cringan-1901_093.xml",
+      "reason": "pickup_or_not_eight_bars"
+    },
+    {
+      "file": "02_8_bars_with_pickup\\MusicXML\\Cringan-1901\\Cringan-1901_097.xml",
+      "reason": "pickup_or_not_eight_bars"
+    },
+    {
+      "file": "02_8_bars_with_pickup\\MusicXML\\Cringan-1901\\Cringan-1901_098.xml",
+      "reason": "pickup_or_not_eight_bars"
+    },
+    {
+      "file": "02_8_bars_with_pickup\\MusicXML\\Cringan-1901\\Cringan-1901_105.xml",
+      "reason": "pickup_or_not_eight_bars"
+    },
+    {
+      "file": "02_8_bars_with_pickup\\MusicXML\\Cringan-1901\\Cringan-1901_106.xml",
+      "reason": "pickup_or_not_eight_bars"
+    },
+    {
+      "file": "02_8_bars_with_pickup\\MusicXML\\Cringan-1901\\Cringan-1901_109.xml",
+      "reason": "pickup_or_not_eight_bars"
+    },
+    {
+      "file": "01_exact_8_bars\\MusicXML\\Crowell-2004\\Crowell-2004_101.xml",
+      "reason": "repeat_or_multiple_voices"
+    },
+    {
+      "file": "01_exact_8_bars\\MusicXML\\Crowell-2004\\Crowell-2004_103.xml",
+      "reason": "chord_or_grace"
+    },
+    {
+      "file": "01_exact_8_bars\\MusicXML\\Crowell-2004\\Crowell-2004_116.xml",
+      "reason": "repeat_or_multiple_voices"
+    },
+    {
+      "file": "01_exact_8_bars\\MusicXML\\Crowell-2004\\Crowell-2004_170.xml",
+      "reason": "repeat_or_multiple_voices"
+    },
+    {
+      "file": "01_exact_8_bars\\MusicXML\\Crowell-2004\\Crowell-2004_205.xml",
+      "reason": "repeat_or_multiple_voices"
+    },
+    {
+      "file": "01_exact_8_bars\\MusicXML\\Crowell-2004\\Crowell-2004_214.xml",
+      "reason": "unsupported_rhythm"
+    },
+    {
+      "file": "01_exact_8_bars\\MusicXML\\Crowell-2004\\Crowell-2004_240.xml",
+      "reason": "unsupported_rhythm"
+    },
+    {
+      "file": "02_8_bars_with_pickup\\MusicXML\\Crowell-2004\\Crowell-2004_271.xml",
+      "reason": "pickup_or_not_eight_bars"
+    },
+    {
+      "file": "01_exact_8_bars\\MusicXML\\Crowell-2004\\Crowell-2004_277.xml",
+      "reason": "unsupported_rhythm"
+    },
+    {
+      "file": "01_exact_8_bars\\MusicXML\\Crowell-2004\\Crowell-2004_425.xml",
+      "reason": "unsupported_clef"
+    },
+    {
+      "file": "02_8_bars_with_pickup\\MusicXML\\Hollis-1915\\Hollis-1915_10-06.xml",
+      "reason": "pickup_or_not_eight_bars"
+    },
+    {
+      "file": "01_exact_8_bars\\MusicXML\\Hollis-1915\\Hollis-1915_16-07.xml",
+      "reason": "inconsistent_rhythm"
+    },
+    {
+      "file": "01_exact_8_bars\\MusicXML\\Hollis-1915\\Hollis-1915_24-04.xml",
+      "reason": "inconsistent_rhythm"
+    },
+    {
+      "file": "01_exact_8_bars\\MusicXML\\Hollis-1915\\Hollis-1915_27-06.xml",
+      "reason": "repeat_or_multiple_voices"
+    },
+    {
+      "file": "02_8_bars_with_pickup\\MusicXML\\Hollis-1915\\Hollis-1915_28-01.xml",
+      "reason": "pickup_or_not_eight_bars"
+    },
+    {
+      "file": "02_8_bars_with_pickup\\MusicXML\\Hollis-1915\\Hollis-1915_28-02.xml",
+      "reason": "pickup_or_not_eight_bars"
+    },
+    {
+      "file": "02_8_bars_with_pickup\\MusicXML\\Hollis-1915\\Hollis-1915_28-04.xml",
+      "reason": "pickup_or_not_eight_bars"
+    },
+    {
+      "file": "02_8_bars_with_pickup\\MusicXML\\Hollis-1915\\Hollis-1915_29-02.xml",
+      "reason": "pickup_or_not_eight_bars"
+    },
+    {
+      "file": "02_8_bars_with_pickup\\MusicXML\\Hollis-1915\\Hollis-1915_29-03.xml",
+      "reason": "pickup_or_not_eight_bars"
+    },
+    {
+      "file": "02_8_bars_with_pickup\\MusicXML\\Hollis-1915\\Hollis-1915_29-04.xml",
+      "reason": "pickup_or_not_eight_bars"
+    },
+    {
+      "file": "02_8_bars_with_pickup\\MusicXML\\Hollis-1915\\Hollis-1915_30-07.xml",
+      "reason": "pickup_or_not_eight_bars"
+    },
+    {
+      "file": "02_8_bars_with_pickup\\MusicXML\\Hollis-1915\\Hollis-1915_30-08.xml",
+      "reason": "pickup_or_not_eight_bars"
+    },
+    {
+      "file": "02_8_bars_with_pickup\\MusicXML\\Hollis-1915\\Hollis-1915_33-07.xml",
+      "reason": "pickup_or_not_eight_bars"
+    },
+    {
+      "file": "01_exact_8_bars\\MusicXML\\Hollis-1915\\Hollis-1915_35-07.xml",
+      "reason": "repeat_or_multiple_voices"
+    },
+    {
+      "file": "02_8_bars_with_pickup\\MusicXML\\Hollis-1915\\Hollis-1915_41-03.xml",
+      "reason": "pickup_or_not_eight_bars"
+    },
+    {
+      "file": "02_8_bars_with_pickup\\MusicXML\\Hollis-1915\\Hollis-1915_41-05.xml",
+      "reason": "pickup_or_not_eight_bars"
+    },
+    {
+      "file": "02_8_bars_with_pickup\\MusicXML\\Hollis-1915\\Hollis-1915_45-03.xml",
+      "reason": "pickup_or_not_eight_bars"
+    },
+    {
+      "file": "02_8_bars_with_pickup\\MusicXML\\Hollis-1915\\Hollis-1915_48-01.xml",
+      "reason": "pickup_or_not_eight_bars"
+    },
+    {
+      "file": "02_8_bars_with_pickup\\MusicXML\\Hollis-1915\\Hollis-1915_48-02.xml",
+      "reason": "pickup_or_not_eight_bars"
+    },
+    {
+      "file": "02_8_bars_with_pickup\\MusicXML\\Hollis-1915\\Hollis-1915_48-03.xml",
+      "reason": "pickup_or_not_eight_bars"
+    },
+    {
+      "file": "02_8_bars_with_pickup\\MusicXML\\Hollis-1915\\Hollis-1915_50-07.xml",
+      "reason": "pickup_or_not_eight_bars"
+    },
+    {
+      "file": "02_8_bars_with_pickup\\MusicXML\\Hollis-1915\\Hollis-1915_54-03.xml",
+      "reason": "pickup_or_not_eight_bars"
+    },
+    {
+      "file": "02_8_bars_with_pickup\\MusicXML\\Hollis-1915\\Hollis-1915_54-04.xml",
+      "reason": "pickup_or_not_eight_bars"
+    },
+    {
+      "file": "02_8_bars_with_pickup\\MusicXML\\Hollis-1915\\Hollis-1915_57-07.xml",
+      "reason": "pickup_or_not_eight_bars"
+    },
+    {
+      "file": "02_8_bars_with_pickup\\MusicXML\\Hollis-1915\\Hollis-1915_60-01.xml",
+      "reason": "pickup_or_not_eight_bars"
+    },
+    {
+      "file": "02_8_bars_with_pickup\\MusicXML\\Hollis-1915\\Hollis-1915_60-02.xml",
+      "reason": "pickup_or_not_eight_bars"
+    },
+    {
+      "file": "02_8_bars_with_pickup\\MusicXML\\Hollis-1915\\Hollis-1915_60-03.xml",
+      "reason": "pickup_or_not_eight_bars"
+    },
+    {
+      "file": "02_8_bars_with_pickup\\MusicXML\\Hollis-1915\\Hollis-1915_60-04.xml",
+      "reason": "pickup_or_not_eight_bars"
+    },
+    {
+      "file": "02_8_bars_with_pickup\\MusicXML\\Hollis-1915\\Hollis-1915_64-01.xml",
+      "reason": "pickup_or_not_eight_bars"
+    },
+    {
+      "file": "02_8_bars_with_pickup\\MusicXML\\Somervell-1911\\Somervell-1911_011.xml",
+      "reason": "pickup_or_not_eight_bars"
+    },
+    {
+      "file": "02_8_bars_with_pickup\\MusicXML\\Somervell-1911\\Somervell-1911_181.xml",
+      "reason": "pickup_or_not_eight_bars"
+    },
+    {
+      "file": "01_exact_8_bars\\MusicXML\\Somervell-1911\\Somervell-1911_354.xml",
+      "reason": "unsupported_rhythm"
+    },
+    {
+      "file": "01_exact_8_bars\\MusicXML\\Somervell-1911\\Somervell-1911_355.xml",
+      "reason": "unsupported_rhythm"
+    },
+    {
+      "file": "01_exact_8_bars\\MusicXML\\Somervell-1911\\Somervell-1911_356.xml",
+      "reason": "unsupported_rhythm"
+    },
+    {
+      "file": "01_exact_8_bars\\MusicXML\\Somervell-1911\\Somervell-1911_357.xml",
+      "reason": "unsupported_rhythm"
+    },
+    {
+      "file": "01_exact_8_bars\\MusicXML\\Somervell-1911\\Somervell-1911_359.xml",
+      "reason": "unsupported_rhythm"
+    },
+    {
+      "file": "01_exact_8_bars\\MusicXML\\Somervell-1911\\Somervell-1911_361.xml",
+      "reason": "unsupported_rhythm"
+    },
+    {
+      "file": "01_exact_8_bars\\MusicXML\\Wedge-1922\\Wedge-1922_08-06-01.xml",
+      "reason": "unsupported_rhythm"
+    },
+    {
+      "file": "01_exact_8_bars\\MusicXML\\Wedge-1922\\Wedge-1922_10-06-04.xml",
+      "reason": "unsupported_rhythm"
+    },
+    {
+      "file": "01_exact_8_bars\\MusicXML\\Wedge-1922\\Wedge-1922_18-03-03.xml",
+      "reason": "unsupported_rhythm"
+    }
+  ]
+}

@@ -1,0 +1,992 @@
+[
+  {
+    "id": "6ab09e5a-be17-5ab0-ba82-e153cc7809da",
+    "version": 1,
+    "title": "브람스 · 바이올린 협주곡 라장조 Op. 77, 제1악장",
+    "source": "practice",
+    "collection": "classical",
+    "composer": "브람스",
+    "key_signature": {
+      "fifths": 2,
+      "mode": "major",
+      "tonic": "D"
+    },
+    "time_signature": {
+      "numerator": 3,
+      "denominator": 4
+    },
+    "measure_count": 8,
+    "recommended_duration_seconds": 300,
+    "description": "사용자 제공 브람스 악보 1–8마디 발췌입니다. 조표와 발췌 선율에 맞는 음계를 듣고 8마디를 적어보세요.",
+    "time_policy": "advisory",
+    "clef": "treble",
+    "sheet_layout": {
+      "id": "staff-8bars-3-4-key2-v4",
+      "logical_width": 1330,
+      "logical_height": 846,
+      "export_scale": 2,
+      "pixel_width": 2660,
+      "pixel_height": 1692,
+      "template_png_url": "https://api.sori.example/assets/sheets/staff-8bars-3-4-key2-v4.png",
+      "template_sha256": "72a858e5e8953713f0afe93490302223c9328b2fb4e3d8823bb5f54f3d1d347c",
+      "systems": [
+        {
+          "index": 1,
+          "first_measure": 1,
+          "last_measure": 4,
+          "staff_line_y": [
+            164,
+            176,
+            188,
+            200,
+            212
+          ],
+          "barline_x": [
+            54,
+            450,
+            725,
+            1000,
+            1276
+          ]
+        },
+        {
+          "index": 2,
+          "first_measure": 5,
+          "last_measure": 8,
+          "staff_line_y": [
+            386,
+            398,
+            410,
+            422,
+            434
+          ],
+          "barline_x": [
+            54,
+            397,
+            690,
+            983,
+            1276
+          ]
+        }
+      ],
+      "display_height": 620
+    },
+    "content_policy": "client_readable_practice",
+    "score_visibility": "after_submission",
+    "score_assets": {
+      "main": {
+        "url": "https://api.sori.example/api/v1/questions/6ab09e5a-be17-5ab0-ba82-e153cc7809da/versions/1/scores/main/",
+        "content_type": "application/vnd.recordare.musicxml",
+        "sha256": "28fc6b7f49bfdd41d5a2dc2f770625c441fb66ebe40943d9430a6bb20c922746",
+        "size_bytes": 1326,
+        "musicxml_version": "4.0",
+        "profile": "sori-monophonic-v4",
+        "part_id": "P1",
+        "measure_count": 8,
+        "source_tempo_bpm": 96
+      },
+      "scale": {
+        "url": "https://api.sori.example/api/v1/questions/6ab09e5a-be17-5ab0-ba82-e153cc7809da/versions/1/scores/scale/",
+        "content_type": "application/vnd.recordare.musicxml",
+        "sha256": "cb3c05c8b7ca5ccfb08c8133ebf0e68108291c6d91f40e165dad6e138ca166c5",
+        "size_bytes": 1099,
+        "musicxml_version": "4.0",
+        "profile": "sori-monophonic-v4",
+        "part_id": "P1",
+        "measure_count": 3,
+        "source_tempo_bpm": 96
+      }
+    }
+  },
+  {
+    "id": "1a84b97a-f446-553a-9f85-138edaaec3e2",
+    "version": 1,
+    "title": "브람스 · 바이올린 협주곡 라장조 Op. 77, 제3악장",
+    "source": "practice",
+    "collection": "classical",
+    "composer": "브람스",
+    "key_signature": {
+      "fifths": 2,
+      "mode": "minor",
+      "tonic": "B"
+    },
+    "time_signature": {
+      "numerator": 2,
+      "denominator": 4
+    },
+    "measure_count": 8,
+    "recommended_duration_seconds": 300,
+    "description": "사용자 제공 브람스 악보 9–16마디 발췌입니다. 조표와 발췌 선율에 맞는 음계를 듣고 8마디를 적어보세요.",
+    "time_policy": "advisory",
+    "clef": "treble",
+    "sheet_layout": {
+      "id": "staff-8bars-2-4-key2-v4",
+      "logical_width": 1330,
+      "logical_height": 846,
+      "export_scale": 2,
+      "pixel_width": 2660,
+      "pixel_height": 1692,
+      "template_png_url": "https://api.sori.example/assets/sheets/staff-8bars-2-4-key2-v4.png",
+      "template_sha256": "bfd1ca72df7e05210f1acc98862be76fcb67738e874705677191a4aaf7509d33",
+      "systems": [
+        {
+          "index": 1,
+          "first_measure": 1,
+          "last_measure": 4,
+          "staff_line_y": [
+            164,
+            176,
+            188,
+            200,
+            212
+          ],
+          "barline_x": [
+            54,
+            450,
+            725,
+            1000,
+            1276
+          ]
+        },
+        {
+          "index": 2,
+          "first_measure": 5,
+          "last_measure": 8,
+          "staff_line_y": [
+            386,
+            398,
+            410,
+            422,
+            434
+          ],
+          "barline_x": [
+            54,
+            397,
+            690,
+            983,
+            1276
+          ]
+        }
+      ],
+      "display_height": 620
+    },
+    "content_policy": "client_readable_practice",
+    "score_visibility": "after_submission",
+    "score_assets": {
+      "main": {
+        "url": "https://api.sori.example/api/v1/questions/1a84b97a-f446-553a-9f85-138edaaec3e2/versions/1/scores/main/",
+        "content_type": "application/vnd.recordare.musicxml",
+        "sha256": "93429ce30ee18a08ee9d45fedd7e1841907e055392934f32ec106b310f7f8c52",
+        "size_bytes": 1412,
+        "musicxml_version": "4.0",
+        "profile": "sori-monophonic-v4",
+        "part_id": "P1",
+        "measure_count": 8,
+        "source_tempo_bpm": 96
+      },
+      "scale": {
+        "url": "https://api.sori.example/api/v1/questions/1a84b97a-f446-553a-9f85-138edaaec3e2/versions/1/scores/scale/",
+        "content_type": "application/vnd.recordare.musicxml",
+        "sha256": "306a310d12dc7c1ea3a2c13d68f35dc978c17df676aee800d52d089025331ca1",
+        "size_bytes": 1102,
+        "musicxml_version": "4.0",
+        "profile": "sori-monophonic-v4",
+        "part_id": "P1",
+        "measure_count": 4,
+        "source_tempo_bpm": 96
+      }
+    }
+  },
+  {
+    "id": "6b850227-7816-5d5a-b325-2eae12bc4208",
+    "version": 1,
+    "title": "브람스 · 교향곡 제4번 마단조 Op. 98, 제1악장",
+    "source": "practice",
+    "collection": "classical",
+    "composer": "브람스",
+    "key_signature": {
+      "fifths": 1,
+      "mode": "minor",
+      "tonic": "E"
+    },
+    "time_signature": {
+      "numerator": 4,
+      "denominator": 4
+    },
+    "measure_count": 8,
+    "recommended_duration_seconds": 300,
+    "description": "사용자 제공 브람스 악보 17–24마디 발췌입니다. 조표와 발췌 선율에 맞는 음계를 듣고 8마디를 적어보세요.",
+    "time_policy": "advisory",
+    "clef": "treble",
+    "sheet_layout": {
+      "id": "staff-8bars-4-4-key1-v4",
+      "logical_width": 1330,
+      "logical_height": 846,
+      "export_scale": 2,
+      "pixel_width": 2660,
+      "pixel_height": 1692,
+      "template_png_url": "https://api.sori.example/assets/sheets/staff-8bars-4-4-key1-v4.png",
+      "template_sha256": "4d4e15eef1df8eb68d63dcf6dd10049dbb1781048683e16304cf96b9520f10c8",
+      "systems": [
+        {
+          "index": 1,
+          "first_measure": 1,
+          "last_measure": 4,
+          "staff_line_y": [
+            164,
+            176,
+            188,
+            200,
+            212
+          ],
+          "barline_x": [
+            54,
+            450,
+            725,
+            1000,
+            1276
+          ]
+        },
+        {
+          "index": 2,
+          "first_measure": 5,
+          "last_measure": 8,
+          "staff_line_y": [
+            386,
+            398,
+            410,
+            422,
+            434
+          ],
+          "barline_x": [
+            54,
+            397,
+            690,
+            983,
+            1276
+          ]
+        }
+      ],
+      "display_height": 620
+    },
+    "content_policy": "client_readable_practice",
+    "score_visibility": "after_submission",
+    "score_assets": {
+      "main": {
+        "url": "https://api.sori.example/api/v1/questions/6b850227-7816-5d5a-b325-2eae12bc4208/versions/1/scores/main/",
+        "content_type": "application/vnd.recordare.musicxml",
+        "sha256": "d04e96ddc3a9e00137ab08af516d306974a8018c8ba5154f7b81a4440e7d7122",
+        "size_bytes": 1604,
+        "musicxml_version": "4.0",
+        "profile": "sori-monophonic-v4",
+        "part_id": "P1",
+        "measure_count": 8,
+        "source_tempo_bpm": 96
+      },
+      "scale": {
+        "url": "https://api.sori.example/api/v1/questions/6b850227-7816-5d5a-b325-2eae12bc4208/versions/1/scores/scale/",
+        "content_type": "application/vnd.recordare.musicxml",
+        "sha256": "1d4e5a31e6919e46ff442346408c8f908449171f108c571bdc2ec2759bf44e1b",
+        "size_bytes": 1084,
+        "musicxml_version": "4.0",
+        "profile": "sori-monophonic-v4",
+        "part_id": "P1",
+        "measure_count": 2,
+        "source_tempo_bpm": 96
+      }
+    }
+  },
+  {
+    "id": "9b05b963-f37a-527e-ac03-4704f3450f7e",
+    "version": 1,
+    "title": "브람스 · 교향곡 제4번 마단조 Op. 98, 제4악장",
+    "source": "practice",
+    "collection": "classical",
+    "composer": "브람스",
+    "key_signature": {
+      "fifths": 1,
+      "mode": "minor",
+      "tonic": "E"
+    },
+    "time_signature": {
+      "numerator": 3,
+      "denominator": 2
+    },
+    "measure_count": 8,
+    "recommended_duration_seconds": 300,
+    "description": "사용자 제공 브람스 악보 25–32마디 발췌입니다. 조표와 발췌 선율에 맞는 음계를 듣고 8마디를 적어보세요.",
+    "time_policy": "advisory",
+    "clef": "treble",
+    "sheet_layout": {
+      "id": "staff-8bars-3-2-key1-v4",
+      "logical_width": 1330,
+      "logical_height": 846,
+      "export_scale": 2,
+      "pixel_width": 2660,
+      "pixel_height": 1692,
+      "template_png_url": "https://api.sori.example/assets/sheets/staff-8bars-3-2-key1-v4.png",
+      "template_sha256": "c73d9bbaaf585fe5ff39caa51548387e5646909be5bec49fdb7dc587e2c53c5f",
+      "systems": [
+        {
+          "index": 1,
+          "first_measure": 1,
+          "last_measure": 4,
+          "staff_line_y": [
+            164,
+            176,
+            188,
+            200,
+            212
+          ],
+          "barline_x": [
+            54,
+            450,
+            725,
+            1000,
+            1276
+          ]
+        },
+        {
+          "index": 2,
+          "first_measure": 5,
+          "last_measure": 8,
+          "staff_line_y": [
+            386,
+            398,
+            410,
+            422,
+            434
+          ],
+          "barline_x": [
+            54,
+            397,
+            690,
+            983,
+            1276
+          ]
+        }
+      ],
+      "display_height": 620
+    },
+    "content_policy": "client_readable_practice",
+    "score_visibility": "after_submission",
+    "score_assets": {
+      "main": {
+        "url": "https://api.sori.example/api/v1/questions/9b05b963-f37a-527e-ac03-4704f3450f7e/versions/1/scores/main/",
+        "content_type": "application/vnd.recordare.musicxml",
+        "sha256": "be3cf4b91a922be9111c7541f11976732be4e095d5cd199f0d3a44cc8246cebe",
+        "size_bytes": 1703,
+        "musicxml_version": "4.0",
+        "profile": "sori-monophonic-v4",
+        "part_id": "P1",
+        "measure_count": 8,
+        "source_tempo_bpm": 96
+      },
+      "scale": {
+        "url": "https://api.sori.example/api/v1/questions/9b05b963-f37a-527e-ac03-4704f3450f7e/versions/1/scores/scale/",
+        "content_type": "application/vnd.recordare.musicxml",
+        "sha256": "99bd53cb8c9931de0b148a4868579644385cf373b84f7586c75848f6d476931f",
+        "size_bytes": 1144,
+        "musicxml_version": "4.0",
+        "profile": "sori-monophonic-v4",
+        "part_id": "P1",
+        "measure_count": 2,
+        "source_tempo_bpm": 96
+      }
+    }
+  },
+  {
+    "id": "19052efc-b50b-5948-8a48-36c66da4a63c",
+    "version": 1,
+    "title": "브람스 · 교향곡 제4번 마단조 Op. 98, 제2악장",
+    "source": "practice",
+    "collection": "classical",
+    "composer": "브람스",
+    "key_signature": {
+      "fifths": 4,
+      "mode": "major",
+      "tonic": "E"
+    },
+    "time_signature": {
+      "numerator": 6,
+      "denominator": 8
+    },
+    "measure_count": 8,
+    "recommended_duration_seconds": 300,
+    "description": "사용자 제공 브람스 악보 33–40마디 발췌입니다. 조표와 발췌 선율에 맞는 음계를 듣고 8마디를 적어보세요.",
+    "time_policy": "advisory",
+    "clef": "treble",
+    "sheet_layout": {
+      "id": "staff-8bars-6-8-key4-v4",
+      "logical_width": 1330,
+      "logical_height": 846,
+      "export_scale": 2,
+      "pixel_width": 2660,
+      "pixel_height": 1692,
+      "template_png_url": "https://api.sori.example/assets/sheets/staff-8bars-6-8-key4-v4.png",
+      "template_sha256": "2fc398d3494b48f0636bb15f63023ac4d1b93975244ba10a60ef3ff69b398a00",
+      "systems": [
+        {
+          "index": 1,
+          "first_measure": 1,
+          "last_measure": 4,
+          "staff_line_y": [
+            164,
+            176,
+            188,
+            200,
+            212
+          ],
+          "barline_x": [
+            54,
+            450,
+            725,
+            1000,
+            1276
+          ]
+        },
+        {
+          "index": 2,
+          "first_measure": 5,
+          "last_measure": 8,
+          "staff_line_y": [
+            386,
+            398,
+            410,
+            422,
+            434
+          ],
+          "barline_x": [
+            54,
+            397,
+            690,
+            983,
+            1276
+          ]
+        }
+      ],
+      "display_height": 620
+    },
+    "content_policy": "client_readable_practice",
+    "score_visibility": "after_submission",
+    "score_assets": {
+      "main": {
+        "url": "https://api.sori.example/api/v1/questions/19052efc-b50b-5948-8a48-36c66da4a63c/versions/1/scores/main/",
+        "content_type": "application/vnd.recordare.musicxml",
+        "sha256": "3d43a75b72e5967262e383e5526ba8ef0ee83f996b045b6b20d4aa67ba232278",
+        "size_bytes": 1578,
+        "musicxml_version": "4.0",
+        "profile": "sori-monophonic-v4",
+        "part_id": "P1",
+        "measure_count": 8,
+        "source_tempo_bpm": 96
+      },
+      "scale": {
+        "url": "https://api.sori.example/api/v1/questions/19052efc-b50b-5948-8a48-36c66da4a63c/versions/1/scores/scale/",
+        "content_type": "application/vnd.recordare.musicxml",
+        "sha256": "0ba5d32be380bf7f7f00e16e11c1247e7bc9be99f6ee9422da300ecd8f6544a2",
+        "size_bytes": 1099,
+        "musicxml_version": "4.0",
+        "profile": "sori-monophonic-v4",
+        "part_id": "P1",
+        "measure_count": 3,
+        "source_tempo_bpm": 96
+      }
+    }
+  },
+  {
+    "id": "8e31f5f1-2bc2-5edd-9997-46d5cfffbd26",
+    "version": 1,
+    "title": "브람스 · 교향곡 제4번 마단조 Op. 98, 제3악장",
+    "source": "practice",
+    "collection": "classical",
+    "composer": "브람스",
+    "key_signature": {
+      "fifths": 0,
+      "mode": "major",
+      "tonic": "C"
+    },
+    "time_signature": {
+      "numerator": 2,
+      "denominator": 4
+    },
+    "measure_count": 8,
+    "recommended_duration_seconds": 300,
+    "description": "사용자 제공 브람스 악보 41–48마디 발췌입니다. 조표와 발췌 선율에 맞는 음계를 듣고 8마디를 적어보세요.",
+    "time_policy": "advisory",
+    "clef": "treble",
+    "sheet_layout": {
+      "id": "staff-8bars-2-4-key0-v4",
+      "logical_width": 1330,
+      "logical_height": 846,
+      "export_scale": 2,
+      "pixel_width": 2660,
+      "pixel_height": 1692,
+      "template_png_url": "https://api.sori.example/assets/sheets/staff-8bars-2-4-key0-v4.png",
+      "template_sha256": "a7f33dd7566e316992181a6897ca90a2a4e3154fbba76341a065cd3f845d633f",
+      "systems": [
+        {
+          "index": 1,
+          "first_measure": 1,
+          "last_measure": 4,
+          "staff_line_y": [
+            164,
+            176,
+            188,
+            200,
+            212
+          ],
+          "barline_x": [
+            54,
+            450,
+            725,
+            1000,
+            1276
+          ]
+        },
+        {
+          "index": 2,
+          "first_measure": 5,
+          "last_measure": 8,
+          "staff_line_y": [
+            386,
+            398,
+            410,
+            422,
+            434
+          ],
+          "barline_x": [
+            54,
+            397,
+            690,
+            983,
+            1276
+          ]
+        }
+      ],
+      "display_height": 620
+    },
+    "content_policy": "client_readable_practice",
+    "score_visibility": "after_submission",
+    "score_assets": {
+      "main": {
+        "url": "https://api.sori.example/api/v1/questions/8e31f5f1-2bc2-5edd-9997-46d5cfffbd26/versions/1/scores/main/",
+        "content_type": "application/vnd.recordare.musicxml",
+        "sha256": "73f5fc44a98652d6fd75830c2a3e28a37269121309f90e0fac4dfcc76fd2415a",
+        "size_bytes": 1424,
+        "musicxml_version": "4.0",
+        "profile": "sori-monophonic-v4",
+        "part_id": "P1",
+        "measure_count": 8,
+        "source_tempo_bpm": 96
+      },
+      "scale": {
+        "url": "https://api.sori.example/api/v1/questions/8e31f5f1-2bc2-5edd-9997-46d5cfffbd26/versions/1/scores/scale/",
+        "content_type": "application/vnd.recordare.musicxml",
+        "sha256": "09ce9efbaa4c264aa54973596dfc9ae4c553f8745c19b15126bb702f8d9f2108",
+        "size_bytes": 1086,
+        "musicxml_version": "4.0",
+        "profile": "sori-monophonic-v4",
+        "part_id": "P1",
+        "measure_count": 4,
+        "source_tempo_bpm": 96
+      }
+    }
+  },
+  {
+    "id": "83cc55f0-40de-5300-ae74-d8392ed14e0c",
+    "version": 1,
+    "title": "브람스 · 교향곡 제2번 라장조 Op. 73, 제1악장",
+    "source": "practice",
+    "collection": "classical",
+    "composer": "브람스",
+    "key_signature": {
+      "fifths": 2,
+      "mode": "major",
+      "tonic": "D"
+    },
+    "time_signature": {
+      "numerator": 3,
+      "denominator": 4
+    },
+    "measure_count": 8,
+    "recommended_duration_seconds": 300,
+    "description": "사용자 제공 브람스 악보 49–56마디 발췌입니다. 조표와 발췌 선율에 맞는 음계를 듣고 8마디를 적어보세요.",
+    "time_policy": "advisory",
+    "clef": "treble",
+    "sheet_layout": {
+      "id": "staff-8bars-3-4-key2-v4",
+      "logical_width": 1330,
+      "logical_height": 846,
+      "export_scale": 2,
+      "pixel_width": 2660,
+      "pixel_height": 1692,
+      "template_png_url": "https://api.sori.example/assets/sheets/staff-8bars-3-4-key2-v4.png",
+      "template_sha256": "72a858e5e8953713f0afe93490302223c9328b2fb4e3d8823bb5f54f3d1d347c",
+      "systems": [
+        {
+          "index": 1,
+          "first_measure": 1,
+          "last_measure": 4,
+          "staff_line_y": [
+            164,
+            176,
+            188,
+            200,
+            212
+          ],
+          "barline_x": [
+            54,
+            450,
+            725,
+            1000,
+            1276
+          ]
+        },
+        {
+          "index": 2,
+          "first_measure": 5,
+          "last_measure": 8,
+          "staff_line_y": [
+            386,
+            398,
+            410,
+            422,
+            434
+          ],
+          "barline_x": [
+            54,
+            397,
+            690,
+            983,
+            1276
+          ]
+        }
+      ],
+      "display_height": 620
+    },
+    "content_policy": "client_readable_practice",
+    "score_visibility": "after_submission",
+    "score_assets": {
+      "main": {
+        "url": "https://api.sori.example/api/v1/questions/83cc55f0-40de-5300-ae74-d8392ed14e0c/versions/1/scores/main/",
+        "content_type": "application/vnd.recordare.musicxml",
+        "sha256": "bdee22d3517528b375b1597b4c743cfa32d27e607de5e4d2161045dab08afd7e",
+        "size_bytes": 1270,
+        "musicxml_version": "4.0",
+        "profile": "sori-monophonic-v4",
+        "part_id": "P1",
+        "measure_count": 8,
+        "source_tempo_bpm": 96
+      },
+      "scale": {
+        "url": "https://api.sori.example/api/v1/questions/83cc55f0-40de-5300-ae74-d8392ed14e0c/versions/1/scores/scale/",
+        "content_type": "application/vnd.recordare.musicxml",
+        "sha256": "cb3c05c8b7ca5ccfb08c8133ebf0e68108291c6d91f40e165dad6e138ca166c5",
+        "size_bytes": 1099,
+        "musicxml_version": "4.0",
+        "profile": "sori-monophonic-v4",
+        "part_id": "P1",
+        "measure_count": 3,
+        "source_tempo_bpm": 96
+      }
+    }
+  },
+  {
+    "id": "95a25944-5c10-55b4-b9ed-935c449badcb",
+    "version": 1,
+    "title": "브람스 · 교향곡 제2번 라장조 Op. 73, 제4악장",
+    "source": "practice",
+    "collection": "classical",
+    "composer": "브람스",
+    "key_signature": {
+      "fifths": 2,
+      "mode": "major",
+      "tonic": "D"
+    },
+    "time_signature": {
+      "numerator": 4,
+      "denominator": 4
+    },
+    "measure_count": 8,
+    "recommended_duration_seconds": 300,
+    "description": "사용자 제공 브람스 악보 65–72마디 발췌입니다. 조표와 발췌 선율에 맞는 음계를 듣고 8마디를 적어보세요.",
+    "time_policy": "advisory",
+    "clef": "treble",
+    "sheet_layout": {
+      "id": "staff-8bars-4-4-key2-v4",
+      "logical_width": 1330,
+      "logical_height": 846,
+      "export_scale": 2,
+      "pixel_width": 2660,
+      "pixel_height": 1692,
+      "template_png_url": "https://api.sori.example/assets/sheets/staff-8bars-4-4-key2-v4.png",
+      "template_sha256": "9ebe8b198a3977f0206c0c6e13b5830640f3ce93a353cf8bfd2d28397aee3be0",
+      "systems": [
+        {
+          "index": 1,
+          "first_measure": 1,
+          "last_measure": 4,
+          "staff_line_y": [
+            164,
+            176,
+            188,
+            200,
+            212
+          ],
+          "barline_x": [
+            54,
+            450,
+            725,
+            1000,
+            1276
+          ]
+        },
+        {
+          "index": 2,
+          "first_measure": 5,
+          "last_measure": 8,
+          "staff_line_y": [
+            386,
+            398,
+            410,
+            422,
+            434
+          ],
+          "barline_x": [
+            54,
+            397,
+            690,
+            983,
+            1276
+          ]
+        }
+      ],
+      "display_height": 620
+    },
+    "content_policy": "client_readable_practice",
+    "score_visibility": "after_submission",
+    "score_assets": {
+      "main": {
+        "url": "https://api.sori.example/api/v1/questions/95a25944-5c10-55b4-b9ed-935c449badcb/versions/1/scores/main/",
+        "content_type": "application/vnd.recordare.musicxml",
+        "sha256": "31dd22ae728abf7a97b2fb8d3c7d0657134d01511638fc09f8d81ff1b74efd65",
+        "size_bytes": 1442,
+        "musicxml_version": "4.0",
+        "profile": "sori-monophonic-v4",
+        "part_id": "P1",
+        "measure_count": 8,
+        "source_tempo_bpm": 96
+      },
+      "scale": {
+        "url": "https://api.sori.example/api/v1/questions/95a25944-5c10-55b4-b9ed-935c449badcb/versions/1/scores/scale/",
+        "content_type": "application/vnd.recordare.musicxml",
+        "sha256": "54b22c9bd188940d615e189f8f26c48e44d462741e96d12c294364861a95f433",
+        "size_bytes": 1088,
+        "musicxml_version": "4.0",
+        "profile": "sori-monophonic-v4",
+        "part_id": "P1",
+        "measure_count": 2,
+        "source_tempo_bpm": 96
+      }
+    }
+  },
+  {
+    "id": "6da9eb15-170a-5b39-b90b-1601d4f23f59",
+    "version": 1,
+    "title": "브람스 · 교향곡 제1번 다단조 Op. 68, 제3악장",
+    "source": "practice",
+    "collection": "classical",
+    "composer": "브람스",
+    "key_signature": {
+      "fifths": 0,
+      "mode": "major",
+      "tonic": "C"
+    },
+    "time_signature": {
+      "numerator": 2,
+      "denominator": 4
+    },
+    "measure_count": 8,
+    "recommended_duration_seconds": 300,
+    "description": "사용자 제공 브람스 악보 73–80마디 발췌입니다. 조표와 발췌 선율에 맞는 음계를 듣고 8마디를 적어보세요.",
+    "time_policy": "advisory",
+    "clef": "treble",
+    "sheet_layout": {
+      "id": "staff-8bars-2-4-key0-v4",
+      "logical_width": 1330,
+      "logical_height": 846,
+      "export_scale": 2,
+      "pixel_width": 2660,
+      "pixel_height": 1692,
+      "template_png_url": "https://api.sori.example/assets/sheets/staff-8bars-2-4-key0-v4.png",
+      "template_sha256": "a7f33dd7566e316992181a6897ca90a2a4e3154fbba76341a065cd3f845d633f",
+      "systems": [
+        {
+          "index": 1,
+          "first_measure": 1,
+          "last_measure": 4,
+          "staff_line_y": [
+            164,
+            176,
+            188,
+            200,
+            212
+          ],
+          "barline_x": [
+            54,
+            450,
+            725,
+            1000,
+            1276
+          ]
+        },
+        {
+          "index": 2,
+          "first_measure": 5,
+          "last_measure": 8,
+          "staff_line_y": [
+            386,
+            398,
+            410,
+            422,
+            434
+          ],
+          "barline_x": [
+            54,
+            397,
+            690,
+            983,
+            1276
+          ]
+        }
+      ],
+      "display_height": 620
+    },
+    "content_policy": "client_readable_practice",
+    "score_visibility": "after_submission",
+    "score_assets": {
+      "main": {
+        "url": "https://api.sori.example/api/v1/questions/6da9eb15-170a-5b39-b90b-1601d4f23f59/versions/1/scores/main/",
+        "content_type": "application/vnd.recordare.musicxml",
+        "sha256": "8a0f8decbfcf1192004144bc1fdaabe3eea82724a4de633d55431590c6c99c0f",
+        "size_bytes": 1487,
+        "musicxml_version": "4.0",
+        "profile": "sori-monophonic-v4",
+        "part_id": "P1",
+        "measure_count": 8,
+        "source_tempo_bpm": 96
+      },
+      "scale": {
+        "url": "https://api.sori.example/api/v1/questions/6da9eb15-170a-5b39-b90b-1601d4f23f59/versions/1/scores/scale/",
+        "content_type": "application/vnd.recordare.musicxml",
+        "sha256": "09ce9efbaa4c264aa54973596dfc9ae4c553f8745c19b15126bb702f8d9f2108",
+        "size_bytes": 1086,
+        "musicxml_version": "4.0",
+        "profile": "sori-monophonic-v4",
+        "part_id": "P1",
+        "measure_count": 4,
+        "source_tempo_bpm": 96
+      }
+    }
+  },
+  {
+    "id": "fa447422-0bb6-5a52-aa9a-8a08abe0d806",
+    "version": 1,
+    "title": "브람스 · 교향곡 제3번 바장조 Op. 90, 제1악장",
+    "source": "practice",
+    "collection": "classical",
+    "composer": "브람스",
+    "key_signature": {
+      "fifths": -1,
+      "mode": "major",
+      "tonic": "F"
+    },
+    "time_signature": {
+      "numerator": 6,
+      "denominator": 4
+    },
+    "measure_count": 8,
+    "recommended_duration_seconds": 300,
+    "description": "사용자 제공 브람스 악보 81–88마디 발췌입니다. 조표와 발췌 선율에 맞는 음계를 듣고 8마디를 적어보세요.",
+    "time_policy": "advisory",
+    "clef": "treble",
+    "sheet_layout": {
+      "id": "staff-8bars-6-4-key-1-v4",
+      "logical_width": 1330,
+      "logical_height": 846,
+      "export_scale": 2,
+      "pixel_width": 2660,
+      "pixel_height": 1692,
+      "template_png_url": "https://api.sori.example/assets/sheets/staff-8bars-6-4-key-1-v4.png",
+      "template_sha256": "eeec1ba1fd18e16f6c9b7e8371be68400f685932586ce7a015eec2c9ea79163e",
+      "systems": [
+        {
+          "index": 1,
+          "first_measure": 1,
+          "last_measure": 4,
+          "staff_line_y": [
+            164,
+            176,
+            188,
+            200,
+            212
+          ],
+          "barline_x": [
+            54,
+            450,
+            725,
+            1000,
+            1276
+          ]
+        },
+        {
+          "index": 2,
+          "first_measure": 5,
+          "last_measure": 8,
+          "staff_line_y": [
+            386,
+            398,
+            410,
+            422,
+            434
+          ],
+          "barline_x": [
+            54,
+            397,
+            690,
+            983,
+            1276
+          ]
+        }
+      ],
+      "display_height": 620
+    },
+    "content_policy": "client_readable_practice",
+    "score_visibility": "after_submission",
+    "score_assets": {
+      "main": {
+        "url": "https://api.sori.example/api/v1/questions/fa447422-0bb6-5a52-aa9a-8a08abe0d806/versions/1/scores/main/",
+        "content_type": "application/vnd.recordare.musicxml",
+        "sha256": "4ae0808d783c7cda27c789983279c685187bef9423655bf5382d75d4e2c44af1",
+        "size_bytes": 1641,
+        "musicxml_version": "4.0",
+        "profile": "sori-monophonic-v4",
+        "part_id": "P1",
+        "measure_count": 8,
+        "source_tempo_bpm": 96
+      },
+      "scale": {
+        "url": "https://api.sori.example/api/v1/questions/fa447422-0bb6-5a52-aa9a-8a08abe0d806/versions/1/scores/scale/",
+        "content_type": "application/vnd.recordare.musicxml",
+        "sha256": "8f8e229f5384240a7df12983b482a0cbdbf47c3104f9914885d3b110d5da1280",
+        "size_bytes": 1143,
+        "musicxml_version": "4.0",
+        "profile": "sori-monophonic-v4",
+        "part_id": "P1",
+        "measure_count": 2,
+        "source_tempo_bpm": 96
+      }
+    }
+  }
+]

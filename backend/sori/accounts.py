@@ -5,7 +5,7 @@ from django.contrib.auth import get_user_model
 from django.core.files.storage import default_storage
 from django.db import transaction
 
-from .models import Answer, Attempt, GradingJob, LoginThrottle, throttle_key
+from .models import Answer, Attempt, GradingJob, LoginThrottle, SelfAssessmentRevision, locked_throttle, throttle_key
 
 logger = logging.getLogger(__name__)
 
@@ -22,7 +22,9 @@ def delete_stored_images(names, request_id):
 def delete_account(user, request_id=None):
     """Delete the user and everything they own; returns False if another request already did."""
     with transaction.atomic():
-        # Attempts first: submit and upload hold an attempt lock while their commit-time
+        # Login holds this row while locking the user, so take it first here too.
+        locked_throttle("username", user.username)
+        # Attempts next: submit and upload hold an attempt lock while their commit-time
         # FK check waits for the user row, so locking the user first could deadlock.
         list(Attempt.objects.select_for_update().filter(user=user).order_by("id").values_list("pk", flat=True))
         locked = get_user_model().objects.select_for_update().filter(pk=user.pk).first()
@@ -34,6 +36,7 @@ def delete_account(user, request_id=None):
         # These references and GradingJob.answer are PROTECT.
         Attempt.objects.filter(pk__in=attempts).update(current_job=None, submitted_answer=None)
         GradingJob.objects.filter(attempt__in=attempts).delete()
+        SelfAssessmentRevision.objects.filter(attempt__in=attempts).delete()
         Answer.objects.filter(attempt__in=attempts).delete()
         Attempt.objects.filter(pk__in=attempts).delete()
         LoginThrottle.objects.filter(key=throttle_key("username", locked.username)).delete()

@@ -31,6 +31,7 @@ def package(app, output, commit):
         raise ValueError("Expected the Debug app that supports the local HTTP server")
 
     required = ["sori-piano-v1.sf2", "sori-piano-v2.sf2", "instrument-profile-v2.json", "sori-click-v1.wav", "practice-catalog.json", "GeneralUser-GS.sf2", "instrument-bank.json", "generaluser-license.txt", "instruments.json", "engraving-manifest.json"]
+    required += ["melody-classical-piano.sf2", "melody-piano-bank.json", "melody-piano-license.txt", "melody-piano-profile.json", "melody-catalog.json", "melody-source-license.txt"]
     for number in (1, 2, 3):
         required += [f"excerpt-{number}-v2-main.mxl", f"excerpt-{number}-v2-scale.mxl", f"excerpt-{number}-reference-v1.pngdata"]
     for name in required:
