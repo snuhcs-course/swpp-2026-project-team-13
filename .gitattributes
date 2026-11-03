@@ -32,3 +32,13 @@ backend/content/rhythm-puzzle-v2.json text eol=lf
 frontend/IPadApp/IPadApp/Resources/rhythm-puzzle-v2.json text eol=lf
 frontend/IPadApp/IPadApp/Resources/rhythm-engraving-v2.json text eol=lf
 docs/RHYTHM-PUZZLE-V2-EXCEPTIONS.md text eol=lf
+backend/content/rhythm-puzzle-v3.json text eol=lf
+frontend/IPadApp/IPadApp/Resources/rhythm-puzzle-v3.json text eol=lf
+frontend/IPadApp/IPadApp/Resources/rhythm-engraving-v3.json text eol=lf
+docs/RHYTHM-PUZZLE-V3-EXCEPTIONS.md text eol=lf
+
+# Memory run fingerprints the original library XML and added excerpt sources.
+frontend/IPadApp/IPadApp/Resources/melody--*.xml text eol=lf
+frontend/IPadApp/IPadApp/Resources/memory--*.xml text eol=lf
+frontend/IPadApp/IPadApp/Resources/memory-run-v2.json text eol=lf
+docs/memory-import-report.json text eol=lf

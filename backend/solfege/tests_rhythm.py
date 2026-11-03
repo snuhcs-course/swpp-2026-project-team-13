@@ -5,7 +5,8 @@ import uuid
 from fractions import Fraction as F
 from pathlib import Path
 from .features import analyze_bytes
-from .rhythm import (VERSION, build_catalog, digest_bytes, grade, pieces_for_span,
+from .features.musicxml import read_xml
+from .rhythm import (VERSION, build_catalog, classical_label, current_sources, digest_bytes, grade, pieces_for_span,
                      rhythm_burden, sounding, source_symbols, tile)
 from .rhythm_records import validate_record
 
@@ -181,6 +182,52 @@ class RhythmV2Tests(unittest.TestCase):
         p["game_version"] = "rhythm-puzzle-v1"
         with self.assertRaisesRegex(ValueError, "catalog_version_mismatch"):
             validate_record(p, self.catalog, self.sha)
+
+
+class RhythmV3Tests(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        data = (ROOT / "content/rhythm-puzzle-v3.json").read_bytes()
+        cls.catalog, cls.sha = json.loads(data), digest_bytes(data)
+
+    def test_classical_excerpts_match_the_existing_scores_and_use_the_shared_rhythm_scale(self):
+        sources = {r["metadata"]["id"]: r for r in current_sources(ROOT / "content", include_classical=True)}
+        classic = [r for r in self.catalog["rounds"] if r.get("collection") == "classical"]
+        self.assertEqual(len(classic), 116)
+        self.assertEqual(len({r["question_id"] for r in classic}), 30)
+        self.assertEqual({r["level"] for r in classic}, {"beginner", "intermediate", "advanced"})
+        tiles = {t["id"]:t for t in self.catalog["tiles"]}
+        for r in self.catalog["rounds"]:
+            with self.subTest(round=r["id"]):
+                self.assertTrue(grade(r,dict(placements=r["solution"],ties=r["solution_ties"]),tiles)["correct"])
+                self.assertEqual(r["rhythm"],[{k:n[k] for k in ("onset","duration")} for n in r["audio"]])
+        for r in classic:
+            metadata = sources[r["question_id"]]["metadata"]
+            self.assertEqual(r["question_version"],metadata["version"])
+            source = ROOT / "content" / sources[r["question_id"]]["main_path"]
+            self.assertEqual(digest_bytes(source.read_bytes()),metadata["score_assets"]["main"]["sha256"])
+            self.assertEqual(r["source_xml_sha256"],digest_bytes(read_xml(source)))
+            score = r["difficulty"]["score"]
+            self.assertEqual(r["level"], "beginner" if score < 34 else "intermediate" if score < 67 else "advanced")
+            self.assertTrue(r["source_label"].startswith(metadata["composer"]+" "))
+            self.assertTrue(r["source_label"].endswith(" 中"))
+            if metadata.get("tempo"):
+                self.assertEqual(r["display_bpm"],metadata["tempo"]["bpm"])
+                self.assertEqual(r["beat_unit"],metadata["tempo"]["beat_unit"])
+
+    def test_v3_reproduces_while_v2_levels_and_play_records_are_preserved(self):
+        self.assertEqual(build_catalog(ROOT / "content",version="rhythm-puzzle-v3",levels=("beginner","intermediate","advanced"),include_classical=True),self.catalog)
+        old = json.loads((ROOT / "content/rhythm-puzzle-v2.json").read_bytes())
+        levels = {(r["question_id"],r["question_version"],r["first_measure"]):r["level"] for r in old["rounds"]}
+        for r in self.catalog["rounds"]:
+            if r["collection"] != "classical":
+                self.assertEqual(r["level"],levels[(r["question_id"],r["question_version"],r["first_measure"])])
+        for catalog,sha in [(self.catalog,self.sha),(old,digest_bytes((ROOT / "content/rhythm-puzzle-v2.json").read_bytes()))]:
+            self.assertTrue(validate_record(record_for(catalog,sha),catalog,sha)[1]["first_correct"])
+
+    def test_short_credit_has_no_duplicate_composer_or_catalog_number(self):
+        self.assertEqual(classical_label(dict(composer="브람스",title="브람스 · 자장가 Op.49 No.4")),"브람스 자장가 中")
+        self.assertEqual(classical_label(dict(composer="사티",title="짐노페디 1번")),"사티 짐노페디 1번 中")
 
 
 if __name__ == "__main__":

@@ -11,9 +11,15 @@ RESOURCES = ROOT / "frontend/IPadApp/IPadApp/Resources"
 
 class RhythmEngravingTests(unittest.TestCase):
     def test_all_pieces_have_compact_musescore_outlines_and_exact_notehead_anchors(self):
-        raw = (RESOURCES / "rhythm-puzzle-v2.json").read_bytes()
+        self.check_version("v2")
+
+    def test_classical_and_legacy_pieces_share_a_complete_current_engraving(self):
+        self.check_version("v3")
+
+    def check_version(self, version):
+        raw = (RESOURCES / ("rhythm-puzzle-" + version + ".json")).read_bytes()
         catalog = json.loads(raw)
-        ink = json.loads((RESOURCES / "rhythm-engraving-v2.json").read_bytes())
+        ink = json.loads((RESOURCES / ("rhythm-engraving-" + version + ".json")).read_bytes())
         self.assertEqual(ink["renderer"], "MuseScore Studio 4.6.3 / Leland")
         self.assertEqual(ink["catalog_sha256"], hashlib.sha256(raw).hexdigest())
         self.assertEqual(set(ink["tiles"]), {t["id"] for t in catalog["tiles"]})

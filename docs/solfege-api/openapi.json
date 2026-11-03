@@ -5132,7 +5132,8 @@
             "type": "string",
             "enum": [
               "rhythm-puzzle-v1",
-              "rhythm-puzzle-v2"
+              "rhythm-puzzle-v2",
+              "rhythm-puzzle-v3"
             ]
           },
           "choice_order": {

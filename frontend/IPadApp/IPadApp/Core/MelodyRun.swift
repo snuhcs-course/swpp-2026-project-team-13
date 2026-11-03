@@ -36,6 +36,10 @@ struct MelodyQuestion: Codable, Identifiable, Equatable {
     var sourceURL: String
     var fifths: Int? = nil
     var mode: String? = nil
+    var collection: String? = nil
+    var sourceLabel: String? = nil
+    var sha256: String? = nil
+    var analysisKey: String? = nil
     var isDemoEligible: Bool {
         if let fifths, let mode { return fifths == 0 && ["major","minor"].contains(mode) }
         return ["C major","A minor"].contains(key)
@@ -161,7 +165,12 @@ struct MelodyAnswers {
     private(set) var pitches: [Int?]
     // Undo follows actual input order, including after moving to another bar.
     private var history: [Int] = []
-    init(round: MelodyRound) { self.round = round; pitches = Array(repeating:nil,count:round.targets.count) }
+    let givenIndices: Set<Int>
+    init(round: MelodyRound, provideFirst: Bool = false) {
+        self.round = round; pitches = Array(repeating:nil,count:round.targets.count)
+        givenIndices = provideFirst && !round.targets.isEmpty ? [0] : []
+        if givenIndices.contains(0) { pitches[0] = round.targets[0].midi }
+    }
     func next(in measure: Int) -> Int? { round.targetIndices(measure:measure).first { pitches[$0] == nil } }
     func complete(_ measure: Int) -> Bool { next(in:measure) == nil }
     @discardableResult mutating func enter(_ midi: Int, measure: Int) -> Bool {
@@ -175,9 +184,12 @@ struct MelodyAnswers {
     }
     mutating func clear(measure: Int) {
         let indices = Set(round.targetIndices(measure:measure))
-        for i in indices { pitches[i] = nil }; history.removeAll { indices.contains($0) }
+        for i in indices where !givenIndices.contains(i) { pitches[i] = nil }; history.removeAll { indices.contains($0) }
     }
-    var result: MelodyResult { MelodyResult(expected:round.targets.map(\.midi),actual:pitches) }
+    var result: MelodyResult {
+        let graded = round.targets.indices.filter { !givenIndices.contains($0) }
+        return MelodyResult(expected:graded.map { round.targets[$0].midi },actual:graded.map { pitches[$0] })
+    }
 }
 
 struct MelodyResult {
@@ -219,9 +231,11 @@ struct MelodyTimeline {
     var windows: [MelodyWindow]
     let pulseTicks: Int
     let meter: TimeSignature
+    let mode: MelodyMode
     var end: Int { windows.last?.end ?? 0 }
     init(round: MelodyRound, settings: MelodySettings, fromMeasure: Int = 1) {
         meter = round.score.timeSignature
+        mode = settings.mode
         // Count every notated beat: 3/4 = three quarters, 6/8 = six eighths.
         // All preparation windows contain complete measures, even after an early advance.
         pulseTicks = 1920/meter.denominator
@@ -233,8 +247,7 @@ struct MelodyTimeline {
         append(.countIn,fromMeasure,meter.ticksPerMeasure)
         for measure in fromMeasure...round.score.measures {
             append(.listen,measure,meter.ticksPerMeasure)
-            if settings.mode == .memory { append(.beat,measure,settings.gapMeasures*meter.ticksPerMeasure) }
-            else {
+            if settings.mode == .groove {
                 append(.beat,measure,meter.ticksPerMeasure)
                 append(.input,measure,settings.inputBars*meter.ticksPerMeasure)
             }
@@ -247,7 +260,8 @@ struct MelodyTimeline {
         return windows.firstIndex { $0.phase == .input && $0.start-early <= tick && tick < $0.end }
     }
     func clickEvents(leadTicks: Int = 0) -> [MusicEvent] {
-        stride(from:0,to:end,by:pulseTicks).map { MusicEvent(midi:60,onset:$0+leadTicks,duration:30) }
+        let limit = mode == .memory ? (windows.first?.end ?? 0) : end
+        return stride(from:0,to:limit,by:pulseTicks).map { MusicEvent(midi:60,onset:$0+leadTicks,duration:30) }
     }
     // Early completion advances on the next beat with enough audio scheduling lead time.
     // The sequencer clock and click track never restart or seek.

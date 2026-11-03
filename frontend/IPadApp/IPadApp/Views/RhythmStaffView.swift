@@ -65,8 +65,10 @@ struct RhythmStaffBar: View {
                         RoundedRectangle(cornerRadius:8).fill(selected == placement ? Color.blue.opacity(0.1) : hinted ? Color.red.opacity(0.08) : .clear)
                             .overlay(RoundedRectangle(cornerRadius:8).stroke(selected == placement ? Color.blue.opacity(0.6) : .clear))
                             .frame(width:point(part.width),height:76*scale)
+                            .contentShape(Rectangle())
                     }.buttonStyle(.plain).offset(x:point(part.x),y:top+12*scale).disabled(!editable)
                         .accessibilityLabel("\(bar+1)마디 리듬 조각")
+                        .accessibilityIdentifier("rhythm-piece-\(bar)-\(placement.start.description)")
                 }
             }
             ForEach(board.ties.filter { endpoints($0) != nil },id:\.self) { time in
@@ -77,7 +79,7 @@ struct RhythmStaffBar: View {
                 }
             }
         }.frame(width:point(layout.width),height:128)
-            .background(GeometryReader { geo in Color.clear.preference(key:RhythmBarFrames.self,value:[bar:geo.frame(in:.named("rhythm-puzzle"))]) })
+            .background(GeometryReader { geo in Color.clear.preference(key:RhythmBarFrames.self,value:editable ? [bar:geo.frame(in:.named("rhythm-puzzle"))] : [:]) })
             .simultaneousGesture(DragGesture(minimumDistance:14).onEnded { value in
                 guard editable, value.startLocation.y >= baseline-4, value.location.y >= baseline-4 else { return }
                 for t in board.validBoundaries(tiles:tiles) {

@@ -57,14 +57,15 @@ struct RhythmRound: Codable, Identifiable {
     var tempoBpm: Double; var displayBpm: Int; var beatUnit: String
     var solution: [RhythmPlacement]; var solutionTies: [RhythmTime]; var rhythm: [RhythmSound]
     var audio: [RhythmNote]; var difficulty: RhythmDifficulty; var choices: [String]
+    var collection: String? = nil; var sourceLabel: String? = nil
     var pulsesPerMeasure: Int { (measureDuration/pulse).floor }
-    var tempoLabel: String { "\(beatUnit == "dotted_quarter" ? "♩." : beatUnit == "half" ? "𝅗𝅥" : "♩") = \(displayBpm)" }
+    var tempoLabel: String { "\(beatUnit == "dotted_half" ? "𝅗𝅥." : beatUnit == "dotted_quarter" ? "♩." : beatUnit == "half" ? "𝅗𝅥" : "♩") = \(displayBpm)" }
 }
 struct RhythmCatalog: Decodable {
     var version: String; var difficultyVersion: String; var tiles: [RhythmTile]; var rounds: [RhythmRound]
     var tileMap: [String:RhythmTile] { Dictionary(uniqueKeysWithValues:tiles.map { ($0.id,$0) }) }
     func validate() throws {
-        guard ["rhythm-puzzle-v1", "rhythm-puzzle-v2"].contains(version), !rounds.isEmpty, Set(tiles.map(\.id)).count == tiles.count else { throw SolfegeError.invalidScore("리듬 문제 버전을 확인해 주세요.") }
+        guard ["rhythm-puzzle-v1", "rhythm-puzzle-v2", "rhythm-puzzle-v3"].contains(version), !rounds.isEmpty, Set(tiles.map(\.id)).count == tiles.count else { throw SolfegeError.invalidScore("리듬 문제 버전을 확인해 주세요.") }
         let map = tileMap
         for t in tiles {
             guard !t.symbols.isEmpty, t.duration > .zero, t.symbols.reduce(.zero, { $0+$1.duration }) == t.duration,

@@ -2,7 +2,7 @@ import SwiftUI
 
 enum RhythmInk {
     static let drawings: [String:RhythmDrawing] = {
-        let engraving: RhythmEngraving? = try? Bundled.decode("rhythm-engraving-v2")
+        let engraving: RhythmEngraving? = try? Bundled.decode("rhythm-engraving-v3")
         return engraving?.tiles ?? [:]
     }()
     static func path(_ commands: [RhythmVectorCommand]) -> Path {
@@ -74,5 +74,26 @@ struct RhythmNotationView: View {
             RhythmInk.staff(in:context,from:8,to:size.width-8,baseline:y+58*scale,scale:scale)
             RhythmInk.draw(drawing,in:context,at:CGPoint(x:x,y:y),scale:scale)
         }.accessibilityElement(children:.ignore).accessibilityLabel("리듬 악보, \(tile.symbols.count)개 음표 또는 쉼표")
+    }
+}
+
+// Two quarter notes and an engraving tie, matching the supplied reference.
+struct RhythmTieIcon: View {
+    var color: Color = .primary
+    var body: some View {
+        Canvas { context,size in
+            var context = context
+            context.scaleBy(x:size.width/32,y:size.height/32)
+            for x in [CGFloat(7),CGFloat(25)] {
+                var head = Path()
+                head.move(to:CGPoint(x:x-4,y:22))
+                head.addCurve(to:CGPoint(x:x+4,y:20),control1:CGPoint(x:x-4,y:18),control2:CGPoint(x:x+4,y:16))
+                head.addCurve(to:CGPoint(x:x-4,y:22),control1:CGPoint(x:x+4,y:24),control2:CGPoint(x:x-4,y:26))
+                context.fill(head,with:.color(color))
+                var stem = Path(); stem.move(to:CGPoint(x:x+3.5,y:20)); stem.addLine(to:CGPoint(x:x+3.5,y:5))
+                context.stroke(stem,with:.color(color),lineWidth:0.9)
+            }
+            context.fill(RhythmInk.tie(from:CGPoint(x:8,y:25),to:CGPoint(x:24,y:25)),with:.color(color))
+        }.accessibilityHidden(true)
     }
 }

@@ -77,6 +77,10 @@ struct RhythmPuzzleView: View {
                 if game.waitingToPlay { ProgressView().controlSize(.small).accessibilityLabel("1초 후 재생") }
                 Text("\(round.difficulty.score)/100").font(.caption.monospacedDigit()).foregroundStyle(.secondary).accessibilityLabel("리듬 난도 \(round.difficulty.score), 실험값")
             }
+            if let source = round.sourceLabel {
+                Text(source).font(.caption2).foregroundStyle(.secondary).lineLimit(1)
+                    .accessibilityIdentifier("rhythm-source-credit")
+            }
             RhythmPuzzleBoardView(game:game,round:round,compact:compact)
                 .padding(.horizontal,14).background(.white,in:RoundedRectangle(cornerRadius:18))
             if !game.feedback.isEmpty || !game.message.isEmpty {
@@ -115,7 +119,7 @@ struct RhythmPuzzleView: View {
                 Button { game.undo() } label: { Image(systemName:"arrow.uturn.backward").frame(width:28,height:28) }
                     .buttonStyle(.bordered).disabled(!game.canEdit || draft.undo.isEmpty).accessibilityLabel("되돌리기")
                 Spacer()
-                Button { game.toggleTieMode() } label: { Label("타이",systemImage:"link") }
+                Button { game.toggleTieMode() } label: { Label { Text("타이") } icon: { RhythmTieIcon(color:game.tieMode ? .blue : SolfegeTheme.violet).frame(width:28,height:28) } }
                     .buttonStyle(.bordered).tint(game.tieMode ? .blue : SolfegeTheme.violet).disabled(!game.canEdit)
                     .accessibilityValue(game.tieMode ? "연결할 두 조각을 선택" : "꺼짐")
                 if draft.finished { Button(draft.index+1 == draft.setIds.count ? "완료" : "다음") { game.next() }.buttonStyle(PrimaryButton()) }
@@ -124,7 +128,15 @@ struct RhythmPuzzleView: View {
         }
     }
     private func drop(_ id: String, at location: CGPoint) {
-        guard let round = game.round, let entry = frames.first(where:{ $0.value.insetBy(dx:-12,dy:-12).contains(location) }) else { return }
+        guard let round = game.round else { return }
+        let candidates = frames.filter { $0.value.insetBy(dx:-12,dy:-12).contains(location) }
+        let entry = candidates.min { a,b in
+            let insideA = a.value.contains(location), insideB = b.value.contains(location)
+            if insideA != insideB { return insideA }
+            let distanceA = abs(a.value.midY-location.y), distanceB = abs(b.value.midY-location.y)
+            return distanceA == distanceB ? a.key < b.key : distanceA < distanceB
+        }
+        guard let entry else { return }
         let layout = RhythmBarLayout(round:round,bar:entry.key,board:game.board,tiles:game.tiles,drawings:RhythmInk.drawings)
         let scale = Double(entry.value.width)/layout.width
         let x = Double(location.x-entry.value.minX)/scale

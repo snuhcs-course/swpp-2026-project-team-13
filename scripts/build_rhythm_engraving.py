@@ -139,8 +139,9 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--musescore", default="C:/Program Files/MuseScore 4/bin/MuseScore4.exe")
     parser.add_argument("--sample", type=int)
+    parser.add_argument("--catalog-version", choices=("v2", "v3"), default="v2")
     args = parser.parse_args()
-    raw = (RESOURCES / "rhythm-puzzle-v2.json").read_bytes(); catalog = json.loads(raw)
+    raw = (RESOURCES / ("rhythm-puzzle-" + args.catalog_version + ".json")).read_bytes(); catalog = json.loads(raw)
     work = ROOT / ".tmp/rhythm-engraving"; work.mkdir(parents=True, exist_ok=True)
     style = work / "rhythm.mss"
     style.write_text('<?xml version="1.0"?><museScore version="4.60"><Style><pageWidth>9</pageWidth><pageHeight>4</pageHeight><pagePrintableWidth>8.6</pagePrintableWidth><enableIndentationOnFirstSystem>0</enableIndentationOnFirstSystem><lastSystemFillLimit>1</lastSystemFillLimit><showMeasureNumber>0</showMeasureNumber><showMeasureNumberOne>0</showMeasureNumberOne><musicalSymbolFont>Leland</musicalSymbolFont></Style></museScore>', encoding="utf-8")
@@ -160,7 +161,7 @@ def main():
     drawings = {t["id"]: extract(work / (t["id"] + "-1.svg"), t) for t in tiles}
     result = dict(renderer="MuseScore Studio 4.6.3 / Leland", catalog_sha256=hashlib.sha256(raw).hexdigest(), tiles=drawings)
     data = (json.dumps(result, separators=(",", ":")) + "\n").encode()
-    destination = work / "sample.json" if args.sample else RESOURCES / "rhythm-engraving-v2.json"
+    destination = work / "sample.json" if args.sample else RESOURCES / ("rhythm-engraving-" + args.catalog_version + ".json")
     destination.write_bytes(data)
     print(f"MuseScore rhythm drawings: {len(drawings)} tiles, {len(data)} bytes")
 

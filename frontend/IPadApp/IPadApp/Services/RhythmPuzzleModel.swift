@@ -57,19 +57,21 @@ import SwiftUI
     init(connection: RhythmConnection?) {
         self.connection = connection
         do {
-            let data = try Bundled.data("rhythm-puzzle-v2",ext:"json")
+            let data = try Bundled.data("rhythm-puzzle-v3",ext:"json")
             var bank = try ContractJSON.decoder().decode(RhythmCatalog.self,from:data)
             try bank.validate(); catalogHash = data.sha256
             currentRoundIds = Set(bank.rounds.map(\.id)); catalogVersions[catalogHash] = bank.version
-            let ink: RhythmEngraving = try Bundled.decode("rhythm-engraving-v2")
+            let ink: RhythmEngraving = try Bundled.decode("rhythm-engraving-v3")
             guard ink.catalogSha256 == catalogHash, bank.tiles.allSatisfy({ ink.tiles[$0.id]?.symbolXs.count == $0.symbols.count }) else {
                 throw SolfegeError.invalidScore("리듬 악보와 문제 버전이 다릅니다.")
             }
             engraving = ink
-            let legacyData = try Bundled.data("rhythm-puzzle-v1",ext:"json")
-            let legacy = try ContractJSON.decoder().decode(RhythmCatalog.self,from:legacyData)
-            catalogVersions[legacyData.sha256] = legacy.version
-            bank.rounds += legacy.rounds
+            for name in ["rhythm-puzzle-v1", "rhythm-puzzle-v2"] {
+                let legacyData = try Bundled.data(name,ext:"json")
+                let legacy = try ContractJSON.decoder().decode(RhythmCatalog.self,from:legacyData)
+                catalogVersions[legacyData.sha256] = legacy.version
+                bank.rounds += legacy.rounds
+            }
             catalog = bank; tiles = bank.tileMap
             guard let connection else { return }
             let root = try LocalStore(scope:connection.scope).root
@@ -101,7 +103,7 @@ import SwiftUI
         let now = Date()
         let hash = hash ?? catalogHash
         var record = RhythmPlayRecord(catalogSha256:hash,roundId:r.id,choiceOrder:r.choices.shuffled(),startedAt:now,finishedAt:now)
-        record.gameVersion = catalogVersions[hash] ?? "rhythm-puzzle-v2"
+        record.gameVersion = catalogVersions[hash] ?? "rhythm-puzzle-v3"
         let equivalent = Set(catalog?.rounds.filter { $0.questionId == r.questionId && $0.questionVersion == r.questionVersion && $0.firstMeasure == r.firstMeasure }.map(\.id) ?? [])
         record.priorExposures = journal.records.filter { equivalent.contains($0.roundId) }.count
         let related = Set(catalog?.rounds.filter { $0.rhythmKey == r.rhythmKey }.map(\.id) ?? [])

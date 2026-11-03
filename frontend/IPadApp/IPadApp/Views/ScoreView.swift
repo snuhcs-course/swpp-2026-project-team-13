@@ -11,10 +11,13 @@ struct NativeScoreRenderer: ScoreRenderer {
     var clef = "G"
     var pending: Set<Int> = []
     var incorrect: Set<Int> = []
+    var compactSpacing: MelodyBarSpacing? = nil
     func render(_ score: MusicScore, context: inout GraphicsContext, size: CGSize) {
-        context.scaleBy(x: size.width / 1330, y: size.width / 1330)
-        if singleMeasure { context.translateBy(x:0,y:-80) }
-        let bars:[[CGFloat]] = singleMeasure ? [[54,1276]] : [[54.0,450,725,1000,1276],[54.0,397,690,983,1276]]
+        let right = compactSpacing.map { CGFloat($0.width)-12 } ?? 1276
+        let canvasWidth = compactSpacing.map { CGFloat($0.width) } ?? 1330
+        context.scaleBy(x:size.width/canvasWidth,y:size.width/canvasWidth)
+        if singleMeasure { context.translateBy(x:0,y:-(compactSpacing.map { CGFloat($0.top) } ?? 80)) }
+        let bars:[[CGFloat]] = singleMeasure ? [[54,right]] : [[54.0,450,725,1000,1276],[54.0,397,690,983,1276]]
         var ink = Color.black
         let keyWidth = CGFloat(abs(keyFifths))*15
         func line(_ a: CGPoint, _ b: CGPoint, width: CGFloat = 1.5) {
@@ -26,7 +29,7 @@ struct NativeScoreRenderer: ScoreRenderer {
         }
         for system in 0..<(singleMeasure ? 1 : 2) {
             let top:CGFloat = system == 0 ? 164.0 : 499.0
-            for j in 0..<5 { line(CGPoint(x:54,y:top+CGFloat(j)*12),CGPoint(x:1276,y:top+CGFloat(j)*12)) }
+            for j in 0..<5 { line(CGPoint(x:54,y:top+CGFloat(j)*12),CGPoint(x:right,y:top+CGFloat(j)*12)) }
             for x in bars[system] { line(CGPoint(x:x,y:top),CGPoint(x:x,y:top+48)) }
             text(clef == "F" ? "𝄢" : "𝄞",x:84,y:top+23,size:75)
             let keyY: [CGFloat] = keyFifths >= 0 ? [0,18,-6,12,30,6,24] : [24,6,30,12,36,18,42]
@@ -45,7 +48,11 @@ struct NativeScoreRenderer: ScoreRenderer {
             let fraction = CGFloat(symbol.onset % score.ticksPerMeasure) / CGFloat(score.ticksPerMeasure)
             let diatonic = ["C":0,"D":1,"E":2,"F":3,"G":4,"A":5,"B":6]
             let pitch = symbol.octave*7 + (diatonic[symbol.step ?? "E"] ?? 2)
-            return CGPoint(x:left+lead+(right-left-lead-28)*fraction,y:(system == 0 ? 212.0 : 547.0)-CGFloat(pitch-(clef == "F" ? 2*7+4 : 4*7+2))*6)
+            let naturalX: CGFloat?
+            if let spacing = compactSpacing, let i = score.symbols.firstIndex(where: { $0.measure == symbol.measure && $0.onset == symbol.onset }), spacing.positions.indices.contains(i) {
+                naturalX = CGFloat(spacing.positions[i])
+            } else { naturalX = nil }
+            return CGPoint(x:naturalX ?? (left+lead+(right-left-lead-28)*fraction),y:(system == 0 ? 212.0 : 547.0)-CGFloat(pitch-(clef == "F" ? 2*7+4 : 4*7+2))*6)
         }
         // Flat shared beams make every member use the same stem direction and endpoint.
         var groups:[[Int]] = [], current:[Int] = []
@@ -87,7 +94,12 @@ struct NativeScoreRenderer: ScoreRenderer {
             }
             if p.y >= bottom+12 { for y in stride(from:bottom+12,through:p.y,by:12) { line(CGPoint(x:p.x-15,y:y),CGPoint(x:p.x+15,y:y)) } }
             if p.y <= top-12 { for y in stride(from:top-12,through:p.y,by:-12) { line(CGPoint(x:p.x-15,y:y),CGPoint(x:p.x+15,y:y)) } }
-            let head = Path(ellipseIn:CGRect(x:p.x-10,y:p.y-6,width:20,height:12))
+            let head: Path
+            if compactSpacing != nil {
+                head = Path(ellipseIn:CGRect(x:-10,y:-6,width:20,height:12))
+                    .applying(CGAffineTransform(rotationAngle:-0.22))
+                    .applying(CGAffineTransform(translationX:p.x,y:p.y))
+            } else { head = Path(ellipseIn:CGRect(x:p.x-10,y:p.y-6,width:20,height:12)) }
             if n.type == "whole" || n.type == "half" { context.stroke(head,with:.color(ink),lineWidth:2.5) } else { context.fill(head,with:.color(ink)) }
             let down = stems[i]?.down ?? (p.y < top+24)
             if n.type != "whole" {
@@ -108,9 +120,12 @@ struct NativeScoreRenderer: ScoreRenderer {
             if !pending.contains(i) { accidentalState[key] = n.alter }
             for dot in 0..<n.dots { context.fill(Path(ellipseIn:CGRect(x:p.x+16+CGFloat(dot)*7,y:p.y-5,width:4,height:4)),with:.color(ink)) }
             if n.tieStart, i+1 < score.symbols.count || singleMeasure {
-                let next = i+1 < score.symbols.count ? position(score.symbols[i+1]) : CGPoint(x:1270,y:p.y)
-                let end = next.x > p.x ? CGPoint(x:next.x-9,y:next.y+12) : CGPoint(x:1270,y:p.y+12)
-                var tie = Path(); tie.move(to:CGPoint(x:p.x+8,y:p.y+12)); tie.addQuadCurve(to:end,control:CGPoint(x:(p.x+end.x)/2,y:p.y+34)); context.stroke(tie,with:.color(ink),lineWidth:2)
+                let next = i+1 < score.symbols.count ? position(score.symbols[i+1]) : CGPoint(x:right-6,y:p.y)
+                let end = next.x > p.x ? CGPoint(x:next.x-9,y:next.y+12) : CGPoint(x:right-6,y:p.y+12)
+                if compactSpacing != nil { context.fill(RhythmInk.tie(from:CGPoint(x:p.x+8,y:p.y+12),to:end),with:.color(ink)) }
+                else {
+                    var tie = Path(); tie.move(to:CGPoint(x:p.x+8,y:p.y+12)); tie.addQuadCurve(to:end,control:CGPoint(x:(p.x+end.x)/2,y:p.y+34)); context.stroke(tie,with:.color(ink),lineWidth:2)
+                }
             }
             if singleMeasure, n.tieStop, i == 0 {
                 var tie = Path(); tie.move(to:CGPoint(x:p.x-34,y:p.y+12)); tie.addQuadCurve(to:CGPoint(x:p.x-8,y:p.y+12),control:CGPoint(x:p.x-21,y:p.y+25)); context.stroke(tie,with:.color(ink),lineWidth:2)

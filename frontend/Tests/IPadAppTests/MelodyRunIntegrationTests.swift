@@ -42,14 +42,16 @@ import SwiftUI
         defer { game.stop() }
         await game.start(); XCTAssertNil(game.error)
         try await waitUntil({game.canEnter})
-        let pitch = try XCTUnwrap(game.round?.targets.first?.midi)
+        let target = try XCTUnwrap(game.answers?.next(in:game.measure))
+        let pitch = try XCTUnwrap(game.round?.targets[target].midi)
         game.keyDown(pitch); game.keyUp(pitch)
         let before = game.answers?.pitches
         game.pause(); XCTAssertTrue(game.paused)
         game.keyDown(99); XCTAssertEqual(game.answers?.pitches,before)
         game.resume(); XCTAssertNil(game.error); XCTAssertFalse(game.paused)
         XCTAssertEqual(game.answers?.pitches,before)
-        game.undo(); XCTAssertNil(game.answers?.pitches.first ?? nil)
+        game.undo(); XCTAssertNil(game.answers?.pitches[target])
+        XCTAssertEqual(game.answers?.pitches.first ?? nil,game.round?.targets.first?.midi)
     }
     func testFinalPreparationBeatAlreadyAcceptsGrooveInput() async throws {
         let game = makeGame(mode:.groove)
@@ -57,15 +59,52 @@ import SwiftUI
         await game.start(); XCTAssertNil(game.error)
         try await waitUntil({game.inputReady && game.phase == .beat})
         XCTAssertTrue(game.canEnter)
-        let pitch = try XCTUnwrap(game.round?.targets.first?.midi)
+        let target = try XCTUnwrap(game.answers?.next(in:game.measure))
+        let pitch = try XCTUnwrap(game.round?.targets[target].midi)
         game.keyDown(pitch); game.keyUp(pitch)
-        XCTAssertEqual(game.answers?.pitches.first ?? nil,pitch)
+        XCTAssertEqual(game.answers?.pitches[target],pitch)
     }
-    func testDemoPickerOnlyContainsCmajorAndAminor() {
+    func testExpandedPoolContainsOtherKeysClassicalAndIntermediateWithoutAdvancedDictation() {
         let game = MelodyRunModel()
         XCTAssertFalse(game.questions.isEmpty)
-        XCTAssertTrue(game.questions.allSatisfy { $0.isDemoEligible })
-        XCTAssertTrue(game.questions.allSatisfy { ["C major","A minor"].contains($0.key) })
+        XCTAssertTrue(game.questions.contains { !$0.isDemoEligible })
+        XCTAssertTrue(game.questions.contains { $0.collection == "classical" })
+        XCTAssertTrue(game.questions.contains { $0.collection == "intermediate" })
+        XCTAssertTrue(game.catalog?.sources.allSatisfy { ["library","intermediate","classical"].contains($0.collection ?? "") } == true)
+    }
+    func testFourRoundBeginnerSetStoresObservationsAndReachesSummary() async throws {
+        let game = MelodyRunModel()
+        defer { game.stop() }
+        game.difficulty = .beginner
+        game.newSet()
+        for index in 0..<4 {
+            try await waitUntil({game.page == .playing && !game.working},seconds:12)
+            XCTAssertEqual(game.setIndex,index)
+            XCTAssertEqual(game.round?.score.measures,2)
+            XCTAssertEqual(game.settings.bpm,60)
+            XCTAssertEqual(game.keyboardRange,60...72)
+            XCTAssertTrue(game.excerpt?.beginnerEligible == true)
+            let given = try XCTUnwrap(game.round?.targets.first?.midi)
+            XCTAssertEqual(game.answers?.pitches.first ?? nil,given)
+            game.finish() // A deliberately incomplete submission is recorded, not filled in.
+            XCTAssertEqual(game.page,.result)
+            XCTAssertEqual(game.answers?.result.accuracy,0)
+            game.next()
+        }
+        XCTAssertEqual(game.page,.summary)
+        XCTAssertTrue(game.setScores.allSatisfy { $0 == 0 })
+        let csv = try String(contentsOf:XCTUnwrap(game.exportURL),encoding:.utf8)
+        XCTAssertTrue(csv.contains("prior_pattern_exposures")); XCTAssertTrue(csv.contains("submitted"))
+        XCTAssertFalse(game.storageFailed)
+    }
+    func testHelpOrBackgroundCancelsDelayedStart() async throws {
+        let game = MelodyRunModel()
+        game.newSet()
+        try await waitUntil({game.working},seconds:3)
+        game.pause()
+        try await Task.sleep(for:.milliseconds(1100))
+        XCTAssertEqual(game.page,.setup); XCTAssertFalse(game.audio.isRunning)
+        game.stop()
     }
     func testMiniGameDoesNotReplacePreparedExamAttempt() async throws {
         let exam = AppModel(); exam.demo = true

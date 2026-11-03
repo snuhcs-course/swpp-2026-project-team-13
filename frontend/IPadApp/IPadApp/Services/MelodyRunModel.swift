@@ -1,7 +1,25 @@
 import SwiftUI
 
 @MainActor final class MelodyRunModel: ObservableObject {
-    enum Page { case setup, playing, result }
+    enum Page { case setup, playing, result, summary }
+    @Published var difficulty: MemoryDifficulty = .beginner
+    @Published private(set) var setIndex = 0
+    @Published private(set) var setExcerpts: [MemoryExcerpt] = []
+    @Published private(set) var setScores: [Int?] = Array(repeating:nil,count:4)
+    @Published private(set) var exportURL: URL?
+    @Published private(set) var storageFailed = false
+    private(set) var catalog: MemoryCatalog?
+    private var catalogHash = ""
+    private var setId = UUID()
+    private var records: [MemoryPlayRecord] = []
+    private var currentRecordId: UUID?
+    private var store: MemoryRunStore?
+    private var transition: Task<Void,Never>?
+    private var transitionPending = false
+    private var inputStarted: TimeInterval?
+    var excerpt: MemoryExcerpt? { setExcerpts.indices.contains(setIndex) ? setExcerpts[setIndex] : nil }
+    var tempoLabel: String { difficulty.tempoLabel(for:round?.score.timeSignature ?? TimeSignature(numerator:4,denominator:4)) }
+    var keyboardRange: ClosedRange<Int> { difficulty == .beginner && excerpt != nil ? 60...72 : round?.keyboardRange ?? 60...84 }
     @Published var settings = MelodySettings()
     @Published private(set) var questions: [MelodyQuestion] = []
     @Published var selection = ""
@@ -27,7 +45,7 @@ import SwiftUI
     private var freeRecall = false
     private var lastWindow: Int?
     var question: MelodyQuestion? { questions.first { $0.id == selection } }
-    var canEnter: Bool { page == .playing && !paused && !working && (freeRecall || inputReady) }
+    var canEnter: Bool { page == .playing && !paused && !working && !transitionPending && (freeRecall || inputReady) }
     var allEntered: Bool { answers?.pitches.allSatisfy { $0 != nil } == true }
     var currentCount: Int {
         guard let round, let answers else { return 0 }
@@ -54,12 +72,21 @@ import SwiftUI
         }
     }
 
-    init() {
+    init(connection: RhythmConnection? = nil) {
         do {
-            guard let url = Bundle.main.url(forResource:"melody-catalog",withExtension:"json") else {
+            guard let url = Bundle.main.url(forResource:"memory-run-v2",withExtension:"json") else {
                 throw SolfegeError.invalidScore("미니게임 문제 목록이 없어요.")
             }
-            questions = try JSONDecoder().decode([MelodyQuestion].self,from:Data(contentsOf:url)).filter(\.isDemoEligible)
+            let data = try Data(contentsOf:url)
+            let value = try JSONDecoder().decode(MemoryCatalog.self,from:data)
+            try value.validate(); catalog = value; catalogHash = data.sha256
+            questions = value.sources
+            let root = try LocalStore(scope:connection?.scope ?? "memory-run-guest").root
+            let storage = try MemoryRunStore(root:root)
+            records = try storage.load(); store = storage
+            // A prior app termination is an interrupted observation, not an incorrect answer.
+            for i in records.indices where records[i].outcome == "in_progress" { records[i].outcome = "interrupted" }
+            try storage.save(records); exportURL = try storage.csv(records)
             try loadLocalQuestions()
             selection = questions.first?.id ?? ""
         } catch { self.error = error.localizedDescription }
@@ -80,7 +107,6 @@ import SwiftUI
         }
     }
     private func addLocal(_ url: URL, source: MelodySource) {
-        guard source.isDemoEligible else { return }
         let id = "local:"+url.lastPathComponent
         let pitches = source.score.symbols.compactMap(\.midi)
         questions.removeAll { $0.id == id }
@@ -98,7 +124,6 @@ import SwiftUI
             do {
                 let data = try Data(contentsOf:url,options:.mappedIfSafe)
                 let source = try MelodyXMLParser.parse(data)
-                try source.validateDemoKey()
                 let destination = try localDirectory().appendingPathComponent(String(data.sha256.prefix(12))+"-"+url.lastPathComponent)
                 try data.write(to:destination,options:.atomic)
                 addLocal(destination,source:source); selection = "local:"+destination.lastPathComponent; imported += 1
@@ -110,23 +135,59 @@ import SwiftUI
         let candidates = questions.filter { $0.id != selection }
         if let next = (candidates.isEmpty ? questions : candidates).randomElement() { selection = next.id }
     }
-    func start() async {
+    func newSet() {
+        guard let catalog, !working, !transitionPending else { return }
+        do {
+            endObservation(outcome:"abandoned")
+            var rng = SystemRandomNumberGenerator()
+            setExcerpts = try catalog.makeSet(level:difficulty,using:&rng)
+            setIndex = 0; setScores = Array(repeating:nil,count:4); setId = UUID()
+            queueStart()
+        } catch { self.error = error.localizedDescription }
+    }
+    private func queueStart() {
+        transition?.cancel()
+        stopReplay()
+        transitionPending = true
+        transition = Task { [weak self] in
+            await self?.start(afterDelay:true)
+            self?.transitionPending = false
+        }
+    }
+    func next() {
+        guard page == .result, !working, !transitionPending else { return }
+        if setIndex+1 >= setExcerpts.count { stopReplay(); page = .summary; return }
+        setIndex += 1; queueStart()
+    }
+    func retry() { guard page == .result, !working, !transitionPending else { return }; queueStart() }
+    func start(afterDelay: Bool = false) async {
+        if let excerpt {
+            selection = excerpt.sourceId; settings.startBar = excerpt.first; settings.bars = excerpt.bars
+            settings.bpm = difficulty.quarterBpm; settings.inputBars = 2; settings.advanceEarly = true
+        }
         guard !working, let question else { return }
         working = true; defer { working = false }
+        if afterDelay {
+            do { try await Task.sleep(for:.seconds(1)) } catch { return }
+            guard !Task.isCancelled else { return }
+        }
         await Task.yield()
+        guard !Task.isCancelled else { return }
         do {
             try settings.validate()
             let url = localURLs[question.id] ?? Bundle.main.url(forResource:question.file,withExtension:nil)
             guard let url else { throw SolfegeError.invalidScore("문제 XML을 찾지 못했어요.") }
-            let source = try MelodyXMLParser.parse(Data(contentsOf:url))
-            try source.validateDemoKey()
+            let data = try Data(contentsOf:url)
+            if let expected = question.sha256, data.sha256 != expected { throw SolfegeError.invalidScore("선율 파일이 변경됐어요. 최신 앱을 설치해 주세요.") }
+            let source = try MelodyXMLParser.parse(data)
             let value = try MelodyRound(source:source,start:settings.startBar,bars:settings.bars)
             runner?.cancel(); audio.stop()
-            round = value; answers = MelodyAnswers(round:value); measure = 1; freeRecall = false
+            round = value; answers = MelodyAnswers(round:value,provideFirst:true); measure = 1; freeRecall = false
             try audio.prepare()
             page = .playing; paused = false
+            beginObservation()
             try beginClock(from:1)
-        } catch { audio.stop(); page = .setup; self.error = error.localizedDescription }
+        } catch { audio.stop(); endObservation(outcome:"technical_error"); page = .setup; self.error = error.localizedDescription }
     }
     private func beginClock(from measure: Int) throws {
         guard let round else { return }
@@ -155,11 +216,20 @@ import SwiftUI
             let nextPulse = ((tick-window.start)/value.pulseTicks) % round.score.timeSignature.numerator
             if pulse != nextPulse { pulse = nextPulse }
             if lastWindow != index {
+                if window.phase == .listen && (settings.mode == .groove || window.measure == value.windows.first(where: { $0.phase == .listen })?.measure) { mutateRecord { $0.listenStarts += 1 } }
+                if settings.mode == .groove {
+                    if let previous = lastWindow, value.windows[previous].phase == .listen { mutateRecord { $0.listenCompleted += 1 } }
+                    if let previous = lastWindow, value.windows[previous].phase == .input { accumulateInputTime() }
+                    if window.phase == .input { inputStarted = ProcessInfo.processInfo.systemUptime }
+                }
                 // Stop held live keys before the next reference phrase starts.
                 if window.phase == .listen { audio.releaseKeys() }
                 phase = window.phase; measure = window.measure; lastWindow = index
             }
-            let nextProgress = Double(tick-window.start)/Double(max(1,window.end-window.start))
+            let nextProgress: Double
+            if settings.mode == .memory, window.phase == .listen, let first = value.windows.first(where: { $0.phase == .listen }) {
+                nextProgress = Double(tick-first.start)/Double(max(1,value.end-first.start))
+            } else { nextProgress = Double(tick-window.start)/Double(max(1,window.end-window.start)) }
             if abs(progress-nextProgress) >= 0.008 { progress = nextProgress }
             let remaining = (Double(max(0,window.end-tick))/480*60/settings.bpm*10).rounded(.up)/10
             if remainingSeconds != remaining { remainingSeconds = remaining }
@@ -171,7 +241,9 @@ import SwiftUI
         } else if tick >= value.end {
             audio.stopClock(); runner?.cancel(); runner = nil
             if settings.mode == .memory {
+                mutateRecord { $0.listenCompleted += 1 }
                 freeRecall = true; phase = .input; measure = 1; progress = 0; pulse = -1
+                inputStarted = ProcessInfo.processInfo.systemUptime
                 advanceMemory()
             } else { finish() }
         }
@@ -196,6 +268,7 @@ import SwiftUI
         audio.noteOn(midi)
         guard canEnter else { return }
         guard answers?.enter(midi,measure:measure) == true else { return }
+        updateActual()
         if freeRecall { advanceMemory() }
         else if settings.advanceEarly, let value = timeline, let index = value.inputIndex(at:audio.tick,bpm:settings.bpm), answers?.complete(measure) == true {
             armNext(after:index,early:true)
@@ -214,26 +287,78 @@ import SwiftUI
             // Earlier timed-out bars must never be changed by an undo in this bar.
             answers?.undo(in:measure)
         }
+        updateActual()
     }
-    func clearBar() { guard canEnter else { return }; answers?.clear(measure:measure) }
+    func clearBar() { guard canEnter else { return }; answers?.clear(measure:measure); updateActual() }
     func selectBar(_ bar: Int) { guard freeRecall, canEnter else { return }; measure = bar }
     func finish() {
         guard page == .playing else { return }
         runner?.cancel(); runner = nil; audio.stopClock(); audio.releaseKeys(); page = .result; paused = false
+        if let result = answers?.result {
+            setScores[setIndex] = result.accuracy
+            mutateRecord { $0.accuracy = result.accuracy }
+        }
+        endObservation(outcome:"submitted")
     }
     func pause() {
+        if working || transitionPending { transition?.cancel(); transition = nil; transitionPending = false; working = false; page = .setup; audio.stop(); return }
         guard page == .playing else { stopReplay(); audio.stop(); return }
         runner?.cancel(); runner = nil; paused = true; audio.stop()
+        accumulateInputTime(); mutateRecord { $0.interruptions += 1 }
     }
     func resume() {
         guard paused else { return }
         do {
             try audio.prepare(); paused = false
             if !freeRecall { try beginClock(from:settings.mode == .memory ? 1 : measure) }
+            else { inputStarted = ProcessInfo.processInfo.systemUptime }
         } catch { audio.stop(); paused = true; self.error = error.localizedDescription }
     }
-    func setup() { runner?.cancel(); runner = nil; audio.stop(); replaying = nil; page = .setup }
-    func stop() { runner?.cancel(); runner = nil; audio.stop(); replaying = nil }
+    func setup() { stop(); page = .setup }
+    func stop() {
+        transition?.cancel(); transition = nil; transitionPending = false; working = false
+        runner?.cancel(); runner = nil; audio.stop(); replaying = nil
+        endObservation(outcome:"abandoned")
+    }
+    func listenAgain() {
+        guard page == .playing, settings.mode == .memory, freeRecall, !paused, !working else { return }
+        accumulateInputTime(); freeRecall = false
+        do { try beginClock(from:1) }
+        catch { pause(); self.error = error.localizedDescription }
+    }
+    private func beginObservation() {
+        guard let excerpt, let question, let round, let answers else { return }
+        let record = MemoryPlayRecord(setId:setId,setIndex:setIndex,excerptId:excerpt.id,sourceId:question.id,
+            sourceSha256:question.sha256 ?? "",catalogSha256:catalogHash,analysisKey:question.analysisKey ?? "",
+            difficultyVersion:catalog?.difficultyVersion ?? "",level:difficulty,mode:settings.mode.rawValue,
+            bars:excerpt.bars,first:excerpt.first,bpm:settings.bpm,score:excerpt.score,fingerprint:excerpt.fingerprint,
+            priorExposures:records.filter { $0.excerptId == excerpt.id && $0.listenStarts > 0 }.count,
+            priorPatternExposures:records.filter { $0.fingerprint == excerpt.fingerprint && $0.listenStarts > 0 }.count,
+            expected:round.targets.map(\.midi),givenIndices:answers.givenIndices.sorted(),actual:answers.pitches)
+        records.append(record); currentRecordId = record.id; persist()
+    }
+    private func mutateRecord(_ change: (inout MemoryPlayRecord)->Void) {
+        guard let id = currentRecordId, let i = records.firstIndex(where: { $0.id == id }) else { return }
+        change(&records[i]); persist()
+    }
+    private func updateActual() { if let pitches = answers?.pitches { mutateRecord { $0.actual = pitches } } }
+    private func accumulateInputTime() {
+        guard let start = inputStarted else { return }; inputStarted = nil
+        let elapsed = Int(max(0,ProcessInfo.processInfo.systemUptime-start)*1000)
+        mutateRecord { $0.inputMs += elapsed }
+    }
+    private func endObservation(outcome: String) {
+        accumulateInputTime(); updateActual()
+        mutateRecord { if $0.outcome == "in_progress" { $0.outcome = outcome } }
+        currentRecordId = nil
+        persist(export:true)
+    }
+    private func persist(export: Bool = false) {
+        guard let store else { return }
+        do { try store.save(records); if export { exportURL = try store.csv(records) }; storageFailed = false }
+        catch { storageFailed = true; self.error = "게임 기록을 기기에 저장하지 못했어요. 저장 공간을 확인해 주세요." }
+    }
+    func retryStorage() { persist(export:true) }
     func replay(user: Bool, measure: Int? = nil) {
         guard let round, let answers, page == .result else { return }
         stopReplay()

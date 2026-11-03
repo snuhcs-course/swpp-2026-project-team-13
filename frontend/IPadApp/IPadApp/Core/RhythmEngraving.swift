@@ -52,14 +52,15 @@ struct RhythmBarLayout {
         return part.x+(time-part.start).value/part.duration.value*part.width
     }
     func nearestTime(to x: Double, tiles: [String:RhythmTile]) -> RhythmTime {
-        if let part = segments.first(where: { $0.x <= x && x <= $0.x+$0.width }), part.placement != nil { return part.start }
-        var anchors = Set(segments.map(\.start))
-        for i in 0..<round.pulsesPerMeasure {
-            for divisor in [1,2,3,4] {
-                for j in 0..<divisor { anchors.insert(beginning+round.pulse*i+(round.pulse/RhythmTime(divisor))*j) }
-            }
-        }
-        return anchors.min { abs(self.x(at:$0)-x) < abs(self.x(at:$1)-x) } ?? beginning
+        // The whole visible slot belongs to its start. The centre of an empty
+        // beat is still that beat, never a newly invented half/third of a beat.
+        // Partial slots after a dotted note retain their exact fractional start.
+        if let part = segments.first(where: { $0.x <= x && x < $0.x+$0.width }) { return part.start }
+        func distance(_ part: Segment) -> Double { max(0,max(part.x-x,x-(part.x+part.width))) }
+        return segments.min {
+            let a = distance($0), b = distance($1)
+            return a == b ? $0.start < $1.start : a < b
+        }?.start ?? beginning
     }
     func firstHead(_ placement: RhythmPlacement) -> Double? {
         guard let p = segments.first(where: { $0.placement == placement }), let head = p.symbolXs.first else { return nil }
