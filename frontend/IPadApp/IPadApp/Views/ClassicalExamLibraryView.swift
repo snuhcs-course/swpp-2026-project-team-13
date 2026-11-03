@@ -34,7 +34,7 @@ struct ClassicalExamLibraryView: View {
                         Button { model.selectedComposer = nil } label: { Label("작곡가 선택",systemImage:"chevron.left") }.buttonStyle(.bordered)
                         if let portrait = portraits.first(where: { $0.name == name }) { composerCard(portrait,count:selected.count,height:180) }
                         ForEach(selected) { question in
-                            Button { Task { await model.choose(question.id,mode:model.selectedMode) } } label: {
+                            Button { Task { await model.choose(question.id,mode:.practice) } } label: {
                                 Card { HStack(spacing:20) {
                                     Image(systemName:"music.note").font(.title2).foregroundStyle(SolfegeTheme.violet)
                                     VStack(alignment:.leading,spacing:10) {

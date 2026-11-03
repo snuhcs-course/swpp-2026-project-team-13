@@ -7,16 +7,18 @@ struct MainHomeView: View {
     @Environment(\.dynamicTypeSize) private var typeSize
 
     private struct Entry: Identifiable {
+        enum Action { case open(AppModel.Screen), recommendedExam, inDevelopment }
         let id, title, symbol, detail: String
-        let screen: AppModel.Screen
+        let action: Action
         var needsServer = true
         var accent = false
+        var inDevelopment: Bool { if case .inDevelopment = action { return true }; return false }
     }
     private let entries = [
-        Entry(id: "daily", title: "Daily Training", symbol: "sun.max", detail: "미니게임 세트와 청음 한 문제를 매일 연습해요", screen: .dailyTraining),
-        Entry(id: "drill", title: "Drill", symbol: "pianokeys", detail: "미니게임을 골라 듣고 기억하는 연습을 해요", screen: .minigames, needsServer: false),
-        Entry(id: "practice", title: "Practice", symbol: "pencil", detail: StudyMode.practice.detail, screen: .home),
-        Entry(id: "exam", title: "Exam", symbol: "music.note.list", detail: StudyMode.exam.detail, screen: .examLibrary, accent: true),
+        Entry(id: "daily", title: "Daily Training", symbol: "sun.max", detail: "미니게임 세트와 청음 한 문제를 매일 연습하는 메뉴를 만들고 있어요", action: .inDevelopment),
+        Entry(id: "drill", title: "Drill", symbol: "pianokeys", detail: "미니게임을 골라 듣고 기억하는 연습을 해요", action: .open(.minigames), needsServer: false),
+        Entry(id: "practice", title: "Practice", symbol: "pencil", detail: StudyMode.practice.detail, action: .open(.home)),
+        Entry(id: "exam", title: "Exam", symbol: "music.note.list", detail: StudyMode.exam.detail, action: .recommendedExam, accent: true),
     ]
     // Startup also has no connection yet, so only a finished attempt counts as offline.
     private var offline: Bool { !model.connected && !model.authenticating }
@@ -139,17 +141,29 @@ struct MainHomeView: View {
     }
     private static let keyGap: CGFloat = 6
     private func key(_ entry: Entry, large: Bool, topRadius: CGFloat) -> some View {
-        let unavailable = entry.needsServer && offline
+        let unavailable = entry.inDevelopment || (entry.needsServer && offline)
         let title: Color = unavailable ? SolfegeTheme.softInk : entry.accent ? .white : SolfegeTheme.ink
         let symbol: Color = unavailable ? SolfegeTheme.softInk : entry.accent ? .white : SolfegeTheme.violet
         let detail: Color = unavailable ? SolfegeTheme.softInk : entry.accent ? .white : SolfegeTheme.muted
-        return Button { model.navigate(entry.screen) } label: {
+        return Button {
+            switch entry.action {
+            case .open(let screen): model.navigate(screen)
+            case .recommendedExam: Task { await model.startRecommendedExam() }
+            case .inDevelopment: break
+            }
+        } label: {
             VStack(alignment: .leading, spacing: 12) {
                 Spacer(minLength: 0)
-                Image(systemName: entry.symbol).font(.system(size: large ? 30 : 26, weight: .light)).foregroundStyle(symbol)
+                HStack(spacing: 10) {
+                    Image(systemName: entry.symbol).font(.system(size: large ? 30 : 26, weight: .light)).foregroundStyle(symbol)
+                    if entry.inDevelopment {
+                        Text("개발 중").font(.system(size: 13, weight: .bold)).foregroundStyle(SolfegeTheme.softInk)
+                            .padding(.horizontal, 10).padding(.vertical, 5).background(.white, in: Capsule())
+                    }
+                }
                 VStack(alignment: .leading, spacing: 4) {
                     Text(entry.title).font(.system(size: large ? 30 : 24, weight: .heavy, design: .rounded)).foregroundStyle(title).lineLimit(2).minimumScaleFactor(0.8)
-                    Text(unavailable ? "연결 후 사용할 수 있어요" : !entry.needsServer && offline ? "Memory run은 연결 없이 할 수 있어요" : entry.detail)
+                    Text(entry.inDevelopment ? entry.detail : unavailable ? "연결 후 사용할 수 있어요" : !entry.needsServer && offline ? "Memory run은 연결 없이 할 수 있어요" : entry.detail)
                         .font(.system(size: large ? 15 : 14)).foregroundStyle(detail).fixedSize(horizontal: false, vertical: true)
                 }
             }

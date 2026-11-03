@@ -2,7 +2,7 @@ import SwiftUI
 
 struct HomeView: View {
     @ObservedObject var model: AppModel
-    var mode: StudyMode = .practice
+    private let mode = StudyMode.practice
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 28) {
@@ -42,12 +42,13 @@ struct HomeView: View {
                             }
                         }
                     } else {
-                    if mode == .practice, let q = suggestedQuestion {
+                    filterBar
+                    if let q = suggestedQuestion {
                         Card { VStack(alignment:.leading,spacing:12) {
                             Label("다음 연습 추천",systemImage:"sparkles").font(.headline)
                             Text(q.title).font(.subheadline)
                             Text("선택한 난이도에서 자기채점을 완료한 횟수가 적은 문제를 먼저 제안해요.").font(.caption).foregroundStyle(.secondary)
-                            Button("이 문제 연습하기") { Task { await model.choose(q.id,mode:.practice) } }.buttonStyle(PrimaryButton(compact:true))
+                            Button("이 문제 연습하기") { Task { await model.choose(q.id,mode:mode) } }.buttonStyle(PrimaryButton(compact:true))
                                 .accessibilityIdentifier("practice-suggested-question")
                         } }
                     }
@@ -62,10 +63,14 @@ struct HomeView: View {
                             } }
                         }.buttonStyle(.plain).accessibilityIdentifier("practice-question-\(q.id.uuidString.lowercased())")
                     }
-                    if visibleQuestions.isEmpty { ContentUnavailableView("등록된 문제가 없어요",systemImage:"music.note") }
+                    if visibleQuestions.isEmpty {
+                        if model.practiceFilter.isActive {
+                            ContentUnavailableView("조건에 맞는 문제가 없어요",systemImage:"line.3.horizontal.decrease.circle",description:Text("조성이나 박자를 바꿔 보세요."))
+                        } else { ContentUnavailableView("등록된 문제가 없어요",systemImage:"music.note") }
+                    }
                     }
                     if model.hasNextPage { Button("문제 더 보기") { Task { await model.loadMore() } }.frame(maxWidth: .infinity) }
-                    Button { model.selectedMode = mode; model.navigate(.classical) } label: {
+                    Button { model.navigate(.classical) } label: {
                         HStack {
                             Text("클래식 선율 문제").font(.system(size:20,weight:.bold)).foregroundStyle(SolfegeTheme.ink)
                             Spacer(); Image(systemName:"arrow.up.right").font(.system(size:20)).foregroundStyle(SolfegeTheme.violet)
@@ -74,11 +79,45 @@ struct HomeView: View {
                     if model.demo { DemoBadge() }
                 }
             }.padding(32).frame(maxWidth: 924, alignment: .leading).frame(maxWidth: .infinity)
-        }.refreshable { let level = model.selectedPracticeLevel; await model.refreshLibrary(destination:mode == .practice ? .home : .examLibrary); model.selectedPracticeLevel = level }
+        }.refreshable { let level = model.selectedPracticeLevel; await model.refreshLibrary(destination:.home); model.selectedPracticeLevel = level }
     }
-    private var visibleQuestions: [QuestionSummary] {
+    private var levelQuestions: [QuestionSummary] {
         guard let level = model.selectedPracticeLevel else { return model.questions }
         return model.questions.filter { $0.practiceLevel == level }
+    }
+    private var visibleQuestions: [QuestionSummary] { model.practiceFilter.apply(to:levelQuestions) }
+    // A menu with one option cannot narrow anything, as with the keys of 중급 and 고급.
+    private var filterBar: some View {
+        let keys = QuestionFilter.keyOptions(in:levelQuestions), meters = QuestionFilter.meterOptions(in:levelQuestions)
+        return HStack(spacing:12) {
+            if keys.count > 1 {
+                filterMenu("조성",current:model.practiceFilter.key?.label,id:"practice-filter-key") {
+                    Picker("조성",selection:$model.practiceFilter.key) {
+                        Text("전체").tag(KeySignature?.none)
+                        ForEach(keys,id:\.self) { Text($0.label).tag(KeySignature?.some($0)) }
+                    }
+                }
+            }
+            if meters.count > 1 {
+                filterMenu("박자",current:model.practiceFilter.meter?.label,id:"practice-filter-meter") {
+                    Picker("박자",selection:$model.practiceFilter.meter) {
+                        Text("전체").tag(TimeSignature?.none)
+                        ForEach(meters,id:\.self) { Text($0.label).tag(TimeSignature?.some($0)) }
+                    }
+                }
+            }
+            if model.practiceFilter.isActive {
+                Button("필터 초기화") { model.practiceFilter = QuestionFilter() }.font(.system(size:15,weight:.medium)).frame(minHeight:44).accessibilityIdentifier("practice-filter-reset")
+            }
+        }
+    }
+    private func filterMenu<Options: View>(_ title: String, current: String?, id: String, @ViewBuilder options: () -> Options) -> some View {
+        Menu { options() } label: {
+            HStack(spacing:8) {
+                Text("\(title) · \(current ?? "전체")").font(.system(size:15,weight:.semibold)).foregroundStyle(current == nil ? SolfegeTheme.ink : SolfegeTheme.deepViolet)
+                Image(systemName:"chevron.down").font(.system(size:12,weight:.semibold)).foregroundStyle(SolfegeTheme.violet)
+            }.padding(.horizontal,16).frame(minHeight:44).background(.white,in:RoundedRectangle(cornerRadius:12))
+        }.accessibilityIdentifier(id)
     }
     private var suggestedQuestion: QuestionSummary? {
         var completed: [UUID:Int] = [:]
@@ -108,16 +147,17 @@ struct QuestionView: View {
     var body: some View {
         ScrollView { if let q = model.selectedQuestion {
             VStack(alignment: .leading, spacing: 28) {
-                SectionCaption(eyebrow:"READY TO LISTEN",title:q.title,subtitle:model.selectedMode == .practice ? "멜로디를 듣고 빈 오선에 적은 뒤 정답과 직접 비교해요." : q.description)
+                SectionCaption(eyebrow:model.selectedMode == .exam ? "RECOMMENDED EXAM" : "READY TO LISTEN",title:q.title,subtitle:model.selectedMode == .practice ? "멜로디를 듣고 빈 오선에 적은 뒤 정답과 직접 비교해요." : q.description)
                 Text(model.selectedMode.title + " · " + model.selectedMode.detail).font(.subheadline).foregroundStyle(SolfegeTheme.violet)
                 HStack {
+                    if model.selectedMode == .exam { Pill(text:"추천 문제",icon:"sparkles") }
                     Pill(text:q.keySignature.label,icon:"music.note")
                     Pill(text:"\(q.timeSignature.numerator)/\(q.timeSignature.denominator) · 8마디")
                     if let tempo = q.tempo { Pill(text:tempo.label,icon:"metronome") }
                     Pill(text:"권장 \(q.recommendedDurationSeconds/60)분 \(q.recommendedDurationSeconds%60)초",icon:"clock")
                 }
                 Card { VStack(alignment: .leading, spacing: 24) {
-                    Text("연습은 이렇게 진행돼요").font(.title2.bold())
+                    Text(model.selectedMode == .practice ? "연습은 이렇게 진행돼요" : "시험은 이렇게 진행돼요").font(.title2.bold())
                     instruction("01", "스케일과 멜로디 듣기", "시작 2초 후 스케일을 듣고, 2초 뒤 예비박과 첫 전체 재생이 이어져요. 마지막 전체 재생 앞에도 예비박이 나와요.")
                     instruction("02", "Pencil로 오선에 기록하기", "검정 펜으로 자유롭게 적어 주세요. 필기는 이 iPad에 자동 저장돼요.")
                     instruction("03", "답안을 제출하고 확인하기", model.selectedMode == .practice ? "정답과 내 악보를 나란히 보고 틀린 마디의 음정·리듬·기타를 직접 표시해요. 여러 항목을 함께 선택할 수 있어요." : "AI가 채점한 점수와 피드백을 정답 악보·내 답안과 함께 확인해요.")

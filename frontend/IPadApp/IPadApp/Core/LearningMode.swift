@@ -4,7 +4,7 @@ enum StudyMode: String, Codable, CaseIterable, Identifiable {
     case practice, exam
     var id: String { rawValue }
     var title: String { self == .practice ? "Practice" : "Exam" }
-    var detail: String { self == .practice ? "정답과 비교하며 마디별로 직접 채점해요" : "시험을 보고 AI 채점과 피드백을 받아요" }
+    var detail: String { self == .practice ? "정답과 비교하며 마디별로 직접 채점해요" : "추천 문제로 시험을 보고 AI 채점과 피드백을 받아요" }
 }
 
 enum SelfAssessmentErrorType: String, CaseIterable, Identifiable {

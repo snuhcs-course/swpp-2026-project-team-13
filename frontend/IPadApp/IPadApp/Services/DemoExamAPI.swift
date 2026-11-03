@@ -50,6 +50,9 @@ import Foundation
             QuestionSummary(id:q.id,version:q.version,title:q.title,source:q.source,keySignature:q.keySignature,timeSignature:q.timeSignature,measureCount:q.measureCount,recommendedDurationSeconds:q.recommendedDurationSeconds,tempo:q.tempo,collection:q.collection,composer:q.composer)
         })
     }
+    func recommendedQuestion() async throws -> Question {
+        guard let q = try catalog().filter({ $0.collection != "classical" }).randomElement() else { throw SolfegeError.configuration("추천할 문제가 없습니다.") }; return q
+    }
     func question(_ id: UUID) async throws -> Question {
         guard let q = try catalog().first(where: { $0.id == id }) else { throw SolfegeError.configuration("데모 문제를 찾을 수 없습니다.") }; return q
     }

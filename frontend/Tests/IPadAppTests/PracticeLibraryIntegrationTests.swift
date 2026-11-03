@@ -26,6 +26,28 @@ import SwiftUI
             XCTAssertEqual(image.sha256,reference.sha256)
         }
     }
+    func testFilterNarrowsALevelSurvivesNavigationAndResetsWithTheLevel() async throws {
+        let model = AppModel(); model.demo = true; await model.connect()
+        XCTAssertNil(model.error)
+        let level: (PracticeLevel) -> [QuestionSummary] = { value in model.questions.filter { $0.practiceLevel == value } }
+        XCTAssertEqual(QuestionFilter.keyOptions(in:level(.beginner)).count,12)
+        XCTAssertEqual(QuestionFilter.keyOptions(in:level(.intermediate)).count,1)
+        XCTAssertEqual(QuestionFilter.keyOptions(in:level(.advanced)).map(\.label),["조표 없음"])
+        XCTAssertEqual(QuestionFilter.meterOptions(in:level(.advanced)).count,7)
+        model.selectedPracticeLevel = .beginner
+        let key = KeySignature(tonic:"G",mode:"minor",fifths:-2)
+        model.practiceFilter.key = key
+        XCTAssertEqual(model.practiceFilter.apply(to:level(.beginner)).count,4)
+        let renderer = ImageRenderer(content:HomeView(model:model).frame(width:1180,height:1024)); renderer.scale = 2
+        let attachment = XCTAttachment(image:try XCTUnwrap(renderer.uiImage)); attachment.name = "practice-filter"; attachment.lifetime = .keepAlways; add(attachment)
+        model.navigate(.question); model.navigate(.home); model.selectedPracticeLevel = .beginner
+        XCTAssertEqual(model.practiceFilter.key,key)
+        model.selectedPracticeLevel = .advanced
+        XCTAssertEqual(model.practiceFilter,QuestionFilter())
+        model.practiceFilter.meter = TimeSignature(numerator:12,denominator:8)
+        model.selectedPracticeLevel = nil
+        XCTAssertFalse(model.practiceFilter.isActive)
+    }
     func testPracticeLevelsScreenAndImportedExamRestore() async throws {
         let model = AppModel(); model.demo = true; model.demoOutcome = "completed"; await model.connect()
         XCTAssertNil(model.error); XCTAssertEqual(model.questions.count,113)

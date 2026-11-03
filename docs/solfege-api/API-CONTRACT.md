@@ -1,4 +1,8 @@
-# solfège API 계약 v0.12.0
+# solfège API 계약 v0.13.0
+
+## v0.13.0 Exam 추천 문제
+
+앱의 Exam은 문제를 직접 고르지 않고 `GET /questions/recommended/`가 돌려준 문제로 시험을 본다. 응답은 `GET /questions/{id}/`와 같은 형식이다. 추천 알고리즘을 구현하기 전까지는 게시된 현재 버전 중 클래식을 뺀 문제에서 랜덤으로 고르므로 호출마다 결과가 달라질 수 있다. 고를 문제가 없으면 404 `RECOMMENDATION_UNAVAILABLE`이다. 응시 생성 규칙은 바뀌지 않으며, 서버는 `mode: exam` 응시가 추천받은 문제인지 검사하지 않는다.
 
 ## v0.12.0 프로필의 아이디
 
@@ -525,6 +529,7 @@ MXL은 정확히 mimetype, META-INF/container.xml, score.xml 세 엔트리를 �
 | GET / PATCH | /me/ | 200 | 사용자·학습 목표 |
 | DELETE | /me/ | 204 | 계정·학습 기록 영구 삭제, 본문 없음 |
 | GET | /questions/ | 200 | collection별 문제 페이지 목록 |
+| GET | /questions/recommended/ | 200 | Exam 추천 문제 1개, 형식은 문제 상세와 같음 |
 | GET | /questions/{id}/ | 200 | 안내·오선·main/scale 자산 |
 | GET | /questions/{id}/versions/{version}/scores/{kind}/ | 200 | main 또는 scale MXL bytes |
 | POST | /attempts/ | 201 | question_id, question_version, mode로 응시 생성 |

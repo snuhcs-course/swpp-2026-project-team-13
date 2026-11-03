@@ -12,7 +12,7 @@ struct UserProfile: Codable, Identifiable, Equatable {
     // nil on servers older than contract v0.12.0.
     var username: String? = nil
 }
-struct KeySignature: Codable, Equatable {
+struct KeySignature: Codable, Hashable {
     var tonic: String; var mode: String; var fifths: Int
     var label: String { mode == "unspecified" ? "조표 없음" : "\(tonic.replacingOccurrences(of:"b",with:"♭").replacingOccurrences(of:"#",with:"♯"))\(mode == "minor" ? "단조" : "장조")" }
     var supported: Bool {
@@ -23,8 +23,9 @@ struct KeySignature: Codable, Equatable {
         return mode == "major" ? major[fifths+7] == tonic : mode == "minor" && minor[fifths+7] == tonic
     }
 }
-struct TimeSignature: Codable, Equatable {
+struct TimeSignature: Codable, Hashable {
     var numerator: Int; var denominator: Int
+    var label: String { "\(numerator)/\(denominator)" }
     var ticksPerMeasure: Int { numerator * 480 * 4 / denominator }
     var supported: Bool { [(2,2), (3,2), (2,4), (3,4), (4,4), (6,4), (3,8), (6,8), (7,8), (9,8), (12,8)].contains { $0.0 == numerator && $0.1 == denominator } }
 }

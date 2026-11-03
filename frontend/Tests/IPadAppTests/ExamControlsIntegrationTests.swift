@@ -46,6 +46,62 @@ import ImageIO
         player.restore(saved); player.resume()
         XCTAssertEqual(player.cursor.nextSegmentIndex,5)
     }
+    func testDemoRecommendationNeverOffersClassical() async throws {
+        let api = try DemoExamAPI(outcome:"completed")
+        var seen = Set<UUID>()
+        for _ in 0..<200 {
+            let q = try await api.recommendedQuestion()
+            XCTAssertNotEqual(q.collection,"classical"); seen.insert(q.id)
+        }
+        XCTAssertGreaterThan(seen.count,1)
+    }
+    func testRecommendedExamHoldsItsQuestionUntilTheAttemptExists() async throws {
+        let model = AppModel(); model.demo = true; model.demoOutcome = "completed"; await model.connect()
+        let started = ContinuousClock.now
+        let loading = Task { await model.startRecommendedExam() }
+        while model.screen == .main { await Task.yield() }
+        XCTAssertEqual(model.screen,.recommendingExam)
+        await loading.value
+        XCTAssertGreaterThanOrEqual(ContinuousClock.now - started,AppModel.recommendationMinimum)
+        XCTAssertNil(model.error); XCTAssertEqual(model.screen,.question); XCTAssertEqual(model.selectedMode,.exam)
+        XCTAssertEqual(model.questionLibraryScreen,.main)
+        let held = try XCTUnwrap(model.selectedQuestion)
+        model.navigate(model.questionLibraryScreen)
+        await model.startRecommendedExam()
+        XCTAssertEqual(model.selectedQuestion?.id,held.id)
+        await model.begin()
+        XCTAssertNil(model.error); XCTAssertEqual(model.session?.attempt.studyMode,.exam); XCTAssertEqual(model.session?.attempt.question.id,held.id)
+        // A draw can repeat by chance, but three in a row means the held question was never released.
+        var next = held.id
+        for _ in 0..<3 where next == held.id {
+            await model.startRecommendedExam(); next = try XCTUnwrap(model.selectedQuestion?.id)
+            if next == held.id { await model.begin() }
+        }
+        XCTAssertNotEqual(next,held.id)
+    }
+    func testRecommendedExamRecoversPendingCreationInsteadOfReplacingIt() async throws {
+        let model = AppModel(); model.demo = true; model.demoOutcome = "completed"; await model.connect()
+        let q = try await DemoExamAPI(outcome:"completed").question(try XCTUnwrap(model.questions.first).id)
+        let store = try LocalStore(scope:"sori-local-demo-v3:" + (try XCTUnwrap(model.profile)).id.uuidString)
+        try store.savePending(PendingCreation(question:q,key:UUID(),mode:.exam))
+        XCTAssertTrue(model.pendingCreation)
+        await model.startRecommendedExam()
+        XCTAssertNil(model.error); XCTAssertFalse(model.pendingCreation)
+        XCTAssertEqual(model.session?.attempt.question.id,q.id); XCTAssertEqual(model.screen,.exam)
+    }
+    func testClassicalIsPracticeOnlyAndOlderClassicalExamsReturnHome() async throws {
+        let model = AppModel(); model.demo = true; model.demoOutcome = "completed"; await model.connect(); await model.loadClassical()
+        let q = try XCTUnwrap(model.classicalQuestions.first)
+        model.selectedMode = .exam; model.navigate(.classical)
+        XCTAssertEqual(model.selectedMode,.practice)
+        await model.choose(q.id,mode:.practice)
+        XCTAssertEqual(model.questionLibraryScreen,.classical)
+        await model.choose(q.id,mode:.exam)
+        XCTAssertEqual(model.questionLibraryScreen,.main)
+        await model.begin(); await model.start(); model.player.pause(); await model.submit()
+        XCTAssertNil(model.error); XCTAssertEqual(model.screen,.result)
+        XCTAssertEqual(model.resultLibraryScreen,.main)
+    }
     func testScaleNoticeUsesActualScaleKeyAndRendersBeforePlayback() async throws {
         let model = AppModel(); model.demo = true
         await model.connect(); await model.loadClassical()
