@@ -49,7 +49,7 @@ docker compose --env-file backend/.env up -d --build --wait api worker
 docker compose --env-file backend/.env exec -T api python manage.py seed_questions
 ```
 
-문제 수는 연습실 113 + 클래식 21이다. 브람스 10개를 별도 `brahms-catalog.json`에 추가했으며, 기존 124개와 버전은 그대로 유지한다. [브람스 반영 내역](BRAHMS-IMPORT.md)을 참고한다. 새 IPA를 기존 앱 위에 설치한다. DB·답안 볼륨을 삭제하지 않는다.
+문제 수는 연습실 113 + 클래식 34이다. 말러 13개를 추가하고 브람스 10개는 원본 빠르기를 담은 새 버전을 등록했다. 클래식 전체를 작품·악장 번호 순으로 표시한다. 기존 문제의 이전 버전과 기록은 유지한다. [말러 및 템포 반영 내역](MAHLER-TEMPO-UPDATE.md)을 참고한다. 새 IPA를 기존 앱 위에 설치한다. DB·답안 볼륨을 삭제하지 않는다.
 
 새 오선을 다시 생성할 때는 기존 버전 자산을 덮어쓰지 않는다.
 

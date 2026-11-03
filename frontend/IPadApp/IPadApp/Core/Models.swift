@@ -119,13 +119,15 @@ struct CountInPlayback: Codable, Equatable {
 struct TempoSetting: Codable, Equatable {
     var policyId: String; var beatUnit: String; var bpm: Int
     var minimumBpm: Int; var maximumBpm: Int
-    var quarterBpm: Double { Double(bpm) * (beatUnit == "half" ? 2 : beatUnit == "dotted_quarter" ? 1.5 : 1) }
-    var label: String { "\(beatUnit == "half" ? "𝅗𝅥" : beatUnit == "dotted_quarter" ? "♩." : "♩") = \(bpm)" }
+    var quarterBpm: Double { Double(bpm) * (beatUnit == "dotted_half" ? 3 : beatUnit == "half" ? 2 : beatUnit == "dotted_quarter" ? 1.5 : 1) }
+    var label: String { "\(beatUnit == "dotted_half" ? "𝅗𝅥." : beatUnit == "half" ? "𝅗𝅥" : beatUnit == "dotted_quarter" ? "♩." : "♩") = \(bpm)" }
     func validate(meter: TimeSignature? = nil) throws {
-        guard ["quarter","dotted_quarter","half"].contains(beatUnit), !policyId.isEmpty,
+        guard ["quarter","dotted_quarter","half","dotted_half"].contains(beatUnit), !policyId.isEmpty,
               minimumBpm > 0, maximumBpm >= minimumBpm, (minimumBpm...maximumBpm).contains(bpm),
               quarterBpm >= 40, quarterBpm <= 200 else { throw SORIError.unsupported("템포 설정을 확인해 주세요.") }
-        if let meter {
+        if policyId == "sori-score-tempo-1" {
+            guard minimumBpm == bpm, maximumBpm == bpm else { throw SORIError.unsupported("악보에 표시된 고정 템포를 확인해 주세요.") }
+        } else if let meter {
             guard beatUnit == (meter.denominator == 2 ? "half" : meter.denominator == 8 && meter.numerator % 3 == 0 ? "dotted_quarter" : "quarter") else { throw SORIError.unsupported("템포의 기준 음표가 박자와 다릅니다.") }
         }
     }

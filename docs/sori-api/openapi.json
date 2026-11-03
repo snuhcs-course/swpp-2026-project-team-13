@@ -2,8 +2,8 @@
   "openapi": "3.0.3",
   "info": {
     "title": "SORI iPad Exam API",
-    "version": "0.7.0",
-    "description": "SORI iPad practice and exam API. Practice uses immediate measure-level self-assessment without an AI job; Exam retains asynchronous OpenRouter grading and Korean feedback. Attempt snapshots pin the problem, playback plan and Feature v1 analysis. API-CONTRACT.md defines invariants; legacy requests without mode remain Exam. Password login uses one persistent, revocable DRF bearer token per user and shared PostgreSQL login limits. Signup, signup availability and account deletion from API contract v0.8.0 are implemented. Items marked x-status: planned (grading quotas) are defined by contract v0.8.0 and are not implemented yet. From contract v0.8.0, absolute URLs in responses (asset urls, image_url, template_png_url, next/previous, Location) use the public origin that received the request, including behind an HTTPS proxy. A proxy in front of the server may return non-contract error responses (HTML body, no X-Request-ID) when the server is unavailable or the request is blocked; clients treat an undecodable error other than 401 as a server connection problem, do not branch on error.code, and never change authentication state for it. Server 401 responses always use the contract format."
+    "version": "0.9.0",
+    "description": "SORI iPad practice and exam API. Practice uses immediate measure-level self-assessment without an AI job; Exam retains asynchronous OpenRouter grading and Korean feedback. Attempt snapshots pin the problem, playback plan and Feature v1 analysis. API-CONTRACT.md defines invariants; legacy requests without mode remain Exam. Password login uses one persistent, revocable DRF bearer token per user and shared PostgreSQL login limits. Signup, signup availability and account deletion from API contract v0.8.0 are implemented. Items marked x-status: planned (grading quotas) are defined by contract v0.8.0 and are not implemented yet. From contract v0.8.0, absolute URLs in responses (asset urls, image_url, template_png_url, next/previous, Location) use the public origin that received the request, including behind an HTTPS proxy. A proxy in front of the server may return non-contract error responses (HTML body, no X-Request-ID) when the server is unavailable or the request is blocked; clients treat an undecodable error other than 401 as a server connection problem, do not branch on error.code, and never change authentication state for it. Server 401 responses always use the contract format. Version 0.9.0 adds authenticated, idempotent Rhythm Puzzle drill observations with server-side sounding-time regrading; all authentication and Practice/Exam contracts are retained."
   },
   "servers": [
     {
@@ -2505,6 +2505,143 @@
           }
         }
       }
+    },
+    "/drills/rhythm/plays/": {
+      "get": {
+        "operationId": "listRhythmPlays",
+        "summary": "List the authenticated user's completed or abandoned drill observations",
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "default": 1
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Own records, 30 per page",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RhythmPlayPage"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "operationId": "saveRhythmPlay",
+        "summary": "Store an immutable rhythm round after independent deterministic grading",
+        "description": "Maximum 128 KiB. Pins the catalog hash and Feature v1 snapshot. First submission and hinted retries remain separate. A duplicate client_play_id with identical content returns the original receipt even with a new transport key. Client telemetry is not proctored evidence.",
+        "parameters": [
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RhythmPlayRecord"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "New immutable observation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RhythmPlayReceipt"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "Identical existing observation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RhythmPlayReceipt"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid geometry, telemetry, outcome or event sequence",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Idempotency conflict, immutable play conflict or RHYTHM_CATALOG_MISMATCH",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Record exceeds 128 KiB",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Source analysis unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -4799,6 +4936,257 @@
           "server_time"
         ],
         "description": "No numeric score or job. Pending is unreviewed/draft, not a correct answer. completed_at is non-null exactly when status is completed."
+      },
+      "RhythmPlacement": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "tile_id": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{64}$"
+          },
+          "start": {
+            "type": "string",
+            "pattern": "^(0|[1-9][0-9]*)(/[1-9][0-9]*)?$"
+          }
+        },
+        "required": [
+          "tile_id",
+          "start"
+        ]
+      },
+      "RhythmSubmission": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "active_ms": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "placements": {
+            "type": "array",
+            "minItems": 1,
+            "maxItems": 64,
+            "items": {
+              "$ref": "#/components/schemas/RhythmPlacement"
+            }
+          },
+          "ties": {
+            "type": "array",
+            "maxItems": 63,
+            "uniqueItems": true,
+            "items": {
+              "type": "string",
+              "pattern": "^(0|[1-9][0-9]*)(/[1-9][0-9]*)?$"
+            }
+          }
+        },
+        "required": [
+          "id",
+          "active_ms",
+          "placements",
+          "ties"
+        ]
+      },
+      "RhythmListen": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "reason": {
+            "type": "string",
+            "enum": [
+              "initial",
+              "replay",
+              "reference"
+            ]
+          },
+          "started_ms": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "ended_ms": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "completed": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "id",
+          "reason",
+          "started_ms",
+          "ended_ms",
+          "completed"
+        ]
+      },
+      "RhythmPlayRecord": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "client_play_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "catalog_sha256": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{64}$"
+          },
+          "round_id": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{64}$"
+          },
+          "game_version": {
+            "type": "string",
+            "enum": [
+              "rhythm-puzzle-v1",
+              "rhythm-puzzle-v2"
+            ]
+          },
+          "choice_order": {
+            "type": "array",
+            "minItems": 12,
+            "maxItems": 12,
+            "uniqueItems": true,
+            "items": {
+              "type": "string",
+              "pattern": "^[a-f0-9]{64}$"
+            }
+          },
+          "started_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "finished_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "outcome": {
+            "type": "string",
+            "enum": [
+              "correct",
+              "revealed",
+              "abandoned"
+            ]
+          },
+          "active_ms": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 86400000
+          },
+          "submissions": {
+            "type": "array",
+            "maxItems": 3,
+            "items": {
+              "$ref": "#/components/schemas/RhythmSubmission"
+            }
+          },
+          "listens": {
+            "type": "array",
+            "maxItems": 200,
+            "items": {
+              "$ref": "#/components/schemas/RhythmListen"
+            }
+          },
+          "interruptions": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 10000
+          },
+          "prior_exposures": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 1000000
+          },
+          "prior_pattern_exposures": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 1000000
+          }
+        },
+        "required": [
+          "client_play_id",
+          "catalog_sha256",
+          "round_id",
+          "game_version",
+          "choice_order",
+          "started_at",
+          "finished_at",
+          "outcome",
+          "active_ms",
+          "submissions",
+          "listens",
+          "interruptions",
+          "prior_exposures",
+          "prior_pattern_exposures"
+        ]
+      },
+      "RhythmPlayReceipt": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "client_play_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "round_id": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{64}$"
+          },
+          "catalog_sha256": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{64}$"
+          },
+          "result": {
+            "type": "object",
+            "additionalProperties": true
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "id",
+          "client_play_id",
+          "round_id",
+          "catalog_sha256",
+          "result",
+          "created_at"
+        ]
+      },
+      "RhythmPlayPage": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "count": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "results": {
+            "type": "array",
+            "maxItems": 30,
+            "items": {
+              "$ref": "#/components/schemas/RhythmPlayReceipt"
+            }
+          }
+        },
+        "required": [
+          "count",
+          "results"
+        ]
       }
     },
     "responses": {

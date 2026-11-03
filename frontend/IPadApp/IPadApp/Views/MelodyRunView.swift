@@ -3,37 +3,33 @@ import UniformTypeIdentifiers
 import AVFoundation
 
 struct MiniGameHubView: View {
+    var connection: RhythmConnection? = nil
     @State private var playing = false
+    @State private var playingRhythm = false
     var body: some View {
         ScrollView {
             VStack(alignment:.leading,spacing:26) {
                 SectionCaption(eyebrow:"PLAY WITH SOUND",title:"Drills",subtitle:"미니게임을 골라 듣고 기억하는 연습을 해보세요.")
-                Button { playing = true } label: {
-                    VStack(alignment:.leading,spacing:24) {
-                        HStack { Pill(text:"NEW · 두 가지 플레이"); Spacer(); Image(systemName:"arrow.up.right").font(.title2) }
-                        HStack(spacing:24) {
-                            Image(systemName:"pianokeys").font(.system(size:64,weight:.light))
-                            VStack(alignment:.leading,spacing:10) {
-                                Text("멜로디 런").font(.system(size:34,weight:.bold,design:.rounded))
-                                Text("귀에 담은 멜로디를, 손끝으로 다시.").font(.title3)
-                                Text("메모리 · 그루브  /  2·4·8마디  /  피아노 입력").font(.subheadline).opacity(0.8)
-                            }
-                        }
-                        Label("플레이하기",systemImage:"play.fill").font(.headline).padding(.horizontal,20).padding(.vertical,12).background(.white.opacity(0.22),in:Capsule())
-                    }.foregroundStyle(.white).padding(32).frame(maxWidth:.infinity,alignment:.leading)
-                        .background(LinearGradient(colors:[SORITheme.violet,Color(red:0.47,green:0.40,blue:0.92)],startPoint:.topLeading,endPoint:.bottomTrailing),in:RoundedRectangle(cornerRadius:26))
-                }.buttonStyle(.plain)
-                Card {
-                    HStack(spacing:18) {
-                        Image(systemName:"metronome").font(.largeTitle).foregroundStyle(SORITheme.violet.opacity(0.4))
-                        VStack(alignment:.leading,spacing:6) { Text("리듬 런").font(.headline); Text("다음 소리 놀이를 준비하고 있어요").font(.subheadline).foregroundStyle(.secondary) }
-                        Spacer(); Pill(text:"COMING SOON")
-                    }
+                LazyVGrid(columns:[GridItem(.flexible(),spacing:20),GridItem(.flexible(),spacing:20)],spacing:20) {
+                    gameCard("Memory run",subtitle:"선율을 기억하고 건반으로 복원하세요.",icon:"pianokeys") { playing = true }
+                    gameCard("Rhythm puzzle",subtitle:"두 마디를 듣고 리듬 조각을 완성하세요.",icon:"metronome") { playingRhythm = true }.disabled(connection == nil)
                 }
-                Label("서버 연결 없이도 모든 미니게임 문제를 플레이할 수 있어요",systemImage:"wifi.slash").font(.footnote).foregroundStyle(.secondary)
             }.padding(32).frame(maxWidth:1060).frame(maxWidth:.infinity)
         }
         .fullScreenCover(isPresented:$playing) { MelodyRunView() }
+        .fullScreenCover(isPresented:$playingRhythm) { RhythmPuzzleView(connection:connection) }
+    }
+    private func gameCard(_ title: String, subtitle: String, icon: String, action: @escaping () -> Void) -> some View {
+        Button(action:action) {
+            VStack(alignment:.leading,spacing:18) {
+                HStack { Image(systemName:icon).font(.system(size:42,weight:.light)); Spacer(); Image(systemName:"arrow.up.right") }
+                    .foregroundStyle(SORITheme.violet)
+                Text(title).font(.system(size:28,weight:.bold,design:.rounded)).foregroundStyle(SORITheme.ink)
+                Text(subtitle).font(.subheadline).foregroundStyle(.secondary).lineLimit(2)
+                Spacer(minLength:0)
+            }.padding(28).frame(maxWidth:.infinity,alignment:.leading).frame(height:224)
+                .background(.white,in:RoundedRectangle(cornerRadius:22))
+        }.buttonStyle(.plain)
     }
 }
 
@@ -85,7 +81,7 @@ struct MelodyRunView: View {
     private var setup: some View {
         ScrollView {
             VStack(alignment:.leading,spacing:24) {
-                HStack(alignment:.top) { SectionCaption(eyebrow:"MELODY RUN",title:"귀에 담고, 손끝으로 달려요",subtitle:"리듬은 준비되어 있어요. 기억한 음높이만 차례로 눌러 보세요."); Spacer(); close }
+                HStack(alignment:.top) { SectionCaption(eyebrow:"Memory run",title:"귀에 담고, 손끝으로 달려요",subtitle:"리듬은 준비되어 있어요. 기억한 음높이만 차례로 눌러 보세요."); Spacer(); close }
                 HStack(spacing:16) {
                     modeCard(.memory,icon:"brain.head.profile",description:"전부 듣고, 한 번에 복원",detail:"시간제한 없이 기억에 집중해요")
                     modeCard(.groove,icon:"waveform.path",description:"듣고, 느끼고, 바로 연주",detail:"같은 템포로 한 마디씩 이어가요")
@@ -151,7 +147,7 @@ struct MelodyRunView: View {
         GeometryReader { geometry in
             VStack(spacing:14) {
                 HStack {
-                    VStack(alignment:.leading,spacing:3) { Text("MELODY RUN / \(game.settings.mode.title)").font(.caption.bold()).tracking(2).foregroundStyle(SORITheme.violet); Text(game.question?.title ?? "").font(.headline).lineLimit(1) }
+                    VStack(alignment:.leading,spacing:3) { Text("Memory run / \(game.settings.mode.title)").font(.caption.bold()).tracking(2).foregroundStyle(SORITheme.violet); Text(game.question?.title ?? "").font(.headline).lineLimit(1) }
                     Spacer(); Pill(text:"\(game.measure) / \(game.round?.score.measures ?? 0)마디")
                     Pill(text:"♩ \(Int(game.settings.bpm))",icon:"metronome")
                     Button { game.paused ? game.resume() : game.pause() } label: { Image(systemName:game.paused ? "play.fill" : "pause.fill").frame(width:44,height:44).background(.white,in:Circle()) }.accessibilityLabel(game.paused ? "계속하기" : "일시 정지")

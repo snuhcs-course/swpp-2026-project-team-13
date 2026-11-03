@@ -24,6 +24,14 @@ if (Test-Path -LiteralPath $practiceSource) {
     }
 }
 if ($Compact) {
+    $mahlerSource = Join-Path $Repository 'backend/content/source/mahler/provenance.json'
+    if (Test-Path -LiteralPath $mahlerSource) {
+        $mahler = Get-Content -Raw -LiteralPath $mahlerSource | ConvertFrom-Json
+        foreach ($item in $mahler.accepted) {
+            $n,$d = $item.meter
+            $combinations["$n-$d-$($item.key.fifths)"] = @([int]$n,[int]$d,[int]$item.key.fifths)
+        }
+    }
     $brahmsSource = Join-Path $Repository 'backend/content/source/brahms/provenance.json'
     if (Test-Path -LiteralPath $brahmsSource) {
         $brahms = Get-Content -Raw -LiteralPath $brahmsSource | ConvertFrom-Json

@@ -8,9 +8,18 @@ import SwiftUI
         let practice = try await api.questions(page:1)
         XCTAssertEqual(practice.results.count,113)
         let classical = try await api.classicalQuestions(page:1)
-        XCTAssertEqual(classical.results.count,21)
+        XCTAssertEqual(classical.results.count,34)
+        let order: [UUID] = try Bundled.decode("classical-question-order")
+        XCTAssertEqual(classical.results.map(\.id),order)
         for summary in classical.results {
             let q = try await api.question(summary.id); try q.validate()
+            if q.composer == "말러" || q.composer == "브람스" {
+                XCTAssertEqual(q.tempo?.policyId,"sori-score-tempo-1")
+                let attempt = try await api.createAttempt(question:q,key:UUID())
+                XCTAssertEqual(attempt.playbackPlan.tempo,q.tempo)
+                XCTAssertEqual(attempt.playbackPlan.tempoBpm,q.tempo?.quarterBpm)
+                if q.composer == "브람스" { XCTAssertEqual(q.version,2) }
+            }
             for asset in [q.scoreAssets.main,q.scoreAssets.scale] {
                 let data = try await api.asset(asset.url,authenticated:true,limit:1_048_576)
                 let score = try MusicXMLParser.parseMXL(data,asset:asset)
@@ -28,7 +37,7 @@ import SwiftUI
     func testClassicalExamPrepareSubmitRestoreAndComposerScreen() async throws {
         let model = AppModel(); model.demo = true; model.demoOutcome = "completed"
         await model.connect(); await model.loadClassical()
-        XCTAssertNil(model.error); XCTAssertEqual(model.questions.count,113); XCTAssertEqual(model.classicalQuestions.count,21)
+        XCTAssertNil(model.error); XCTAssertEqual(model.questions.count,113); XCTAssertEqual(model.classicalQuestions.count,34)
         let view = ImageRenderer(content:ClassicalExamLibraryView(model:model).frame(width:1024,height:768))
         view.scale = 2
         let screenshot = try XCTUnwrap(view.uiImage)

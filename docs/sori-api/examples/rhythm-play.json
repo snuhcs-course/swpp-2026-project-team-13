@@ -1,0 +1,61 @@
+{
+  "client_play_id": "11111111-1111-4111-8111-111111111111",
+  "catalog_sha256": "215c1afd72d3766c43d2676f0be9e41595dd7b2c36cd35280c953c303317e1c0",
+  "round_id": "0c1f0f1e483f190381ad27ce8d7b4c3557a6f9cdf98359dbc9efb6c3223e5fe0",
+  "game_version": "rhythm-puzzle-v1",
+  "choice_order": [
+    "752615cb0722b19d1b9e05f7325998df8a57fa845d89911786898fbb66179a05",
+    "f1ada1d6e3846bdbf564380b35324379ff9e41a61f5de5d84881186b846b3fc9",
+    "111352f5f84adf41a8f98432f8c0c769afd303e567dd1a1504d3352e437b3403",
+    "2206a1200ae66e9fee24b6f84a1d3cf326afd30a2fdc8add5b02abb9798d5f29",
+    "a358349ae39ec2ba4bbb8e5c6a1cb235a212e841ef4cd9b92806a350f7412a09",
+    "8e5a0e750ccaf3e288dfc247b38935925f8e2681490ac6b6deac37296f63d0ae",
+    "69b6ed1ef2b5e69b89128e756e243257978147aaec01660482dca4867fada158",
+    "f6f600b3d9dc266f55b1254685b2907faf538adc258de84af279fba8b8c371b1",
+    "d0cf2afecadb6881fb0cb6bb864ccbd95ba2aa1d3630ddc2010a81dd0b511c3e",
+    "b30a12c7395303a45849ad0d24ae119a77a5f08efd84237510cfbaaaa006a783",
+    "31769e7369ee85a7fdc40ff76f9ec69e81ad3327fdabca8c95ba639f2aab56ee",
+    "ffa836bbda22aee3579037fb9f9e3ff0b339e44a73cc39ddf57825930f503432"
+  ],
+  "started_at": "2026-11-03T00:00:00Z",
+  "finished_at": "2026-11-03T00:01:00Z",
+  "outcome": "correct",
+  "active_ms": 60000,
+  "interruptions": 0,
+  "prior_exposures": 0,
+  "prior_pattern_exposures": 0,
+  "listens": [
+    {
+      "id": "22222222-2222-4222-8222-222222222222",
+      "reason": "initial",
+      "started_ms": 0,
+      "ended_ms": 30000,
+      "completed": true
+    }
+  ],
+  "submissions": [
+    {
+      "id": "33333333-3333-4333-8333-333333333333",
+      "active_ms": 40000,
+      "placements": [
+        {
+          "tile_id": "752615cb0722b19d1b9e05f7325998df8a57fa845d89911786898fbb66179a05",
+          "start": "0"
+        },
+        {
+          "tile_id": "f1ada1d6e3846bdbf564380b35324379ff9e41a61f5de5d84881186b846b3fc9",
+          "start": "3/2"
+        },
+        {
+          "tile_id": "111352f5f84adf41a8f98432f8c0c769afd303e567dd1a1504d3352e437b3403",
+          "start": "3"
+        },
+        {
+          "tile_id": "f1ada1d6e3846bdbf564380b35324379ff9e41a61f5de5d84881186b846b3fc9",
+          "start": "9/2"
+        }
+      ],
+      "ties": []
+    }
+  ]
+}

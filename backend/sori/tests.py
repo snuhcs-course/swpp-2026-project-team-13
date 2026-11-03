@@ -83,16 +83,18 @@ class FlowTests(TestCase):
         while url:
             response = self.client.get(url)
             self.assertEqual(response.status_code,200,response.data)
-            self.assertEqual(response.data["count"],21)
+            self.assertEqual(response.data["count"],34)
             results.extend(response.data["results"])
             next_url = response.data["next"]
             if next_url:
                 self.assertIn("collection=classical",next_url)
                 parts = urlsplit(next_url); url = parts.path+"?"+parts.query
             else: url = None
-        self.assertEqual(len({q["id"] for q in results}),21)
-        self.assertEqual(len({q["composer"] for q in results}),8)
+        self.assertEqual(len({q["id"] for q in results}),34)
+        self.assertEqual(len({q["composer"] for q in results}),9)
         self.assertEqual(sum(q["composer"]=="브람스" for q in results),10)
+        self.assertEqual(sum(q["composer"]=="말러" for q in results),13)
+        self.assertEqual([q["id"] for q in results],json.loads((settings.CONTENT_ROOT/"classical-question-order.json").read_text(encoding="utf-8")))
         for summary in results:
             self.assertEqual(summary["collection"],"classical")
             q = self.client.get(f'/api/v1/questions/{summary["id"]}/').data
@@ -135,6 +137,12 @@ class FlowTests(TestCase):
             self.assertEqual([s["pause_after_ms"] for s in plan["steps"]], [20000]*10+[120000])
             started = self.post(f'attempts/{a["id"]}/start/').data
             expected = {(2,2):434,(3,2):489,(4,4):456,(3,4):426,(6,4):489,(6,8):423,(2,4):393,(7,8):443,(9,8):468,(12,8):516}[(q["time_signature"]["numerator"],q["time_signature"]["denominator"])]
+            if q["tempo"]["policy_id"] == "sori-score-tempo-1":
+                import math
+                tempo=q["tempo"];factor={"quarter":1,"half":2,"dotted_quarter":1.5,"dotted_half":3}[tempo["beat_unit"]]
+                self.assertEqual(plan["tempo_bpm"],tempo["bpm"]*factor)
+                quarters=q["time_signature"]["numerator"]*4/q["time_signature"]["denominator"]
+                expected=math.ceil(324+(42+q["score_assets"]["scale"]["measure_count"])*quarters*60/(tempo["bpm"]*factor))
             self.assertEqual(q["recommended_duration_seconds"], expected)
             self.assertEqual(a["question"]["recommended_duration_seconds"], expected)
             self.assertEqual((datetime.fromisoformat(started["recommended_end_at"].replace("Z","+00:00")) -
@@ -143,6 +151,23 @@ class FlowTests(TestCase):
             self.assertEqual(replay["playback_plan"], plan)
             version.refresh_from_db()
             self.assertEqual(version.metadata, original)
+
+    def test_brahms_tempo_and_classical_reordering_preserve_existing_attempt(self):
+        from .playback import make_playback_plan,timed_question
+        item=json.loads((settings.CONTENT_ROOT/"brahms-catalog.json").read_text(encoding="utf-8"))[0]
+        old=QuestionVersion.objects.get(question_id=item["metadata"]["id"],version=1)
+        snapshot=timed_question(old.metadata);plan=make_playback_plan(snapshot)
+        attempt=Attempt.objects.create(user=self.user,question_version=old,question_snapshot=snapshot,playback_plan=plan)
+        old.question.order=9999;old.question.save(update_fields=["order"])
+        call_command("seed_questions",verbosity=0)
+        old.refresh_from_db();old.question.refresh_from_db();attempt.refresh_from_db()
+        self.assertEqual(old.metadata,item["metadata"])
+        self.assertEqual(attempt.question_snapshot,snapshot);self.assertEqual(attempt.playback_plan,plan)
+        self.assertEqual(plan["tempo_bpm"],80)
+        current=self.client.get(f'/api/v1/questions/{old.question_id}/').data
+        self.assertEqual(current["version"],2);self.assertEqual(current["tempo"]["bpm"],100)
+        order=json.loads((settings.CONTENT_ROOT/"classical-question-order.json").read_text(encoding="utf-8"))
+        self.assertEqual(old.question.order,1001+order.index(str(old.question_id)))
 
     def test_publish_current_sheet_preserves_the_old_version_and_attempt_plan(self):
         old_item=json.loads((settings.CONTENT_ROOT / "catalog-v1.json").read_text(encoding="utf-8"))[0]

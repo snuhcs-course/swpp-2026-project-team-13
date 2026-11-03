@@ -1,4 +1,10 @@
-# SORI API 계약 v0.8.0
+# SORI API 계약 v0.9.0
+
+## v0.9.0 리듬 Drills 기록
+
+로그인 계약과 기존 Practice/Exam 경로는 유지한다. `POST /api/v1/drills/rhythm/plays/`는 완료·정답 공개·중단된 리듬 미니게임 한 문제의 불변 기록을 저장한다. Bearer 인증과 `Idempotency-Key`가 필요하다. [게임·기록 명세](../RHYTHM-PUZZLE.md), [요청 예시](examples/rhythm-play.json), OpenAPI의 `RhythmPlayRecord`를 따른다.
+
+서버는 앱과 동일한 버전의 카탈로그 해시, 보기 집합, 출처 분석을 확인하고 모든 제출을 소리 기준으로 직접 재채점한다. 첫 제출/힌트 이후 제출을 구분한다. 201 신규 저장, 200 동일 플레이 재전송이며 같은 키나 플레이 ID의 다른 내용은 409다. 409 `RHYTHM_CATALOG_MISMATCH`이면 앱은 기록을 보존하고 서버/앱 버전 일치를 안내한다. `GET`은 자기 기록만 `page` 기준 30개씩 반환한다. 기록과 전송 영수증은 계정 삭제 시 제거된다. 데모는 로컬 저장만 한다.
 
 이 버전은 개인 연습용 iPad 앱과 Django 서버의 계약입니다. HTTP 경로는 /api/v1/을 유지합니다. Practice는 마디별 자기채점, Exam은 OpenRouter에 필기 이미지와 고정된 정답을 함께 보내는 AI 평가·한국어 피드백입니다. 두 모드 모두 기존 재생 계획을 사용하며, 정답을 기기에 전달하지 않는 감독형 시험 구조는 아닙니다.
 

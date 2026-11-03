@@ -1,5 +1,7 @@
 # SORI iPad frontend
 
+Rhythm Puzzle in Drills uses the v0.9.0 drill-record contract alongside the existing authentication and Practice/Exam flows. Its bundled pool contains 259 two-measure excerpts from intermediate/advanced questions. See [game rules and verification](../docs/RHYTHM-PUZZLE.md).
+
 Native SwiftUI / PencilKit app for the SORI v0.7.0 personal-practice contract. iPadOS 17+, Xcode 16+; no external Swift packages or network-loaded rendering code.
 
 ## Run

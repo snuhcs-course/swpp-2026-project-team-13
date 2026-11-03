@@ -1228,6 +1228,123 @@
       "renderer": "MuseScore Studio 4.6.3",
       "style": "compact-v1",
       "style_sha256": "dd2f4368b5e7f8a294224647c1bcd570546a96940658a025e338aebc8f65ca28"
+    },
+    "e278e1058818ae7ae4bfda69fe015bc28f4cdaf32917ef080640251802fda156": {
+      "resource": "mahler-01-reference-v1",
+      "content_type": "image/png",
+      "sha256": "56379ab92e460adccdd6ecc49cd7d1966e546d710b6568980c0af07220c0fa41",
+      "size_bytes": 78518,
+      "pixel_width": 2600,
+      "pixel_height": 431,
+      "renderer": "MuseScore Studio 4.6.3"
+    },
+    "c786b1cc9903a173b80a4cb883f3fe18a20bc3d13550c203fd40b929b1d5b0af": {
+      "resource": "mahler-02-reference-v1",
+      "content_type": "image/png",
+      "sha256": "78b23784aea0832e0ad5e25756a7dc29312ccf4c1fee7b7bd8760b464842f275",
+      "size_bytes": 67920,
+      "pixel_width": 2600,
+      "pixel_height": 450,
+      "renderer": "MuseScore Studio 4.6.3"
+    },
+    "6b274fe97625393bcc914e1a5c275276ee140557f861cff222a6507c5f758b4d": {
+      "resource": "mahler-03-reference-v1",
+      "content_type": "image/png",
+      "sha256": "4d7ba0be24d0e61cbff96be6ffc2ca5723d9dc881bb5fb8914ffaaf370b3024e",
+      "size_bytes": 41292,
+      "pixel_width": 2600,
+      "pixel_height": 419,
+      "renderer": "MuseScore Studio 4.6.3"
+    },
+    "4fab8cc073b815867de56dc8f8ab30f8de580c25843c8f3578b40d291004061a": {
+      "resource": "mahler-04-reference-v1",
+      "content_type": "image/png",
+      "sha256": "bdccdba27ab6566c91253b23eeb23d5b61e33cee64e17caf3d5a5bb106d3ab92",
+      "size_bytes": 44601,
+      "pixel_width": 2600,
+      "pixel_height": 419,
+      "renderer": "MuseScore Studio 4.6.3"
+    },
+    "369ddd6846bc9f99bc3838ee3e1cd0e49a3eae491e803d792a6727f8eeb187c9": {
+      "resource": "mahler-05-reference-v1",
+      "content_type": "image/png",
+      "sha256": "ff3662338650773f9a7f9253d0e4f106547dbd89b46d6ffc5c0327ab196f4b3d",
+      "size_bytes": 42502,
+      "pixel_width": 2600,
+      "pixel_height": 419,
+      "renderer": "MuseScore Studio 4.6.3"
+    },
+    "dc1d8f13fea3f855edf98177dcdd5f9b5460f6b58c705becba3af551ed1950b0": {
+      "resource": "mahler-06-reference-v1",
+      "content_type": "image/png",
+      "sha256": "91a059d1fa4869c83313da6af659cbf62932a9f654854cc93e1efa98d3ccef5f",
+      "size_bytes": 50948,
+      "pixel_width": 2600,
+      "pixel_height": 437,
+      "renderer": "MuseScore Studio 4.6.3"
+    },
+    "103fd68b092e898e771c9ff74e9432979c25d4ae2d9b673f4cf01bbaddf60eb3": {
+      "resource": "mahler-07-reference-v1",
+      "content_type": "image/png",
+      "sha256": "5a2c1262e9f6c6c34ab0108dc581f00cd007a36352d6d02c186a167e3d2750c5",
+      "size_bytes": 76576,
+      "pixel_width": 2600,
+      "pixel_height": 419,
+      "renderer": "MuseScore Studio 4.6.3"
+    },
+    "3a44ed9ee90c9ab882f2fe2515f61ae8220d79acb8897628e7b9dcd470b1d647": {
+      "resource": "mahler-08-reference-v1",
+      "content_type": "image/png",
+      "sha256": "0ea7047d258b0ef4490c5f6f405b24f03d96af94fe8b191f538430d0b972a4f4",
+      "size_bytes": 62375,
+      "pixel_width": 2600,
+      "pixel_height": 419,
+      "renderer": "MuseScore Studio 4.6.3"
+    },
+    "0813c91d68cd7108c29b343dd90a8fcc3dd108e01208c793819d29dab18fce83": {
+      "resource": "mahler-09-reference-v1",
+      "content_type": "image/png",
+      "sha256": "41baf10530c7727fc6601f59822981f8613b9dec0102e6d89cf8fd0d01f7b4cd",
+      "size_bytes": 50310,
+      "pixel_width": 2600,
+      "pixel_height": 457,
+      "renderer": "MuseScore Studio 4.6.3"
+    },
+    "aa2a440c2093fddb24739b1b1aefaf27597b528b500e365cd5c1426e8b7f2e5a": {
+      "resource": "mahler-10-reference-v1",
+      "content_type": "image/png",
+      "sha256": "ab6f5c24c7ddaeef50a7c69cb01f34cc72ff14c1efdd95b2cfee3fa9e5c3e48a",
+      "size_bytes": 52606,
+      "pixel_width": 2600,
+      "pixel_height": 419,
+      "renderer": "MuseScore Studio 4.6.3"
+    },
+    "3fbc9eedc57571d65fec1c848c1fde39ee1dc6a57f023ee55a267ee8f8297d4b": {
+      "resource": "mahler-11-reference-v1",
+      "content_type": "image/png",
+      "sha256": "2c15a29536dcce7f0c36e1c87eb76f596d92df81ad80101189a30fed63e64c18",
+      "size_bytes": 80037,
+      "pixel_width": 2600,
+      "pixel_height": 434,
+      "renderer": "MuseScore Studio 4.6.3"
+    },
+    "9a60e9e838dd025c0160e9a38e8e727d7011f2569360e6def30dbe97974087b3": {
+      "resource": "mahler-12-reference-v1",
+      "content_type": "image/png",
+      "sha256": "9dc3e66f8ef8280eec1f8420161eb2095d579541d22c9141e8cafd92edb2a9a4",
+      "size_bytes": 56223,
+      "pixel_width": 2600,
+      "pixel_height": 419,
+      "renderer": "MuseScore Studio 4.6.3"
+    },
+    "4e24b1ad86ded51eedffe83ede4c252a37a412595047610bc7b401c453288e73": {
+      "resource": "mahler-13-reference-v1",
+      "content_type": "image/png",
+      "sha256": "30714d4acc7bbc439b4eb449999c393363e2b15245dbf31cf761a12d51fa7e51",
+      "size_bytes": 62578,
+      "pixel_width": 2600,
+      "pixel_height": 419,
+      "renderer": "MuseScore Studio 4.6.3"
     }
   }
 }

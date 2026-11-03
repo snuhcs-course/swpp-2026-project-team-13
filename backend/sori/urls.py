@@ -1,7 +1,9 @@
 from django.urls import path
 from . import views
+from . import rhythm_views
 from . import auth_views
 urlpatterns = [
+    path("drills/rhythm/plays/", rhythm_views.plays),
     path("auth/signup-availability/", auth_views.signup_availability),
     path("auth/signup/", auth_views.signup),
     path("auth/login/", auth_views.login),
