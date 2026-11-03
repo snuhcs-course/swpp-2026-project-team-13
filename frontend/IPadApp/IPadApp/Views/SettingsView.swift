@@ -8,7 +8,7 @@ struct SettingsView: View {
     @State private var confirmingDeletion = false
     var body: some View {
         ScrollView { VStack(alignment:.leading,spacing:28) {
-            SectionCaption(eyebrow:"CONNECTION & PREFERENCES",title:"연결 설정",subtitle:"로컬 데모 또는 SORI 서버에 연결하세요.")
+            SectionCaption(eyebrow:"CONNECTION & PREFERENCES",title:"설정",subtitle:"로컬 데모 또는 SORI 서버에 연결하세요.")
             Card { VStack(alignment:.leading,spacing:20) {
                 Toggle("로컬 데모 사용",isOn:Binding(get:{model.demo},set:{ value in Task { await model.setDemoMode(value) } })).font(.headline).disabled(model.busy).accessibilityIdentifier("use-local-demo")
                 if model.demo {
@@ -62,7 +62,7 @@ struct SettingsView: View {
             Card { VStack(alignment:.leading,spacing:12) {
                 Label("필기와 응시 복구",systemImage:"externaldrive").font(.headline)
                 Text("필기 원본, 고정된 제출 이미지와 요청 키는 사용자·서버별로 이 iPad에 보관합니다. 앱을 지우거나 기기를 바꾸면 편집 가능한 필기를 복구할 수 없습니다.").font(.subheadline).foregroundStyle(.secondary).lineSpacing(5)
-                Text("API 계약 v0.11.0 · MusicXML 4.0 · GeneralUser GS").font(.caption).foregroundStyle(.tertiary)
+                Text("API 계약 v0.12.0 · MusicXML 4.0 · GeneralUser GS").font(.caption).foregroundStyle(.tertiary)
             } }
         }.padding(32).frame(maxWidth:900).frame(maxWidth:.infinity) }
         .sheet(isPresented:$showSoundLicense) {

@@ -1,4 +1,8 @@
-# SORI API 계약 v0.11.0
+# SORI API 계약 v0.12.0
+
+## v0.12.0 프로필의 아이디
+
+`UserProfile`에 필수 필드 `username`을 추가한다. `GET·PATCH /me/`와 로그인·가입 응답의 `user`가 모두 같은 값을 돌려준다. 값은 로그인에 쓰는 계정 아이디이며, 앱이 내 프로필에 보여 주는 용도다. 관리자가 만든 계정은 가입 규칙과 달리 최대 150자일 수 있다. 앱은 이 필드가 없는 v0.11.0 서버에서도 동작하고, 그때는 아이디 표시를 생략한다.
 
 ## v0.11.0 아이디 중복 확인
 
@@ -143,6 +147,7 @@ annotations.type에 notation_error(표기 관습 오류), notation_suggestion(�
   "token_type": "Bearer",
   "user": {
     "id": "11111111-1111-4111-8111-111111111111",
+    "username": "student01",
     "display_name": "청음 학습자",
     "learning_goal": "college_entrance"
   }
@@ -337,6 +342,7 @@ learning_goal은 사용자가 직접 고른 값이며, 앱은 가입 직후의 �
   "token_type": "Bearer",
   "user": {
     "id": "11111111-1111-4111-8111-111111111111",
+    "username": "student01",
     "display_name": "청음 연습생",
     "learning_goal": null
   }

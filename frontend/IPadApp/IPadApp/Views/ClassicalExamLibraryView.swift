@@ -15,7 +15,6 @@ struct ClassicalExamLibraryView: View {
         GeometryReader { geometry in
             ScrollView {
                 VStack(alignment:.leading,spacing:26) {
-                    Button { model.navigate(model.libraryScreen) } label: { Label(model.selectedMode.title + " 문제 목록",systemImage:"chevron.left") }.buttonStyle(.bordered)
                     HStack(alignment:.top) {
                         SectionCaption(eyebrow:"CLASSICAL DICTATION",title:model.selectedComposer ?? "클래식 청음",
                             subtitle:model.selectedComposer == nil ? "마음이 가는 작곡가를 골라 8마디 선율을 기록해 보세요." : "음계와 선율을 듣고, 빈 오선에 직접 적어보세요.")

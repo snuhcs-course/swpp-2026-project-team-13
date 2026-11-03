@@ -23,6 +23,7 @@ from rest_framework.views import APIView
 
 from .client_ip import client_ip_key
 from .errors import ContractError
+from .accounts import profile_body
 from .models import LoginThrottle, UserProfile, locked_throttle, throttle_key, usernames_differing_by_case
 from .presentation import absolute
 from .views import GOALS
@@ -201,17 +202,15 @@ class LoginView(APIView):
             row.save(update_fields=["events", "blocked_until", "updated_at"])
             token, _ = Token.objects.get_or_create(user=user)
             profile, _ = UserProfile.objects.get_or_create(user=user)
-            return Response(login_body(token, profile))
+            return Response(login_body(token, user, profile))
 
     def error_response(self, request, error):
         from .errors import exception_handler
         return exception_handler(error, {"request": request, "view": self})
 
 
-def login_body(token, profile):
-    return {"access_token": token.key, "token_type": "Bearer", "user": {
-        "id": str(profile.id), "display_name": profile.display_name, "learning_goal": profile.learning_goal,
-    }}
+def login_body(token, user, profile):
+    return {"access_token": token.key, "token_type": "Bearer", "user": profile_body(user, profile)}
 
 
 class LogoutView(APIView):
@@ -374,7 +373,7 @@ class SignupView(APIView):
             LoginThrottle.objects.filter(key=throttle_key("username", username)).delete()
             row.events.append(now.timestamp())
             row.save(update_fields=["events", "updated_at"])
-        return Response(login_body(token, profile), status=201, headers={"Location": absolute(request, "/api/v1/me/")})
+        return Response(login_body(token, user, profile), status=201, headers={"Location": absolute(request, "/api/v1/me/")})
 
 
 login = sensitive_post_parameters("password")(LoginView.as_view())

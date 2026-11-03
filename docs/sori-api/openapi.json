@@ -2,7 +2,7 @@
   "openapi": "3.0.3",
   "info": {
     "title": "SORI iPad Exam API",
-    "version": "0.11.0",
+    "version": "0.12.0",
     "description": "SORI iPad practice and exam API. Practice uses immediate measure-level self-assessment without an AI job; Exam retains asynchronous OpenRouter grading and Korean feedback. Attempt snapshots pin the problem, playback plan and Feature v1 analysis. API-CONTRACT.md defines invariants; legacy requests without mode remain Exam. Password login uses one persistent, revocable DRF bearer token per user and shared PostgreSQL login limits. Signup, signup availability and account deletion from API contract v0.8.0 are implemented. Items marked x-status: planned (grading quotas) are defined by contract v0.8.0 and are not implemented yet. From contract v0.8.0, absolute URLs in responses (asset urls, image_url, template_png_url, next/previous, Location) use the public origin that received the request, including behind an HTTPS proxy. A proxy in front of the server may return non-contract error responses (HTML body, no X-Request-ID) when the server is unavailable or the request is blocked; clients treat an undecodable error other than 401 as a server connection problem, do not branch on error.code, and never change authentication state for it. Server 401 responses always use the contract format. Version 0.9.0 adds authenticated, idempotent Rhythm Puzzle drill observations with server-side sounding-time regrading; all authentication and Practice/Exam contracts are retained. Version 0.10.0 makes learning_goal optional at signup: an omitted goal is stored and returned as null until PATCH /me/ sets one, and null means not chosen yet, unlike other. Version 0.11.0 adds POST /auth/username-check/, an advisory public username availability check with its own per-IP limit; signup 409 USERNAME_TAKEN stays authoritative."
   },
   "servers": [
@@ -108,6 +108,7 @@
                   "token_type": "Bearer",
                   "user": {
                     "id": "11111111-1111-4111-8111-111111111111",
+                    "username": "student01",
                     "display_name": "청음 학습자",
                     "learning_goal": "college_entrance"
                   }
@@ -362,6 +363,7 @@
                   "token_type": "Bearer",
                   "user": {
                     "id": "11111111-1111-4111-8111-111111111111",
+                    "username": "student01",
                     "display_name": "청음 연습생",
                     "learning_goal": null
                   }
@@ -433,6 +435,7 @@
                 },
                 "example": {
                   "id": "11111111-1111-4111-8111-111111111111",
+                  "username": "student01",
                   "display_name": "연습 사용자",
                   "learning_goal": "college_entrance"
                 }
@@ -495,6 +498,7 @@
                 },
                 "example": {
                   "id": "11111111-1111-4111-8111-111111111111",
+                  "username": "student01",
                   "display_name": "연습 사용자",
                   "learning_goal": "college_entrance"
                 }
@@ -3607,6 +3611,11 @@
             "type": "string",
             "format": "uuid"
           },
+          "username": {
+            "type": "string",
+            "maxLength": 150,
+            "description": "The account id used to log in."
+          },
           "display_name": {
             "type": "string"
           },
@@ -3626,11 +3635,13 @@
         },
         "required": [
           "id",
+          "username",
           "display_name",
           "learning_goal"
         ],
         "example": {
           "id": "11111111-1111-4111-8111-111111111111",
+          "username": "practice_user",
           "display_name": "연습 사용자",
           "learning_goal": "college_entrance"
         }

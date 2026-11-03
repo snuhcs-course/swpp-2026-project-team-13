@@ -235,7 +235,7 @@ v0.8.0이 추가하는 서버 설정은 아래 환경 변수로 조정합니다.
 
 - 가입 화면의 username 입력란은 로그인 화면(LoginView.swift)과 같이 .textContentType(.username), .textInputAutocapitalization(.never), .autocorrectionDisabled()를 사용합니다.
 - 비밀번호와 비밀번호 확인 입력란은 .textContentType(.newPassword)를 사용합니다. iOS의 강력한 비밀번호 제안과 자동 저장은 Associated Domains(webcredentials) 설정과 고정 도메인의 apple-app-site-association 파일이 있어야 확실히 동작합니다. Xcode 무료 개인 팀 서명과 주소가 바뀌는 Quick Tunnel에서는 사용할 수 없으므로 복구 불가 안내가 주된 대책입니다.
-- 인증 화면은 사이드바 없는 전체 화면(AuthFlowView)이며 SettingsView로 가는 아이콘을 둡니다. 입력란은 아이디 → 닉네임 → 비밀번호 → 비밀번호 확인 순으로 앞 칸이 유효하고 0.35초 입력이 멈추면 펼칩니다. 펼친 칸은 접지 않으며 포커스를 옮기지 않습니다. 자세한 규칙은 [온보딩 안내](../ONBOARDING.md)에 있습니다.
+- 인증 화면은 전체 화면(AuthFlowView)이며 SettingsView로 가는 아이콘을 둡니다. 입력란은 아이디 → 닉네임 → 비밀번호 → 비밀번호 확인 순으로 앞 칸이 유효하고 0.35초 입력이 멈추면 펼칩니다. 펼친 칸은 접지 않으며 포커스를 옮기지 않습니다. 자세한 규칙은 [온보딩 안내](../ONBOARDING.md)에 있습니다.
 - username은 Regex의 wholeMatch처럼 문자열 전체 일치로 확인합니다.
 - display_name 길이는 String.count(문자소 단위)가 아닌 unicodeScalars.count로 확인합니다. 문자 규칙은 Unicode.Scalar.Properties의 isWhitespace(앞뒤), generalCategory(.control, .lineSeparator, .paragraphSeparator), isBidiControl로 확인합니다.
 - 서버 주소에는 터널의 https://<호스트>/api/v1/을 입력합니다. Quick Tunnel 주소가 바뀌면 기존 서버 변경 흐름(인증 작업 세대 갱신, origin별 토큰 분리)을 그대로 사용합니다.

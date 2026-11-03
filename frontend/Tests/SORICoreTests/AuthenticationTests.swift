@@ -18,6 +18,13 @@ final class DelayedAuthProtocol: URLProtocol {
 @MainActor final class AuthenticationTests: XCTestCase {
     let base = URL(string: "https://api.sori.example/api/v1/")!
     let user = UserProfile(id: UUID(), displayName: "학습자", learningGoal: "other")
+    func testProfileUsernameIsOptionalForOlderServers() throws {
+        let id = "11111111-1111-4111-8111-111111111111"
+        let current = #"{"id":"\#(id)","username":"student01","display_name":"학습자","learning_goal":"other"}"#
+        let older = #"{"id":"\#(id)","display_name":"학습자","learning_goal":"other"}"#
+        XCTAssertEqual(try ContractJSON.decoder().decode(UserProfile.self, from: Data(current.utf8)).username, "student01")
+        XCTAssertNil(try ContractJSON.decoder().decode(UserProfile.self, from: Data(older.utf8)).username)
+    }
 
     func client(delayed: Bool = false, token: String = "") throws -> HTTPExamAPI {
         let config = URLSessionConfiguration.ephemeral

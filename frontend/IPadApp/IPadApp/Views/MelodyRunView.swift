@@ -9,7 +9,7 @@ struct MiniGameHubView: View {
     var body: some View {
         ScrollView {
             VStack(alignment:.leading,spacing:26) {
-                SectionCaption(eyebrow:"PLAY WITH SOUND",title:"Drills",subtitle:"미니게임을 골라 듣고 기억하는 연습을 해보세요.")
+                SectionCaption(eyebrow:"PLAY WITH SOUND",title:"Drill",subtitle:"미니게임을 골라 듣고 기억하는 연습을 해보세요.")
                 LazyVGrid(columns:[GridItem(.flexible(),spacing:20),GridItem(.flexible(),spacing:20)],spacing:20) {
                     gameCard("Memory run",subtitle:"선율을 기억하고 건반으로 복원하세요.",icon:"pianokeys") { playing = true }
                     gameCard("Rhythm puzzle",subtitle:"두 마디를 듣고 리듬 조각을 완성하세요.",icon:"metronome") { playingRhythm = true }.disabled(connection == nil)

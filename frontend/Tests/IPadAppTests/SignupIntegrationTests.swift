@@ -106,7 +106,7 @@ import XCTest
         XCTAssertTrue(model.connected); XCTAssertFalse(model.showingSignup); XCTAssertFalse(model.authenticating)
         XCTAssertEqual(model.profile, fixture.user)
         XCTAssertEqual(model.history.first?.id, saved.id)
-        XCTAssertEqual(model.screen, .home)
+        XCTAssertEqual(model.screen, .main)
         XCTAssertNil(model.error)
         XCTAssertNil(fixture.lastAuthorization)
         XCTAssertEqual(try TokenVault.read(server: fixture.base), "signup-token")
@@ -438,7 +438,7 @@ import XCTest
         await model.updateGoal("teacher_exam")
         XCTAssertEqual(fixture.goalPatches, [["learning_goal": "teacher_exam"]])
         XCTAssertEqual(model.profile?.learningGoal, "teacher_exam")
-        XCTAssertFalse(model.needsGoalSelection); XCTAssertEqual(model.screen, .home)
+        XCTAssertFalse(model.needsGoalSelection); XCTAssertEqual(model.screen, .main)
     }
 
     func testGoalScreenReturnsAfterRelaunchUntilAGoalIsChosen() async throws {

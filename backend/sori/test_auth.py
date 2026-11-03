@@ -72,6 +72,15 @@ class LoginTests(TestCase):
             self.assertIsNone(data["error"]["retry_after_ms"])
         return data["error"]
 
+    def test_every_profile_response_includes_the_username(self):
+        login = self.login()
+        self.assertEqual(login.data["user"]["username"], self.user.username)
+        self.client.credentials(HTTP_AUTHORIZATION="Bearer " + login.data["access_token"])
+        self.assertEqual(self.client.get("/api/v1/me/").data["username"], self.user.username)
+        patched = self.client.patch("/api/v1/me/", {"learning_goal": "teacher_exam"}, format="json")
+        self.assertEqual(patched.status_code, 200)
+        self.assertEqual(patched.data["username"], self.user.username)
+
     def test_login_ignores_stale_authorization_reuses_token_and_profile(self):
         self.client.credentials(HTTP_AUTHORIZATION="Bearer invalid-token")
         first = self.login()

@@ -19,7 +19,7 @@ from rest_framework.parsers import JSONParser, MultiPartParser
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.renderers import JSONRenderer
-from .accounts import delete_account
+from .accounts import delete_account, profile_body
 from .renderers import MXLRenderer, PNGRenderer
 from .engraving import reference_asset
 from .playback import make_playback_plan, timed_question
@@ -68,7 +68,7 @@ def me(request):
             raise ContractError("VALIDATION_ERROR", "학습 목표를 확인해 주세요.")
         profile.learning_goal = request.data["learning_goal"]
         profile.save(update_fields=["learning_goal"])
-    return Response({"id": str(profile.id), "display_name": profile.display_name, "learning_goal": profile.learning_goal})
+    return Response(profile_body(request.user, profile))
 
 @api_view(["GET"])
 def questions(request):

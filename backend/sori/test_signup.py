@@ -106,7 +106,7 @@ class SignupSuccessTests(ErrorAssertions, TestCase):
         self.assertEqual(profile.created_via, "signup")
         self.assertEqual(profile.display_name, "청음 연습생")
         self.assertEqual(profile.learning_goal, "college_entrance")
-        self.assertEqual(response.data["user"], {"id": str(profile.id), "display_name": "청음 연습생", "learning_goal": "college_entrance"})
+        self.assertEqual(response.data["user"], {"id": str(profile.id), "username": "student01", "display_name": "청음 연습생", "learning_goal": "college_entrance"})
         self.assertEqual(Token.objects.get(user=user).key, response.data["access_token"])
 
     def test_token_works_at_once_and_login_returns_the_same_token_and_profile(self):

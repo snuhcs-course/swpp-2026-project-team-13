@@ -2,8 +2,8 @@ import SwiftUI
 import PencilKit
 
 @MainActor final class AppModel: ObservableObject {
-    enum Screen: String { case dailyTraining, home, examLibrary, question, exam, result, history, settings, minigames, classical }
-    @Published var screen: Screen = .home
+    enum Screen: String { case main, dailyTraining, home, examLibrary, question, exam, result, history, settings, minigames, classical }
+    @Published var screen: Screen = .main
     @Published var profile: UserProfile?
     @Published var questions: [QuestionSummary] = []
     @Published var selectedPracticeLevel: PracticeLevel?
@@ -77,6 +77,9 @@ import PencilKit
     var needsGoalSelection: Bool { connected && profile != nil && profile?.learningGoal == nil }
     var libraryScreen: Screen { selectedMode == .practice ? .home : .examLibrary }
     var resultLibraryScreen: Screen { session?.attempt.question.collection == "classical" ? .classical : (session?.attempt.studyMode == .practice ? .home : .examLibrary) }
+    func isUnfinished(_ record: SessionRecord) -> Bool {
+        record.attempt.status != "submitted" || (record.attempt.studyMode == .practice && (record.selfAssessment?.isCompleted != true || record.practiceEdits != nil || record.selfAssessmentSave != nil))
+    }
     var practiceErrors: [MeasureError] { session?.practiceEdits ?? session?.selfAssessment?.errors ?? [] }
     var practiceHasConflict: Bool {
         guard let base = session?.practiceBaseRevision, let current = session?.selfAssessment?.revision else { return false }
@@ -134,7 +137,7 @@ import PencilKit
         classicalQuestions = []; classicalLoaded = false; classicalPage = 0; classicalHasNextPage = false; selectedComposer = nil; selectedPracticeLevel = nil
         selectedQuestion = nil; template = nil; submittedImage = nil; mainScore = nil
         correctScoreImage = nil; correctScoreError = nil; prepared = false; connected = false
-        waitingSince = nil; error = nil; screen = .home
+        waitingSince = nil; error = nil; screen = .main
         authenticating = false; logoutNeedsConfirmation = false; logoutFailure = nil; pendingLocalLogout = nil
     }
     private func saveConnection() {
@@ -155,7 +158,7 @@ import PencilKit
         }
         return candidate
     }
-    private func activateUser(_ user: UserProfile, candidate: any ExamAPI, destination: Screen = .home, current: () -> Bool) async throws {
+    private func activateUser(_ user: UserProfile, candidate: any ExamAPI, destination: Screen = .main, current: () -> Bool) async throws {
         let local = try LocalStore(scope: candidate.scope + ":" + user.id.uuidString)
         let records = try local.all()
         // Keep valid credentials after network/5xx failures so recovery is explicit.
@@ -166,7 +169,7 @@ import PencilKit
         guard current() else { throw CancellationError() }
         questions = list.questions; page = list.lastPage; hasNextPage = false; screen = destination
     }
-    func connect(token: String? = nil, destination: Screen = .home) async {
+    func connect(token: String? = nil, destination: Screen = .main) async {
         authentication.cancel(); clearUserState(); saveConnection()
         screen = destination
         // The demo never contacts the saved address, so an invalid one must not block it.
