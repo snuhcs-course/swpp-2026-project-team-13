@@ -155,7 +155,7 @@ import SwiftUI
     func testOneSecondStartAndReplayWaitAreCancelledOnPauseAndClose() async throws {
         let game = RhythmPuzzleModel(connection:try connection())
         game.newSet(); XCTAssertNil(game.error)
-        XCTAssertEqual(game.round?.level,"beginner"); XCTAssertEqual(game.draft?.record.gameVersion,"rhythm-puzzle-v2")
+        XCTAssertEqual(game.round?.level,"beginner"); XCTAssertEqual(game.draft?.record.gameVersion,"rhythm-puzzle-v3")
         XCTAssertTrue(game.waitingToPlay); XCTAssertFalse(game.playing)
         try await Task.sleep(for:.milliseconds(150))
         game.pause(); XCTAssertFalse(game.waitingToPlay)

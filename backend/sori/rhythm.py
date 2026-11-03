@@ -28,9 +28,10 @@ def fraction(value):
     return result
 
 
-def current_sources(root):
+def current_sources(root, include_classical=False):
     latest = {}
-    for name in CATALOG_FILES:
+    files = CATALOG_FILES + (("classical-catalog.json", "brahms-catalog.json", "classical-tempo-revisions.json", "mahler-catalog.json") if include_classical else ())
+    for name in files:
         for row in json.loads((root / name).read_text(encoding="utf-8")):
             m = row["metadata"]
             if m["id"] not in latest or m["version"] > latest[m["id"]]["metadata"]["version"]:
@@ -217,13 +218,23 @@ def rhythm_burden(attacks, pulse, bar, total, tuplet_share=0):
     return dict(raw=round(raw, 6), components=components)
 
 
-def build_catalog(root, *, version=VERSION, levels=("intermediate", "advanced")):
+def classical_label(metadata):
+    composer = metadata.get("composer", "").strip()
+    title = metadata["title"].strip()
+    if composer and title.startswith(composer + " · "):
+        title = title[len(composer) + 3:]
+    title = title.split(" · ")[0].split(" Op.")[0].strip()
+    return (composer + " " + title).strip() + " 中"
+
+
+def build_catalog(root, *, version=VERSION, levels=("intermediate", "advanced"), include_classical=False):
     root = Path(root)
     rounds, all_tiles, exceptions = [], {}, []
-    for row in current_sources(root):
+    for row in current_sources(root, include_classical=include_classical):
         m = row["metadata"]
+        classical = m.get("collection") == "classical"
         level = m.get("difficulty", "intermediate" if row["order"] <= 3 else "advanced")
-        if level not in levels or m.get("collection") == "classical":
+        if (classical and not include_classical) or (not classical and level not in levels):
             continue
         path = root / row["main_path"]
         data = path.read_bytes()
@@ -254,19 +265,31 @@ def build_catalog(root, *, version=VERSION, levels=("intermediate", "advanced"))
                 policies = json.loads((root / "playback-settings.json").read_text(encoding="utf-8"))["meters"]
                 policy = policies[f'{meter["numerator"]}/{meter["denominator"]}']
                 bpm = policy["default_bpm"] * (1.5 if policy["beat_unit"] == "dotted_quarter" else 2 if policy["beat_unit"] == "half" else 1)
+                display_bpm, beat_unit = policy["default_bpm"], policy["beat_unit"]
+                if classical and m.get("tempo"):
+                    setting = m["tempo"]
+                    display_bpm, beat_unit = setting["bpm"], setting["beat_unit"]
+                    bpm = display_bpm * {"quarter":1, "dotted_quarter":1.5, "half":2, "dotted_half":3}[beat_unit]
                 round_ = dict(id=digest([version, record["analysis_key"], first]), question_id=m["id"], question_version=m["version"],
                               analysis_key=record["analysis_key"], source_xml_sha256=record["source_xml_sha256"],
                               title=m["title"], level=level, first_measure=first, meter=meter, pulse=bar["pulse_qn"],
                               measure_duration=bar["actual_duration_qn"], total_duration=str(total), tempo_bpm=bpm,
-                              display_bpm=policy["default_bpm"], beat_unit=policy["beat_unit"],
+                              display_bpm=display_bpm, beat_unit=beat_unit,
                               solution=placements, solution_ties=ties, rhythm=rhythm, audio=audio,
                               features=span["features"], difficulty=rhythm_burden(rhythm, bar["pulse_qn"], bar["actual_duration_qn"], total,
                                   sum(e["tuplet_ratio"] != [1, 1] for e in record["events"] if e["id"] in span["event_ids"] and not e["tie_stop"] and e["kind"] == "note") / max(1, len(audio))))
                 all_tiles.update(tiles)
+                if include_classical:
+                    round_["collection"] = "classical" if classical else "dictation"
+                    if classical:
+                        round_["source_label"] = classical_label(m)
                 round_["rhythm_key"] = digest([meter, bar["pulse_qn"], rhythm])
                 rounds.append(round_)
             except (ValueError, FeatureError) as error:
-                exceptions.append(dict(question_id=m["id"], title=m["title"], first_measure=first, reason=str(error)))
+                reason = str(error)
+                if include_classical and reason == "needs_beat_grouping" and m["time_signature"] != {"numerator":7,"denominator":8}:
+                    reason = "unsupported_rhythm_meter"
+                exceptions.append(dict(question_id=m["id"], title=m["title"], first_measure=first, reason=reason))
     if "beginner" in levels:
         def simple(value, typ, rest=False, dots=0):
             return dict(duration=value, rest=rest, type=typ, dots=dots, actual=1, normal=1,
@@ -283,6 +306,8 @@ def build_catalog(root, *, version=VERSION, levels=("intermediate", "advanced"))
         raw = r["difficulty"]["raw"]
         r["difficulty"].update(score=round(100 * (sum(x < raw for x in cohort) + 0.5 * sum(x == raw for x in cohort)) / len(cohort)),
                                 version=DIFFICULTY_VERSION, cohort_size=len(cohort))
+        if r.get("collection") == "classical":
+            r["level"] = "beginner" if r["difficulty"]["score"] < 34 else "intermediate" if r["difficulty"]["score"] < 67 else "advanced"
         required = list(dict.fromkeys(p["tile_id"] for p in r["solution"]))
         # Similar lengths first; deterministic order, shuffled only when a play starts.
         wanted = {all_tiles[k]["duration"] for k in required}

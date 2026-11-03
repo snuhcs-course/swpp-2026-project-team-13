@@ -62,6 +62,18 @@ class RhythmAPITests(TestCase):
         self.assertEqual(response.data["error"]["code"], "VALIDATION_ERROR")
         self.assertFalse(RhythmPlay.objects.exists())
 
+    def test_v3_classical_uses_the_current_immutable_question_version(self):
+        data = (settings.CONTENT_ROOT / "rhythm-puzzle-v3.json").read_bytes()
+        catalog = json.loads(data)
+        round_ = next(r for r in catalog["rounds"] if r.get("collection") == "classical" and r["question_version"] > 1)
+        self.payload = record_for(catalog,digest_bytes(data),round_)
+        response = self.send()
+        self.assertEqual(response.status_code,201,response.data)
+        row = RhythmPlay.objects.get()
+        self.assertEqual(row.question_version.version,round_["question_version"])
+        self.assertEqual(row.feature_analysis.analysis_key,round_["analysis_key"])
+        self.assertEqual(row.payload["game_version"],"rhythm-puzzle-v3")
+
     def test_receipt_replay_and_new_transport_key_do_not_duplicate_a_round(self):
         first = self.send()
         second = self.send()

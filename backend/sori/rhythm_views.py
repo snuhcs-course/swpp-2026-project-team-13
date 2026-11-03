@@ -19,7 +19,7 @@ from .rhythm_records import validate_record
 
 @lru_cache(maxsize=4)
 def catalog_at(root, version="rhythm-puzzle-v1"):
-    if version not in ("rhythm-puzzle-v1", "rhythm-puzzle-v2"):
+    if version not in ("rhythm-puzzle-v1", "rhythm-puzzle-v2", "rhythm-puzzle-v3"):
         raise ValueError("catalog_version_mismatch")
     raw = (root / (version + ".json")).read_bytes()
     return json.loads(raw), hashlib.sha256(raw).hexdigest()
