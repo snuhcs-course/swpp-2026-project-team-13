@@ -48,7 +48,11 @@ import AVFoundation
         referenceTrack = reference
         sequencer = seq
         if settings.mode == .memory {
-            for window in timeline.windows where window.phase == .listen { try schedule(window,round:round) }
+            // One contiguous phrase preserves note-offs and ties across bars.
+            if let first = timeline.windows.first(where: { $0.phase == .listen }) {
+                let events = try round.score.segment(from:first.measure,through:round.score.measures)
+                try schedule(events,at:first.start)
+            }
         } else if let first = timeline.windows.first(where: { $0.phase == .listen }) {
             try schedule(first,round:round)
         }
@@ -56,12 +60,15 @@ import AVFoundation
     }
 
     func schedule(_ window: MelodyWindow, round: MelodyRound) throws {
-        guard let track = referenceTrack else { throw SORIError.invalidScore("게임 오디오가 준비되지 않았어요.") }
         let events = try round.score.segment(from:window.measure,through:window.measure)
+        try schedule(events,at:window.start)
+    }
+    private func schedule(_ events: [MusicEvent], at start: Int) throws {
+        guard let track = referenceTrack else { throw SORIError.invalidScore("게임 오디오가 준비되지 않았어요.") }
         for event in events {
             guard let midi = event.midi else { continue }
             let note = AVMIDINoteEvent(channel:0,key:UInt32(midi),velocity:UInt32(noteVelocity),duration:Double(event.duration)/480)
-            track.addEvent(note,at:Double(window.start+event.onset+transportLeadTicks)/480)
+            track.addEvent(note,at:Double(start+event.onset+transportLeadTicks)/480)
         }
     }
 

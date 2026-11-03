@@ -1,0 +1,526 @@
+{
+  "version": "memory-run-v2",
+  "sources": 967,
+  "excerpts": 5736,
+  "collections": {
+    "library": 923,
+    "classical": 33,
+    "intermediate": 11
+  },
+  "lengths": {
+    "2": 3809,
+    "4": 1927
+  },
+  "beginnerExcerpts": 132,
+  "beginnerSources": 69,
+  "deferred": {
+    "fewer_than_two_attacks": 38,
+    "external_tie": 34
+  },
+  "exceptions": [
+    {
+      "sourceId": "Batchellor-Charmbury-1884c_3-1-003",
+      "title": "Batchellor-Charmbury-1884c_3-1-003",
+      "first": 7,
+      "bars": 2,
+      "reason": "fewer_than_two_attacks"
+    },
+    {
+      "sourceId": "Batchellor-Charmbury-1884c_3-1-004",
+      "title": "Batchellor-Charmbury-1884c_3-1-004",
+      "first": 7,
+      "bars": 2,
+      "reason": "fewer_than_two_attacks"
+    },
+    {
+      "sourceId": "Cole-Lewis-1904_2-03-044",
+      "title": "Cole-Lewis-1904_2-03-044",
+      "first": 7,
+      "bars": 2,
+      "reason": "fewer_than_two_attacks"
+    },
+    {
+      "sourceId": "Hollis-1915_22-03",
+      "title": "Hollis-1915_22-03",
+      "first": 7,
+      "bars": 2,
+      "reason": "fewer_than_two_attacks"
+    },
+    {
+      "sourceId": "Hollis-1915_24-03",
+      "title": "Hollis-1915_24-03",
+      "first": 7,
+      "bars": 2,
+      "reason": "fewer_than_two_attacks"
+    },
+    {
+      "sourceId": "Hollis-1915_14-05",
+      "title": "Hollis-1915_14-05",
+      "first": 7,
+      "bars": 2,
+      "reason": "fewer_than_two_attacks"
+    },
+    {
+      "sourceId": "Hollis-1915_18-05",
+      "title": "Hollis-1915_18-05",
+      "first": 7,
+      "bars": 2,
+      "reason": "fewer_than_two_attacks"
+    },
+    {
+      "sourceId": "Hollis-1915_22-02",
+      "title": "Hollis-1915_22-02",
+      "first": 7,
+      "bars": 2,
+      "reason": "fewer_than_two_attacks"
+    },
+    {
+      "sourceId": "Cole-Lewis-1904_1-01-034",
+      "title": "Cole-Lewis-1904_1-01-034",
+      "first": 7,
+      "bars": 2,
+      "reason": "fewer_than_two_attacks"
+    },
+    {
+      "sourceId": "Cole-Lewis-1904_1-01-179",
+      "title": "Cole-Lewis-1904_1-01-179",
+      "first": 7,
+      "bars": 2,
+      "reason": "fewer_than_two_attacks"
+    },
+    {
+      "sourceId": "Cole-Lewis-1904_1-01-303",
+      "title": "Cole-Lewis-1904_1-01-303",
+      "first": 7,
+      "bars": 2,
+      "reason": "fewer_than_two_attacks"
+    },
+    {
+      "sourceId": "Cole-Lewis-1904_1-01-243",
+      "title": "Cole-Lewis-1904_1-01-243",
+      "first": 7,
+      "bars": 2,
+      "reason": "fewer_than_two_attacks"
+    },
+    {
+      "sourceId": "Hollis-1915_36-03",
+      "title": "Hollis-1915_36-03",
+      "first": 7,
+      "bars": 2,
+      "reason": "fewer_than_two_attacks"
+    },
+    {
+      "sourceId": "Cole-Lewis-1904_2-03-053",
+      "title": "Cole-Lewis-1904_2-03-053",
+      "first": 7,
+      "bars": 2,
+      "reason": "fewer_than_two_attacks"
+    },
+    {
+      "sourceId": "Cole-Lewis-1904_1-01-233",
+      "title": "Cole-Lewis-1904_1-01-233",
+      "first": 7,
+      "bars": 2,
+      "reason": "fewer_than_two_attacks"
+    },
+    {
+      "sourceId": "Hollis-1915_22-05",
+      "title": "Hollis-1915_22-05",
+      "first": 7,
+      "bars": 2,
+      "reason": "fewer_than_two_attacks"
+    },
+    {
+      "sourceId": "Crowell-2004_355",
+      "title": "Crowell-2004_355",
+      "first": 7,
+      "bars": 2,
+      "reason": "fewer_than_two_attacks"
+    },
+    {
+      "sourceId": "Hollis-1915_18-06",
+      "title": "Hollis-1915_18-06",
+      "first": 7,
+      "bars": 2,
+      "reason": "fewer_than_two_attacks"
+    },
+    {
+      "sourceId": "Cole-Lewis-1904_1-01-071",
+      "title": "Cole-Lewis-1904_1-01-071",
+      "first": 7,
+      "bars": 2,
+      "reason": "fewer_than_two_attacks"
+    },
+    {
+      "sourceId": "Hollis-1915_22-06",
+      "title": "Hollis-1915_22-06",
+      "first": 3,
+      "bars": 2,
+      "reason": "fewer_than_two_attacks"
+    },
+    {
+      "sourceId": "Hollis-1915_22-06",
+      "title": "Hollis-1915_22-06",
+      "first": 7,
+      "bars": 2,
+      "reason": "fewer_than_two_attacks"
+    },
+    {
+      "sourceId": "Cole-Lewis-1904_3-07-023",
+      "title": "Cole-Lewis-1904_3-07-023",
+      "first": 7,
+      "bars": 2,
+      "reason": "fewer_than_two_attacks"
+    },
+    {
+      "sourceId": "Hollis-1915_12-06",
+      "title": "Hollis-1915_12-06",
+      "first": 7,
+      "bars": 2,
+      "reason": "fewer_than_two_attacks"
+    },
+    {
+      "sourceId": "Hollis-1915_34-01",
+      "title": "Hollis-1915_34-01",
+      "first": 7,
+      "bars": 2,
+      "reason": "fewer_than_two_attacks"
+    },
+    {
+      "sourceId": "Cole-Lewis-1904_2-05-165",
+      "title": "Cole-Lewis-1904_2-05-165",
+      "first": 5,
+      "bars": 2,
+      "reason": "external_tie"
+    },
+    {
+      "sourceId": "Cole-Lewis-1904_2-05-165",
+      "title": "Cole-Lewis-1904_2-05-165",
+      "first": 7,
+      "bars": 2,
+      "reason": "external_tie"
+    },
+    {
+      "sourceId": "Hollis-1915_34-02",
+      "title": "Hollis-1915_34-02",
+      "first": 7,
+      "bars": 2,
+      "reason": "fewer_than_two_attacks"
+    },
+    {
+      "sourceId": "Hollis-1915_12-05",
+      "title": "Hollis-1915_12-05",
+      "first": 7,
+      "bars": 2,
+      "reason": "fewer_than_two_attacks"
+    },
+    {
+      "sourceId": "Hollis-1915_25-01",
+      "title": "Hollis-1915_25-01",
+      "first": 7,
+      "bars": 2,
+      "reason": "fewer_than_two_attacks"
+    },
+    {
+      "sourceId": "Cole-Lewis-1904_1-01-033",
+      "title": "Cole-Lewis-1904_1-01-033",
+      "first": 7,
+      "bars": 2,
+      "reason": "fewer_than_two_attacks"
+    },
+    {
+      "sourceId": "Cole-Lewis-1904_1-01-150",
+      "title": "Cole-Lewis-1904_1-01-150",
+      "first": 7,
+      "bars": 2,
+      "reason": "fewer_than_two_attacks"
+    },
+    {
+      "sourceId": "Cole-Lewis-1904_1-01-151",
+      "title": "Cole-Lewis-1904_1-01-151",
+      "first": 7,
+      "bars": 2,
+      "reason": "fewer_than_two_attacks"
+    },
+    {
+      "sourceId": "Cole-Lewis-1904_1-01-155",
+      "title": "Cole-Lewis-1904_1-01-155",
+      "first": 7,
+      "bars": 2,
+      "reason": "fewer_than_two_attacks"
+    },
+    {
+      "sourceId": "Hollis-1915_20-03",
+      "title": "Hollis-1915_20-03",
+      "first": 7,
+      "bars": 2,
+      "reason": "fewer_than_two_attacks"
+    },
+    {
+      "sourceId": "Cole-Lewis-1904_3-07-101",
+      "title": "Cole-Lewis-1904_3-07-101",
+      "first": 3,
+      "bars": 2,
+      "reason": "external_tie"
+    },
+    {
+      "sourceId": "Cole-Lewis-1904_3-07-101",
+      "title": "Cole-Lewis-1904_3-07-101",
+      "first": 5,
+      "bars": 2,
+      "reason": "external_tie"
+    },
+    {
+      "sourceId": "Cole-Lewis-1904_3-07-101",
+      "title": "Cole-Lewis-1904_3-07-101",
+      "first": 1,
+      "bars": 4,
+      "reason": "external_tie"
+    },
+    {
+      "sourceId": "Cole-Lewis-1904_3-07-101",
+      "title": "Cole-Lewis-1904_3-07-101",
+      "first": 5,
+      "bars": 4,
+      "reason": "external_tie"
+    },
+    {
+      "sourceId": "Cole-Lewis-1904_3-07-102",
+      "title": "Cole-Lewis-1904_3-07-102",
+      "first": 3,
+      "bars": 2,
+      "reason": "external_tie"
+    },
+    {
+      "sourceId": "Cole-Lewis-1904_3-07-102",
+      "title": "Cole-Lewis-1904_3-07-102",
+      "first": 5,
+      "bars": 2,
+      "reason": "external_tie"
+    },
+    {
+      "sourceId": "Cole-Lewis-1904_3-07-102",
+      "title": "Cole-Lewis-1904_3-07-102",
+      "first": 1,
+      "bars": 4,
+      "reason": "external_tie"
+    },
+    {
+      "sourceId": "Cole-Lewis-1904_3-07-102",
+      "title": "Cole-Lewis-1904_3-07-102",
+      "first": 5,
+      "bars": 4,
+      "reason": "external_tie"
+    },
+    {
+      "sourceId": "Cole-Lewis-1904_2-05-124",
+      "title": "Cole-Lewis-1904_2-05-124",
+      "first": 5,
+      "bars": 2,
+      "reason": "external_tie"
+    },
+    {
+      "sourceId": "Cole-Lewis-1904_2-05-124",
+      "title": "Cole-Lewis-1904_2-05-124",
+      "first": 7,
+      "bars": 2,
+      "reason": "external_tie"
+    },
+    {
+      "sourceId": "Cole-Lewis-1904_2-03-241",
+      "title": "Cole-Lewis-1904_2-03-241",
+      "first": 3,
+      "bars": 2,
+      "reason": "external_tie"
+    },
+    {
+      "sourceId": "Cole-Lewis-1904_2-03-241",
+      "title": "Cole-Lewis-1904_2-03-241",
+      "first": 5,
+      "bars": 2,
+      "reason": "external_tie"
+    },
+    {
+      "sourceId": "Cole-Lewis-1904_2-03-241",
+      "title": "Cole-Lewis-1904_2-03-241",
+      "first": 1,
+      "bars": 4,
+      "reason": "external_tie"
+    },
+    {
+      "sourceId": "Cole-Lewis-1904_2-03-241",
+      "title": "Cole-Lewis-1904_2-03-241",
+      "first": 5,
+      "bars": 4,
+      "reason": "external_tie"
+    },
+    {
+      "sourceId": "Cole-Lewis-1904_2-05-048",
+      "title": "Cole-Lewis-1904_2-05-048",
+      "first": 7,
+      "bars": 2,
+      "reason": "fewer_than_two_attacks"
+    },
+    {
+      "sourceId": "Cole-Lewis-1904_2-03-083",
+      "title": "Cole-Lewis-1904_2-03-083",
+      "first": 7,
+      "bars": 2,
+      "reason": "fewer_than_two_attacks"
+    },
+    {
+      "sourceId": "Somervell-1911_063",
+      "title": "Somervell-1911_063",
+      "first": 1,
+      "bars": 2,
+      "reason": "external_tie"
+    },
+    {
+      "sourceId": "Somervell-1911_063",
+      "title": "Somervell-1911_063",
+      "first": 3,
+      "bars": 2,
+      "reason": "external_tie"
+    },
+    {
+      "sourceId": "Somervell-1911_127",
+      "title": "Somervell-1911_127",
+      "first": 5,
+      "bars": 2,
+      "reason": "external_tie"
+    },
+    {
+      "sourceId": "Somervell-1911_127",
+      "title": "Somervell-1911_127",
+      "first": 7,
+      "bars": 2,
+      "reason": "external_tie"
+    },
+    {
+      "sourceId": "Cole-Lewis-1904_2-05-057",
+      "title": "Cole-Lewis-1904_2-05-057",
+      "first": 1,
+      "bars": 2,
+      "reason": "external_tie"
+    },
+    {
+      "sourceId": "Cole-Lewis-1904_2-05-057",
+      "title": "Cole-Lewis-1904_2-05-057",
+      "first": 3,
+      "bars": 2,
+      "reason": "external_tie"
+    },
+    {
+      "sourceId": "Cole-Lewis-1904_1-01-182",
+      "title": "Cole-Lewis-1904_1-01-182",
+      "first": 7,
+      "bars": 2,
+      "reason": "fewer_than_two_attacks"
+    },
+    {
+      "sourceId": "Somervell-1911_067",
+      "title": "Somervell-1911_067",
+      "first": 5,
+      "bars": 2,
+      "reason": "external_tie"
+    },
+    {
+      "sourceId": "Somervell-1911_067",
+      "title": "Somervell-1911_067",
+      "first": 7,
+      "bars": 2,
+      "reason": "external_tie"
+    },
+    {
+      "sourceId": "0f8cc9b3-c20a-58ac-98ee-08fb9bd24a88",
+      "title": "나폴리의 노래 · 어린이 앨범 · Op.39 No.18",
+      "first": 1,
+      "bars": 2,
+      "reason": "external_tie"
+    },
+    {
+      "sourceId": "0f8cc9b3-c20a-58ac-98ee-08fb9bd24a88",
+      "title": "나폴리의 노래 · 어린이 앨범 · Op.39 No.18",
+      "first": 3,
+      "bars": 2,
+      "reason": "external_tie"
+    },
+    {
+      "sourceId": "0f8cc9b3-c20a-58ac-98ee-08fb9bd24a88",
+      "title": "나폴리의 노래 · 어린이 앨범 · Op.39 No.18",
+      "first": 5,
+      "bars": 2,
+      "reason": "external_tie"
+    },
+    {
+      "sourceId": "0f8cc9b3-c20a-58ac-98ee-08fb9bd24a88",
+      "title": "나폴리의 노래 · 어린이 앨범 · Op.39 No.18",
+      "first": 7,
+      "bars": 2,
+      "reason": "external_tie"
+    },
+    {
+      "sourceId": "0f8cc9b3-c20a-58ac-98ee-08fb9bd24a88",
+      "title": "나폴리의 노래 · 어린이 앨범 · Op.39 No.18",
+      "first": 1,
+      "bars": 4,
+      "reason": "external_tie"
+    },
+    {
+      "sourceId": "0f8cc9b3-c20a-58ac-98ee-08fb9bd24a88",
+      "title": "나폴리의 노래 · 어린이 앨범 · Op.39 No.18",
+      "first": 5,
+      "bars": 4,
+      "reason": "external_tie"
+    },
+    {
+      "sourceId": "244e7301-ab54-500d-8745-676dbc5af60a",
+      "title": "백조 · 동물의 사육제",
+      "first": 7,
+      "bars": 2,
+      "reason": "fewer_than_two_attacks"
+    },
+    {
+      "sourceId": "9e600680-6511-5dd0-b8cc-6102621f66a3",
+      "title": "짐노페디 1번",
+      "first": 5,
+      "bars": 2,
+      "reason": "external_tie"
+    },
+    {
+      "sourceId": "9e600680-6511-5dd0-b8cc-6102621f66a3",
+      "title": "짐노페디 1번",
+      "first": 7,
+      "bars": 2,
+      "reason": "external_tie"
+    },
+    {
+      "sourceId": "9e600680-6511-5dd0-b8cc-6102621f66a3",
+      "title": "짐노페디 1번",
+      "first": 5,
+      "bars": 4,
+      "reason": "fewer_than_two_attacks"
+    },
+    {
+      "sourceId": "6ab09e5a-be17-5ab0-ba82-e153cc7809da",
+      "title": "브람스 · 바이올린 협주곡 라장조 Op. 77, 제1악장",
+      "first": 7,
+      "bars": 2,
+      "reason": "fewer_than_two_attacks"
+    },
+    {
+      "sourceId": "6b850227-7816-5d5a-b325-2eae12bc4208",
+      "title": "브람스 · 교향곡 제4번 마단조 Op. 98, 제1악장",
+      "first": 5,
+      "bars": 2,
+      "reason": "external_tie"
+    },
+    {
+      "sourceId": "6b850227-7816-5d5a-b325-2eae12bc4208",
+      "title": "브람스 · 교향곡 제4번 마단조 Op. 98, 제1악장",
+      "first": 7,
+      "bars": 2,
+      "reason": "external_tie"
+    }
+  ]
+}

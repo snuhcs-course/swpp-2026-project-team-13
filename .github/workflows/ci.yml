@@ -50,6 +50,8 @@ jobs:
       - run: python ../scripts/test_playback.py
       - run: python ../scripts/test_audio_assets.py
       - run: python ../scripts/test_melody_library.py
+      - name: Verify Memory run excerpts, novice pool and pitch-aware difficulty
+        run: python ../scripts/test_memory_game.py
       - run: python ../scripts/test_classical_piano.py
       - run: python ../scripts/test_classical_questions.py
       - run: python ../scripts/test_classical_updates.py

@@ -35,14 +35,15 @@ final class MelodyRunTests: XCTestCase {
             } catch { XCTFail("\(question.id): \(error)") }
         }
     }
-    func testMemoryTimelineHasConfigurableGapsAndNoTimedInput() throws {
+    func testMemoryTimelineIsContinuousWithOnlyAnInitialCountIn() throws {
         let round = try MelodyRound(source:source(),start:1,bars:4)
         var settings = MelodySettings(); settings.gapMeasures = 2
         let timeline = MelodyTimeline(round:round,settings:settings)
         XCTAssertEqual(timeline.windows.filter { $0.phase == .listen }.count,4)
-        XCTAssertEqual(timeline.windows.filter { $0.phase == .beat }.map { $0.end-$0.start },Array(repeating:2*round.score.ticksPerMeasure,count:4))
+        XCTAssertFalse(timeline.windows.contains { $0.phase == .beat })
         XCTAssertFalse(timeline.windows.contains { $0.phase == .input })
-        XCTAssertEqual(timeline.end,round.score.ticksPerMeasure*13)
+        XCTAssertEqual(timeline.end,round.score.ticksPerMeasure*5)
+        XCTAssertTrue(timeline.clickEvents().allSatisfy { $0.onset < round.score.ticksPerMeasure })
         for pair in zip(timeline.windows,timeline.windows.dropFirst()) { XCTAssertEqual(pair.0.end,pair.1.start) }
     }
     func testGrooveEarlyCompletionKeepsClockAndNextBeatWithoutOverlappingWindows() throws {
