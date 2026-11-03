@@ -106,6 +106,75 @@ final class AuthenticationAppProtocol: URLProtocol {
         XCTAssertEqual(model.history.first?.id, saved.id)
     }
 
+    func testLoginWithoutKeepingStoresNoTokenButSurvivesReconnectUntilRelaunch() async throws {
+        let fixture = try AuthenticationFixture(); defer { fixture.cleanup() }
+        let model = fixture.model()
+        await model.login(username: "student01", password: "pw", keepSignedIn: false)
+        XCTAssertTrue(model.connected)
+        XCTAssertEqual(try TokenVault.read(server: fixture.base), "", "the previous account's stored token is gone too")
+        // Settings' 서버 연결 button and the demo toggle both reconnect.
+        await model.connect()
+        XCTAssertTrue(model.connected); XCTAssertEqual(model.profile?.id, fixture.user.id)
+        let relaunched = fixture.model(); await relaunched.connect()
+        XCTAssertFalse(relaunched.connected); XCTAssertTrue(relaunched.needsAuthentication)
+    }
+
+    func testKeepingSignedInStoresTheTokenAndReplacesASessionOnlyLogin() async throws {
+        let fixture = try AuthenticationFixture(); defer { fixture.cleanup() }
+        let model = fixture.model()
+        await model.login(username: "student01", password: "pw", keepSignedIn: false)
+        model.switchAccount()
+        await model.login(username: "student01", password: "pw")
+        XCTAssertEqual(try TokenVault.read(server: fixture.base), "shared-token")
+        let relaunched = fixture.model(); await relaunched.connect()
+        XCTAssertTrue(relaunched.connected)
+    }
+
+    func testSessionOnlyTokenEndsWithLogoutAndStaysOnItsServer() async throws {
+        let fixture = try AuthenticationFixture(); defer { fixture.cleanup() }
+        let model = fixture.model()
+        await model.login(username: "student01", password: "pw", keepSignedIn: false)
+        model.server = "https://another-\(UUID().uuidString.lowercased()).example/api/v1/"
+        await model.connect()
+        XCTAssertFalse(model.connected, "the token must not be sent to another origin")
+        model.server = fixture.base
+        await model.connect()
+        XCTAssertTrue(model.connected)
+        await model.logout()
+        await model.connect()
+        XCTAssertFalse(model.connected)
+    }
+
+    func testSessionOnlyTokenIsDroppedAfterA401() async throws {
+        let fixture = try AuthenticationFixture(); defer { fixture.cleanup() }
+        let model = fixture.model()
+        await model.login(username: "student01", password: "pw", keepSignedIn: false)
+        fixture.rejectedQuestions = true
+        await model.connect()
+        XCTAssertFalse(model.connected)
+        fixture.rejectedQuestions = false
+        await model.connect()
+        XCTAssertFalse(model.connected)
+    }
+
+    func testRejectedLoginAndRateLimitStayInlineWhileOtherFailuresAlert() async throws {
+        let fixture = try AuthenticationFixture(); defer { fixture.cleanup() }
+        let model = fixture.model()
+        fixture.loginStatus = 401
+        await model.login(username: "student01", password: "wrong")
+        XCTAssertEqual(model.loginMessage, "아이디 또는 비밀번호가 맞지 않아요."); XCTAssertNil(model.error)
+        fixture.loginStatus = 429
+        await model.login(username: "student01", password: "wrong")
+        XCTAssertNotNil(model.loginMessage); XCTAssertNotNil(model.loginRetryUntil); XCTAssertNil(model.error)
+        try await Task.sleep(for: .milliseconds(1100))
+        fixture.loginStatus = 500
+        await model.login(username: "student01", password: "wrong")
+        XCTAssertNil(model.loginMessage); XCTAssertNotNil(model.error)
+        model.error = nil; fixture.loginStatus = 200
+        await model.login(username: "student01", password: "right")
+        XCTAssertTrue(model.connected); XCTAssertNil(model.loginMessage)
+    }
+
     func testLoginRateLimitNeedsExplicitRetryAndNetworkFailureRetainsToken() async throws {
         let fixture = try AuthenticationFixture(); defer { fixture.cleanup() }
         let model = fixture.model()

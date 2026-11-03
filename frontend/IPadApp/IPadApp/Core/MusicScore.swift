@@ -22,7 +22,7 @@ struct MusicScore: Equatable {
     var ticksPerMeasure: Int { timeSignature.ticksPerMeasure }
     var totalTicks: Int { measures * ticksPerMeasure }
     func segment(from: Int, through: Int) throws -> [MusicEvent] {
-        guard from >= 1, through <= measures, from <= through else { throw SORIError.invalidScore("잘못된 재생 구간입니다.") }
+        guard from >= 1, through <= measures, from <= through else { throw SolfegeError.invalidScore("잘못된 재생 구간입니다.") }
         let start = (from - 1) * ticksPerMeasure, end = through * ticksPerMeasure
         return events.compactMap { event in
             let a = max(event.onset, start), b = min(event.onset + event.duration, end)
@@ -35,7 +35,7 @@ struct MusicScore: Equatable {
 enum MXLContainer {
     static func entries(_ data: Data) throws -> [String: Data] {
         let b = [UInt8](data)
-        func bad() -> SORIError { .invalidScore("SCORE_PARSE_FAILED: MXL 압축 구조가 올바르지 않습니다.") }
+        func bad() -> SolfegeError { .invalidScore("SCORE_PARSE_FAILED: MXL 압축 구조가 올바르지 않습니다.") }
         func u16(_ p: Int) throws -> Int { guard p >= 0, p + 2 <= b.count else { throw bad() }; return Int(b[p]) | Int(b[p+1]) << 8 }
         func u32(_ p: Int) throws -> Int { try u16(p) | (u16(p+2) << 16) }
         guard b.count >= 22, b.count <= 1_048_576 else { throw bad() }
@@ -110,10 +110,10 @@ final class SafeXML: NSObject, XMLParserDelegate {
     var stack: [XMLNode] = []; var root: XMLNode?; var count = 0; var failure = false
     static func parse(_ data: Data) throws -> XMLNode {
         guard let text = String(data: data, encoding: .utf8), data.count <= 4_194_304,
-              !text.uppercased().contains("<!DOCTYPE"), !text.uppercased().contains("<!ENTITY"), !text.contains("<?xml-stylesheet") else { throw SORIError.invalidScore("외부 리소스와 DTD가 있는 XML은 지원하지 않습니다.") }
+              !text.uppercased().contains("<!DOCTYPE"), !text.uppercased().contains("<!ENTITY"), !text.contains("<?xml-stylesheet") else { throw SolfegeError.invalidScore("외부 리소스와 DTD가 있는 XML은 지원하지 않습니다.") }
         let delegate = SafeXML(), parser = XMLParser(data: data)
         parser.shouldResolveExternalEntities = false; parser.delegate = delegate
-        guard parser.parse(), !delegate.failure, let root = delegate.root, delegate.stack.isEmpty else { throw SORIError.invalidScore("MusicXML을 해석하지 못했습니다.") }
+        guard parser.parse(), !delegate.failure, let root = delegate.root, delegate.stack.isEmpty else { throw SolfegeError.invalidScore("MusicXML을 해석하지 못했습니다.") }
         return root
     }
     func parser(_ parser: XMLParser, didStartElement elementName: String, namespaceURI: String?, qualifiedName qName: String?, attributes attributeDict: [String: String]) {
@@ -131,18 +131,18 @@ final class SafeXML: NSObject, XMLParserDelegate {
 enum MusicXMLParser {
     static let version = "sori-parser-5"
     static func parseMXL(_ data: Data, asset: ScoreAsset, tempo: Double? = nil) throws -> MusicScore {
-        guard data.count == asset.sizeBytes, data.sha256 == asset.sha256 else { throw SORIError.invalidScore("SCORE_HASH_MISMATCH: 악보의 해시 또는 크기가 다릅니다.") }
-        guard ["sori-monophonic-v1", "sori-monophonic-v2", "sori-monophonic-v3", "sori-monophonic-v4"].contains(asset.profile), asset.musicxmlVersion == "4.0", asset.partId == "P1", asset.contentType == "application/vnd.recordare.musicxml" else { throw SORIError.unsupported("UNSUPPORTED_SCORE_PROFILE: 악보 형식을 확인해 주세요.") }
+        guard data.count == asset.sizeBytes, data.sha256 == asset.sha256 else { throw SolfegeError.invalidScore("SCORE_HASH_MISMATCH: 악보의 해시 또는 크기가 다릅니다.") }
+        guard ["sori-monophonic-v1", "sori-monophonic-v2", "sori-monophonic-v3", "sori-monophonic-v4"].contains(asset.profile), asset.musicxmlVersion == "4.0", asset.partId == "P1", asset.contentType == "application/vnd.recordare.musicxml" else { throw SolfegeError.unsupported("UNSUPPORTED_SCORE_PROFILE: 악보 형식을 확인해 주세요.") }
         let files = try MXLContainer.entries(data)
         let score = try parseXML(files["score.xml"]!, measures: asset.measureCount, tempo: tempo ?? asset.sourceTempoBpm ?? 96)
         if asset.profile != "sori-monophonic-v4" {
-            guard score.keySignature.fifths == 0, ["major","unspecified"].contains(score.keySignature.mode) else { throw SORIError.invalidScore("구버전 악보 프로필의 조표가 다릅니다.") }
+            guard score.keySignature.fifths == 0, ["major","unspecified"].contains(score.keySignature.mode) else { throw SolfegeError.invalidScore("구버전 악보 프로필의 조표가 다릅니다.") }
         }
         return score
     }
     static func parseXML(_ data: Data, measures: Int, tempo: Double) throws -> MusicScore {
         let root = try SafeXML.parse(data)
-        func fail(_ message: String) -> SORIError { .invalidScore("UNSUPPORTED_SCORE_PROFILE: " + message) }
+        func fail(_ message: String) -> SolfegeError { .invalidScore("UNSUPPORTED_SCORE_PROFILE: " + message) }
         let allowed: Set<String> = ["score-partwise","work","work-title","movement-title","identification","creator","rights","encoding","software","encoding-date","part-list","score-part","part-name","part-abbreviation","score-instrument","instrument-name","instrument-abbreviation","midi-instrument","midi-channel","midi-program","part","measure","attributes","divisions","key","fifths","mode","time","beats","beat-type","clef","sign","line","staves","direction","direction-type","metronome","beat-unit","per-minute","sound","note","pitch","step","alter","octave","rest","duration","voice","staff","type","dot","accidental","tie","notations","tied","barline","bar-style","stem","beam","time-modification","actual-notes","normal-notes","normal-type","tuplet"]
         func validate(_ node: XMLNode) throws {
             guard allowed.contains(node.name) else { throw fail("지원하지 않는 기호: \(node.name)") }

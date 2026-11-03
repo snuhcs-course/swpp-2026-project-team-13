@@ -5,9 +5,9 @@ import json
 from pathlib import Path
 
 ROOT=Path(__file__).resolve().parents[1]
-spec=importlib.util.spec_from_file_location("playback",ROOT/"backend/sori/playback.py")
+spec=importlib.util.spec_from_file_location("playback",ROOT/"backend/solfege/playback.py")
 playback=importlib.util.module_from_spec(spec);spec.loader.exec_module(playback)
-EXAMPLES=ROOT/"docs/sori-api/examples"
+EXAMPLES=ROOT/"docs/solfege-api/examples"
 catalog=json.loads((ROOT/"backend/content/catalog.json").read_text(encoding="utf-8"))
 questions=[playback.timed_question(item["metadata"]) for item in catalog]
 def save(name,value):

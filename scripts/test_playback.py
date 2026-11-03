@@ -7,7 +7,7 @@ import unittest
 import wave
 
 ROOT = Path(__file__).resolve().parents[1]
-spec = importlib.util.spec_from_file_location("playback",ROOT/"backend/sori/playback.py")
+spec = importlib.util.spec_from_file_location("playback",ROOT/"backend/solfege/playback.py")
 playback = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(playback)
 CATALOG=json.loads((ROOT/"backend/content/catalog.json").read_text(encoding="utf-8"))
@@ -57,7 +57,7 @@ class PlaybackTests(unittest.TestCase):
 
 
     def test_current_api_fixture_matches_the_selected_tempo_and_scale(self):
-        fixture=json.loads((ROOT/"docs/sori-api/examples/attempt-ready-v4.json").read_text(encoding="utf-8"))
+        fixture=json.loads((ROOT/"docs/solfege-api/examples/attempt-ready-v4.json").read_text(encoding="utf-8"))
         current=playback.timed_question(CATALOG[0]["metadata"])
         self.assertEqual(fixture["question"],current)
         self.assertEqual(fixture["playback_plan"],playback.make_playback_plan(current))

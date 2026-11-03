@@ -152,19 +152,19 @@ struct ResultView: View {
         Card { VStack(alignment:.leading,spacing:20) {
             HStack { ProgressView(); Text(g.status == "queued" ? "분석을 기다리고 있어요" : stage(g.stage)).font(.title3.bold()) }
             Text("답안은 안전하게 제출되었어요. 이 화면을 나가도 분석은 계속됩니다.").font(.subheadline).foregroundStyle(.secondary)
-            TimelineView(.periodic(from:.now,by:1)) { _ in if let start = model.waitingSince, Date().timeIntervalSince(start) >= 60 { Text("분석이 계속되고 있어요. 연습 기록에서 나중에 다시 확인할 수 있어요.").font(.subheadline).foregroundStyle(SORITheme.violet) } }
+            TimelineView(.periodic(from:.now,by:1)) { _ in if let start = model.waitingSince, Date().timeIntervalSince(start) >= 60 { Text("분석이 계속되고 있어요. 연습 기록에서 나중에 다시 확인할 수 있어요.").font(.subheadline).foregroundStyle(SolfegeTheme.violet) } }
         } }
     }
     private func stage(_ value:String) -> String { ["pending":"분석 대기 중","recognizing":"필기를 읽는 중","grading":"음정과 리듬을 확인하는 중","feedback":"피드백을 준비하는 중"][value] ?? "분석 진행 중" }
     private func completed(_ g: Grading) -> some View {
         Card { HStack(alignment:.center,spacing:32) {
-            VStack(alignment:.leading,spacing:8) { Text("AI 종합 평가").font(.subheadline).foregroundStyle(.secondary); HStack(alignment:.firstTextBaseline,spacing:4) { Text(g.score.map(String.init) ?? "—").font(.system(size:64,weight:.bold,design:.rounded)).foregroundStyle(SORITheme.violet); Text("/ 100").foregroundStyle(.secondary) } }
+            VStack(alignment:.leading,spacing:8) { Text("AI 종합 평가").font(.subheadline).foregroundStyle(.secondary); HStack(alignment:.firstTextBaseline,spacing:4) { Text(g.score.map(String.init) ?? "—").font(.system(size:64,weight:.bold,design:.rounded)).foregroundStyle(SolfegeTheme.violet); Text("/ 100").foregroundStyle(.secondary) } }
             Spacer()
             VStack(alignment:.leading,spacing:22) { accuracy("음정 평가",g.pitchAccuracy); accuracy("리듬 평가",g.rhythmAccuracy) }.frame(maxWidth:330)
         } }
     }
     private func accuracy(_ title:String,_ value:Double?) -> some View {
-        VStack(alignment:.leading,spacing:8) { HStack { Text(title).font(.subheadline); Spacer(); Text(value.map { String(format:"%.1f%%",$0) } ?? "—").font(.subheadline.bold()) }; ProgressView(value:min(100,max(0,value ?? 0)),total:100).tint(SORITheme.violet) }
+        VStack(alignment:.leading,spacing:8) { HStack { Text(title).font(.subheadline); Spacer(); Text(value.map { String(format:"%.1f%%",$0) } ?? "—").font(.subheadline.bold()) }; ProgressView(value:min(100,max(0,value ?? 0)),total:100).tint(SolfegeTheme.violet) }
     }
     private func messageCard(_ title:String,detail:String,icon:String) -> some View {
         Card { VStack(alignment:.leading,spacing:16) { Label(title,systemImage:icon).font(.title3.bold()); Text(detail).font(.subheadline).foregroundStyle(.secondary).lineSpacing(5) } }
@@ -203,7 +203,7 @@ struct CompactAnswerView: View {
                             if reviewMode {
                                 ForEach(crop.measureRegions(layout:layout)) { region in
                                     let error = measureErrors.first(where: { $0.measure == region.id })
-                                    let color: Color = selectedMeasure == region.id ? SORITheme.violet : error == nil ? .gray : .red
+                                    let color: Color = selectedMeasure == region.id ? SolfegeTheme.violet : error == nil ? .gray : .red
                                     Button { onMeasureTap?(region.id) } label: {
                                         RoundedRectangle(cornerRadius:5).fill(color.opacity(error == nil ? 0.02 : 0.07))
                                             .overlay(RoundedRectangle(cornerRadius:5).stroke(color.opacity(error == nil ? 0.35 : 0.85),lineWidth:error == nil ? 1 : 2))

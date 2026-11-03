@@ -15,7 +15,7 @@ BASE = "https://raw.githubusercontent.com/mrbumpy409/GeneralUser-GS/" + COMMIT +
 
 
 def fetch(relative, limit):
-    request = urllib.request.Request(BASE + relative, headers={"User-Agent": "SORI-build/1.0"})
+    request = urllib.request.Request(BASE + relative, headers={"User-Agent": "solfege-build/1.0"})
     with urllib.request.urlopen(request, timeout=90) as response:
         data = response.read(limit + 1)
     if len(data) > limit:

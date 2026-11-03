@@ -18,7 +18,7 @@ import AVFoundation
         let profile = try ClassicalPiano.load()
         let bank = profile.url
         guard let click = Bundle.main.url(forResource:"sori-click-v1",withExtension:"wav") else {
-            throw SORIError.invalidScore("피아노 음원이 포함된 최신 앱으로 다시 설치해 주세요.")
+            throw SolfegeError.invalidScore("피아노 음원이 포함된 최신 앱으로 다시 설치해 주세요.")
         }
         let session = AVAudioSession.sharedInstance()
         previousBufferDuration = session.preferredIOBufferDuration > 0 ? session.preferredIOBufferDuration : session.ioBufferDuration
@@ -40,7 +40,7 @@ import AVFoundation
         transportLeadTicks = MelodyTimeline.ticks(milliseconds:MelodyTimeline.audioLeadMilliseconds,bpm:settings.bpm)
         let seq = AVAudioSequencer(audioEngine:graph.engine)
         try seq.load(from:timeline.midi(tempo:settings.bpm,leadTicks:transportLeadTicks),options:[])
-        guard !seq.tracks.isEmpty else { throw SORIError.invalidScore("게임 오디오 준비 실패") }
+        guard !seq.tracks.isEmpty else { throw SolfegeError.invalidScore("게임 오디오 준비 실패") }
         for track in seq.tracks { track.destinationAudioUnit = graph.click }
         let reference = seq.createAndAppendTrack()
         reference.destinationAudioUnit = graph.piano
@@ -56,7 +56,7 @@ import AVFoundation
     }
 
     func schedule(_ window: MelodyWindow, round: MelodyRound) throws {
-        guard let track = referenceTrack else { throw SORIError.invalidScore("게임 오디오가 준비되지 않았어요.") }
+        guard let track = referenceTrack else { throw SolfegeError.invalidScore("게임 오디오가 준비되지 않았어요.") }
         let events = try round.score.segment(from:window.measure,through:window.measure)
         for event in events {
             guard let midi = event.midi else { continue }

@@ -20,7 +20,7 @@ BANK_LIMIT = 180*1024*1024
 
 
 def download(url):
-    request = urllib.request.Request(url,headers={"User-Agent":"SORI-build/1.0"})
+    request = urllib.request.Request(url,headers={"User-Agent":"solfege-build/1.0"})
     with urllib.request.urlopen(request,timeout=60) as response:
         data = response.read(ARCHIVE_LIMIT+1)
     if len(data) > ARCHIVE_LIMIT:
@@ -76,7 +76,7 @@ def install(resources=RESOURCES, check=False):
                "Source: "+profile["source_page"]+"\n"
                "License: Creative Commons Attribution 3.0 Unported (CC BY 3.0)\n"
                "https://creativecommons.org/licenses/by/3.0/\n"
-               "SORI uses the original SF2 bytes without sample edits; playback uses a medium MIDI velocity and reduced output gain. No endorsement is implied.\n")
+               "solfège uses the original SF2 bytes without sample edits; playback uses a medium MIDI velocity and reduced output gain. No endorsement is implied.\n")
     for name, text in originals:
         credits += "\n--- Original "+name+" ---\n"+text+"\n"
     credit_bytes = credits.encode("utf-8")

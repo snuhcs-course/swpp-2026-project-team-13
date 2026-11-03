@@ -62,7 +62,7 @@ import SwiftUI
         XCTAssertEqual(current.revision,2)
         XCTAssertTrue(current.errors.isEmpty)
         do { _ = try await api.saveSelfAssessment(a.id,request:request,key:UUID()); XCTFail("Expected conflict") }
-        catch { XCTAssertEqual((error as? SORIError)?.code,"SELF_ASSESSMENT_REVISION_CONFLICT") }
+        catch { XCTAssertEqual((error as? SolfegeError)?.code,"SELF_ASSESSMENT_REVISION_CONFLICT") }
         do { _ = try await api.submit(a.id,answerId:answer.id,key:UUID()); XCTFail("Practice cannot enqueue AI") }
         catch { }
     }

@@ -1,0 +1,26 @@
+from django.urls import path
+from . import views
+from . import rhythm_views
+from . import auth_views
+urlpatterns = [
+    path("drills/rhythm/plays/", rhythm_views.plays),
+    path("auth/signup-availability/", auth_views.signup_availability),
+    path("auth/username-check/", auth_views.username_check),
+    path("auth/signup/", auth_views.signup),
+    path("auth/login/", auth_views.login),
+    path("auth/logout/", auth_views.logout),
+    path("me/", views.me),
+    path("questions/", views.questions),
+    path("questions/<uuid:question_id>/", views.question_detail),
+    path("questions/<uuid:question_id>/versions/<int:version>/scores/<str:kind>/", views.score_asset),
+    path("questions/<uuid:question_id>/versions/<int:version>/display/", views.score_display),
+    path("attempts/", views.create_attempt),
+    path("attempts/<uuid:attempt_id>/", views.attempt_detail),
+    path("attempts/<uuid:attempt_id>/start/", views.start_attempt),
+    path("attempts/<uuid:attempt_id>/answers/", views.upload_answer),
+    path("attempts/<uuid:attempt_id>/answers/<uuid:answer_id>/image/", views.answer_image),
+    path("attempts/<uuid:attempt_id>/submit/", views.submit_attempt),
+    path("attempts/<uuid:attempt_id>/result/", views.result),
+    path("attempts/<uuid:attempt_id>/self-assessment/", views.save_self_assessment),
+    path("attempts/<uuid:attempt_id>/grading-retries/", views.retry_grading),
+]

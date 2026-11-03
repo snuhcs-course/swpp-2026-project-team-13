@@ -18,7 +18,7 @@ python3 scripts/fetch_soundfont.py
 python3 scripts/fetch_soundfont.py --check
 ```
 
-프리셋 정의는 frontend/IPadApp/IPadApp/Resources/instruments.json 한 곳에 있습니다. 기본 그랜드 피아노(0), 전기 피아노(4), 하프시코드(6), 비브라폰(11), MIDI bank 0을 사용합니다. 추가할 때 목록과 실제 AVAudioUnitSampler 오프라인 재생 검사를 함께 갱신합니다. 음높이/템포/예비박과 음색 선택은 독립입니다. 기존 SORI 자체 음원은 과거 검증 자산으로 보존합니다.
+프리셋 정의는 frontend/IPadApp/IPadApp/Resources/instruments.json 한 곳에 있습니다. 기본 그랜드 피아노(0), 전기 피아노(4), 하프시코드(6), 비브라폰(11), MIDI bank 0을 사용합니다. 추가할 때 목록과 실제 AVAudioUnitSampler 오프라인 재생 검사를 함께 갱신합니다. 음높이/템포/예비박과 음색 선택은 독립입니다. 기존 solfège 자체 음원은 과거 검증 자산으로 보존합니다.
 
 제작자: S. Christian Collins. [GeneralUser GS 공식 저장소](https://github.com/mrbumpy409/GeneralUser-GS), [원문 이용 조건](https://github.com/mrbumpy409/GeneralUser-GS/blob/684543d5e5efaef08d02be50dcda8d552478fa60/documentation/LICENSE.txt). 제작자는 소프트웨어 포함과 변형을 허용하지만 일부 과거 샘플의 최초 출처를 완전히 확인할 수 없다는 설명도 명시합니다. 이를 CC0 음원으로 표기하지 않습니다. 앱 설정의 음원 출처 화면에서 원문을 볼 수 있습니다. AVAudioUnitSampler에서 모든 프리셋의 실제 재생 검사가 통과해야 배포합니다.
 # 멜로디 런 클래식 피아노 추가

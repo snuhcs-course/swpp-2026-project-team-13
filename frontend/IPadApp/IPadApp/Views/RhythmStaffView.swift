@@ -28,12 +28,12 @@ struct RhythmStaffBar: View {
                 RhythmInk.staff(in:context,from:0,to:size.width,baseline:baseline,scale:scale)
                 if bar == 0 {
                     let font = Font.system(size:22*scale,weight:.bold,design:.serif)
-                    context.draw(Text(String(round.meter.numerator)).font(font).foregroundColor(SORITheme.ink),at:CGPoint(x:30*scale,y:baseline-8*scale))
-                    context.draw(Text(String(round.meter.denominator)).font(font).foregroundColor(SORITheme.ink),at:CGPoint(x:30*scale,y:baseline+8*scale))
+                    context.draw(Text(String(round.meter.numerator)).font(font).foregroundColor(SolfegeTheme.ink),at:CGPoint(x:30*scale,y:baseline-8*scale))
+                    context.draw(Text(String(round.meter.denominator)).font(font).foregroundColor(SolfegeTheme.ink),at:CGPoint(x:30*scale,y:baseline+8*scale))
                 }
                 for x in [CGFloat(0.5),size.width-0.5] {
                     var line = Path(); line.move(to:CGPoint(x:x,y:baseline-16*scale)); line.addLine(to:CGPoint(x:x,y:baseline+16*scale))
-                    context.stroke(line,with:.color(SORITheme.ink),lineWidth:0.9)
+                    context.stroke(line,with:.color(SolfegeTheme.ink),lineWidth:0.9)
                 }
                 for part in layout.segments {
                     if let p = part.placement, let drawing = RhythmInk.drawings[p.tileId] {
@@ -45,16 +45,16 @@ struct RhythmStaffBar: View {
                 }
                 for time in board.ties {
                     if let ends = endpoints(time) {
-                        context.fill(RhythmInk.tie(from:CGPoint(x:ends.0,y:baseline+7*scale),to:CGPoint(x:ends.1,y:baseline+7*scale)),with:.color(SORITheme.ink))
+                        context.fill(RhythmInk.tie(from:CGPoint(x:ends.0,y:baseline+7*scale),to:CGPoint(x:ends.1,y:baseline+7*scale)),with:.color(SolfegeTheme.ink))
                     }
                 }
                 if splitTie {
                     let beginning = round.measureDuration*bar, end = beginning+round.measureDuration
                     if bar == 1, board.ties.contains(beginning), let first = board.placements.first(where:{ $0.start == beginning }), let head = layout.firstHead(first) {
-                        context.fill(RhythmInk.brokenTie(from:CGPoint(x:2,y:baseline+7*scale),to:CGPoint(x:point(head)-5*scale,y:baseline+7*scale),continuesRight:false),with:.color(SORITheme.ink))
+                        context.fill(RhythmInk.brokenTie(from:CGPoint(x:2,y:baseline+7*scale),to:CGPoint(x:point(head)-5*scale,y:baseline+7*scale),continuesRight:false),with:.color(SolfegeTheme.ink))
                     }
                     if bar == 0, board.ties.contains(end), let last = board.placements.first(where:{ board.end($0,tiles:tiles) == end }), let head = layout.lastHead(last) {
-                        context.fill(RhythmInk.brokenTie(from:CGPoint(x:point(head)+5*scale,y:baseline+7*scale),to:CGPoint(x:size.width-2,y:baseline+7*scale),continuesRight:true),with:.color(SORITheme.ink))
+                        context.fill(RhythmInk.brokenTie(from:CGPoint(x:point(head)+5*scale,y:baseline+7*scale),to:CGPoint(x:size.width-2,y:baseline+7*scale),continuesRight:true),with:.color(SolfegeTheme.ink))
                     }
                 }
             }.allowsHitTesting(false)
@@ -119,7 +119,7 @@ struct RhythmStaffSystem: View {
                                       let x = a.lastHead(left), let y = b.firstHead(right) else { return }
                                 let start = CGPoint(x:CGFloat(x+5)*scale,y:16+65*scale)
                                 let end = CGPoint(x:CGFloat(a.width+12+y-5)*scale,y:16+65*scale)
-                                context.fill(RhythmInk.tie(from:start,to:end),with:.color(SORITheme.ink))
+                                context.fill(RhythmInk.tie(from:start,to:end),with:.color(SolfegeTheme.ink))
                             }.allowsHitTesting(false)
                         }
                 }

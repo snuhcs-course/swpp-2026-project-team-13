@@ -1,5 +1,59 @@
 # 검증 기록
 
+## 2026-11-03: 앱 이름을 solfège로 변경
+
+macOS에서 Python 3.14, 고정된 의존성과 테스트 전용 PostgreSQL 17 컨테이너를 사용했다. 유료 AI 호출은 사용하지 않았다. 마이그레이션은 추가하지 않았고, 저장 데이터와 이어진 식별자는 [README](../README.md)의 목록대로 유지했다.
+
+- 빈 DB에 마이그레이션을 실행해 `sori_*` 테이블 11개와 앱 라벨 `sori`의 기록 8개를 확인했다. `solfege_*` 테이블은 생기지 않았다. migration 일치 검사와 `manage.py check` 통과.
+- `manage.py test api solfege --noinput` 전체 **283개 통과**. CI의 스크립트 테스트 15개 통과.
+- `swift test --package-path frontend` 전체 **111개 통과**. iPad Pro 11-inch (M5) 시뮬레이터에서 CI 범위 **94개 통과**.
+- 시뮬레이터 앱을 같은 설치 위에 다시 실행해 로고와 앱 이름을 확인했고, 이름 변경 전에 저장한 데모 응시가 '이어서 하기'에 그대로 남아 있음을 확인했다.
+
+미검증: 기존 운영 DB와 Docker 볼륨을 쓰는 서버에서의 재빌드, 실제 iPad 홈 화면의 이름 표시, 실제 서버 계정의 Keychain 로그인 유지, 회원가입·로그인 화면 왼쪽 패널의 새 로고.
+
+## 2026-11-03: 프로필의 아이디, API 계약 v0.12.0
+
+macOS에서 Python 3.14, 고정된 의존성과 테스트 전용 PostgreSQL 17 컨테이너를 사용했다. 유료 AI 호출은 사용하지 않았다. 마이그레이션은 추가하지 않았다.
+
+- `manage.py test api solfege --noinput` 전체 **283개 통과**(아이디 1개 추가). `manage.py check`와 migration 일치 검사 통과.
+- `swift test --package-path frontend` 전체 **111개 통과**(옛 서버 응답 해석 1개 추가). iPad Pro 11-inch (M5) 시뮬레이터에서 CI 범위 **94개 통과**.
+- 임시 Django 서버에 `curl`로 가입, `GET /me/`, `PATCH /me/`를 호출해 모두 `username`이 오는 것을 확인했다. 시뮬레이터에서 일회용 테스트로 앱의 실제 로그인과 목표 변경을 같은 서버에 실행해 `profile.username`을 확인한 뒤 테스트를 지웠다.
+- 프로필 패널의 아이디 표시는 로컬 데모 화면에서 눈으로 확인했다.
+
+미검증: 실제 서버에 로그인한 상태의 패널 화면(시뮬레이터의 텍스트 입력이 전달되지 않아 로그인 화면을 조작하지 못함), 실제 iPad, 관리자가 만든 긴 아이디의 줄임 표시.
+
+## 2026-11-03: 사이드바 제거, 피아노 건반 메인 화면
+
+서버 코드는 바꾸지 않았다. 프로필 패널은 당시 `/me/` 응답에 있던 닉네임과 학습 목표만 보여 주었다.
+
+- `swift test --package-path frontend` 전체 **110개 통과**. iPad Pro 11-inch (M5) 시뮬레이터에서 CI 범위 **94개 통과**(메인 화면 4개 추가).
+- 시뮬레이터 앱(로컬 데모)을 직접 조작했다. 가로·세로 건반, 프로필 패널에서 설정으로 이동, Practice·Exam·Drill·Daily Training·연습 기록 진입과 홈 복귀, 이어서 하기와 뒤로가기를 확인했다.
+- 서버 미연결 화면과 좁은 창의 목록 배치는 코드를 잠시 고쳐 강제로 띄워 확인한 뒤 되돌렸다.
+
+미검증: 실제 서버 로그인 후의 메인 화면, 실제 iPad, 실제 Split View 폭, 큰 글자 설정, 동작 줄이기 설정, 누를 때 건반이 내려가는 움직임.
+
+## 2026-11-03: 아이디 중복 확인, API 계약 v0.11.0
+
+macOS에서 Python 3.14, 고정된 의존성과 테스트 전용 PostgreSQL 17 컨테이너를 사용했다. 유료 AI 호출은 사용하지 않았다.
+
+- `manage.py test api solfege --noinput` 전체 **282개 통과**(중복 확인 16개 추가). `manage.py check`와 migration 일치 검사 통과. 마이그레이션은 추가하지 않았다.
+- `swift test --package-path frontend` 전체 **110개 통과**. iPad Pro 11-inch (M5) 시뮬레이터에서 CI 범위 **85개 통과**(가입 31개 포함).
+- 시뮬레이터 앱과 실제 Django·PostgreSQL을 연결해 직접 조작했다. 대소문자만 다른 계정(`Takenuser`)이 있을 때 `takenuser`를 입력하면 다음 칸이 열리지 않고 아이디 칸에 중복 안내가 뜨고, 키보드의 다음 키를 눌러도 그대로 머물렀다. 한 글자를 더해 `takenuserx`로 고치면 사용 가능 안내와 함께 닉네임 칸이 열렸다. 서버를 끈 상태에서 `asdf`를 입력하면 "쓸 수 있는 형식이에요"와 함께 닉네임 칸이 열렸다.
+- 이 과정에서 발견해 고친 문제: 중복 아이디에서 키보드의 다음 키를 누르면 입력이 끝나 키보드가 내려감.
+
+미검증: 실제 시간 초과(모델 테스트는 `URLError.timedOut`과 요청의 3초 설정만 확인), 화면에서 본 429·404와 오래된 응답 폐기(모델 테스트만 통과), 실제 iPad, Compose 전체 구성과 gunicorn·Cloudflare Tunnel, VoiceOver.
+
+## 2026-11-03: 온보딩(회원가입 · 학습 목표 · 로그인) 개편, API 계약 v0.10.0
+
+macOS에서 Python 3.14, 고정된 의존성과 테스트 전용 PostgreSQL 17 컨테이너를 사용했다. 유료 AI 호출은 사용하지 않았다.
+
+- `manage.py test api solfege --noinput` 전체 **266개 통과**. migration 일치 검사 통과. `0006_learning_goal_optional`을 내렸다 올려도 기존 값이 유지됨을 확인했다.
+- `swift test --package-path frontend` 전체 **107개 통과**. iPad Pro 11-inch (M5) 시뮬레이터에서 CI 범위 **77개 통과**(가입 23개, 로그인 17개 포함).
+- 시뮬레이터 앱과 실제 Django·PostgreSQL을 연결해 직접 조작했다. 첫 화면 회원가입, 아이디 형식 오류, 칸 차례로 펼침, 비밀번호 확인, 가입 후 DB의 `learning_goal` NULL, 재실행 시 목표 화면 복귀, 시작하기 후 DB 저장과 홈 진입, 로그아웃 후 로그인 화면, 잘못된 비밀번호 안내, 로그인 상태 유지를 끈 로그인 후 재실행 시 로그인 화면, 중복 아이디 안내, 키보드가 올라온 축소 화면을 가로 화면에서 확인했다.
+- 이 과정에서 발견해 고친 문제: 아이디 칸이 한글 키보드로 열림, 입력창 위아래 여백 탭, 키보드 뒤로 가려지는 포커스 칸, 비밀번호 확인 첫 글자부터 뜨는 오류.
+
+미검증: 실제 iPad와 Apple Pencil 환경, Compose 전체 구성과 gunicorn·Cloudflare Tunnel, 세로 화면의 입력 진행(첫 화면만 확인), iPad mini 등 다른 크기, 시도 제한 카운트다운·가입이 꺼진 서버의 실제 화면(모델 테스트만 통과), VoiceOver와 동작 줄이기 설정.
+
 ## 2026-11-03: Rhythm puzzle 악보·조작 개선과 초급 추가
 
 - 초급 39원곡 156구간을 추가해 v2는 총 111원곡·415구간이다. 새 초급 7/8 한 곡의 4구간은 박 묶음 미정으로 보류했다. v1 카탈로그는 바이트 그대로 보존하고 서버의 v1/v2 기록 접수와 기기 복구를 함께 지원한다.
@@ -30,7 +84,7 @@
 
 macOS에서 Python 3.14, 고정된 의존성과 테스트 전용 PostgreSQL 17 컨테이너를 사용했습니다. 유료 AI 호출은 사용하지 않았습니다.
 
-- `manage.py test api sori --noinput` 전체 239개 통과. 시스템 검사, migration 일치 검사와 CI의 scripts 검사 통과. `scripts/test_handwriting_evaluation.py`는 CI 대상이 아니며 저장소 밖 평가 이미지가 없어 병합 전 main에서도 같은 1개 오류가 납니다.
+- `manage.py test api solfege --noinput` 전체 239개 통과. 시스템 검사, migration 일치 검사와 CI의 scripts 검사 통과. `scripts/test_handwriting_evaluation.py`는 CI 대상이 아니며 저장소 밖 평가 이미지가 없어 병합 전 main에서도 같은 1개 오류가 납니다.
 - `swift test --package-path frontend` 전체 92개 통과. iPad Pro 13-inch (M5) 시뮬레이터에서 CI 범위 60개 통과(계정 삭제 9개, 로그인 12개, 가입 18개, 클래식 2개, 시험 조작 4개, 멜로디 런 6개, 연습 3개, 연습 목록 2개, 기존 통합 4개).
 - 갈라진 migration을 `0004_merge_0003_practice_and_exam_0003_signup`으로 합쳤습니다. 병합 전 두 브랜치 코드로 각각 DB를 만들고 사용자·응시를 넣은 뒤 올려, 데이터 유지, 토큰 조회, 로그인 200, 계정 삭제 204를 확인했습니다.
 - 삭제 계약에 자기채점 이력을 포함했고, 로그인과 같은 잠금 순서로 바꿔 교착을 막았습니다. 이 두 수정을 되돌리면 새 테스트가 실패합니다.
@@ -42,7 +96,7 @@ macOS에서 Python 3.14, 고정된 의존성과 테스트 전용 PostgreSQL 17 �
 
 macOS에서 Python 3.14, 고정된 의존성과 테스트 전용 PostgreSQL 17 컨테이너를 사용했습니다. 유료 AI 호출은 사용하지 않았습니다. 대상은 `DELETE /api/v1/me/`, 관리 명령 `delete_practice_user`, 앱의 계정 삭제입니다.
 
-- `manage.py test api sori --noinput` 전체 177개 통과(계정 삭제 33개 포함). 시스템 검사, migration 일치 검사, scripts의 검사 5개도 통과.
+- `manage.py test api solfege --noinput` 전체 177개 통과(계정 삭제 33개 포함). 시스템 검사, migration 일치 검사, scripts의 검사 5개도 통과.
 - 삭제 범위, 이전 토큰의 401, 관리자 403, 본문·Content-Type 무시, 다른 사용자 데이터 유지, 재가입 시 새 UUID, 일부만 삭제되지 않음, 파일 삭제 실패 시 204와 로그, 삭제된 작업에서 워커 유지, 겹친 요청의 401·404, 관리 명령을 검증했습니다.
 - 삭제 관련 코드를 일부러 망가뜨린 서버 변이 21개를 테스트가 모두 잡았습니다.
 - 별도 Compose 프로젝트의 새 이미지(gunicorn worker 2개, 실제 워커)에서 HTTP 점검 37개 통과. 8개 요청을 동시에 보낸 12회 경합에서 5xx와 고아 행이 없었고, 삭제 후 다음 채점 작업이 처리되며 워커 재시작이 없었습니다. 로그에 토큰과 비밀번호가 없음을 확인했습니다.
@@ -50,20 +104,20 @@ macOS에서 Python 3.14, 고정된 의존성과 테스트 전용 PostgreSQL 17 �
 - 앱 변이 6개 중 5개를 테스트가 잡았습니다. 나머지 1개는 앱 모델의 늦은 204 검사를 지운 것으로, HTTP 계층의 세대 검사가 먼저 막아 결과가 같습니다. 두 검사를 함께 무력화하면 늦은 응답 테스트가 실패합니다.
 - 임시 테스트로 앱 모델과 실제 Keychain을 위 서버에 직접 연결해 가입, 재실행 복구, 삭제, 이전 토큰으로 보낸 삭제의 401 안내, 삭제 후 로그인 거절, 같은 아이디 재가입을 확인했습니다. 연결 설정 화면의 계정 삭제 버튼은 캡처로 확인했습니다.
 
-미검증: 실제 iPad, Cloudflare Tunnel을 거친 삭제, 확인 창의 실제 탭(UI 테스트 없음), 채점 중 삭제([배포 테스트](sori-api/AUTH-IMPLEMENTATION.md#배포-테스트) 9번)의 실제 AI 호출. AI 사용량 기록의 보존은 사용량 상한을 구현할 때 함께 검증합니다.
+미검증: 실제 iPad, Cloudflare Tunnel을 거친 삭제, 확인 창의 실제 탭(UI 테스트 없음), 채점 중 삭제([배포 테스트](solfege-api/AUTH-IMPLEMENTATION.md#배포-테스트) 9번)의 실제 AI 호출. AI 사용량 기록의 보존은 사용량 상한을 구현할 때 함께 검증합니다.
 
 ## 2026-11-02: 회원가입 계약 v0.8.0
 
 macOS에서 Python 3.14, 고정된 의존성과 테스트 전용 PostgreSQL 17 컨테이너를 사용했습니다. SQLite나 유료 AI 호출은 사용하지 않았습니다. 대상은 회원가입과 그에 필요한 클라이언트 IP 판정, 프록시 경유 요청 처리, 운영 설정, gunicorn 실행입니다.
 
-- `manage.py test api sori --noinput` 전체 144개 통과(기존 38개 포함). 시스템 검사, migration 일치 검사, scripts의 콘텐츠·채점·재생·음원 검사 5개도 통과.
+- `manage.py test api solfege --noinput` 전체 144개 통과(기존 38개 포함). 시스템 검사, migration 일치 검사, scripts의 콘텐츠·채점·재생·음원 검사 5개도 통과.
 - 필드별 code 우선순위, password 다중 오류, 413·403·429·415·400·409·201 판정 순서, 두 IP 제한과 해제, 공통 대기 시간 규칙, 대소문자 무시 유일성, 동시 가입, 일부만 생성되지 않음, 클라이언트 IP 판정, HMAC 키와 로그, 오래된 행 정리, 마이그레이션 업그레이드·중단, 관리 화면, 관리 명령, 설정 시작 실패를 검증했습니다.
 - `boot.py`로 실행한 gunicorn(worker 2개)에서 실제 HTTP 점검 46개 통과. Content-Length 유무별 32 KiB 경계, chunked 요청, 위조 전달 헤더, 공개 origin, 프로세스 간 동시 가입과 성공 한도를 포함합니다. 서버 로그에서 IP 원문과 비밀번호가 없음을 확인했습니다.
 - Docker 이미지 빌드, 컨테이너 시작, `PORT` 적용, 헬스체크 통과. 기존 볼륨을 쓰는 Compose 전체 구성은 실행하지 않았습니다.
 - `swift test --package-path frontend` 전체 53개 통과. iPad Pro 13-inch (M5) 시뮬레이터에서 가입 18개, 로그인 7개, 기존 통합 5개, 총 30개 통과.
 - 임시 테스트로 앱 모델과 실제 Keychain을 로컬 gunicorn 서버에 직접 연결해 가입, 재실행 복구, 로그아웃, 재로그인, 409, 가입 꺼짐 403을 확인했습니다. 화면은 캡처로 확인했으며 입력과 버튼 탭을 자동화한 UI 테스트는 없습니다.
 
-미검증: 실제 iPad, Cloudflare Tunnel을 거친 [배포 테스트](sori-api/AUTH-IMPLEMENTATION.md#배포-테스트), Windows Docker Desktop. 본문이 1 MiB를 넘는 초과 요청은 서버가 끝까지 읽지 않으므로 413을 받기 전에 연결이 끊길 수 있습니다.
+미검증: 실제 iPad, Cloudflare Tunnel을 거친 [배포 테스트](solfege-api/AUTH-IMPLEMENTATION.md#배포-테스트), Windows Docker Desktop. 본문이 1 MiB를 넘는 초과 요청은 서버가 끝까지 읽지 않으므로 413을 받기 전에 연결이 끊길 수 있습니다.
 
 미구현: AI 채점 사용량 상한의 적용(설정 검증만 구현), compose의 cloudflared 구성과 api 포트 제한.
 
@@ -81,7 +135,7 @@ macOS에서 Python 3.14, 고정된 의존성과 테스트 전용 PostgreSQL 17 �
 
 macOS에서 Python 3.14, 고정된 Django 5.2.18 의존성과 테스트 전용 PostgreSQL 17 컨테이너를 사용했습니다. SQLite나 유료 AI 호출은 사용하지 않았습니다.
 
-- Django 시스템 검사·migration 일치 검사 통과, `manage.py test api sori --noinput` 전체 32개 통과.
+- Django 시스템 검사·migration 일치 검사 통과, `manage.py test api solfege --noinput` 전체 32개 통과.
 - 로그인·로그아웃, 입력·본문 크기 경계, Content-Length 없는 413, 공유 IP/아이디 제한·해제·긴 Retry-After, 동시 로그인·실패, 비밀번호 변경·비활성화 양방향 경합, 늦은 로그아웃의 새 토큰 보존, 계정 생성·비밀번호 설정 명령을 검증했습니다.
 - `swift test --package-path frontend` 전체 44개 통과. 로그인 요청의 인증 헤더 제외·입력 보존·자동 재전송 금지, 본문·Content-Type 없는 204, origin/세대 기반 늦은 로그인·로그아웃·프로필·401 거부를 포함합니다.
 - iPad Pro 13-inch (M5), iPadOS 27.0 시뮬레이터에서 인증 통합 7개와 기존 로컬 제출 복구 1개, 총 8개 통과. 실제 Keychain, 재실행 복구, 계정별 기록 분리, 401 뒤 필기·제출 키 보존, 로그인 대기, 명시적 로컬 로그아웃을 검증했습니다.
@@ -183,7 +237,7 @@ Swift의 실제 MIDI 이벤트 시점·강약·서버 v3 fixture·기존 v2 fixt
 
 ## 첫 GitHub Actions 프론트 검사에서 확인한 테스트 오류
 
-사용자가 공유한 macOS CI 로그에서 SORICore와 테스트 모듈의 컴파일은 성공했고, XCTest 33개 중 32개가 통과했습니다.
+사용자가 공유한 macOS CI 로그에서 SolfegeCore와 테스트 모듈의 컴파일은 성공했고, XCTest 33개 중 32개가 통과했습니다.
 ThreeQuestionTests.testBadTripletDurationIsRejected 한 테스트에서 단언 2개가 실패했습니다.
 1번 MXL의 셋잇단음표는 16분음표 셋잇단음표(duration=80)인데, 테스트가 존재하지 않는 duration=160을 치환하려 해 정상 XML이 그대로 유지된 것이 원인이었습니다.
 
@@ -205,7 +259,7 @@ Windows에는 Xcode가 없어 이 수정 후 앱 빌드 성공 여부는 GitHub 
 
 사용자가 가장 간편한 원격 설치 경로로 진행하도록 승인하여, push CI의 frontend 검사·시뮬레이터 빌드 뒤에 실기기용 unsigned Debug IPA 생성·업로드를 추가했습니다. 빌드에 Apple 로그인·서명 인증서가 필요하지 않으며 실제 설치 서명은 사용자의 Windows Sideloadly에서 수행합니다.
 
-실기기 빌드는 iphoneos/arm64를 사용하고 설치용 앱에 한해 ENABLE_DEBUG_DYLIB=NO로 일반 실행 파일 레이아웃을 사용합니다. 패키징 단계는 시뮬레이터 출력 거부, iPad 대상·Debug HTTP 설정·필수 악보/오디오 원본 bytes·IPA 무결성을 확인합니다. Artifacts 이름은 SORI-iPad-install, 보관 기간은 14일입니다.
+실기기 빌드는 iphoneos/arm64를 사용하고 설치용 앱에 한해 ENABLE_DEBUG_DYLIB=NO로 일반 실행 파일 레이아웃을 사용합니다. 패키징 단계는 시뮬레이터 출력 거부, iPad 대상·Debug HTTP 설정·필수 악보/오디오 원본 bytes·IPA 무결성을 확인합니다. Artifacts 이름은 solfege-iPad-install, 보관 기간은 14일입니다.
 
 Windows의 패키징 검사 결과와 GitHub 실기기 빌드·실제 설치 여부는 구분합니다. 실제 iPad 오디오·필기·인증 제출 확인은 아직 남아 있습니다. iPad-hosted 통합 테스트를 실행한 것으로 간주하지 않습니다.
 
@@ -240,7 +294,7 @@ PianoAudioGraph는 피아노/예비박 로딩 오류에 파일명을 붙입니�
 - 실제 MuseScore Studio 4.6.3으로 정답 3문제를 재출력하고 PNG를 눈으로 확인. 4+4마디 두 줄, 마디 번호 없음, 표시용 권장 제자리표. 원본 MXL 해시 보존.
 - 구현: 정답/내 악보 동시 표시, 화면에서만 오선 두 줄 여백 축소, 원본 전체 보기, 표기 오류/권장 표기 피드백과 음표 순서, 피드백 선택 시 마디 강조, GeneralUser GS의 네 가지 음색 선택과 기기 저장.
 - 실행 환경 제한: Docker named pipe는 Access is denied, GitHub raw 다운로드는 DNS 조회 실패. Swift/Xcode 미설치. 따라서 이번 변경의 PostgreSQL 통합 검사·실제 외부 음원 다운로드·AVAudioUnitSampler 소리·iPad UI 빌드/렌더링은 여기서 실행하지 못함.
-- CI에 추가: 고정된 외부 음원/라이선스 다운로드, 네 프리셋의 C3/C4/A4/C6 실제 오프라인 렌더링, iPad 시뮬레이터의 비교 이미지/설정 저장/제출 복구 검사. 실행 결과와 비교 스크린샷은 SORI-comparison-tests artifact에 저장. 아직 이번 변경의 CI 결과를 확인하지 않음.
+- CI에 추가: 고정된 외부 음원/라이선스 다운로드, 네 프리셋의 C3/C4/A4/C6 실제 오프라인 렌더링, iPad 시뮬레이터의 비교 이미지/설정 저장/제출 복구 검사. 실행 결과와 비교 스크린샷은 solfege-comparison-tests artifact에 저장. 아직 이번 변경의 CI 결과를 확인하지 않음.
 - 실제 필기에서 새 규칙이 얼마나 잘 동작하는지는 별도 검증 대상. docs/NOTATION-REVIEW.md의 실제 필기 사례를 확인해야 하며, 이번 작업에서 추가 OpenRouter 호출은 하지 않음.
 
 

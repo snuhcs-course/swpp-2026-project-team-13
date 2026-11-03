@@ -103,7 +103,7 @@ class ClassicalQuestionTests(unittest.TestCase):
 
     def test_new_meters_keep_full_scale_and_countin_durations(self):
         import importlib.util
-        spec=importlib.util.spec_from_file_location("playback",ROOT/"backend/sori/playback.py")
+        spec=importlib.util.spec_from_file_location("playback",ROOT/"backend/solfege/playback.py")
         playback=importlib.util.module_from_spec(spec); spec.loader.exec_module(playback)
         for meter,count,beat,bpm in [((2,2),2,"half",96),((3,8),5,"dotted_quarter",82.5)]:
             data,bars=build.scale(meter,2,"major"); self.assertEqual(bars,count)
@@ -203,7 +203,7 @@ class BrahmsImportTests(unittest.TestCase):
 
     def test_new_meters_have_complete_countin_and_scale_and_duration(self):
         import importlib.util
-        spec=importlib.util.spec_from_file_location('playback',ROOT/'backend/sori/playback.py')
+        spec=importlib.util.spec_from_file_location('playback',ROOT/'backend/solfege/playback.py')
         playback=importlib.util.module_from_spec(spec);spec.loader.exec_module(playback)
         found=set()
         for item in self.catalog:

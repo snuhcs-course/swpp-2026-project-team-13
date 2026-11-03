@@ -3,7 +3,7 @@ import Foundation
 // Broader local-practice reader. The versioned exam parser and asset contract stay strict.
 enum MelodyXMLParser {
     static func parse(_ data: Data) throws -> MelodySource {
-        func fail(_ message: String) -> SORIError { .invalidScore("멜로디 런: "+message) }
+        func fail(_ message: String) -> SolfegeError { .invalidScore("멜로디 런: "+message) }
         guard data.count <= 1_048_576, var text = String(data:data,encoding:.utf8),
               !text.uppercased().contains("<!ENTITY"), !text.contains("<![INCLUDE") else { throw fail("1 MB 이하 MusicXML 파일이 필요해요.") }
         // MusicXML exporters often include a public DTD declaration. Discard the declaration,

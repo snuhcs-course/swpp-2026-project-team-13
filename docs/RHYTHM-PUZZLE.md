@@ -1,6 +1,6 @@
 # Rhythm puzzle
 
-Drills의 **Memory run**과 같은 크기의 카드에서 선택한다. 실제 선율 두 마디를 듣고 리듬 조각과 타이로 답한다. AI 호출이나 필기 인식은 사용하지 않는다. 현재 출제 버전은 `rhythm-puzzle-v2`다. 기존 `v1` 파일과 기록은 보존하며 서버는 두 버전을 모두 받는다.
+Drill의 **Memory run**과 같은 크기의 카드에서 선택한다. 실제 선율 두 마디를 듣고 리듬 조각과 타이로 답한다. AI 호출이나 필기 인식은 사용하지 않는다. 현재 출제 버전은 `rhythm-puzzle-v2`다. 기존 `v1` 파일과 기록은 보존하며 서버는 두 버전을 모두 받는다.
 
 ## 이번 버전에서 플레이할 내용
 
@@ -92,7 +92,7 @@ python scripts/build_rhythm_game.py --check
 python scripts/build_rhythm_game.py --v2 --check
 python scripts/test_rhythm_game.py
 python scripts/test_rhythm_engraving.py
-docker compose --env-file backend/.env exec -T api python manage.py test api sori --noinput
+docker compose --env-file backend/.env exec -T api python manage.py test api solfege --noinput
 ```
 
 macOS CI에서 Swift 패키지 테스트와 iPad 호스트 테스트를 실행한다. `RhythmPuzzleIntegrationTests`는 첫 오답 비공개·복구·계정별 저장 격리와 가로/세로 화면 렌더링을 확인하고 스크린샷을 남긴다. Windows 작업 환경에서는 Swift 빌드와 실제 오디오·터치 검증을 실행하지 못하므로 CI와 실제 iPad 확인을 별도로 완료해야 한다.

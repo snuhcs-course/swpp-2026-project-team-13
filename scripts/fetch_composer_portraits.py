@@ -28,7 +28,7 @@ def main():
             filename = "Erik_Satie_portrait.jpg"
             prefix = hashlib.md5(filename.encode()).hexdigest()
             url = f"https://upload.wikimedia.org/wikipedia/commons/{prefix[0]}/{prefix[:2]}/{quote(filename)}"
-            request = Request(url,headers={"User-Agent":"SORI-MusicStudy/1.0 (portrait asset build; source credits bundled)"})
+            request = Request(url,headers={"User-Agent":"solfege-MusicStudy/1.0 (portrait asset build; source credits bundled)"})
             for attempt in range(3):
                 try:
                     with urlopen(request,timeout=30) as response:

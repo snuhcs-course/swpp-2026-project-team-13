@@ -15,7 +15,6 @@ struct ClassicalExamLibraryView: View {
         GeometryReader { geometry in
             ScrollView {
                 VStack(alignment:.leading,spacing:26) {
-                    Button { model.navigate(model.libraryScreen) } label: { Label(model.selectedMode.title + " 문제 목록",systemImage:"chevron.left") }.buttonStyle(.bordered)
                     HStack(alignment:.top) {
                         SectionCaption(eyebrow:"CLASSICAL DICTATION",title:model.selectedComposer ?? "클래식 청음",
                             subtitle:model.selectedComposer == nil ? "마음이 가는 작곡가를 골라 8마디 선율을 기록해 보세요." : "음계와 선율을 듣고, 빈 오선에 직접 적어보세요.")
@@ -37,12 +36,12 @@ struct ClassicalExamLibraryView: View {
                         ForEach(selected) { question in
                             Button { Task { await model.choose(question.id,mode:model.selectedMode) } } label: {
                                 Card { HStack(spacing:20) {
-                                    Image(systemName:"music.note").font(.title2).foregroundStyle(SORITheme.violet)
+                                    Image(systemName:"music.note").font(.title2).foregroundStyle(SolfegeTheme.violet)
                                     VStack(alignment:.leading,spacing:10) {
-                                        Text(question.title).font(.headline).foregroundStyle(SORITheme.ink)
+                                        Text(question.title).font(.headline).foregroundStyle(SolfegeTheme.ink)
                                         Text("\(question.keySignature.label) · \(question.timeSignature.numerator)/\(question.timeSignature.denominator) · 8마디").font(.subheadline).foregroundStyle(.secondary)
                                     }
-                                    Spacer(minLength:8); Image(systemName:"arrow.up.right").foregroundStyle(SORITheme.violet)
+                                    Spacer(minLength:8); Image(systemName:"arrow.up.right").foregroundStyle(SolfegeTheme.violet)
                                 } }
                             }.buttonStyle(.plain).accessibilityIdentifier("classical-question-\(question.id.uuidString.lowercased())")
                         }
@@ -56,7 +55,7 @@ struct ClassicalExamLibraryView: View {
                                     if let portrait = portraits.first(where: { $0.name == name }) {
                                         composerCard(portrait,count:model.classicalQuestions.filter { $0.composer == name }.count,height:height)
                                     } else {
-                                        Text(name).font(.title2.bold()).frame(maxWidth:.infinity,minHeight:height).background(SORITheme.soft,in:RoundedRectangle(cornerRadius:24))
+                                        Text(name).font(.title2.bold()).frame(maxWidth:.infinity,minHeight:height).background(SolfegeTheme.soft,in:RoundedRectangle(cornerRadius:24))
                                     }
                                 }.buttonStyle(.plain).accessibilityIdentifier("composer-\(name)")
                             }
@@ -98,12 +97,12 @@ struct ClassicalExamLibraryView: View {
             }
             LinearGradient(colors:[Color.white.opacity(0.08),Color.white.opacity(0.9)],startPoint:.top,endPoint:.bottom)
             VStack(alignment:.leading,spacing:8) {
-                Text(portrait.englishName.uppercased()).font(.caption.weight(.semibold)).tracking(1.5).foregroundStyle(SORITheme.violet)
+                Text(portrait.englishName.uppercased()).font(.caption.weight(.semibold)).tracking(1.5).foregroundStyle(SolfegeTheme.violet)
                 HStack(alignment:.firstTextBaseline) {
-                    Text(portrait.name).font(.system(size:30,weight:.bold,design:.rounded)).foregroundStyle(SORITheme.ink)
-                    Spacer(minLength:8); Image(systemName:"arrow.up.right").foregroundStyle(SORITheme.violet)
+                    Text(portrait.name).font(.system(size:30,weight:.bold,design:.rounded)).foregroundStyle(SolfegeTheme.ink)
+                    Spacer(minLength:8); Image(systemName:"arrow.up.right").foregroundStyle(SolfegeTheme.violet)
                 }
-                Text("\(portrait.years) · \(count)개 선율").font(.subheadline).foregroundStyle(SORITheme.ink.opacity(0.7))
+                Text("\(portrait.years) · \(count)개 선율").font(.subheadline).foregroundStyle(SolfegeTheme.ink.opacity(0.7))
             }.padding(24)
         }.frame(height:height).clipShape(RoundedRectangle(cornerRadius:24))
             .overlay(RoundedRectangle(cornerRadius:24).strokeBorder(.white.opacity(0.8),lineWidth:1))

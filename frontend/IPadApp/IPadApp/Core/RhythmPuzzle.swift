@@ -15,9 +15,9 @@ struct RhythmTime: Codable, Hashable, Comparable, CustomStringConvertible {
         let box = try decoder.singleValueContainer(), text = try box.decode(String.self)
         let parts = text.split(separator:"/",omittingEmptySubsequences:false)
         guard (1...2).contains(parts.count), let n = Int(parts[0]), let d = parts.count == 2 ? Int(parts[1]) : 1,
-              d > 0, d <= 10000, n >= -128*d, n <= 128*d else { throw SORIError.invalidScore("리듬의 길이를 확인해 주세요.") }
+              d > 0, d <= 10000, n >= -128*d, n <= 128*d else { throw SolfegeError.invalidScore("리듬의 길이를 확인해 주세요.") }
         self.init(n,d)
-        guard description == text else { throw SORIError.invalidScore("리듬의 분수 표기를 확인해 주세요.") }
+        guard description == text else { throw SolfegeError.invalidScore("리듬의 분수 표기를 확인해 주세요.") }
     }
     func encode(to encoder: Encoder) throws { var c = encoder.singleValueContainer(); try c.encode(description) }
     var description: String { denominator == 1 ? String(numerator) : "\(numerator)/\(denominator)" }
@@ -64,21 +64,21 @@ struct RhythmCatalog: Decodable {
     var version: String; var difficultyVersion: String; var tiles: [RhythmTile]; var rounds: [RhythmRound]
     var tileMap: [String:RhythmTile] { Dictionary(uniqueKeysWithValues:tiles.map { ($0.id,$0) }) }
     func validate() throws {
-        guard ["rhythm-puzzle-v1", "rhythm-puzzle-v2"].contains(version), !rounds.isEmpty, Set(tiles.map(\.id)).count == tiles.count else { throw SORIError.invalidScore("리듬 문제 버전을 확인해 주세요.") }
+        guard ["rhythm-puzzle-v1", "rhythm-puzzle-v2"].contains(version), !rounds.isEmpty, Set(tiles.map(\.id)).count == tiles.count else { throw SolfegeError.invalidScore("리듬 문제 버전을 확인해 주세요.") }
         let map = tileMap
         for t in tiles {
             guard !t.symbols.isEmpty, t.duration > .zero, t.symbols.reduce(.zero, { $0+$1.duration }) == t.duration,
-                  t.symbols.allSatisfy({ $0.duration > .zero && $0.duration.ticks != nil }) else { throw SORIError.invalidScore("리듬 조각의 길이가 맞지 않아요.") }
+                  t.symbols.allSatisfy({ $0.duration > .zero && $0.duration.ticks != nil }) else { throw SolfegeError.invalidScore("리듬 조각의 길이가 맞지 않아요.") }
         }
         for r in rounds {
             guard r.choices.count == 12, Set(r.choices).count == 12, r.choices.allSatisfy({ map[$0] != nil }),
                   r.totalDuration == r.measureDuration*2, r.measureDuration > .zero, r.pulse > .zero,
                   (r.measureDuration/r.pulse).denominator == 1, r.meter.supported,
                   (0...100).contains(r.difficulty.score), (40...200).contains(r.tempoBpm),
-                  r.audio.allSatisfy({ $0.onset.ticks != nil && $0.duration.ticks != nil && (0...127).contains($0.midi) }) else { throw SORIError.invalidScore("리듬 문제 구성을 확인해 주세요.") }
+                  r.audio.allSatisfy({ $0.onset.ticks != nil && $0.duration.ticks != nil && (0...127).contains($0.midi) }) else { throw SolfegeError.invalidScore("리듬 문제 구성을 확인해 주세요.") }
             let answer = RhythmBoard(placements:r.solution,ties:r.solutionTies)
             guard try answer.sounds(round:r,tiles:map) == r.rhythm,
-                  r.rhythm == r.audio.map({ RhythmSound(onset:$0.onset,duration:$0.duration) }) else { throw SORIError.invalidScore("리듬 정답과 음원이 다릅니다.") }
+                  r.rhythm == r.audio.map({ RhythmSound(onset:$0.onset,duration:$0.duration) }) else { throw SolfegeError.invalidScore("리듬 정답과 음원이 다릅니다.") }
         }
     }
     // Interleave same-meter difficulty thirds; never overlap excerpts from the same source in a set.
@@ -142,21 +142,21 @@ struct RhythmBoard: Codable, Equatable {
     }
     func sounds(round: RhythmRound, tiles: [String:RhythmTile]) throws -> [RhythmSound] {
         guard complete(round:round,tiles:tiles), Set(ties).count == ties.count,
-              ties.allSatisfy({ validBoundaries(tiles:tiles).contains($0) }) else { throw SORIError.invalidScore("빈칸과 타이 연결을 확인해 주세요.") }
+              ties.allSatisfy({ validBoundaries(tiles:tiles).contains($0) }) else { throw SolfegeError.invalidScore("빈칸과 타이 연결을 확인해 주세요.") }
         var cursor = RhythmTime.zero, result: [RhythmSound] = [], continuing = false
         for p in placements.sorted(by:{ $0.start < $1.start }) {
-            guard p.start == cursor, let tile = tiles[p.tileId] else { throw SORIError.invalidScore("조각이 겹치거나 빈칸이 있어요.") }
+            guard p.start == cursor, let tile = tiles[p.tileId] else { throw SolfegeError.invalidScore("조각이 겹치거나 빈칸이 있어요.") }
             for (i,n) in tile.symbols.enumerated() {
                 if continuing {
-                    guard !n.rest, !result.isEmpty else { throw SORIError.invalidScore("쉼표에는 타이를 연결할 수 없어요.") }
+                    guard !n.rest, !result.isEmpty else { throw SolfegeError.invalidScore("쉼표에는 타이를 연결할 수 없어요.") }
                     result[result.count-1].duration = result[result.count-1].duration+n.duration
                 } else if !n.rest { result.append(RhythmSound(onset:cursor,duration:n.duration)) }
                 cursor = cursor+n.duration
                 continuing = n.tieNext || (i == tile.symbols.count-1 && ties.contains(cursor))
-                if n.rest && continuing { throw SORIError.invalidScore("쉼표에는 타이를 연결할 수 없어요.") }
+                if n.rest && continuing { throw SolfegeError.invalidScore("쉼표에는 타이를 연결할 수 없어요.") }
             }
         }
-        guard !continuing else { throw SORIError.invalidScore("마지막 타이의 연결을 확인해 주세요.") }
+        guard !continuing else { throw SolfegeError.invalidScore("마지막 타이의 연결을 확인해 주세요.") }
         return result
     }
     func errorPositions(round: RhythmRound, tiles: [String:RhythmTile]) -> [RhythmTime] {
@@ -193,7 +193,7 @@ struct RhythmDraft: Codable {
     var hasListened: Bool { record.listens.contains { $0.completed && $0.reason != "reference" } }
     var hintLevel: Int { min(3,wrongCount) }
     mutating func submit(round: RhythmRound, tiles: [String:RhythmTile], now: Date = Date()) throws -> Bool {
-        guard !finished, hasListened, record.submissions.count < 3 else { throw SORIError.configuration("음원을 끝까지 듣고 제출해 주세요.") }
+        guard !finished, hasListened, record.submissions.count < 3 else { throw SolfegeError.configuration("음원을 끝까지 듣고 제출해 주세요.") }
         let actual = try board.sounds(round:round,tiles:tiles)
         record.submissions.append(RhythmSubmission(activeMs:record.activeMs,placements:board.placements,ties:board.ties))
         let correct = actual == round.rhythm

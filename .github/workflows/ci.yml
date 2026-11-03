@@ -61,7 +61,7 @@ jobs:
         run: python ../scripts/test_rhythm_game.py
       - name: Verify compact MuseScore rhythm drawings and notehead anchors
         run: python ../scripts/test_rhythm_engraving.py
-      - run: python manage.py test api sori --noinput
+      - run: python manage.py test api solfege --noinput
 
   frontend:
     runs-on: macos-latest
@@ -81,7 +81,7 @@ jobs:
           key: melody-ydp-grand-20160804-v1
       - name: Fetch and verify classical grand piano
         run: python3 scripts/fetch_classical_piano.py
-      - name: Test SORI API, MusicXML and transport contracts
+      - name: Test solfège API, MusicXML and transport contracts
         run: swift test --package-path frontend
       - name: Verify bundled piano audio
         run: swift frontend/scripts/check_piano.swift frontend/IPadApp/IPadApp/Resources/sori-piano-v1.sf2
@@ -106,7 +106,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: SORI-comparison-tests
+          name: solfege-comparison-tests
           path: |
             build/Comparison.xcresult
             build/ipad-tests.log
@@ -131,9 +131,9 @@ jobs:
         if: github.event_name == 'push'
         uses: actions/upload-artifact@v4
         with:
-          name: SORI-iPad-install
+          name: solfege-iPad-install
           path: |
-            dist/ipad/SORI-iPad-unsigned.ipa
+            dist/ipad/solfege-iPad-unsigned.ipa
             dist/ipad/INSTALL-WINDOWS.md
             dist/ipad/build-info.json
             dist/ipad/SHA256SUMS.txt

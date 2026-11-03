@@ -18,7 +18,7 @@ struct MelodySettings: Equatable {
     func validate() throws {
         guard [2,4,8].contains(bars), (1...(9-bars)).contains(startBar),
               (40...180).contains(bpm), (1...4).contains(gapMeasures), (1...4).contains(inputBars) else {
-            throw SORIError.invalidScore("멜로디 런 설정을 확인해 주세요.")
+            throw SolfegeError.invalidScore("멜로디 런 설정을 확인해 주세요.")
         }
     }
 }
@@ -49,7 +49,7 @@ struct MelodySource {
     var clef: String
     var isDemoEligible: Bool { fifths == 0 && ["major","minor"].contains(mode) }
     func validateDemoKey() throws {
-        guard isDemoEligible else { throw SORIError.invalidScore("현재 데모에서는 조표 없는 다장조·가단조 문제만 사용할 수 있어요.") }
+        guard isDemoEligible else { throw SolfegeError.invalidScore("현재 데모에서는 조표 없는 다장조·가단조 문제만 사용할 수 있어요.") }
     }
     var keyLabel: String {
         let names = mode == "minor" ? ["Ab","Eb","Bb","F","C","G","D","A","E","B","F#","C#","G#","D#","A#"] : ["Cb","Gb","Db","Ab","Eb","Bb","F","C","G","D","A","E","B","F#","C#"]
@@ -71,7 +71,7 @@ struct MelodyRound {
 
     init(source: MelodySource, start: Int, bars: Int) throws {
         guard start >= 1, bars > 0, start+bars-1 <= source.score.measures else {
-            throw SORIError.invalidScore("플레이할 마디 범위를 확인해 주세요.")
+            throw SolfegeError.invalidScore("플레이할 마디 범위를 확인해 주세요.")
         }
         self.source = source
         let ticks = source.score.ticksPerMeasure, offset = (start-1)*ticks

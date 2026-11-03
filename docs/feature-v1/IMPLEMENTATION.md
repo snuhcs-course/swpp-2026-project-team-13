@@ -4,7 +4,7 @@
 
 ## 이번 단계에서 구현한 것
 
-- `backend/sori/features/`: MusicXML·MXL 읽기, 정확한 분수 시간, written event와 attack 분리, 근거가 있는 특징, 마디·구간 집계.
+- `backend/solfege/features/`: MusicXML·MXL 읽기, 정확한 분수 시간, written event와 attack 분리, 근거가 있는 특징, 마디·구간 집계.
 - `select_span`: 원본 ID를 유지하고 구간 내부 특징과 반복 관계를 다시 계산한다. 외부 붙임줄 의존성을 표시한다.
 - `FeatureAnalysis`: 원본 QuestionVersion에 연결한 분석 스냅샷과 해시·규칙 버전 저장.
 - `analyze_question_features`: 등록 문제를 분석하고 동일 조건은 중복 저장하지 않는 관리 명령.
@@ -40,7 +40,7 @@ Docker 서버에서는 프로젝트 루트에서 다음을 사용한다. 코드 
 
 ```powershell
 docker compose --env-file backend/.env up --build -d --wait
-docker compose --env-file backend/.env exec -T api python manage.py test api sori --noinput
+docker compose --env-file backend/.env exec -T api python manage.py test api solfege --noinput
 docker compose --env-file backend/.env exec -T api python manage.py analyze_question_features --dry-run --report .local/features-dry-run.json
 docker compose --env-file backend/.env exec -T api python manage.py analyze_question_features --report .local/features-saved.json
 ```

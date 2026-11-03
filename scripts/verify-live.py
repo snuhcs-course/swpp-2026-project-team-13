@@ -100,7 +100,7 @@ def main():
             _,same=request(path+"/start/","POST")
             check("start is idempotent",attempt["started_at"]==same["started_at"])
             png=(ROOT/"backend"/"content"/"sheets"/(q["sheet_layout"]["id"]+".png")).read_bytes()
-            boundary="sori-probe-"+state["upload_key"]
+            boundary="solfege-probe-"+state["upload_key"]
             fields={"client_answer_id":state["client_answer_id"],"answer_format_version":"1","sheet_layout_id":q["sheet_layout"]["id"]}
             chunks=[]
             for name,value in fields.items():

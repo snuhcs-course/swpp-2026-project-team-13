@@ -6,7 +6,7 @@ from pathlib import Path
 import unittest
 
 ROOT = Path(__file__).resolve().parents[1]
-spec = importlib.util.spec_from_file_location("assessment", ROOT / "backend/sori/assessment.py")
+spec = importlib.util.spec_from_file_location("assessment", ROOT / "backend/solfege/assessment.py")
 assessment = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(assessment)
 LAYOUT = json.loads((ROOT / "backend/content/catalog.json").read_text(encoding="utf-8"))[0]["metadata"]["sheet_layout"]
