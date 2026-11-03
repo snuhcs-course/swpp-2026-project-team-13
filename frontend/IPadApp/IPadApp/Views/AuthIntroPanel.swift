@@ -33,12 +33,13 @@ struct AuthIntroPanel: View {
                             Text(steps[index]).font(.system(size: 15, weight: .medium)).padding(.horizontal, 18).frame(minHeight: 44)
                                 .foregroundStyle(stage == index ? Color.white : SolfegeTheme.softInk)
                                 .background(stage == index ? SolfegeTheme.violet : .clear, in: Capsule())
+                                .contentShape(Rectangle())
                         }.buttonStyle(.plain).accessibilityAddTraits(stage == index ? .isSelected : [])
                     }
                 }
                 Spacer()
                 Button { paused.toggle() } label: {
-                    Image(systemName: paused ? "play.fill" : "pause.fill").font(.system(size: 17)).frame(width: 44, height: 44).foregroundStyle(SolfegeTheme.softInk)
+                    Image(systemName: paused ? "play.fill" : "pause.fill").font(.system(size: 17)).frame(width: 44, height: 44).foregroundStyle(SolfegeTheme.softInk).contentShape(Rectangle())
                 }.buttonStyle(.plain).accessibilityLabel(paused ? "데모 재생" : "데모 멈추기")
             }.padding(.horizontal, 36)
         }

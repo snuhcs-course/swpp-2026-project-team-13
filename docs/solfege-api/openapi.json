@@ -2,7 +2,7 @@
   "openapi": "3.0.3",
   "info": {
     "title": "solfège iPad Exam API",
-    "version": "0.12.0",
+    "version": "0.13.0",
     "description": "solfège iPad practice and exam API. Practice uses immediate measure-level self-assessment without an AI job; Exam retains asynchronous OpenRouter grading and Korean feedback. Attempt snapshots pin the problem, playback plan and Feature v1 analysis. API-CONTRACT.md defines invariants; legacy requests without mode remain Exam. Password login uses one persistent, revocable DRF bearer token per user and shared PostgreSQL login limits. Signup, signup availability and account deletion from API contract v0.8.0 are implemented. Items marked x-status: planned (grading quotas) are defined by contract v0.8.0 and are not implemented yet. From contract v0.8.0, absolute URLs in responses (asset urls, image_url, template_png_url, next/previous, Location) use the public origin that received the request, including behind an HTTPS proxy. A proxy in front of the server may return non-contract error responses (HTML body, no X-Request-ID) when the server is unavailable or the request is blocked; clients treat an undecodable error other than 401 as a server connection problem, do not branch on error.code, and never change authentication state for it. Server 401 responses always use the contract format. Version 0.9.0 adds authenticated, idempotent Rhythm Puzzle drill observations with server-side sounding-time regrading; all authentication and Practice/Exam contracts are retained. Version 0.10.0 makes learning_goal optional at signup: an omitted goal is stored and returned as null until PATCH /me/ sets one, and null means not chosen yet, unlike other. Version 0.11.0 adds POST /auth/username-check/, an advisory public username availability check with its own per-IP limit; signup 409 USERNAME_TAKEN stays authoritative."
   },
   "servers": [
@@ -711,6 +711,158 @@
           },
           "401": {
             "$ref": "#/components/responses/Error401"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error429"
+          },
+          "503": {
+            "$ref": "#/components/responses/Error503"
+          },
+          "default": {
+            "$ref": "#/components/responses/UnexpectedError"
+          }
+        }
+      }
+    },
+    "/questions/recommended/": {
+      "get": {
+        "operationId": "getRecommendedQuestion",
+        "tags": [
+          "Questions"
+        ],
+        "summary": "Get the recommended exam question",
+        "description": "Returns one current published non-classical question in the same shape as getQuestion. Selection is random until the recommendation algorithm exists, so each call may return a different question. RECOMMENDATION_UNAVAILABLE when no question qualifies.",
+        "responses": {
+          "200": {
+            "description": "Success",
+            "headers": {
+              "X-Request-ID": {
+                "description": "Server-generated request correlation ID.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Cache-Control": {
+                "description": "API and private answer images: private, no-store.",
+                "schema": {
+                  "type": "string",
+                  "example": "private, no-store"
+                }
+              },
+              "Date": {
+                "description": "Current HTTP response time in RFC 9110 HTTP-date format.",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Question"
+                },
+                "example": {
+                  "id": "128f51a9-5498-50fd-a2a7-1a271883e72b",
+                  "version": 1,
+                  "title": "청음 연습 1 · 6/8",
+                  "source": "practice",
+                  "key_signature": {
+                    "tonic": "C",
+                    "mode": "major",
+                    "fifths": 0
+                  },
+                  "time_signature": {
+                    "numerator": 6,
+                    "denominator": 8
+                  },
+                  "measure_count": 8,
+                  "recommended_duration_seconds": 407,
+                  "description": "멜로디를 듣고 빈 오선에 적어보세요. 제출 후 AI 평가와 정답을 확인할 수 있어요.",
+                  "time_policy": "advisory",
+                  "clef": "treble",
+                  "sheet_layout": {
+                    "id": "staff-8bars-6-8-v2",
+                    "logical_width": 1330,
+                    "logical_height": 846,
+                    "export_scale": 2,
+                    "pixel_width": 2660,
+                    "pixel_height": 1692,
+                    "template_png_url": "https://api.sori.example/assets/sheets/staff-8bars-6-8-v2.png",
+                    "template_sha256": "32906ad8aeab576eec3b7dfd0e3e86d28a7f446b285e09dcecb468384c55b287",
+                    "systems": [
+                      {
+                        "index": 1,
+                        "first_measure": 1,
+                        "last_measure": 4,
+                        "staff_line_y": [
+                          164,
+                          176,
+                          188,
+                          200,
+                          212
+                        ],
+                        "barline_x": [
+                          54,
+                          450,
+                          725,
+                          1000,
+                          1276
+                        ]
+                      },
+                      {
+                        "index": 2,
+                        "first_measure": 5,
+                        "last_measure": 8,
+                        "staff_line_y": [
+                          499,
+                          511,
+                          523,
+                          535,
+                          547
+                        ],
+                        "barline_x": [
+                          54,
+                          397,
+                          690,
+                          983,
+                          1276
+                        ]
+                      }
+                    ]
+                  },
+                  "content_policy": "client_readable_practice",
+                  "score_visibility": "after_submission",
+                  "score_assets": {
+                    "main": {
+                      "url": "https://api.sori.example/api/v1/questions/128f51a9-5498-50fd-a2a7-1a271883e72b/versions/1/scores/main/",
+                      "content_type": "application/vnd.recordare.musicxml",
+                      "sha256": "1accb0beaf393bf5a46288578e7811383a9a14dca847936cffbf788fc7b190d4",
+                      "size_bytes": 1652,
+                      "musicxml_version": "4.0",
+                      "profile": "sori-monophonic-v2",
+                      "part_id": "P1",
+                      "measure_count": 8
+                    },
+                    "scale": {
+                      "url": "https://api.sori.example/api/v1/questions/128f51a9-5498-50fd-a2a7-1a271883e72b/versions/1/scores/scale/",
+                      "content_type": "application/vnd.recordare.musicxml",
+                      "sha256": "cd334b70f2dd71397b86b671d4fa6329347071140774ea2c80b41aedac82d0eb",
+                      "size_bytes": 1061,
+                      "musicxml_version": "4.0",
+                      "profile": "sori-monophonic-v2",
+                      "part_id": "P1",
+                      "measure_count": 2
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Error401"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error404"
           },
           "429": {
             "$ref": "#/components/responses/Error429"

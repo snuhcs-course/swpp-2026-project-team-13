@@ -287,15 +287,26 @@ final class AuthenticationAppProtocol: URLProtocol {
     func testRefreshKeepsTheSignedInStateAndScreen() async throws {
         let fixture = try AuthenticationFixture(); defer { fixture.cleanup() }
         let model = fixture.model(); await model.connect()
-        model.navigate(.examLibrary)
+        model.navigate(.home)
         var connectedDuringReload: Bool?
         fixture.held = { request in
             if request.request.url!.path.contains("/questions") { connectedDuringReload = model.connected }
             return false
         }
-        await model.refreshLibrary(destination: .examLibrary)
+        await model.refreshLibrary(destination: .home)
         XCTAssertEqual(connectedDuringReload, true)
-        XCTAssertTrue(model.connected); XCTAssertNotNil(model.profile); XCTAssertEqual(model.screen, .examLibrary)
+        XCTAssertTrue(model.connected); XCTAssertNotNil(model.profile); XCTAssertEqual(model.screen, .home)
+    }
+
+    func testFailedRecommendationReturnsHomeWithTheServerMessage() async throws {
+        let fixture = try AuthenticationFixture(); defer { fixture.cleanup() }
+        let model = fixture.model(); await model.connect()
+        fixture.held = { request in
+            guard request.request.url!.path.hasSuffix("questions/recommended/") else { return false }
+            request.respond(404, data: fixture.failure("RECOMMENDATION_UNAVAILABLE")); return true
+        }
+        await model.startRecommendedExam()
+        XCTAssertEqual(model.screen, .main); XCTAssertNotNil(model.error); XCTAssertFalse(model.busy)
     }
 
     func testConnectLoadsEveryQuestionPageAndOpensTheDestination() async throws {
@@ -313,10 +324,10 @@ final class AuthenticationAppProtocol: URLProtocol {
             request.respond(200, data: try! JSONSerialization.data(withJSONObject: body))
             return true
         }
-        let model = fixture.model(); await model.connect(destination: .examLibrary)
+        let model = fixture.model(); await model.connect(destination: .home)
         XCTAssertNil(model.error)
         XCTAssertEqual(model.questions.count, results.count); XCTAssertFalse(model.hasNextPage)
-        XCTAssertEqual(model.screen, .examLibrary)
+        XCTAssertEqual(model.screen, .home)
     }
 
     func testTurningDemoOffStaysInSettingsWithoutAStoredLogin() async throws {

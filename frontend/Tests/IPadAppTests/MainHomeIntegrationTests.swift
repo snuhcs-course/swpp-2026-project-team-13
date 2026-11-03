@@ -5,9 +5,9 @@ import XCTest
     func testConnectLandsOnHomeAndKeysKeepTheirModes() async {
         let model = AppModel(); model.demo = true; await model.connect()
         XCTAssertNil(model.error); XCTAssertEqual(model.screen, .main)
-        model.navigate(.examLibrary)
-        XCTAssertEqual(model.screen, .examLibrary); XCTAssertEqual(model.selectedMode, .exam)
-        model.navigate(.main)
+        await model.startRecommendedExam()
+        XCTAssertEqual(model.screen, .question); XCTAssertEqual(model.selectedMode, .exam)
+        model.navigate(model.questionLibraryScreen)
         XCTAssertEqual(model.screen, .main); XCTAssertEqual(model.selectedMode, .exam)
         model.navigate(.home)
         XCTAssertEqual(model.screen, .home); XCTAssertEqual(model.selectedMode, .practice)

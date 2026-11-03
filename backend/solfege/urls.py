@@ -11,6 +11,7 @@ urlpatterns = [
     path("auth/logout/", auth_views.logout),
     path("me/", views.me),
     path("questions/", views.questions),
+    path("questions/recommended/", views.recommended_question),
     path("questions/<uuid:question_id>/", views.question_detail),
     path("questions/<uuid:question_id>/versions/<int:version>/scores/<str:kind>/", views.score_asset),
     path("questions/<uuid:question_id>/versions/<int:version>/display/", views.score_display),

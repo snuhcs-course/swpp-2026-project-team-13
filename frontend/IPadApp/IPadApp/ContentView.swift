@@ -43,9 +43,8 @@ struct ContentView: View {
                 SolfegeTheme.background.ignoresSafeArea()
                 switch model.screen {
                 case .main: MainHomeView(model:model)
-                case .dailyTraining: DailyTrainingPlaceholderView()
-                case .home: HomeView(model:model,mode:.practice)
-                case .examLibrary: HomeView(model:model,mode:.exam)
+                case .home: HomeView(model:model)
+                case .recommendingExam: ExamRecommendationView()
                 case .question: QuestionView(model: model)
                 case .exam: ExamView(model: model, drawing: model.drawing, player: model.player)
                 case .result: ResultView(model: model)
@@ -58,14 +57,15 @@ struct ContentView: View {
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) { backButton }
             }
-            .toolbar(model.screen == .main ? .hidden : .automatic, for: .navigationBar)
+            .toolbar([.main,.recommendingExam].contains(model.screen) ? .hidden : .automatic, for: .navigationBar)
             .toolbarBackground(SolfegeTheme.background, for: .navigationBar)
-            .overlay { busyOverlay }
+            .overlay { if model.screen != .recommendingExam { busyOverlay } }
         }
     }
     @ViewBuilder private var backButton: some View {
         if [.question,.exam,.result].contains(model.screen) {
-            back(model.selectedQuestion?.collection == "classical" ? "클래식" : model.selectedMode.title, to: model.selectedQuestion?.collection == "classical" ? .classical : model.libraryScreen)
+            let target = model.questionLibraryScreen
+            back(target == .classical ? "클래식" : target == .main ? "홈" : model.selectedMode.title, to: target)
         } else if model.needsAuthentication {
             back("돌아가기", to: .main).accessibilityIdentifier("back-to-auth")
         } else if model.screen == .classical {
@@ -76,12 +76,5 @@ struct ContentView: View {
     }
     private func back(_ title: String, to screen: AppModel.Screen) -> some View {
         Button { model.navigate(screen) } label: { HStack(spacing: 4) { Image(systemName:"chevron.left"); Text(title) } }
-    }
-}
-
-struct DailyTrainingPlaceholderView: View {
-    var body: some View {
-        ContentUnavailableView("Daily Training 준비 중",systemImage:"sun.max",
-            description:Text("매일 미니게임 세트와 청음 한 문제를 함께 연습하는 메뉴를 준비하고 있어요. 지금은 Drill과 Practice에서 시작해 주세요."))
     }
 }

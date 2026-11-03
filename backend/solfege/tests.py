@@ -16,7 +16,7 @@ from PIL import Image
 from rest_framework.authtoken.models import Token
 from rest_framework.test import APIClient
 from .grading import claim_job, execute_job, validate_result
-from .models import Answer, Attempt, GradingJob, QuestionVersion
+from .models import Answer, Attempt, GradingJob, Question, QuestionVersion
 
 class FlowTests(TestCase):
     @classmethod
@@ -105,6 +105,30 @@ class FlowTests(TestCase):
             self.assertEqual(hashlib.sha256(data).hexdigest(),q["sheet_layout"]["template_sha256"])
             self.assertEqual(q["correct_score"]["renderer"],"MuseScore Studio 4.6.3")
         self.assertEqual(self.client.get("/api/v1/questions/?collection=unknown").status_code,400)
+
+    def test_recommended_question_is_a_current_non_classical_question(self):
+        ids = set()
+        for _ in range(30):
+            response = self.client.get("/api/v1/questions/recommended/")
+            self.assertEqual(response.status_code,200,response.data)
+            self.assertNotEqual(response.data.get("collection"),"classical")
+            version = QuestionVersion.objects.get(question_id=response.data["id"],version=response.data["version"])
+            self.assertEqual(version.version,version.question.current_version)
+            self.assertEqual(response.data["id"],self.client.get(f'/api/v1/questions/{response.data["id"]}/').data["id"])
+            ids.add(response.data["id"])
+        self.assertGreater(len(ids),1)
+
+    def test_recommended_question_skips_unpublished_and_reports_when_none_remain(self):
+        keep = self.client.get("/api/v1/questions/").data["results"][0]["id"]
+        Question.objects.exclude(id=keep).update(published=False)
+        self.assertEqual(self.client.get("/api/v1/questions/recommended/").data["id"],keep)
+        Question.objects.filter(id=keep).update(published=False)
+        response = self.client.get("/api/v1/questions/recommended/")
+        self.assertEqual(response.status_code,404)
+        self.assertEqual(response.data["error"]["code"],"RECOMMENDATION_UNAVAILABLE")
+
+    def test_recommended_question_requires_authentication(self):
+        self.assertEqual(APIClient().get("/api/v1/questions/recommended/").status_code,401)
 
     def test_classical_uses_the_same_immutable_attempt_upload_and_submission_flow(self):
         q = self.client.get("/api/v1/questions/?collection=classical").data["results"][0]

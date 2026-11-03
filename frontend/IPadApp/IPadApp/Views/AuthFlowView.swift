@@ -19,8 +19,8 @@ struct AuthFlowView: View {
                 ZStack(alignment: .topTrailing) {
                     form(keyboardVisible: keyboardVisible, topInset: wide ? min(96, max(16, proxy.size.height - Self.formHeight)) : 24)
                     Button { model.navigate(.settings) } label: {
-                        Image(systemName: "slider.horizontal.3").font(.system(size: 19)).foregroundStyle(SolfegeTheme.muted).frame(width: 44, height: 44)
-                    }.buttonStyle(.plain).padding(20).accessibilityLabel("서버 연결 설정").accessibilityIdentifier("server-settings")
+                        Image(systemName: "slider.horizontal.3").font(.system(size: 19)).foregroundStyle(SolfegeTheme.muted).frame(width: 64, height: 64).contentShape(Rectangle())
+                    }.buttonStyle(.plain).padding(10).accessibilityLabel("서버 연결 설정").accessibilityIdentifier("server-settings")
                 }
                 .padding(.bottom, keyboardOverlap)
                 .background(Color.white.ignoresSafeArea())
@@ -148,7 +148,7 @@ struct AuthPasswordInput<Field: Hashable>: View {
                     revealed.toggle()
                     if focus.wrappedValue == field { Task { await Task.yield(); focus.wrappedValue = field } }
                 } label: {
-                    Image(systemName: revealed ? "eye.slash" : "eye").font(.system(size: 17)).foregroundStyle(SolfegeTheme.muted).frame(width: 44, height: 44)
+                    Image(systemName: revealed ? "eye.slash" : "eye").font(.system(size: 17)).foregroundStyle(SolfegeTheme.muted).frame(width: 44, height: 44).contentShape(Rectangle())
                 }.buttonStyle(.plain).padding(.trailing, -10).accessibilityLabel(revealed ? "비밀번호 가리기" : "비밀번호 보기")
             }
         }

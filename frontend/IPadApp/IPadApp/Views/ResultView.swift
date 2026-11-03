@@ -55,7 +55,7 @@ struct ResultView: View {
                     } else { messageCard("제출 결과를 확인해 주세요",detail:"새로고침으로 결과를 다시 불러올 수 있어요.",icon:"network") }
                     HStack {
                         Button("결과 새로고침") { Task { await model.refreshResult() } }.buttonStyle(.bordered)
-                        Button(model.session?.attempt.question.collection == "classical" ? "클래식으로 돌아가기" : (model.session?.attempt.studyMode.title ?? "Practice") + "로 돌아가기") { model.navigate(model.resultLibraryScreen) }
+                        Button(model.resultLibraryScreen == .classical ? "클래식으로 돌아가기" : model.resultLibraryScreen == .main ? "홈으로 돌아가기" : "Practice로 돌아가기") { model.navigate(model.resultLibraryScreen) }
                     }
                 }.padding(24).frame(maxWidth:1100,alignment:.leading).frame(maxWidth:.infinity)
             }

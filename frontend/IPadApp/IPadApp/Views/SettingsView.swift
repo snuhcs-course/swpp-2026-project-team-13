@@ -62,7 +62,7 @@ struct SettingsView: View {
             Card { VStack(alignment:.leading,spacing:12) {
                 Label("필기와 응시 복구",systemImage:"externaldrive").font(.headline)
                 Text("필기 원본, 고정된 제출 이미지와 요청 키는 사용자·서버별로 이 iPad에 보관합니다. 앱을 지우거나 기기를 바꾸면 편집 가능한 필기를 복구할 수 없습니다.").font(.subheadline).foregroundStyle(.secondary).lineSpacing(5)
-                Text("API 계약 v0.12.0 · MusicXML 4.0 · GeneralUser GS").font(.caption).foregroundStyle(.tertiary)
+                Text("API 계약 v0.13.0 · MusicXML 4.0 · GeneralUser GS").font(.caption).foregroundStyle(.tertiary)
             } }
         }.padding(32).frame(maxWidth:900).frame(maxWidth:.infinity) }
         .sheet(isPresented:$showSoundLicense) {

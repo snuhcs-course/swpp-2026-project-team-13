@@ -12,6 +12,7 @@ import FoundationNetworking
     func usernameCheck(_ username: String) async throws -> UsernameCheck
     func questions(page: Int) async throws -> QuestionPage
     func classicalQuestions(page: Int) async throws -> QuestionPage
+    func recommendedQuestion() async throws -> Question
     func question(_ id: UUID) async throws -> Question
     func createAttempt(question: Question, key: UUID) async throws -> Attempt
     func createAttempt(question: Question, mode: StudyMode, key: UUID) async throws -> Attempt
@@ -40,6 +41,7 @@ extension ExamAPI {
     func classicalQuestions(page: Int) async throws -> QuestionPage {
         QuestionPage(count:0,next:nil,previous:nil,results:[])
     }
+    func recommendedQuestion() async throws -> Question { throw SolfegeError.unsupported("서버를 추천 시험 지원 버전으로 업데이트해 주세요.") }
 }
 
 extension Data {
@@ -206,6 +208,7 @@ final class NoRedirectDelegate: NSObject, URLSessionTaskDelegate, @unchecked Sen
         let data = try await execute(request(components.url!), limit: 2 * 1024 * 1024)
         return try ContractJSON.decoder().decode(QuestionPage.self, from: data)
     }
+    func recommendedQuestion() async throws -> Question { try await json("questions/recommended/") }
     func question(_ id: UUID) async throws -> Question { try await json("questions/\(id.uuidString.lowercased())/") }
     func createAttempt(question: Question, key: UUID) async throws -> Attempt {
         try await json("attempts/", method: "POST", body: JSONSerialization.data(withJSONObject: ["question_id": question.id.uuidString.lowercased(), "question_version": question.version]), key: key)

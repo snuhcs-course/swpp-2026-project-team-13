@@ -2,11 +2,17 @@ import SwiftUI
 import PencilKit
 
 @MainActor final class AppModel: ObservableObject {
-    enum Screen: String { case main, dailyTraining, home, examLibrary, question, exam, result, history, settings, minigames, classical }
+    enum Screen: String { case main, home, recommendingExam, question, exam, result, history, settings, minigames, classical }
     @Published var screen: Screen = .main
     @Published var profile: UserProfile?
     @Published var questions: [QuestionSummary] = []
-    @Published var selectedPracticeLevel: PracticeLevel?
+    // Each level has its own keys and meters, so a filter never carries over to another level.
+    @Published var selectedPracticeLevel: PracticeLevel? { didSet { if oldValue != selectedPracticeLevel { practiceFilter = QuestionFilter() } } }
+    @Published var practiceFilter = QuestionFilter()
+    // Held until the attempt exists, so backing out cannot re-roll the question.
+    private var recommendedExam: Question?
+    // A fast answer would otherwise flash the loading screen too briefly to read.
+    static let recommendationMinimum = Duration.seconds(1.5)
     @Published var classicalQuestions: [QuestionSummary] = []
     @Published var classicalLoaded = false
     @Published var classicalHasNextPage = false
@@ -75,8 +81,11 @@ import PencilKit
     var pendingCreation: Bool { (try? store?.pending()) != nil }
     var needsAuthentication: Bool { !demo && !connected }
     var needsGoalSelection: Bool { connected && profile != nil && profile?.learningGoal == nil }
-    var libraryScreen: Screen { selectedMode == .practice ? .home : .examLibrary }
-    var resultLibraryScreen: Screen { session?.attempt.question.collection == "classical" ? .classical : (session?.attempt.studyMode == .practice ? .home : .examLibrary) }
+    // Exam has no library of its own: its questions are recommended from the home screen.
+    var libraryScreen: Screen { selectedMode == .practice ? .home : .main }
+    // Classical is Practice-only now; older classical exams return home rather than to a question list.
+    var questionLibraryScreen: Screen { selectedMode == .practice && selectedQuestion?.collection == "classical" ? .classical : libraryScreen }
+    var resultLibraryScreen: Screen { session?.attempt.studyMode != .practice ? .main : session?.attempt.question.collection == "classical" ? .classical : .home }
     func isUnfinished(_ record: SessionRecord) -> Bool {
         record.attempt.status != "submitted" || (record.attempt.studyMode == .practice && (record.selfAssessment?.isCompleted != true || record.practiceEdits != nil || record.selfAssessmentSave != nil))
     }
@@ -134,7 +143,7 @@ import PencilKit
         player.stopForPreparation(); drawing.freeze(true)
         operationGeneration = UUID(); busy = false; pollGeneration = UUID()
         api = nil; store = nil; profile = nil; questions = []; history = []; session = nil
-        classicalQuestions = []; classicalLoaded = false; classicalPage = 0; classicalHasNextPage = false; selectedComposer = nil; selectedPracticeLevel = nil
+        classicalQuestions = []; classicalLoaded = false; classicalPage = 0; classicalHasNextPage = false; selectedComposer = nil; selectedPracticeLevel = nil; recommendedExam = nil
         selectedQuestion = nil; template = nil; submittedImage = nil; mainScore = nil
         correctScoreImage = nil; correctScoreError = nil; prepared = false; connected = false
         waitingSince = nil; error = nil; screen = .main
@@ -438,6 +447,22 @@ import PencilKit
             try question.validate(); self.selectedQuestion = question; self.selectedMode = mode; self.screen = .question
         }
     }
+    func startRecommendedExam() async {
+        // begin() refuses any other question while an unanswered creation request is pending.
+        if pendingCreation { await recoverPending(); return }
+        if let held = recommendedExam { selectedQuestion = held; selectedMode = .exam; screen = .question; return }
+        await run("적절한 문제를 고르는 중이에요") {
+            guard let api = self.api else { return }
+            self.selectedMode = .exam; self.screen = .recommendingExam
+            let started = ContinuousClock.now
+            let question = try await api.recommendedQuestion(); try question.validate()
+            try await Task.sleep(until:started + Self.recommendationMinimum,clock:.continuous)
+            // Signing out while waiting already left this screen.
+            guard self.screen == .recommendingExam else { return }
+            self.recommendedExam = question; self.selectedQuestion = question; self.screen = .question
+        }
+        if screen == .recommendingExam { screen = .main }
+    }
     private func persist(_ record: SessionRecord) throws {
         guard let store else { throw SolfegeError.storage("로컬 저장소가 준비되지 않았습니다.") }
         try store.save(record); self.session = record; history = try store.all()
@@ -464,6 +489,7 @@ import PencilKit
             if store.exists("session.json", id: attempt.id) { record = try store.load(attempt.id); record.attempt = attempt }
             else { try store.write(PKDrawing().dataRepresentation(), name: "drawing.pkdrawing", id: attempt.id) }
             try self.persist(record); try store.savePending(nil)
+            if pending.studyMode == .exam { self.recommendedExam = nil }
             try await self.activate(record)
         }
     }
@@ -724,8 +750,7 @@ import PencilKit
     }
     func navigate(_ target: Screen) {
         if target != .exam { player.pause() }
-        if target == .home { selectedMode = .practice }
-        if target == .examLibrary { selectedMode = .exam }
+        if target == .home || target == .classical { selectedMode = .practice }
         screen = target
     }
 }

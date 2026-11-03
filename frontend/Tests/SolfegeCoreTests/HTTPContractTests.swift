@@ -89,6 +89,24 @@ final class StubProtocol:URLProtocol {
             "questions/?page=2&page_size=20"
         ])
     }
+    func testRecommendedQuestionUsesItsOwnRouteAndDecodesAsQuestionDetail() async throws {
+        let config=URLSessionConfiguration.ephemeral;config.protocolClasses=[StubProtocol.self]
+        let base=URL(string:"https://api.sori.example/api/v1/")!
+        let api=try HTTPExamAPI(base:base,token:"test-token",session:URLSession(configuration:config))
+        let response=try Data(contentsOf:root.appendingPathComponent("examples/question.json"))
+        var paths:[String]=[]
+        StubProtocol.handler={ request in
+            XCTAssertEqual(request.httpMethod,"GET")
+            XCTAssertEqual(request.value(forHTTPHeaderField:"Authorization"),"Bearer test-token")
+            XCTAssertEqual(request.cachePolicy,.reloadIgnoringLocalCacheData)
+            paths.append(request.url!.absoluteString.replacingOccurrences(of:base.absoluteString,with:""))
+            return (200,"application/json",response)
+        }
+        defer {StubProtocol.handler=nil}
+        let question=try await api.recommendedQuestion()
+        XCTAssertEqual(paths,["questions/recommended/"])
+        XCTAssertEqual(question,try ContractJSON.decoder().decode(Question.self,from:response))
+    }
     func test401IsSurfacedWithoutAutomaticRepeat() async throws {
         let config=URLSessionConfiguration.ephemeral;config.protocolClasses=[StubProtocol.self]
         let api=try HTTPExamAPI(base:URL(string:"https://api.example/api/v1/")!,token:"bad",session:URLSession(configuration:config))
