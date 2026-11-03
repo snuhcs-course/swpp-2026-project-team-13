@@ -1,5 +1,16 @@
 # 검증 기록
 
+## 2026-11-03: 아이디 중복 확인, API 계약 v0.11.0
+
+macOS에서 Python 3.14, 고정된 의존성과 테스트 전용 PostgreSQL 17 컨테이너를 사용했다. 유료 AI 호출은 사용하지 않았다.
+
+- `manage.py test api sori --noinput` 전체 **282개 통과**(중복 확인 16개 추가). `manage.py check`와 migration 일치 검사 통과. 마이그레이션은 추가하지 않았다.
+- `swift test --package-path frontend` 전체 **110개 통과**. iPad Pro 11-inch (M5) 시뮬레이터에서 CI 범위 **85개 통과**(가입 31개 포함).
+- 시뮬레이터 앱과 실제 Django·PostgreSQL을 연결해 직접 조작했다. 대소문자만 다른 계정(`Takenuser`)이 있을 때 `takenuser`를 입력하면 다음 칸이 열리지 않고 아이디 칸에 중복 안내가 뜨고, 키보드의 다음 키를 눌러도 그대로 머물렀다. 한 글자를 더해 `takenuserx`로 고치면 사용 가능 안내와 함께 닉네임 칸이 열렸다. 서버를 끈 상태에서 `asdf`를 입력하면 "쓸 수 있는 형식이에요"와 함께 닉네임 칸이 열렸다.
+- 이 과정에서 발견해 고친 문제: 중복 아이디에서 키보드의 다음 키를 누르면 입력이 끝나 키보드가 내려감.
+
+미검증: 실제 시간 초과(모델 테스트는 `URLError.timedOut`과 요청의 3초 설정만 확인), 화면에서 본 429·404와 오래된 응답 폐기(모델 테스트만 통과), 실제 iPad, Compose 전체 구성과 gunicorn·Cloudflare Tunnel, VoiceOver.
+
 ## 2026-11-03: 온보딩(회원가입 · 학습 목표 · 로그인) 개편, API 계약 v0.10.0
 
 macOS에서 Python 3.14, 고정된 의존성과 테스트 전용 PostgreSQL 17 컨테이너를 사용했다. 유료 AI 호출은 사용하지 않았다.

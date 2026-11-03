@@ -232,19 +232,23 @@ def display_name_is_valid(value):
     )
 
 
+def username_code(data):
+    code = text_error(data, "username", 20)
+    if code:
+        return code
+    if len(data["username"]) < 4:
+        return "min_length"
+    return None if USERNAME_FORMAT.fullmatch(data["username"]) else "invalid_format"
+
+
 def signup_field_codes(data):
     codes = {
-        "username": text_error(data, "username", 20),
+        "username": username_code(data),
         "display_name": text_error(data, "display_name", 20),
         # Optional: the app asks for the goal after the account exists.
         "learning_goal": text_error(data, "learning_goal", math.inf) if "learning_goal" in data else None,
         "password": text_error(data, "password", 1024),
     }
-    if not codes["username"]:
-        if len(data["username"]) < 4:
-            codes["username"] = "min_length"
-        elif not USERNAME_FORMAT.fullmatch(data["username"]):
-            codes["username"] = "invalid_format"
     if not codes["display_name"] and not display_name_is_valid(data["display_name"]):
         codes["display_name"] = "invalid_format"
     # The list has no encoding rule, so an unencodable value is simply not a choice.
@@ -296,6 +300,32 @@ class SignupAvailabilityView(APIView):
 
     def get(self, request):
         return Response({"signup_enabled": settings.SIGNUP_ENABLED})
+
+
+class UsernameCheckView(APIView):
+    authentication_classes = []
+    permission_classes = [AllowAny]
+    http_method_names = ["post", "options"]
+
+    def post(self, request):
+        if not settings.SIGNUP_ENABLED:
+            raise ContractError("SIGNUP_DISABLED", "현재 회원가입을 제공하지 않습니다.", 403)
+        ip = client_ip_key(request)
+        log_attempt("username-check", ip)
+        # A separate counter: checking while typing must never use up the IP's signup attempts.
+        wait = count_request("username-check", ip, settings.USERNAME_CHECK_MAX_REQUESTS_PER_IP)
+        if wait:
+            raise rate_limited(wait, "잠시 후 다시 확인해 주세요.")
+        data = json_body(request)
+        if not isinstance(data, dict) or set(data) - {"username"}:
+            raise ContractError("VALIDATION_ERROR", "아이디만 보내 주세요.")
+        code = username_code(data)
+        if code:
+            raise ContractError("VALIDATION_ERROR", "입력한 내용을 확인해 주세요.", fields=[
+                {"field": "username", "code": code, "message": SIGNUP_FIELD_RULES["username"]},
+            ])
+        # Advisory: someone can still take the name before the signup, which then gets the 409.
+        return Response({"available": not usernames_differing_by_case(data["username"]).exists()})
 
 
 class SignupView(APIView):
@@ -351,3 +381,4 @@ login = sensitive_post_parameters("password")(LoginView.as_view())
 logout = LogoutView.as_view()
 signup = sensitive_post_parameters("password")(SignupView.as_view())
 signup_availability = SignupAvailabilityView.as_view()
+username_check = UsernameCheckView.as_view()

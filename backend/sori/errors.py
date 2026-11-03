@@ -9,7 +9,7 @@ from rest_framework.response import Response
 from rest_framework.views import exception_handler as default_handler
 from .client_ip import from_trusted_proxy
 
-BOUNDED_BODY_PATHS = {"/api/v1/auth/login/", "/api/v1/auth/signup/"}
+BOUNDED_BODY_PATHS = {"/api/v1/auth/login/", "/api/v1/auth/signup/", "/api/v1/auth/username-check/"}
 
 class ContractError(APIException):
     def __init__(self, code, message, status=400, fields=None, retry_after_ms=None):

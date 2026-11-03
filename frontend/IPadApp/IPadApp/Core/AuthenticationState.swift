@@ -40,8 +40,21 @@ struct SignupAvailability: Codable, Equatable {
     var signupEnabled: Bool
 }
 
+struct UsernameCheck: Codable, Equatable {
+    var available: Bool
+}
+
+// unknown: the server gave no clear answer. It never holds signup back; the signup's 409 has the final say.
+enum UsernameStatus: Equatable { case available, taken, unknown }
+
 // Guidance for the signup screen. The server's validation stays authoritative.
 enum SignupRules {
+    // How many fields after the username may open. A nil status means the check has not finished.
+    static func reachableFields(username: String, status: UsernameStatus?, displayName: String, password: String) -> Int {
+        guard usernameIsValid(username), let status, status != .taken else { return 0 }
+        guard displayNameIsValid(displayName) else { return 1 }
+        return passwordMeetsPolicy(password) ? 3 : 2
+    }
     private static let usernameFormat = try! Regex("[a-z][a-z0-9_]{3,19}")
     static func usernameIsValid(_ value: String) -> Bool { value.wholeMatch(of: usernameFormat) != nil }
     static func displayNameIsValid(_ value: String) -> Bool {

@@ -141,6 +141,51 @@ final class DelayedAuthProtocol: URLProtocol {
         }
         StubProtocol.handler = nil
     }
+    func testUsernameCheckIsPublicKeepsTheUsernameOutOfTheURLAndIgnoresUnknownFields() async throws {
+        let api = try client(token: "stale-token")
+        for available in [true, false] {
+            StubProtocol.handler = { [self] request in
+                XCTAssertEqual(request.url?.absoluteString, "https://api.sori.example/api/v1/auth/username-check/")
+                XCTAssertEqual(request.httpMethod, "POST")
+                XCTAssertNil(request.value(forHTTPHeaderField: "Authorization"))
+                XCTAssertEqual(request.value(forHTTPHeaderField: "Content-Type"), "application/json")
+                XCTAssertEqual(request.timeoutInterval, 3)
+                XCTAssertEqual(try JSONSerialization.jsonObject(with: requestBody(request)) as? [String: String], ["username": "student01"])
+                return (200, "application/json", Data("{\"available\": \(available), \"future\": 1}".utf8))
+            }
+            let value = try await api.usernameCheck("student01")
+            XCTAssertEqual(value.available, available)
+        }
+        StubProtocol.handler = nil
+    }
+    func testUsernameCheckNeverAutomaticallyRetries() async throws {
+        for (status, code) in [(429, "RATE_LIMITED"), (503, "UNAVAILABLE"), (404, "RESOURCE_NOT_FOUND"), (403, "SIGNUP_DISABLED"), (0, "")] {
+            let api = try client()
+            var calls = 0
+            let data = try errorData(code, retry: status == 429 ? 9000 : nil)
+            StubProtocol.handler = { _ in
+                calls += 1
+                if status == 0 { throw URLError(.timedOut) }
+                return (status, "application/json", data)
+            }
+            do { _ = try await api.usernameCheck("student01"); XCTFail("Expected failure") }
+            catch { XCTAssertEqual(calls, 1, "status \(status)") }
+        }
+        StubProtocol.handler = nil
+    }
+    func testOnlyATakenUsernameOrAnUnfinishedCheckHoldsTheNextFieldBack() {
+        func reachable(_ status: UsernameStatus?, username: String = "student01", name: String = "", password: String = "") -> Int {
+            SignupRules.reachableFields(username: username, status: status, displayName: name, password: password)
+        }
+        XCTAssertEqual(reachable(nil), 0)
+        XCTAssertEqual(reachable(.taken), 0)
+        XCTAssertEqual(reachable(.taken, name: "청음", password: "quiet-lantern-48"), 0)
+        XCTAssertEqual(reachable(.available), 1)
+        XCTAssertEqual(reachable(.unknown), 1)
+        XCTAssertEqual(reachable(.available, username: "abc"), 0)
+        XCTAssertEqual(reachable(.unknown, name: "청음"), 2)
+        XCTAssertEqual(reachable(.available, name: "청음", password: "quiet-lantern-48"), 3)
+    }
     func testGenerationRejectsLateSignupResponse() async throws {
         let state = AuthenticationState(), old = state.begin(base: base)
         let api = try client(delayed: true)

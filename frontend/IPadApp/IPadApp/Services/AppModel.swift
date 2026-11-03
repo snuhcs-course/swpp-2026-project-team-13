@@ -42,6 +42,7 @@ import PencilKit
     @Published var signupEnabled = true
     @Published var signupRetryUntil: Date?
     @Published var signupFieldErrors: [FieldError] = []
+    @Published private var checkedUsername: (server: String, username: String, status: UsernameStatus)?
     @Published var loginPrefill: String?
     @Published var logoutNeedsConfirmation = false
     @Published var logoutFailure: String?
@@ -59,6 +60,7 @@ import PencilKit
     private var operationGeneration = UUID()
     private var loginDeadlines: [String: Date] = [:]
     private var signupDeadlines: [String: Date] = [:]
+    private var usernameCheckDeadlines: [String: Date] = [:]
     // A signup whose outcome is unknown: it may have created the account.
     private var uncertainSignup: (origin: String, username: String)?
     private var pendingLocalLogout: (base: URL, token: String, ticket: AuthenticationTicket)?
@@ -238,9 +240,27 @@ import PencilKit
         guard !Task.isCancelled, server == requested else { return }
         signupEnabled = enabled
     }
-    func openSignup() { signupFieldErrors = []; loginMessage = nil; showingSignup = true }
-    func closeSignup() { signupFieldErrors = []; showingSignup = false }
+    func openSignup() { signupFieldErrors = []; checkedUsername = nil; loginMessage = nil; showingSignup = true }
+    func closeSignup() { signupFieldErrors = []; checkedUsername = nil; showingSignup = false }
     func clearSignupError(_ field: String) { signupFieldErrors.removeAll { $0.field == field } }
+    // nil until a check of this username on this server has finished.
+    func usernameStatus(_ username: String) -> UsernameStatus? {
+        guard let checkedUsername, checkedUsername.server == server, checkedUsername.username == username else { return nil }
+        return checkedUsername.status
+    }
+    // Advisory only: anything but a clear "taken" lets the form go on, and signup's 409 has the final say.
+    func checkUsername(_ username: String) async {
+        let requested = server
+        var status = UsernameStatus.unknown
+        if !demo, let base = URL(string: requested), let origin = Origin(base), (usernameCheckDeadlines[origin.key] ?? .distantPast) <= Date(),
+           let client = try? HTTPExamAPI(base: base, session: httpSession) {
+            do { status = try await client.usernameCheck(username).available ? .available : .taken }
+            catch { if let deadline = Self.rateLimitDeadline(error) { usernameCheckDeadlines[origin.key] = deadline } }
+        }
+        // The form cancels a check when the username changes, so a late answer never replaces a newer one.
+        guard !Task.isCancelled, server == requested else { return }
+        checkedUsername = (requested, username, status)
+    }
     func signup(username: String, displayName: String, password: String) async {
         guard let base = URL(string: server), let origin = Origin(base) else { report(SORIError.configuration("API 주소를 확인해 주세요.")); return }
         if let deadline = signupDeadlines[origin.key], deadline > Date() { signupRetryUntil = deadline; return }

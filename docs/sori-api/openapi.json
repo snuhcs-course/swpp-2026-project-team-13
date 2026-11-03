@@ -2,8 +2,8 @@
   "openapi": "3.0.3",
   "info": {
     "title": "SORI iPad Exam API",
-    "version": "0.10.0",
-    "description": "SORI iPad practice and exam API. Practice uses immediate measure-level self-assessment without an AI job; Exam retains asynchronous OpenRouter grading and Korean feedback. Attempt snapshots pin the problem, playback plan and Feature v1 analysis. API-CONTRACT.md defines invariants; legacy requests without mode remain Exam. Password login uses one persistent, revocable DRF bearer token per user and shared PostgreSQL login limits. Signup, signup availability and account deletion from API contract v0.8.0 are implemented. Items marked x-status: planned (grading quotas) are defined by contract v0.8.0 and are not implemented yet. From contract v0.8.0, absolute URLs in responses (asset urls, image_url, template_png_url, next/previous, Location) use the public origin that received the request, including behind an HTTPS proxy. A proxy in front of the server may return non-contract error responses (HTML body, no X-Request-ID) when the server is unavailable or the request is blocked; clients treat an undecodable error other than 401 as a server connection problem, do not branch on error.code, and never change authentication state for it. Server 401 responses always use the contract format. Version 0.9.0 adds authenticated, idempotent Rhythm Puzzle drill observations with server-side sounding-time regrading; all authentication and Practice/Exam contracts are retained. Version 0.10.0 makes learning_goal optional at signup: an omitted goal is stored and returned as null until PATCH /me/ sets one, and null means not chosen yet, unlike other."
+    "version": "0.11.0",
+    "description": "SORI iPad practice and exam API. Practice uses immediate measure-level self-assessment without an AI job; Exam retains asynchronous OpenRouter grading and Korean feedback. Attempt snapshots pin the problem, playback plan and Feature v1 analysis. API-CONTRACT.md defines invariants; legacy requests without mode remain Exam. Password login uses one persistent, revocable DRF bearer token per user and shared PostgreSQL login limits. Signup, signup availability and account deletion from API contract v0.8.0 are implemented. Items marked x-status: planned (grading quotas) are defined by contract v0.8.0 and are not implemented yet. From contract v0.8.0, absolute URLs in responses (asset urls, image_url, template_png_url, next/previous, Location) use the public origin that received the request, including behind an HTTPS proxy. A proxy in front of the server may return non-contract error responses (HTML body, no X-Request-ID) when the server is unavailable or the request is blocked; clients treat an undecodable error other than 401 as a server connection problem, do not branch on error.code, and never change authentication state for it. Server 401 responses always use the contract format. Version 0.9.0 adds authenticated, idempotent Rhythm Puzzle drill observations with server-side sounding-time regrading; all authentication and Practice/Exam contracts are retained. Version 0.10.0 makes learning_goal optional at signup: an omitted goal is stored and returned as null until PATCH /me/ sets one, and null means not chosen yet, unlike other. Version 0.11.0 adds POST /auth/username-check/, an advisory public username availability check with its own per-IP limit; signup 409 USERNAME_TAKEN stays authoritative."
   },
   "servers": [
     {
@@ -226,6 +226,78 @@
           },
           "405": {
             "$ref": "#/components/responses/Error405"
+          }
+        }
+      }
+    },
+    "/auth/username-check/": {
+      "post": {
+        "operationId": "checkUsername",
+        "tags": [
+          "Auth"
+        ],
+        "summary": "Check whether a username can be used",
+        "security": [],
+        "description": "Public. Ignores Authorization. Creates nothing. POST keeps the username out of URLs and proxy logs. Body limit 32 KiB. Order: 413, 403 SIGNUP_DISABLED, per-IP limit 429, 415, 400, 200. The limit is separate from signup and login, so checks never use up signup attempts. Advisory only: clients must not block signup when this call fails.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UsernameCheckRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Whether the username is free right now.",
+            "headers": {
+              "X-Request-ID": {
+                "description": "Server-generated request correlation ID.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Cache-Control": {
+                "description": "API and private answer images: private, no-store.",
+                "schema": {
+                  "type": "string",
+                  "example": "private, no-store"
+                }
+              },
+              "Date": {
+                "description": "Current HTTP response time in RFC 9110 HTTP-date format.",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UsernameCheck"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/UsernameCheckValidationError"
+          },
+          "403": {
+            "$ref": "#/components/responses/SignupDisabled"
+          },
+          "405": {
+            "$ref": "#/components/responses/Error405"
+          },
+          "413": {
+            "$ref": "#/components/responses/AuthRequestTooLarge"
+          },
+          "415": {
+            "$ref": "#/components/responses/Error415"
+          },
+          "429": {
+            "$ref": "#/components/responses/UsernameCheckRateLimited"
           }
         }
       }
@@ -5188,6 +5260,41 @@
           "count",
           "results"
         ]
+      },
+      "UsernameCheckRequest": {
+        "type": "object",
+        "required": [
+          "username"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "username": {
+            "type": "string",
+            "minLength": 4,
+            "maxLength": 20,
+            "pattern": "^[a-z][a-z0-9_]{3,19}$",
+            "description": "Same rules as SignupRequest.username."
+          }
+        },
+        "example": {
+          "username": "student01"
+        }
+      },
+      "UsernameCheck": {
+        "type": "object",
+        "required": [
+          "available"
+        ],
+        "properties": {
+          "available": {
+            "type": "boolean",
+            "description": "False when any account, including admin-created and inactive ones, has this username ignoring case. Advisory only; POST /auth/signup/ 409 USERNAME_TAKEN is authoritative."
+          }
+        },
+        "description": "Clients ignore unknown fields; more fields may be added.",
+        "example": {
+          "available": true
+        }
       }
     },
     "responses": {
@@ -6046,6 +6153,99 @@
                   "request_id": "22222222-2222-4222-8222-222222222222"
                 }
               }
+            }
+          }
+        }
+      },
+      "UsernameCheckValidationError": {
+        "description": "Malformed JSON, invalid shape, unknown fields (fields=[]), or a username violation. The field reports the first matching code in order: required, invalid, blank, max_length, invalid (not UTF-8 encodable), min_length, invalid_format.",
+        "headers": {
+          "X-Request-ID": {
+            "description": "Server-generated request correlation ID.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          "Cache-Control": {
+            "description": "API and private answer images: private, no-store.",
+            "schema": {
+              "type": "string",
+              "example": "private, no-store"
+            }
+          },
+          "Date": {
+            "description": "Current HTTP response time in RFC 9110 HTTP-date format.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        },
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ErrorEnvelope"
+            },
+            "example": {
+              "error": {
+                "code": "VALIDATION_ERROR",
+                "message": "입력한 내용을 확인해 주세요.",
+                "fields": [
+                  {
+                    "field": "username",
+                    "code": "invalid_format",
+                    "message": "아이디는 영문 소문자로 시작하고 영문 소문자·숫자·_만 쓰는 4~20자여야 합니다."
+                  }
+                ],
+                "retry_after_ms": null
+              },
+              "request_id": "22222222-2222-4222-8222-222222222222"
+            }
+          }
+        }
+      },
+      "UsernameCheckRateLimited": {
+        "description": "Per-IP username check limit, counted apart from signup and login. Respect Retry-After.",
+        "headers": {
+          "X-Request-ID": {
+            "description": "Server-generated request correlation ID.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          "Cache-Control": {
+            "description": "API and private answer images: private, no-store.",
+            "schema": {
+              "type": "string",
+              "example": "private, no-store"
+            }
+          },
+          "Date": {
+            "description": "Current HTTP response time in RFC 9110 HTTP-date format.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          "Retry-After": {
+            "description": "Integer seconds to wait.",
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            }
+          }
+        },
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ErrorEnvelope"
+            },
+            "example": {
+              "error": {
+                "code": "RATE_LIMITED",
+                "message": "잠시 후 다시 확인해 주세요.",
+                "fields": [],
+                "retry_after_ms": 60000
+              },
+              "request_id": "22222222-2222-4222-8222-222222222222"
             }
           }
         }

@@ -9,6 +9,10 @@ import XCTest
     // nil means success. Each signup takes the next outcome and the last one repeats.
     var outcomes: [(status: Int, code: String, fields: [FieldError], retry: Int?)?] = [nil]
     var availability: (status: Int, body: String) = (200, "{\"signup_enabled\": true}")
+    var usernameCheck: (status: Int, body: String) = (200, "{\"available\": true}")
+    var usernameCheckFailure: URLError.Code?
+    var usernameCheckCalls = 0
+    var usernameCheckBodies: [[String: String]] = []
     var html = false
     var dropConnection = false
     var signupCalls = 0
@@ -30,6 +34,13 @@ import XCTest
                 self.lastAuthorization = request.request.value(forHTTPHeaderField: "Authorization")
                 if self.held?(request) == true { return }
                 request.respond(self.availability.status, data: Data(self.availability.body.utf8))
+            } else if path.contains("auth/username-check") {
+                self.usernameCheckCalls += 1
+                self.usernameCheckBodies.append(Self.jsonBody(request.request) ?? [:])
+                self.lastAuthorization = request.request.value(forHTTPHeaderField: "Authorization")
+                if self.held?(request) == true { return }
+                if let code = self.usernameCheckFailure { request.client?.urlProtocol(request, didFailWithError: URLError(code)); return }
+                request.respond(self.usernameCheck.status, data: Data(self.usernameCheck.body.utf8))
             } else if path.contains("auth/signup") {
                 self.signupCalls += 1
                 self.signupBody = Self.jsonBody(request.request)
@@ -280,6 +291,109 @@ import XCTest
         let model = fixture.model(); model.openSignup()
         await signup(model)
         XCTAssertNotNil(model.signupRetryUntil); XCTAssertTrue(model.showingSignup)
+    }
+
+    func testUsernameCheckReportsAvailableAndTakenWithoutSigningIn() async throws {
+        let fixture = SignupFixture(); defer { fixture.cleanup() }
+        let model = fixture.model(); model.openSignup()
+        XCTAssertNil(model.usernameStatus("student01"))
+        await model.checkUsername("student01")
+        XCTAssertEqual(model.usernameStatus("student01"), .available)
+        XCTAssertNil(model.usernameStatus("student02"), "A result belongs to the username it was asked for.")
+        fixture.usernameCheck = (200, "{\"available\": false}")
+        await model.checkUsername("student02")
+        XCTAssertEqual(model.usernameStatus("student02"), .taken)
+        XCTAssertEqual(fixture.usernameCheckBodies, [["username": "student01"], ["username": "student02"]])
+        XCTAssertNil(fixture.lastAuthorization)
+        XCTAssertFalse(model.connected); XCTAssertNil(model.error); XCTAssertTrue(model.signupFieldErrors.isEmpty)
+        XCTAssertEqual(fixture.signupCalls, 0)
+    }
+
+    func testUsernameCheckFailuresNeverHoldTheFormBackOrShowAnAlert() async throws {
+        let fixture = SignupFixture(); defer { fixture.cleanup() }
+        let model = fixture.model(); model.openSignup()
+        for failure in [(404, "{}"), (500, "<html/>"), (503, "{}"), (403, "{}"), (400, "{}"), (200, "not json"), (200, "{}"), (200, "{\"available\": \"no\"}")] {
+            fixture.usernameCheck = failure
+            await model.checkUsername("student01")
+            XCTAssertEqual(model.usernameStatus("student01"), .unknown, "\(failure)")
+            XCTAssertNil(model.error, "\(failure)")
+        }
+        for code in [URLError.Code.timedOut, .notConnectedToInternet, .networkConnectionLost] {
+            fixture.usernameCheckFailure = code
+            await model.checkUsername("student01")
+            XCTAssertEqual(model.usernameStatus("student01"), .unknown, "\(code)")
+            XCTAssertNil(model.error, "\(code)")
+        }
+    }
+
+    func testUsernameCheck429IsNotAskedAgainUntilTheWaitPassesAndLeavesSignupAlone() async throws {
+        let fixture = SignupFixture(); defer { fixture.cleanup() }
+        let model = fixture.model(); model.openSignup()
+        fixture.usernameCheck = (429, String(decoding: fixture.failure("RATE_LIMITED", retry: 60_000), as: UTF8.self))
+        await model.checkUsername("student01")
+        XCTAssertEqual(model.usernameStatus("student01"), .unknown)
+        await model.checkUsername("student02")
+        XCTAssertEqual(model.usernameStatus("student02"), .unknown)
+        XCTAssertEqual(fixture.usernameCheckCalls, 1)
+        XCTAssertNil(model.signupRetryUntil); XCTAssertNil(model.error)
+        await signup(model)
+        XCTAssertEqual(fixture.signupCalls, 1)
+        XCTAssertTrue(model.connected)
+    }
+
+    func testACancelledUsernameCheckNeverReplacesTheNewerAnswer() async throws {
+        let fixture = SignupFixture(); defer { fixture.cleanup() }
+        let model = fixture.model(); model.openSignup()
+        var late: AuthenticationAppProtocol?
+        fixture.held = { request in late = request; return true }
+        let older = Task { await model.checkUsername("student01") }
+        for _ in 0..<200 where late == nil { try await Task.sleep(for: .milliseconds(10)) }
+        XCTAssertNotNil(late)
+        older.cancel()
+        fixture.held = nil
+        fixture.usernameCheck = (200, "{\"available\": false}")
+        await model.checkUsername("student02")
+        await older.value
+        XCTAssertEqual(model.usernameStatus("student02"), .taken)
+        XCTAssertNil(model.usernameStatus("student01"))
+    }
+
+    func testAUsernameCheckIsNotAppliedAfterTheServerChanged() async throws {
+        let fixture = SignupFixture(); defer { fixture.cleanup() }
+        let model = fixture.model()
+        var late: AuthenticationAppProtocol?
+        fixture.held = { request in late = request; return true }
+        let check = Task { await model.checkUsername("student01") }
+        for _ in 0..<200 where late == nil { try await Task.sleep(for: .milliseconds(10)) }
+        model.server = "https://other-\(UUID().uuidString.lowercased()).example/api/v1/"
+        late?.respond(200, data: Data("{\"available\": false}".utf8))
+        await check.value
+        XCTAssertNil(model.usernameStatus("student01"))
+    }
+
+    func testAnEarlierAvailableAnswerStillLeavesTheFinal409ToTheSignup() async throws {
+        let fixture = SignupFixture(); defer { fixture.cleanup() }
+        let model = fixture.model(); model.openSignup()
+        await model.checkUsername("student01")
+        XCTAssertEqual(model.usernameStatus("student01"), .available)
+        fixture.outcomes = [(409, "USERNAME_TAKEN", [FieldError(field: "username", code: "taken", message: "이미 사용 중인 아이디입니다.")], nil)]
+        await signup(model)
+        XCTAssertTrue(model.showingSignup); XCTAssertNil(model.error)
+        XCTAssertEqual(model.signupFieldErrors.map(\.code), ["taken"])
+    }
+
+    func testReopeningSignupForgetsTheLastUsernameCheck() async throws {
+        let fixture = SignupFixture(); defer { fixture.cleanup() }
+        let model = fixture.model(); model.openSignup()
+        await model.checkUsername("student01")
+        model.closeSignup(); model.openSignup()
+        XCTAssertNil(model.usernameStatus("student01"))
+    }
+
+    func testTheDemoHasNoAccountsToCollideWith() async throws {
+        let api = try DemoExamAPI(outcome: "needs_review")
+        let value = try await api.usernameCheck("student01")
+        XCTAssertTrue(value.available)
     }
 
     func testAvailabilityControlsTheEntryAndFailuresKeepItVisible() async throws {

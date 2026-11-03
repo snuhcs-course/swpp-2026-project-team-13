@@ -5,6 +5,7 @@ from . import auth_views
 urlpatterns = [
     path("drills/rhythm/plays/", rhythm_views.plays),
     path("auth/signup-availability/", auth_views.signup_availability),
+    path("auth/username-check/", auth_views.username_check),
     path("auth/signup/", auth_views.signup),
     path("auth/login/", auth_views.login),
     path("auth/logout/", auth_views.logout),

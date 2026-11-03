@@ -1,4 +1,8 @@
-# SORI API 계약 v0.10.0
+# SORI API 계약 v0.11.0
+
+## v0.11.0 아이디 중복 확인
+
+회원가입 입력 중 아이디 중복을 미리 알려 주는 `POST /auth/username-check/`를 추가한다. 응답은 안내용이며, 가입의 409 `USERNAME_TAKEN`이 최종 판단이다. 앱은 입력이 멈추면 호출하고, 중복이면 다음 칸을 열지 않고 아이디 칸에 안내한다. 실패·시간 초과·404·429이면 가입을 막지 않으므로, 이 API가 없는 구버전 서버에서도 새 앱의 가입은 동작한다. 다른 경로·권한·오류 코드는 v0.10.0과 같다. 자세한 내용은 [아이디 중복 확인](#아이디-중복-확인-post-apiv1authusername-check)을 따른다.
 
 ## v0.10.0 가입 후 학습 목표 선택
 
@@ -232,7 +236,7 @@ Authorization: Bearer <access_token>을 보내며 요청 본문은 없습니다.
 - 연락처를 받지 않으므로 비밀번호를 잊으면 계정을 복구할 수 없습니다. 관리자도 가입 계정의 소유자를 확인할 방법이 없으므로 가입 계정의 비밀번호를 재설정하지 않습니다. 비밀번호를 잊은 사용자는 새 계정을 만듭니다.
 - 수업이 끝나면 관리자가 가입 계정과 학습 기록을 삭제할 수 있습니다.
 
-아이디 중복 확인 전용 API, 이메일 인증, 초대 코드, 비밀번호 재설정·변경 API, 표시 이름 변경은 이번 범위에 포함하지 않습니다.
+이메일 인증, 초대 코드, 비밀번호 재설정·변경 API, 표시 이름 변경은 이번 범위에 포함하지 않습니다.
 
 - 가입 기능은 서버 설정 SIGNUP_ENABLED로 켜고 끕니다. 꺼져 있으면 403 SIGNUP_DISABLED를 반환합니다. 가입 계정도 유료 AI 채점을 호출하므로, 서버는 AI 채점 사용량 상한을 설정하지 않은 상태에서 가입을 켤 수 없습니다. 조건은 [운영 설정과 한도](AUTH-IMPLEMENTATION.md#운영-설정과-한도)에서 정의합니다.
 - 회원가입은 인증 없이 호출합니다. 로그인과 같이 이 엔드포인트에서 Bearer 인증을 수행하지 않으므로, 남아 있는 잘못된 Authorization 헤더가 가입을 차단하지 않습니다. 앱은 가입 요청에 해당 헤더를 보내지 않습니다.
@@ -244,6 +248,7 @@ Authorization: Bearer <access_token>을 보내며 요청 본문은 없습니다.
 | 메서드 | 경로 | 인증 | 성공 | 동작 |
 |---|---|---|---|---|
 | GET | /api/v1/auth/signup-availability/ | 불필요 | 200 | 가입 가능 여부 반환 |
+| POST | /api/v1/auth/username-check/ | 불필요 | 200 | 아이디 사용 가능 여부 반환(v0.11.0) |
 | POST | /api/v1/auth/signup/ | 불필요 | 201 | 계정·프로필·토큰 생성 후 로그인 응답과 같은 객체 반환 |
 
 ### 가입 가능 여부: GET /api/v1/auth/signup-availability/
@@ -259,6 +264,41 @@ Authorization: Bearer <access_token>을 보내며 요청 본문은 없습니다.
 ```
 
 이 값은 안내용입니다. 조회 후 서버 설정이 바뀔 수 있으므로 가입 요청의 403 SIGNUP_DISABLED가 최종 판단입니다.
+
+### 아이디 중복 확인: POST /api/v1/auth/username-check/
+
+가입 전에 아이디를 쓸 수 있는지 알려 주는 공개 API입니다(v0.11.0). 인증 없이 호출하며 Bearer 인증을 수행하지 않습니다. 아이디가 URL과 프록시 로그에 남지 않도록 POST 본문으로 받고, 다른 메서드는 405 METHOD_NOT_ALLOWED입니다. 아무것도 만들지 않으며 Idempotency-Key가 필요하지 않습니다. 응답에는 X-Request-ID와 Cache-Control: private, no-store를 포함합니다.
+
+요청 본문은 username 하나만 받습니다. 형식 규칙과 field code 우선순위는 가입의 username과 같고(required, invalid, blank, max_length, min_length, invalid_format), 위반하면 400 VALIDATION_ERROR와 해당 FieldError 하나를 반환합니다. 알 수 없는 필드와 객체가 아닌 본문은 fields=[]인 400입니다. 앱의 입력 검증을 통과한 아이디만 보내므로 앱에서는 400이 나지 않습니다.
+
+```json
+{
+  "username": "student01"
+}
+```
+
+성공 시 200과 아래 객체를 반환합니다. 대소문자를 무시하고 관리자가 만든 계정과 비활성 계정을 포함한 모든 계정과 비교하며, 비교 기준은 [회원가입](#회원가입-post-apiv1authsignup)의 아이디 중복과 같습니다. 이후 버전에서 필드가 추가될 수 있으므로 앱은 알 수 없는 필드를 무시합니다.
+
+```json
+{
+  "available": true
+}
+```
+
+이 값은 안내용입니다. 확인 직후 다른 사람이 같은 아이디로 가입할 수 있으므로 가입 요청의 409 USERNAME_TAKEN이 최종 판단입니다.
+
+| 상태 | 코드 | 조건 |
+|---|---|---|
+| 400 | VALIDATION_ERROR | 형식에 맞지 않는 username, 알 수 없는 필드, 객체가 아닌 본문, 해석할 수 없는 JSON |
+| 403 | SIGNUP_DISABLED | SIGNUP_ENABLED=false |
+| 405 | METHOD_NOT_ALLOWED | POST·OPTIONS 외의 메서드 |
+| 413 | REQUEST_TOO_LARGE | 본문이 32 KiB 초과 |
+| 415 | UNSUPPORTED_MEDIA_TYPE | Content-Type이 application/json이 아님 |
+| 429 | RATE_LIMITED | IP 제한 초과. retry_after_ms와 Retry-After 포함 |
+
+- IP별로 최근 5분간 본문 크기 한도 내 요청을 서버 설정 USERNAME_CHECK_MAX_REQUESTS_PER_IP회까지 허용합니다. 입력 중에 여러 번 호출되므로 가입·로그인 제한과 별도로 집계하며, 서로의 횟수를 쓰지 않습니다. 허용한 요청은 이후 200·400·415가 되더라도 집계하고, 차단된 요청은 횟수에 추가하지 않습니다.
+- 응답 판정 순서는 413, 403, 429, 415, 400, 200입니다. 403과 413으로 거절한 요청은 횟수에 포함하지 않습니다.
+- 클라이언트 IP 기준과 공유 IP 주의 사항은 [가입 시도 제한](#가입-시도-제한)과 같습니다. 한도 기본값은 [운영 설정과 한도](AUTH-IMPLEMENTATION.md#운영-설정과-한도)에서 정의합니다.
 
 ### 회원가입: POST /api/v1/auth/signup/
 
@@ -352,7 +392,7 @@ learning_goal은 사용자가 직접 고른 값이며, 앱은 가입 직후의 �
 
 예를 들어 username "Ab"는 min_length 하나, "1abc"와 "student01\n"은 invalid_format입니다. password "1234"는 password_too_short, password_too_common, password_entirely_numeric 세 개를 반환합니다. 1025자이면서 짝이 맞지 않는 서로게이트를 포함한 password는 max_length입니다.
 
-409 USERNAME_TAKEN은 fields=[{"field": "username", "code": "taken", ...}]로 반환합니다. 로그인은 원인과 관계없이 같은 오류를 반환해 계정 존재 여부를 숨기지만, 가입은 아이디의 존재 여부를 알려줄 수밖에 없습니다. 가입을 켜면 로그인의 존재 여부 숨김이 완전하지 않다는 점을 수용하고, 아래 IP 제한으로 대량 확인을 막습니다.
+409 USERNAME_TAKEN은 fields=[{"field": "username", "code": "taken", ...}]로 반환합니다. 로그인은 원인과 관계없이 같은 오류를 반환해 계정 존재 여부를 숨기지만, 가입은 아이디의 존재 여부를 알려줄 수밖에 없습니다. [아이디 중복 확인](#아이디-중복-확인-post-apiv1authusername-check) API도 같은 정보를 알려 주며, 비밀번호 없이 더 쉽게 확인할 수 있습니다. 두 API 모두 SIGNUP_ENABLED=false이면 403이므로, 가입을 끄면 이 경로로 계정 존재 여부를 알 수 없습니다. 가입을 켜면 로그인의 존재 여부 숨김이 완전하지 않다는 점을 수용하고, 각 API의 IP 제한으로 대량 확인을 막습니다.
 
 ```json
 {
@@ -384,6 +424,8 @@ learning_goal은 사용자가 직접 고른 값이며, 앱은 가입 직후의 �
 - 로그인 화면을 표시하거나 서버 origin이 바뀌면 GET /auth/signup-availability/를 조회합니다. signup_enabled=false이면 가입 진입 버튼을 숨기고, 네트워크 오류·5xx로 조회하지 못하면 버튼을 표시합니다.
 - 가입 화면은 아이디, 표시 이름(닉네임), 비밀번호, 비밀번호 확인을 입력받습니다. 학습 목표는 가입 직후 별도 화면에서 기본값 없이 사용자가 고르게 하고, UserProfile.learning_goal이 null인 동안에는 로그인·재실행 때마다 이 화면을 먼저 보여 줍니다.
 - username 입력란은 자동 대문자와 자동 수정을 끄고, 소문자 형식을 미리 안내합니다.
+- 형식에 맞는 username의 입력이 멈추면 POST /auth/username-check/를 호출합니다. username이 바뀌면 이전 요청을 취소하고 그 응답을 버립니다. 이 호출의 시간 제한은 3초이며 자동 재시도하지 않습니다.
+- available=false이면 다음 칸을 열지 않고 username 칸에 중복을 안내하며, 이미 펼친 칸은 접지 않고 가입 버튼만 막습니다. 네트워크 오류·시간 초과·해석할 수 없는 응답·5xx·404·403·429이면 가입을 막지 않고 다음 칸을 엽니다. 최종 판단은 가입 요청의 응답입니다. 429이면 대기 시간이 지날 때까지 다시 호출하지 않으며, 가입 요청의 대기 시간에는 영향을 주지 않습니다.
 - 아이디와 표시 이름에 실명, 학번, 전화번호 등 본인을 알 수 있는 정보를 쓰지 말라고 안내합니다. 표시 이름에는 닉네임을 쓰도록 안내하고, 가입 후 바꿀 수 없다는 점도 함께 알립니다.
 - 비밀번호 입력란 근처에 비밀번호를 잊으면 복구할 수 없다는 안내를 항상 표시합니다. 비밀번호 입력란은 새 비밀번호 입력란으로 지정해 기기의 비밀번호 관리자를 사용할 수 있게 합니다.
 - 앱의 입력 검증은 안내용이며 최종 판단은 서버가 합니다. username은 문자열 전체 일치로, display_name 길이는 유니코드 코드 포인트 수로 확인합니다.
@@ -470,6 +512,7 @@ MXL은 정확히 mimetype, META-INF/container.xml, score.xml 세 엔트리를 �
 | 메서드 | 경로 | 성공 | 동작 |
 |---|---|---|---|
 | GET | /auth/signup-availability/ | 200 | 가입 가능 여부 |
+| POST | /auth/username-check/ | 200 | 아이디 사용 가능 여부(v0.11.0) |
 | POST | /auth/signup/ | 201 | 아이디·표시 이름·학습 목표·비밀번호로 가입, 토큰·프로필 반환 |
 | POST | /auth/login/ | 200 | 아이디·비밀번호 로그인, 토큰·프로필 반환 |
 | POST | /auth/logout/ | 204 | 현재 토큰 폐기, 본문 없음 |

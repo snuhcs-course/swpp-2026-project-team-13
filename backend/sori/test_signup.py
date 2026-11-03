@@ -36,6 +36,7 @@ from .models import LoginThrottle, Question, UserProfile, usernames_differing_by
 
 SIGNUP = "/api/v1/auth/signup/"
 AVAILABILITY = "/api/v1/auth/signup-availability/"
+USERNAME_CHECK = "/api/v1/auth/username-check/"
 LOGIN = "/api/v1/auth/login/"
 FAST_HASHERS = ["django.contrib.auth.hashers.MD5PasswordHasher"]
 PASSWORD = "quiet-lantern-48"
@@ -816,6 +817,127 @@ class SignupAvailabilityTests(TestCase):
             self.assertEqual(json.loads(response.content)["error"]["code"], "METHOD_NOT_ALLOWED")
 
 
+@override_settings(PASSWORD_HASHERS=FAST_HASHERS, SIGNUP_ENABLED=True, USERNAME_CHECK_MAX_REQUESTS_PER_IP=60)
+class UsernameCheckTests(ErrorAssertions, TestCase):
+    def setUp(self):
+        self.client = APIClient()
+
+    def check(self, username="student01", **kwargs):
+        return post_json(self.client, {"username": username}, path=USERNAME_CHECK, **kwargs)
+
+    def check_events(self, ip="127.0.0.1"):
+        row = LoginThrottle.objects.filter(key=throttle_key("username-check", ip)).first()
+        return row.events if row else []
+
+    def test_free_username_is_available_and_creates_nothing(self):
+        response = self.check()
+        self.assertEqual(response.status_code, 200, response.content)
+        self.assertEqual(json.loads(response.content), {"available": True})
+        self.assertEqual(response["Cache-Control"], "private, no-store")
+        self.assertIn("X-Request-ID", response)
+        self.assert_nothing_created()
+
+    def test_a_signed_up_username_is_taken(self):
+        self.assertEqual(post_json(self.client, VALID).status_code, 201)
+        self.assertEqual(self.check().data, {"available": False})
+
+    def test_comparison_ignores_case_like_signup(self):
+        User.objects.create_user("Student01", password=PASSWORD)
+        self.assertEqual(self.check("student01").data, {"available": False})
+        self.assert_error(post_json(self.client, VALID), 409, "USERNAME_TAKEN")
+
+    def test_admin_created_accounts_count(self):
+        User.objects.create_superuser("admin_user", password=PASSWORD)
+        with patch("sori.management.commands.create_practice_user.getpass", return_value=PASSWORD):
+            call_command("create_practice_user", "practice_user", stdout=io.StringIO())
+        for username in ("admin_user", "practice_user"):
+            self.assertEqual(self.check(username).data, {"available": False})
+
+    def test_an_inactive_account_still_holds_its_username(self):
+        User.objects.create_user("student01", password=PASSWORD, is_active=False)
+        self.assertEqual(self.check().data, {"available": False})
+
+    def test_format_errors_use_the_signup_codes(self):
+        for value, code in (("", "blank"), ("abc", "min_length"), ("a" * 21, "max_length"), ("1abc", "invalid_format"), ("Student01", "invalid_format"),
+                            ("student01\n", "invalid_format"), ("stu\0dent", "invalid_format"), (7, "invalid"), (None, "invalid"), ("\ud800abcd", "invalid")):
+            with self.subTest(value=value):
+                detail = self.assert_error(self.check(value), 400, "VALIDATION_ERROR")
+                self.assertEqual([(field["field"], field["code"]) for field in detail["fields"]], [("username", code)])
+        detail = self.assert_error(post_json(self.client, {}, path=USERNAME_CHECK), 400, "VALIDATION_ERROR")
+        self.assertEqual(detail["fields"][0]["code"], "required")
+
+    def test_bad_bodies_are_refused_without_a_lookup(self):
+        for body in ({"username": "student01", "password": PASSWORD}, ["student01"], "student01"):
+            with self.subTest(body=body):
+                self.assertEqual(self.assert_error(post_json(self.client, body, path=USERNAME_CHECK), 400, "VALIDATION_ERROR")["fields"], [])
+        self.assert_error(self.client.generic("POST", USERNAME_CHECK, b"{", content_type="application/json"), 400, "VALIDATION_ERROR")
+        self.assert_error(self.client.generic("POST", USERNAME_CHECK, b"", content_type="application/json", CONTENT_LENGTH="0"), 400, "VALIDATION_ERROR")
+        self.assert_error(self.client.generic("POST", USERNAME_CHECK, b"{}", content_type="text/plain"), 415, "UNSUPPORTED_MEDIA_TYPE")
+
+    def test_only_post_is_allowed_so_usernames_stay_out_of_urls(self):
+        for response in (self.client.get(USERNAME_CHECK, {"username": "student01"}), self.client.put(USERNAME_CHECK, {}, format="json"), self.client.delete(USERNAME_CHECK)):
+            self.assert_error(response, 405, "METHOD_NOT_ALLOWED")
+
+    def test_ignores_a_bad_authorization_header(self):
+        self.client.credentials(HTTP_AUTHORIZATION="Bearer invalid-token")
+        self.assertEqual(self.check().status_code, 200)
+
+    def test_disabled_signup_is_403_and_not_counted(self):
+        with override_settings(SIGNUP_ENABLED=False):
+            self.assertEqual(self.assert_error(self.check(), 403, "SIGNUP_DISABLED")["fields"], [])
+            self.assert_error(self.client.generic("POST", USERNAME_CHECK, b"{", content_type="text/plain"), 403, "SIGNUP_DISABLED")
+        self.assertFalse(LoginThrottle.objects.exists())
+
+    def test_body_over_32_kib_is_413_and_not_counted(self):
+        body = json.dumps({"username": "student01"}).encode()
+        self.assertEqual(self.client.generic("POST", USERNAME_CHECK, body + b" " * (32768 - len(body)), content_type="application/json").status_code, 200)
+        self.assertEqual(len(self.check_events()), 1)
+        self.assert_error(self.client.generic("POST", USERNAME_CHECK, body + b" " * (32769 - len(body)), content_type="application/json"), 413, "REQUEST_TOO_LARGE")
+        self.assertEqual(len(self.check_events()), 1)
+
+    @override_settings(USERNAME_CHECK_MAX_REQUESTS_PER_IP=3)
+    def test_limit_counts_every_allowed_request_and_blocks_with_a_wait(self):
+        now = timezone.now()
+        with patch("sori.auth_views.timezone.now", return_value=now):
+            self.assertEqual(self.check().status_code, 200)
+            self.assertEqual(self.check("abc").status_code, 400)
+            self.assertEqual(self.client.generic("POST", USERNAME_CHECK, b"{}", content_type="text/plain").status_code, 415)
+            self.assertEqual(self.assert_error(self.check(), 429, "RATE_LIMITED")["retry_after_ms"], 300000)
+            # Limited requests answer 429 before reading the body and add no event.
+            self.assert_error(self.check("abc"), 429, "RATE_LIMITED")
+        self.assertEqual(len(self.check_events()), 3)
+        with patch("sori.auth_views.timezone.now", return_value=now + timedelta(seconds=300)):
+            self.assertEqual(self.check().status_code, 200)
+
+    @override_settings(USERNAME_CHECK_MAX_REQUESTS_PER_IP=1)
+    def test_limit_is_per_client(self):
+        self.assertEqual(self.check(REMOTE_ADDR="203.0.113.10").status_code, 200)
+        self.assert_error(self.check(REMOTE_ADDR="203.0.113.10"), 429, "RATE_LIMITED")
+        self.assertEqual(self.check(REMOTE_ADDR="203.0.113.11").status_code, 200)
+
+    @override_settings(USERNAME_CHECK_MAX_REQUESTS_PER_IP=1, SIGNUP_MAX_REQUESTS_PER_IP=1, LOGIN_MAX_REQUESTS_PER_IP=1)
+    def test_checks_never_use_up_signup_or_login_attempts(self):
+        self.assertEqual(self.check().status_code, 200)
+        self.assert_error(self.check(), 429, "RATE_LIMITED")
+        self.assertEqual(post_json(self.client, VALID).status_code, 201)
+        self.assertEqual(post_json(self.client, {"username": "student01", "password": PASSWORD}, path=LOGIN).status_code, 200)
+
+    @override_settings(USERNAME_CHECK_MAX_REQUESTS_PER_IP=1, SIGNUP_MAX_REQUESTS_PER_IP=1, SIGNUP_MAX_SUCCESSES_PER_IP=1)
+    def test_signup_limits_never_block_checks(self):
+        self.assertEqual(post_json(self.client, VALID).status_code, 201)
+        self.assert_error(post_json(self.client, form(username="student02")), 429, "RATE_LIMITED")
+        self.assertEqual(self.check("student02").data, {"available": True})
+
+    def test_logs_and_stored_rows_never_contain_the_username_or_address(self):
+        with self.assertLogs("sori.auth_views", "INFO") as logs:
+            self.check("secret_name", REMOTE_ADDR="203.0.113.10")
+        text = "\n".join(logs.output)
+        self.assertIn("username-check request ip_key=", text)
+        self.assertNotIn("secret_name", text)
+        self.assertNotIn("203.0.113.10", text)
+        self.assertEqual(LoginThrottle.objects.get().key, throttle_key("username-check", "203.0.113.10"))
+
+
 @override_settings(PASSWORD_HASHERS=FAST_HASHERS, SIGNUP_ENABLED=True)
 class SignupSecretTests(SimpleTestCase):
     databases = {"default"}
@@ -1081,7 +1203,7 @@ class MigrationUpgradeTests(TransactionTestCase):
 class SettingsValidationTests(SimpleTestCase):
     BASE = {
         "DJANGO_SECRET_KEY": "settings-test-key", "DJANGO_DEBUG": "false",
-        "SIGNUP_ENABLED": "", "LOGIN_MAX_REQUESTS_PER_IP": "", "SIGNUP_MAX_REQUESTS_PER_IP": "", "SIGNUP_MAX_SUCCESSES_PER_IP": "",
+        "SIGNUP_ENABLED": "", "LOGIN_MAX_REQUESTS_PER_IP": "", "SIGNUP_MAX_REQUESTS_PER_IP": "", "SIGNUP_MAX_SUCCESSES_PER_IP": "", "USERNAME_CHECK_MAX_REQUESTS_PER_IP": "",
         "AI_MAX_JOBS_PER_USER_PER_DAY": "", "AI_MAX_JOBS_PER_DAY": "", "TRUSTED_PROXIES": "", "CLIENT_IP_HEADER": "",
     }
 
@@ -1089,7 +1211,7 @@ class SettingsValidationTests(SimpleTestCase):
         code = (
             "import json, config.settings as s; print(json.dumps({"
             "'signup': s.SIGNUP_ENABLED, 'login': s.LOGIN_MAX_REQUESTS_PER_IP, 'requests': s.SIGNUP_MAX_REQUESTS_PER_IP,"
-            "'successes': s.SIGNUP_MAX_SUCCESSES_PER_IP, 'user': s.AI_MAX_JOBS_PER_USER_PER_DAY, 'day': s.AI_MAX_JOBS_PER_DAY,"
+            "'successes': s.SIGNUP_MAX_SUCCESSES_PER_IP, 'checks': s.USERNAME_CHECK_MAX_REQUESTS_PER_IP, 'user': s.AI_MAX_JOBS_PER_USER_PER_DAY, 'day': s.AI_MAX_JOBS_PER_DAY,"
             "'proxies': [str(p) for p in s.TRUSTED_PROXIES], 'header': s.CLIENT_IP_HEADER}))"
         )
         return subprocess.run([sys.executable, "-c", code], cwd=settings.BASE_DIR, env={**os.environ, **self.BASE, **values}, capture_output=True, text=True)
@@ -1103,7 +1225,7 @@ class SettingsValidationTests(SimpleTestCase):
     def test_defaults(self):
         result = self.load()
         self.assertEqual(result.returncode, 0, result.stderr)
-        self.assertEqual(json.loads(result.stdout), {"signup": False, "login": 30, "requests": 30, "successes": 20, "user": None, "day": None, "proxies": [], "header": ""})
+        self.assertEqual(json.loads(result.stdout), {"signup": False, "login": 30, "requests": 30, "successes": 20, "checks": 60, "user": None, "day": None, "proxies": [], "header": ""})
 
     def test_signup_enabled_accepts_only_case_insensitive_true(self):
         for value, expected in (("true", True), ("TRUE", True), ("True", True), ("1", False), ("yes", False), ("on", False), ("", False), ("false", False)):
@@ -1120,15 +1242,15 @@ class SettingsValidationTests(SimpleTestCase):
         self.assertEqual(self.load(SIGNUP_ENABLED="true", AI_MAX_JOBS_PER_USER_PER_DAY="10", AI_MAX_JOBS_PER_DAY="30").returncode, 0)
 
     def test_counts_must_be_integers_of_at_least_one(self):
-        for name in ("LOGIN_MAX_REQUESTS_PER_IP", "SIGNUP_MAX_REQUESTS_PER_IP", "SIGNUP_MAX_SUCCESSES_PER_IP", "AI_MAX_JOBS_PER_USER_PER_DAY", "AI_MAX_JOBS_PER_DAY"):
+        for name in ("LOGIN_MAX_REQUESTS_PER_IP", "SIGNUP_MAX_REQUESTS_PER_IP", "SIGNUP_MAX_SUCCESSES_PER_IP", "USERNAME_CHECK_MAX_REQUESTS_PER_IP", "AI_MAX_JOBS_PER_USER_PER_DAY", "AI_MAX_JOBS_PER_DAY"):
             for value in ("0", "-1", "abc", "1.5", "1_000", "٣"):
                 with self.subTest(name=name, value=value):
                     self.assert_refused(name, **{name: value})
 
     def test_blank_counts_use_defaults_and_values_apply(self):
-        result = self.load(LOGIN_MAX_REQUESTS_PER_IP=" ", SIGNUP_MAX_REQUESTS_PER_IP="7", SIGNUP_MAX_SUCCESSES_PER_IP="1")
+        result = self.load(LOGIN_MAX_REQUESTS_PER_IP=" ", SIGNUP_MAX_REQUESTS_PER_IP="7", SIGNUP_MAX_SUCCESSES_PER_IP="1", USERNAME_CHECK_MAX_REQUESTS_PER_IP="9")
         values = json.loads(result.stdout)
-        self.assertEqual((values["login"], values["requests"], values["successes"]), (30, 7, 1))
+        self.assertEqual((values["login"], values["requests"], values["successes"], values["checks"]), (30, 7, 1, 9))
 
     def test_trusted_proxy_settings_are_validated_and_paired(self):
         result = self.load(TRUSTED_PROXIES="172.30.0.10/32, 2001:db8::/64", CLIENT_IP_HEADER="CF-Connecting-IP")

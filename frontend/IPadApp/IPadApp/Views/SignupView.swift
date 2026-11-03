@@ -13,18 +13,19 @@ struct SignupView: View {
     @State private var passwordWasCleared = false
     // How many fields after the username are open. It only grows, so corrections never collapse the form.
     @State private var revealed = 0
+    // The keyboard's next key was pressed before the username check finished.
+    @State private var advanceAfterCheck = false
     @FocusState private var focus: Field?
     private enum Field: Hashable { case username, displayName, password, confirmation }
     private let submitAnchor = "signup-submit-area"
 
     private var usernameTaken: Bool { model.signupFieldErrors.contains { $0.field == "username" && $0.code == "taken" } }
+    private var usernameStatus: UsernameStatus? { model.usernameStatus(username) }
     private var reachable: Int {
-        guard SignupRules.usernameIsValid(username) else { return 0 }
-        guard SignupRules.displayNameIsValid(displayName) else { return 1 }
-        return SignupRules.passwordMeetsPolicy(password) ? 3 : 2
+        SignupRules.reachableFields(username: username, status: usernameStatus, displayName: displayName, password: password)
     }
     private var isReady: Bool {
-        SignupRules.usernameIsValid(username) && SignupRules.displayNameIsValid(displayName)
+        SignupRules.usernameIsValid(username) && usernameStatus != .taken && SignupRules.displayNameIsValid(displayName)
             && SignupRules.passwordMeetsPolicy(password) && password == confirmation
     }
 
@@ -67,13 +68,23 @@ struct SignupView: View {
                 .disabled(model.authenticating)
         }
         .animation(reduceMotion ? nil : .spring(duration: 0.42), value: revealed)
+        // A pause in typing starts the check. Changing the username cancels this task, which drops its late answer.
+        .task(id: username) {
+            guard SignupRules.usernameIsValid(username), usernameStatus == nil else { return }
+            try? await Task.sleep(for: .milliseconds(350))
+            guard !Task.isCancelled else { return }
+            await model.checkUsername(username)
+            guard !Task.isCancelled else { return }
+            revealed = max(revealed, reachable)
+            if advanceAfterCheck { advanceAfterCheck = false; advance(from: .username) }
+        }
         // A pause in typing opens the next field, so it never jumps mid-word and never takes focus.
         .task(id: [username, displayName, password]) {
             guard reachable > revealed else { return }
             try? await Task.sleep(for: .milliseconds(350))
             if !Task.isCancelled { revealed = max(revealed, reachable) }
         }
-        .onChange(of: username) { model.clearSignupError("username") }
+        .onChange(of: username) { model.clearSignupError("username"); advanceAfterCheck = false }
         .onChange(of: displayName) { model.clearSignupError("display_name") }
         .onChange(of: password) { model.clearSignupError("password"); passwordWasCleared = false }
         .onChange(of: model.signupFieldErrors) { _, errors in if errors.contains(where: { $0.field == "username" }) { focus = .username } }
@@ -88,8 +99,9 @@ struct SignupView: View {
         if usernameTaken { return "다른 아이디와 비밀번호를 입력하면 바로 가입돼요." }
         return revealed >= 1 ? "닉네임과 비밀번호만 정하면 끝나요." : "이메일 없이 아이디로 시작해요. 실명, 학번, 전화번호처럼 나를 알 수 있는 정보는 쓰지 말아 주세요."
     }
+    private static let takenMessage = "이미 사용 중인 아이디예요. 다른 아이디를 입력해 주세요."
     private func serverHints(_ field: String) -> [AuthHint] {
-        model.signupFieldErrors.filter { $0.field == field }.map { AuthHint(text: $0.code == "taken" ? "이미 사용 중인 아이디예요. 다른 아이디를 입력해 주세요." : $0.message, tone: .bad) }
+        model.signupFieldErrors.filter { $0.field == field }.map { AuthHint(text: $0.code == "taken" ? Self.takenMessage : $0.message, tone: .bad) }
     }
     private var usernameHints: [AuthHint] {
         let server = serverHints("username")
@@ -100,7 +112,13 @@ struct SignupView: View {
         case .tooLong: return [AuthHint(text: "20자 이하로 입력해 주세요", tone: .bad)]
         case .mustStartWithLowercase: return [AuthHint(text: "영문 소문자로 시작해 주세요", tone: .bad)]
         case .invalidCharacter: return [AuthHint(text: "영문 소문자, 숫자, _만 쓸 수 있어요", tone: .bad)]
-        case .none: return [AuthHint(text: "쓸 수 있는 형식이에요", tone: .good)]
+        case .none:
+            switch usernameStatus {
+            case nil: return [AuthHint(text: "사용할 수 있는지 확인하고 있어요")]
+            case .available: return [AuthHint(text: "사용할 수 있는 아이디예요", tone: .good)]
+            case .taken: return [AuthHint(text: Self.takenMessage, tone: .bad)]
+            case .unknown: return [AuthHint(text: "쓸 수 있는 형식이에요", tone: .good)]
+            }
         }
     }
     private var displayNameHints: [AuthHint] {
@@ -136,6 +154,12 @@ struct SignupView: View {
         }
     }
     private func advance(from field: Field) {
+        if field == .username, SignupRules.usernameIsValid(username) {
+            // The check decides, so wait for it. Return ends editing, so a username still in question takes the focus back.
+            let status = usernameStatus
+            if status == nil { advanceAfterCheck = true }
+            if status == nil || status == .taken { Task { await Task.yield(); focus = .username }; return }
+        }
         revealed = max(revealed, reachable)
         let next: Field? = switch field { case .username: .displayName; case .displayName: .password; case .password: .confirmation; case .confirmation: nil }
         let open = switch field { case .username: revealed >= 1; case .displayName: revealed >= 2; case .password: revealed >= 3; case .confirmation: false }

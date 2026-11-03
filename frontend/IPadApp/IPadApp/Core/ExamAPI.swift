@@ -9,6 +9,7 @@ import FoundationNetworking
     func saveRhythmPlay(_ record: RhythmPlayRecord) async throws -> RhythmReceipt
     func profile() async throws -> UserProfile
     func updateGoal(_ goal: String) async throws -> UserProfile
+    func usernameCheck(_ username: String) async throws -> UsernameCheck
     func questions(page: Int) async throws -> QuestionPage
     func classicalQuestions(page: Int) async throws -> QuestionPage
     func question(_ id: UUID) async throws -> Question
@@ -166,6 +167,12 @@ final class NoRedirectDelegate: NSObject, URLSessionTaskDelegate, @unchecked Sen
     func signupAvailability() async throws -> SignupAvailability {
         let r = try request(endpoint("auth/signup-availability/"), authenticated: false)
         return try ContractJSON.decoder().decode(SignupAvailability.self, from: await execute(r, limit: 256 * 1024, retry: false))
+    }
+    // POST keeps the username out of URLs and proxy logs. The short timeout keeps a stalled server from holding the form.
+    func usernameCheck(_ username: String) async throws -> UsernameCheck {
+        var r = try request(endpoint("auth/username-check/"), method: "POST", authenticated: false, body: JSONSerialization.data(withJSONObject: ["username": username]), contentType: "application/json")
+        r.timeoutInterval = 3
+        return try ContractJSON.decoder().decode(UsernameCheck.self, from: await execute(r, limit: 256 * 1024, retry: false))
     }
     // The goal is chosen on the next screen and saved with updateGoal.
     func signup(username: String, displayName: String, password: String) async throws -> LoginResponse {

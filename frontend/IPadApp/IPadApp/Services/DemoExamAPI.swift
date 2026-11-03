@@ -15,6 +15,8 @@ import Foundation
         var value = try await profile(); value.learningGoal = goal
         try ContractJSON.encoder().encode(value).write(to: store.root.appendingPathComponent("profile.json"), options: .atomic); return value
     }
+    // The demo has no accounts, so nothing can be taken.
+    func usernameCheck(_ username: String) async throws -> UsernameCheck { UsernameCheck(available: true) }
     private struct EngravingManifest: Decodable { var scores: [String: ImageEntry] }
     private struct ImageEntry: Decodable { var resource:String; var contentType:String; var sha256:String; var sizeBytes:Int; var pixelWidth:Int; var pixelHeight:Int; var renderer:String }
     private func catalog() throws -> [Question] {
