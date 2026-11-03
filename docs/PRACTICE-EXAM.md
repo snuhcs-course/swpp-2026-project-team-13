@@ -48,7 +48,7 @@ Drills의 기존 기계채점은 유지한다. Drills 결과 서버 저장, 누�
 
 ```powershell
 docker compose --env-file backend/.env up --build -d --wait
-docker compose --env-file backend/.env exec -T api python manage.py test api sori --noinput
+docker compose --env-file backend/.env exec -T api python manage.py test api solfege --noinput
 ```
 
 서버 없이 가능한 검사는 다음과 같다.

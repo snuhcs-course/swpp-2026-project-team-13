@@ -1,8 +1,8 @@
-# SORI iPad frontend
+# solfège iPad frontend
 
 Rhythm Puzzle in Drill uses the v0.9.0 drill-record contract alongside the existing authentication and Practice/Exam flows. Its bundled pool contains 259 two-measure excerpts from intermediate/advanced questions. See [game rules and verification](../docs/RHYTHM-PUZZLE.md).
 
-Native SwiftUI / PencilKit app for the SORI v0.7.0 personal-practice contract. iPadOS 17+, Xcode 16+; no external Swift packages or network-loaded rendering code.
+Native SwiftUI / PencilKit app for the solfège v0.7.0 personal-practice contract. iPadOS 17+, Xcode 16+; no external Swift packages or network-loaded rendering code.
 
 ## Run
 
@@ -10,11 +10,11 @@ Open `IPadApp/IPadApp.xcodeproj`, select the shared `IPadApp` scheme and an iPad
 
 Use **연결 설정** to choose the backend. Enter an absolute base URL ending `/api/v1/`, then sign up, or log in with an existing username and password. Inputs retain whitespace and case. Only the returned token is stored in this device's Keychain, keyed by server origin; passwords are never persisted. Turning off **로그인 상태 유지** keeps the token in memory for that launch instead. Relaunch verifies the stored token with `/me/`. Release requires HTTPS. Debug permits HTTP for local development. For a physical iPad use the backend PC's LAN address; `localhost` on an iPad means the iPad itself.
 
-The Django backend implements the versioned SORI operations with PostgreSQL and an OpenRouter worker. Follow ../docs/IPAD-SETUP.md to start the server and create an account. Local demo is deliberately separate from live API errors.
+The Django backend implements the versioned solfège operations with PostgreSQL and an OpenRouter worker. Follow ../docs/IPAD-SETUP.md to start the server and create an account. Local demo is deliberately separate from live API errors.
 
 Login requests are never automatically retried, and a 429 disables resubmission until its retry deadline. Authentication operations use origin and generation guards, including when a later login reuses the same token. A current protected 401 clears only its matching Keychain token; network and server failures retain credentials. Logout revokes the shared token on every device. If revocation cannot be confirmed, local logout requires an explicit choice explaining that the server token may remain. Account changes hide the previous user's records without deleting drawings or frozen submission IDs/keys; logging back into that account restores its journal.
 
-For Windows installation without a Mac, follow [the Sideloadly guide](../docs/WINDOWS-IPAD.md). Successful push CI runs publish the unsigned device Debug IPA as **SORI-iPad-install**; signing takes place on the user’s Windows PC.
+For Windows installation without a Mac, follow [the Sideloadly guide](../docs/WINDOWS-IPAD.md). Successful push CI runs publish the unsigned device Debug IPA as **solfege-iPad-install**; signing takes place on the user’s Windows PC.
 
 ## Screens and contract behavior
 
@@ -34,7 +34,7 @@ For Windows installation without a Mac, follow [the Sideloadly guide](../docs/WI
 | `IPadApp/IPadApp/Core/` | Codable contract models, origin security, HTTP/multipart/retry logic, bounded ZIP/XML parsing, normalized integer-tick events, MIDI, monotonic clock |
 | `IPadApp/IPadApp/Services/` | durable app state and mock backend, protected local journal, Keychain, PencilKit/export, native piano playback |
 | `IPadApp/IPadApp/Views/` | iPad screens, annotation overlay and limited native score renderer |
-| `Tests/SORICoreTests/` | Swift Package contract and real URLSession transport tests with URLProtocol fixtures |
+| `Tests/SolfegeCoreTests/` | Swift Package contract and real URLSession transport tests with URLProtocol fixtures |
 | `Tests/IPadAppTests/` | iPad-hosted export, journal, preparation/start/submit/restore demo terminal-state and complete 11-segment playback integration tests |
 | `scripts/` | original SoundFont generator and actual Sampler offline audio verification |
 

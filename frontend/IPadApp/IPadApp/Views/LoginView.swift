@@ -41,7 +41,7 @@ struct LoginView: View {
                     Button("로그인 취소") { password = ""; model.cancelLogin() }.font(.system(size: 14)).frame(maxWidth: .infinity, minHeight: 44)
                 } else {
                     Text("필기와 미제출 답안은 같은 계정으로 로그인하면 이어갈 수 있어요.")
-                        .font(.system(size: 13)).foregroundStyle(SORITheme.muted).lineSpacing(3).fixedSize(horizontal: false, vertical: true)
+                        .font(.system(size: 13)).foregroundStyle(SolfegeTheme.muted).lineSpacing(3).fixedSize(horizontal: false, vertical: true)
                 }
             }
             .onChange(of: focus) { _, field in scroll(to: field, proxy) }

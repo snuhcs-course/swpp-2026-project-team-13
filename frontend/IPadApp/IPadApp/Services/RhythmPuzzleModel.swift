@@ -63,7 +63,7 @@ import SwiftUI
             currentRoundIds = Set(bank.rounds.map(\.id)); catalogVersions[catalogHash] = bank.version
             let ink: RhythmEngraving = try Bundled.decode("rhythm-engraving-v2")
             guard ink.catalogSha256 == catalogHash, bank.tiles.allSatisfy({ ink.tiles[$0.id]?.symbolXs.count == $0.symbols.count }) else {
-                throw SORIError.invalidScore("리듬 악보와 문제 버전이 다릅니다.")
+                throw SolfegeError.invalidScore("리듬 악보와 문제 버전이 다릅니다.")
             }
             engraving = ink
             let legacyData = try Bundled.data("rhythm-puzzle-v1",ext:"json")
@@ -82,7 +82,7 @@ import SwiftUI
     }
     private func save() {
         do {
-            guard let store else { throw SORIError.storage("로그인한 학습 공간을 먼저 연결해 주세요.") }
+            guard let store else { throw SolfegeError.storage("로그인한 학습 공간을 먼저 연결해 주세요.") }
             try store.save(journal); storageFailed = false
         } catch { storageFailed = true; self.error = "기기에 기록을 저장하지 못했어요. \(error.localizedDescription)" }
     }
@@ -266,7 +266,7 @@ import SwiftUI
                     try Task.checkCancellation()
                     let receipt = try await connection.api.saveRhythmPlay(record)
                     guard receipt.clientPlayId == record.id, receipt.roundId == record.roundId, receipt.catalogSha256 == record.catalogSha256 else {
-                        throw SORIError.transport("저장 확인 응답이 연습 기록과 다릅니다.")
+                        throw SolfegeError.transport("저장 확인 응답이 연습 기록과 다릅니다.")
                     }
                     try Task.checkCancellation(); journal.synced.insert(record.id); save()
                 }

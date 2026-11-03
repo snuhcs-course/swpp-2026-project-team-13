@@ -51,13 +51,13 @@ struct SheetLayout: Codable, Equatable {
         guard Self.supports(id), logicalWidth == 1330, logicalHeight == 846,
               exportScale == 2, pixelWidth == 2660, pixelHeight == 1692,
               systems.count == 2, systems.allSatisfy({ $0.staffLineY.count == 5 && $0.barlineX.count == 5 }) else {
-            throw SORIError.unsupported("지원하지 않는 오선 템플릿입니다.")
+            throw SolfegeError.unsupported("지원하지 않는 오선 템플릿입니다.")
         }
         if id.hasSuffix("-v4") {
             guard displayHeight == 620, systems[0].staffLineY == [164,176,188,200,212],
-                  systems[1].staffLineY == [386,398,410,422,434] else { throw SORIError.unsupported("새 오선의 필기 좌표가 일치하지 않습니다.") }
+                  systems[1].staffLineY == [386,398,410,422,434] else { throw SolfegeError.unsupported("새 오선의 필기 좌표가 일치하지 않습니다.") }
         } else if displayHeight != nil && displayHeight != logicalHeight {
-            throw SORIError.unsupported("이전 오선의 표시 크기를 변경할 수 없습니다.")
+            throw SolfegeError.unsupported("이전 오선의 표시 크기를 변경할 수 없습니다.")
         }
     }
 }
@@ -96,14 +96,14 @@ struct Question: Codable, Identifiable, Equatable {
         guard source == "practice", keySignature.supported,
               timeSignature.supported, measureCount == 8,
               timePolicy == "advisory", clef == "treble", contentPolicy == "client_readable_practice",
-              scoreVisibility == "after_submission" else { throw SORIError.unsupported("지원하지 않는 문제 형식입니다.") }
+              scoreVisibility == "after_submission" else { throw SolfegeError.unsupported("지원하지 않는 문제 형식입니다.") }
         if collection == "classical" || keySignature.fifths != 0 || keySignature.mode == "minor" || sheetLayout.id.hasSuffix("-v4") {
             guard [3,4].contains(where: { sheetLayout.id == "staff-8bars-\(timeSignature.numerator)-\(timeSignature.denominator)-key\(keySignature.fifths)-v\($0)" })
-            else { throw SORIError.unsupported("문제의 조표·오선이 일치하지 않습니다.") }
+            else { throw SolfegeError.unsupported("문제의 조표·오선이 일치하지 않습니다.") }
         }
         if collection == "classical" {
             guard composer?.isEmpty == false, ["major","minor"].contains(keySignature.mode), scoreAssets.main.profile == "sori-monophonic-v4"
-            else { throw SORIError.unsupported("검증된 클래식 문제 형식이 아닙니다.") }
+            else { throw SolfegeError.unsupported("검증된 클래식 문제 형식이 아닙니다.") }
         }
     }
 }
@@ -127,11 +127,11 @@ struct TempoSetting: Codable, Equatable {
     func validate(meter: TimeSignature? = nil) throws {
         guard ["quarter","dotted_quarter","half","dotted_half"].contains(beatUnit), !policyId.isEmpty,
               minimumBpm > 0, maximumBpm >= minimumBpm, (minimumBpm...maximumBpm).contains(bpm),
-              quarterBpm >= 40, quarterBpm <= 200 else { throw SORIError.unsupported("템포 설정을 확인해 주세요.") }
+              quarterBpm >= 40, quarterBpm <= 200 else { throw SolfegeError.unsupported("템포 설정을 확인해 주세요.") }
         if policyId == "sori-score-tempo-1" {
-            guard minimumBpm == bpm, maximumBpm == bpm else { throw SORIError.unsupported("악보에 표시된 고정 템포를 확인해 주세요.") }
+            guard minimumBpm == bpm, maximumBpm == bpm else { throw SolfegeError.unsupported("악보에 표시된 고정 템포를 확인해 주세요.") }
         } else if let meter {
-            guard beatUnit == (meter.denominator == 2 ? "half" : meter.denominator == 8 && meter.numerator % 3 == 0 ? "dotted_quarter" : "quarter") else { throw SORIError.unsupported("템포의 기준 음표가 박자와 다릅니다.") }
+            guard beatUnit == (meter.denominator == 2 ? "half" : meter.denominator == 8 && meter.numerator % 3 == 0 ? "dotted_quarter" : "quarter") else { throw SolfegeError.unsupported("템포의 기준 음표가 박자와 다릅니다.") }
         }
     }
 }
@@ -174,19 +174,19 @@ struct PlaybackPlan: Codable, Equatable {
               (version == 4 ? (1...5).contains(scale.toMeasure) : scale.toMeasure == 2), pauseAfterScaleMs >= 0, steps.count == 11,
               zip(steps,ranges).enumerated().allSatisfy({ i,pair in
                   pair.0.order == i+1 && pair.0.fromMeasure == pair.1.0 && pair.0.toMeasure == pair.1.1 && pair.0.scoreKind == "main" && pair.0.pauseAfterMs >= 0
-              }) else { throw SORIError.unsupported("지원하지 않는 재생 계획입니다.") }
+              }) else { throw SolfegeError.unsupported("지원하지 않는 재생 계획입니다.") }
         if version >= 3 {
             guard initialDelayMs == 2000, pauseAfterScaleMs == 2000, let countIn,
                   countIn.measures == 1, countIn.beforeStepOrders == [1,11],
                   TimeSignature(numerator:countIn.beatsPerMeasure,denominator:countIn.beatUnit).supported,
                   countIn.accentVelocity == 110, countIn.velocity == 70, countIn.profileId == "sori-click-v1",
                   steps.enumerated().allSatisfy({ $0.element.pauseAfterMs == ($0.offset == 10 ? 120000 : 20000) })
-            else { throw SORIError.unsupported("시험의 예비박·필기 시간 설정을 확인해 주세요.") }
+            else { throw SolfegeError.unsupported("시험의 예비박·필기 시간 설정을 확인해 주세요.") }
         } else if countIn != nil || (initialDelayMs ?? 0) != 0 {
-            throw SORIError.unsupported("구버전 재생 계획에 예비박을 추가할 수 없습니다.")
+            throw SolfegeError.unsupported("구버전 재생 계획에 예비박을 추가할 수 없습니다.")
         }
         if version == 4 {
-            guard let tempo, let countIn, abs(tempo.quarterBpm-tempoBpm) < 0.000001 else { throw SORIError.unsupported("템포 환산이 일치하지 않습니다.") }
+            guard let tempo, let countIn, abs(tempo.quarterBpm-tempoBpm) < 0.000001 else { throw SolfegeError.unsupported("템포 환산이 일치하지 않습니다.") }
             try tempo.validate(meter:TimeSignature(numerator:countIn.beatsPerMeasure,denominator:countIn.beatUnit))
         }
     }
@@ -235,7 +235,7 @@ struct FieldError: Codable, Equatable { var field: String; var code: String; var
 struct ErrorDetail: Codable, Equatable { var code: String; var message: String; var fields: [FieldError]; var retryAfterMs: Int? }
 struct ErrorEnvelope: Codable, Equatable { var error: ErrorDetail; var requestId: String }
 
-enum SORIError: LocalizedError {
+enum SolfegeError: LocalizedError {
     case configuration(String), unsupported(String), invalidScore(String), storage(String), transport(String)
     case server(Int, ErrorEnvelope?, retryAfter: TimeInterval?)
     var errorDescription: String? {

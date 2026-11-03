@@ -54,7 +54,7 @@ class SheetRevisionTests(unittest.TestCase):
             self.assertTrue(all(p.get('data-system')=='1' for p in endings))
 
     def test_old_and_new_templates_remain_available_and_grading_uses_the_new_coordinates(self):
-        spec=importlib.util.spec_from_file_location('sheet_assessment',ROOT/'backend/sori/assessment.py')
+        spec=importlib.util.spec_from_file_location('sheet_assessment',ROOT/'backend/solfege/assessment.py')
         assessment=importlib.util.module_from_spec(spec);spec.loader.exec_module(assessment)
         for item in REVISIONS:
             q=item['metadata']; old=ORIGINALS[q['id']]['metadata']['sheet_layout']

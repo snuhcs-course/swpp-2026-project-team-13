@@ -6,7 +6,7 @@
 
 ## 전달 파일
 
-프로젝트 루트에서 python scripts/package-handoff.py를 실행해 dist/SORI-iPad-source.zip을 만듭니다. ZIP에는 소스·정답 MXL·템플릿·피아노 리소스·설치 안내를 포함하며 .env·개발 토큰·DB·학생 이미지·가상환경은 제외합니다.
+프로젝트 루트에서 python scripts/package-handoff.py를 실행해 dist/solfege-iPad-source.zip을 만듭니다. ZIP에는 소스·정답 MXL·템플릿·피아노 리소스·설치 안내를 포함하며 .env·개발 토큰·DB·학생 이미지·가상환경은 제외합니다.
 
 원래 브랜치로 반영할 때 frontend/, backend/, docs/, scripts/, compose.yaml 및 .github/workflows/ci.yml의 변경을 함께 확인합니다. 개인 Xcode 설정과 signing 인증서는 반영하지 않습니다.
 

@@ -51,7 +51,7 @@ import Foundation
         })
     }
     func question(_ id: UUID) async throws -> Question {
-        guard let q = try catalog().first(where: { $0.id == id }) else { throw SORIError.configuration("데모 문제를 찾을 수 없습니다.") }; return q
+        guard let q = try catalog().first(where: { $0.id == id }) else { throw SolfegeError.configuration("데모 문제를 찾을 수 없습니다.") }; return q
     }
     func createAttempt(question: Question, key: UUID) async throws -> Attempt {
         try await createAttempt(question:question,mode:.exam,key:key)
@@ -60,7 +60,7 @@ import Foundation
         let path = store.root.appendingPathComponent("create-\(key).json")
         if FileManager.default.fileExists(atPath: path.path) {
             let existing = try ContractJSON.decoder().decode(Attempt.self, from:Data(contentsOf:path))
-            guard existing.question.id == question.id, existing.question.version == question.version, existing.studyMode == mode else { throw SORIError.configuration("IDEMPOTENCY_KEY_REUSED") }
+            guard existing.question.id == question.id, existing.question.version == question.version, existing.studyMode == mode else { throw SolfegeError.configuration("IDEMPOTENCY_KEY_REUSED") }
             return existing
         }
         var attempt: Attempt = try Bundled.decode("attempt-ready")
@@ -89,9 +89,9 @@ import Foundation
     func upload(_ id: UUID, png: Data, clientId: UUID, layout: String, key: UUID) async throws -> Answer {
         var r = try store.load(id)
         if let a = r.uploaded, a.clientAnswerId == clientId {
-            guard a.sha256 == png.sha256 else { throw SORIError.configuration("ANSWER_ID_REUSED") }; return a
+            guard a.sha256 == png.sha256 else { throw SolfegeError.configuration("ANSWER_ID_REUSED") }; return a
         }
-        guard r.attempt.status == "in_progress" else { throw SORIError.configuration("ATTEMPT_ALREADY_SUBMITTED") }
+        guard r.attempt.status == "in_progress" else { throw SolfegeError.configuration("ATTEMPT_ALREADY_SUBMITTED") }
         var a: Answer = try Bundled.decode("answer-upload")
         a.id = UUID(); a.attemptId = id; a.clientAnswerId = clientId; a.sheetLayoutId = layout; a.sha256 = png.sha256; a.sizeBytes = png.count; a.createdAt = Date()
         try store.write(png, name: "answer.png", id: id)
@@ -100,9 +100,9 @@ import Foundation
     func answerImage(_ answer: Answer) async throws -> Data { try store.read("answer.png", id: answer.attemptId) }
     func submit(_ id: UUID, answerId: UUID, key: UUID) async throws -> Grading {
         var r = try store.load(id)
-        guard r.attempt.studyMode == .exam else { throw SORIError.configuration("Practice는 자기채점으로 진행합니다.") }
-        if let g = r.grading { guard g.answerId == answerId else { throw SORIError.configuration("ATTEMPT_ALREADY_SUBMITTED") }; return g }
-        guard r.uploaded?.id == answerId else { throw SORIError.configuration("RESOURCE_NOT_FOUND") }
+        guard r.attempt.studyMode == .exam else { throw SolfegeError.configuration("Practice는 자기채점으로 진행합니다.") }
+        if let g = r.grading { guard g.answerId == answerId else { throw SolfegeError.configuration("ATTEMPT_ALREADY_SUBMITTED") }; return g }
+        guard r.uploaded?.id == answerId else { throw SolfegeError.configuration("RESOURCE_NOT_FOUND") }
         r.attempt.status = "submitted"; r.attempt.submittedAnswerId = answerId; r.attempt.submittedAt = Date()
         var g: Grading = try Bundled.decode("grading-queued")
         g.attemptId = id; g.answerId = answerId; g.jobId = UUID(); g.createdAt = Date(); g.updatedAt = Date(); g.serverTime = Date()
@@ -110,7 +110,7 @@ import Foundation
     }
     func result(_ id: UUID) async throws -> Grading {
         var r = try store.load(id)
-        guard let old = r.grading else { throw SORIError.configuration("NOT_SUBMITTED") }
+        guard let old = r.grading else { throw SolfegeError.configuration("NOT_SUBMITTED") }
         guard old.isPending else { return old }
         let name = Date().timeIntervalSince(old.createdAt) < 4 ? "grading-processing" : "grading-\(outcome)"
         var g: Grading = try Bundled.decode(name)
@@ -119,21 +119,21 @@ import Foundation
     }
     func retryGrading(_ id: UUID, key: UUID) async throws -> Grading {
         var r = try store.load(id)
-        guard r.attempt.studyMode == .exam else { throw SORIError.configuration("Practice는 자기채점으로 진행합니다.") }
+        guard r.attempt.studyMode == .exam else { throw SolfegeError.configuration("Practice는 자기채점으로 진행합니다.") }
         if r.gradingRetryKey == key, let grading = r.grading { return grading }
-        guard r.grading?.canRetry == true else { throw SORIError.configuration("GRADING_NOT_RETRYABLE") }
+        guard r.grading?.canRetry == true else { throw SolfegeError.configuration("GRADING_NOT_RETRYABLE") }
         var g: Grading = try Bundled.decode("grading-queued")
         g.attemptId = id; g.answerId = r.attempt.submittedAnswerId!; g.jobId = UUID(); g.createdAt = Date(); g.updatedAt = Date(); g.serverTime = Date()
         r.gradingRetryKey = key; r.grading = g; try store.save(r); return g
     }
     func submitPractice(_ id: UUID, answerId: UUID, key: UUID) async throws -> PracticeAssessment {
         var r = try store.load(id)
-        guard r.attempt.studyMode == .practice else { throw SORIError.configuration("Exam은 AI 채점으로 진행합니다.") }
+        guard r.attempt.studyMode == .practice else { throw SolfegeError.configuration("Exam은 AI 채점으로 진행합니다.") }
         if let existing = r.selfAssessment {
-            guard existing.answerId == answerId else { throw SORIError.configuration("ATTEMPT_ALREADY_SUBMITTED") }
+            guard existing.answerId == answerId else { throw SolfegeError.configuration("ATTEMPT_ALREADY_SUBMITTED") }
             return existing
         }
-        guard r.attempt.status == "in_progress", r.uploaded?.id == answerId else { throw SORIError.configuration("답안을 먼저 업로드해 주세요.") }
+        guard r.attempt.status == "in_progress", r.uploaded?.id == answerId else { throw SolfegeError.configuration("답안을 먼저 업로드해 주세요.") }
         let now = Date()
         r.attempt.status = "submitted"; r.attempt.submittedAnswerId = answerId; r.attempt.submittedAt = now
         let review = try serializedReview(PracticeAssessment(attemptId:id,answerId:answerId,mode:"practice",gradingMode:"self",source:"self",
@@ -143,7 +143,7 @@ import Foundation
     }
     func practiceAssessment(_ id: UUID) async throws -> PracticeAssessment {
         let r = try store.load(id)
-        guard r.attempt.studyMode == .practice, r.attempt.status == "submitted", var review = r.selfAssessment else { throw SORIError.configuration("자기채점할 제출 답안이 없습니다.") }
+        guard r.attempt.studyMode == .practice, r.attempt.status == "submitted", var review = r.selfAssessment else { throw SolfegeError.configuration("자기채점할 제출 답안이 없습니다.") }
         review.serverTime = Date()
         return review
     }
@@ -156,14 +156,14 @@ import Foundation
     }
     func saveSelfAssessment(_ id: UUID, request: SelfAssessmentWrite, key: UUID) async throws -> PracticeAssessment {
         var r = try store.load(id)
-        guard r.attempt.studyMode == .practice, r.attempt.status == "submitted", let current = r.selfAssessment else { throw SORIError.configuration("자기채점할 제출 답안이 없습니다.") }
-        guard request.expectedRevision >= 0 else { throw SORIError.configuration("자기채점 버전을 확인해 주세요.") }
+        guard r.attempt.studyMode == .practice, r.attempt.status == "submitted", let current = r.selfAssessment else { throw SolfegeError.configuration("자기채점할 제출 답안이 없습니다.") }
+        guard request.expectedRevision >= 0 else { throw SolfegeError.configuration("자기채점 버전을 확인해 주세요.") }
         let normalized = SelfAssessmentWrite(expectedRevision:request.expectedRevision,
             errors:try SelfAssessmentEdits.normalized(request.errors,measureCount:r.attempt.question.measureCount),completed:request.completed)
         let name = "self-review-\(key.uuidString.lowercased()).json"
         if store.exists(name,id:id) {
             let receipt = try ContractJSON.decoder().decode(ReviewReceipt.self,from:store.read(name,id:id))
-            guard receipt.request == normalized else { throw SORIError.configuration("IDEMPOTENCY_KEY_REUSED") }
+            guard receipt.request == normalized else { throw SolfegeError.configuration("IDEMPOTENCY_KEY_REUSED") }
             // A journal receipt is written before the head. Replay repairs a crash
             // between those two writes without replacing a later revision.
             if current.revision < receipt.review.revision { r.selfAssessment = receipt.review; try store.save(r) }
@@ -171,7 +171,7 @@ import Foundation
         }
         guard current.revision == request.expectedRevision else {
             let detail = ErrorDetail(code:"SELF_ASSESSMENT_REVISION_CONFLICT",message:"채점 기록이 변경됐습니다. 최신 기록을 확인해 주세요.",fields:[],retryAfterMs:nil)
-            throw SORIError.server(409,ErrorEnvelope(error:detail,requestId:"demo-"+UUID().uuidString),retryAfter:nil)
+            throw SolfegeError.server(409,ErrorEnvelope(error:detail,requestId:"demo-"+UUID().uuidString),retryAfter:nil)
         }
         var review = current
         review.revision += 1; review.errors = normalized.errors
@@ -190,9 +190,9 @@ import Foundation
             // Foundation URL.path strips a trailing slash on Apple platforms.
             if url.lastPathComponent == "display" {
                 let manifest: EngravingManifest = try Bundled.decode("engraving-manifest")
-                guard let item = manifest.scores[values[index].scoreAssets.main.sha256] else { throw SORIError.configuration("정답 이미지가 없습니다.") }
+                guard let item = manifest.scores[values[index].scoreAssets.main.sha256] else { throw SolfegeError.configuration("정답 이미지가 없습니다.") }
                 let image = try Bundled.data(item.resource,ext:"png")
-                guard image.count <= limit else { throw SORIError.storage("정답 이미지 용량 초과") }
+                guard image.count <= limit else { throw SolfegeError.storage("정답 이미지 용량 초과") }
                 return image
             }
             let kind = url.path.contains("/scores/scale") ? "scale" : "main"
@@ -209,7 +209,7 @@ import Foundation
         } else if url.path.hasPrefix("/assets/sheets/") && SheetLayout.supports(url.deletingPathExtension().lastPathComponent) {
             // Previous immutable attempt snapshots may still need an old sheet.
             data = try Bundled.data(url.deletingPathExtension().lastPathComponent,ext:"png")
-        } else { throw SORIError.configuration("데모 자산을 찾을 수 없습니다.") }
-        guard data.count <= limit else { throw SORIError.storage("자산 용량 초과") }; return data
+        } else { throw SolfegeError.configuration("데모 자산을 찾을 수 없습니다.") }
+        guard data.count <= limit else { throw SolfegeError.storage("자산 용량 초과") }; return data
     }
 }

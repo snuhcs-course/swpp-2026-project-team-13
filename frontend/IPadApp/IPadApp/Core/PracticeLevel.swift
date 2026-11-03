@@ -41,7 +41,7 @@ extension Question {
             number += 1
             page = try await fetch(number)
             let fresh = page.results.filter { q in !questions.contains(where: { $0.id == q.id }) }
-            guard !fresh.isEmpty else { throw SORIError.transport("문제 목록의 페이지를 확인해 주세요.") }
+            guard !fresh.isEmpty else { throw SolfegeError.transport("문제 목록의 페이지를 확인해 주세요.") }
             questions.append(contentsOf:fresh)
         }
         return Self(questions:questions,lastPage:number)

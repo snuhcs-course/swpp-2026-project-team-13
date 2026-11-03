@@ -16,12 +16,12 @@ struct AuthIntroPanel: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             VStack(alignment: .leading, spacing: 6) {
-                HStack(spacing: 8) { WaveMark(); Text("SORI").font(.system(size: 29, weight: .heavy, design: .rounded)).tracking(3).foregroundStyle(SORITheme.ink) }
-                Text("소리에서 시작하는 음악 공부").font(.system(size: 14)).foregroundStyle(SORITheme.softInk)
+                HStack(spacing: 8) { WaveMark(); Text("solfège").font(.system(size: 29, weight: .heavy, design: .rounded)).tracking(3).foregroundStyle(SolfegeTheme.ink) }
+                Text("소리에서 시작하는 음악 공부").font(.system(size: 14)).foregroundStyle(SolfegeTheme.softInk)
             }.padding(.horizontal, 36)
             Spacer(minLength: compact ? 8 : 24)
             VStack(alignment: .leading, spacing: compact ? 8 : 28) {
-                Text(captions[stage]).font(.system(size: compact ? 22 : 28, weight: .bold)).foregroundStyle(SORITheme.ink).padding(.horizontal, 36)
+                Text(captions[stage]).font(.system(size: compact ? 22 : 28, weight: .bold)).foregroundStyle(SolfegeTheme.ink).padding(.horizontal, 36)
                     .accessibilityAddTraits(.isHeader)
                 AuthStaffDemo(stage: stage, beat: beat, tick: tick).frame(maxWidth: compact ? 540 : .infinity)
             }
@@ -31,20 +31,20 @@ struct AuthIntroPanel: View {
                     ForEach(steps.indices, id: \.self) { index in
                         Button { withAnimation(.easeInOut(duration: 0.28)) { stage = index; beat = 99; paused = true } } label: {
                             Text(steps[index]).font(.system(size: 15, weight: .medium)).padding(.horizontal, 18).frame(minHeight: 44)
-                                .foregroundStyle(stage == index ? Color.white : SORITheme.softInk)
-                                .background(stage == index ? SORITheme.violet : .clear, in: Capsule())
+                                .foregroundStyle(stage == index ? Color.white : SolfegeTheme.softInk)
+                                .background(stage == index ? SolfegeTheme.violet : .clear, in: Capsule())
                         }.buttonStyle(.plain).accessibilityAddTraits(stage == index ? .isSelected : [])
                     }
                 }
                 Spacer()
                 Button { paused.toggle() } label: {
-                    Image(systemName: paused ? "play.fill" : "pause.fill").font(.system(size: 17)).frame(width: 44, height: 44).foregroundStyle(SORITheme.softInk)
+                    Image(systemName: paused ? "play.fill" : "pause.fill").font(.system(size: 17)).frame(width: 44, height: 44).foregroundStyle(SolfegeTheme.softInk)
                 }.buttonStyle(.plain).accessibilityLabel(paused ? "데모 재생" : "데모 멈추기")
             }.padding(.horizontal, 36)
         }
         .padding(.vertical, compact ? 16 : 36)
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-        .background(SORITheme.soft.ignoresSafeArea())
+        .background(SolfegeTheme.soft.ignoresSafeArea())
         .onAppear { if reduceMotion { paused = true; beat = 99 } }
         .onReceive(timer) { _ in
             guard !paused else { return }
@@ -106,9 +106,9 @@ private struct AuthStaffDemo: View {
         switch stage { case 0: 0; case 1: beat > note.id ? 1 : 0; default: 1 }
     }
     private func color(_ note: DemoNote) -> Color {
-        guard stage == 2 else { return SORITheme.ink }
+        guard stage == 2 else { return SolfegeTheme.ink }
         if note.id == Self.wrongNote { return wrong }
-        return note.measure == 1 ? correct : SORITheme.ink
+        return note.measure == 1 ? correct : SolfegeTheme.ink
     }
     private func bands(_ scale: CGFloat) -> some View {
         ZStack(alignment: .topLeading) {
@@ -118,7 +118,7 @@ private struct AuthStaffDemo: View {
     }
     private func staff(_ scale: CGFloat) -> some View {
         Canvas { context, _ in
-            let ink = SORITheme.ink
+            let ink = SolfegeTheme.ink
             func line(_ x1: CGFloat, _ y1: CGFloat, _ x2: CGFloat, _ y2: CGFloat) {
                 var path = Path(); path.move(to: CGPoint(x: x1 * scale, y: (top + y1) * scale)); path.addLine(to: CGPoint(x: x2 * scale, y: (top + y2) * scale))
                 context.stroke(path, with: .color(ink.opacity(0.38)), lineWidth: 1)
@@ -137,7 +137,7 @@ private struct AuthStaffDemo: View {
             ForEach(0..<21, id: \.self) { index in
                 let wave = abs(sin(Double(tick) * 0.8 + Double(index) * 0.62))
                 let envelope = 0.45 + 0.55 * sin(Double(index + 1) / 22 * .pi)
-                Capsule().fill(SORITheme.violet).frame(width: 6 * scale, height: (10 + 78 * wave * envelope) * scale)
+                Capsule().fill(SolfegeTheme.violet).frame(width: 6 * scale, height: (10 + 78 * wave * envelope) * scale)
                 if index < 20 { Spacer(minLength: 0) }
             }
         }

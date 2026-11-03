@@ -8,7 +8,7 @@ struct SettingsView: View {
     @State private var confirmingDeletion = false
     var body: some View {
         ScrollView { VStack(alignment:.leading,spacing:28) {
-            SectionCaption(eyebrow:"CONNECTION & PREFERENCES",title:"설정",subtitle:"로컬 데모 또는 SORI 서버에 연결하세요.")
+            SectionCaption(eyebrow:"CONNECTION & PREFERENCES",title:"설정",subtitle:"로컬 데모 또는 solfège 서버에 연결하세요.")
             Card { VStack(alignment:.leading,spacing:20) {
                 Toggle("로컬 데모 사용",isOn:Binding(get:{model.demo},set:{ value in Task { await model.setDemoMode(value) } })).font(.headline).disabled(model.busy).accessibilityIdentifier("use-local-demo")
                 if model.demo {
@@ -36,7 +36,7 @@ struct SettingsView: View {
             if let user=model.profile {
                 Card { VStack(alignment:.leading,spacing:16) {
                     Text("나의 학습 목표").font(.headline)
-                    Picker("학습 목표",selection:Binding(get:{user.learningGoal},set:{ goal in if let goal { Task { await model.updateGoal(goal) } } })) { ForEach(SORITheme.goals,id:\.0) { key,title in Text(title).tag(String?.some(key)) } }
+                    Picker("학습 목표",selection:Binding(get:{user.learningGoal},set:{ goal in if let goal { Task { await model.updateGoal(goal) } } })) { ForEach(SolfegeTheme.goals,id:\.0) { key,title in Text(title).tag(String?.some(key)) } }
                 } }
                 if !model.demo {
                     Card { VStack(alignment: .leading, spacing: 16) {

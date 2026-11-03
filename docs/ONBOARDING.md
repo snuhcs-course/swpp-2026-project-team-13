@@ -1,6 +1,6 @@
 # 온보딩: 회원가입 · 학습 목표 · 로그인
 
-첫 실행은 **회원가입 → 학습 목표 선택 → 메인 홈**으로 이어진다. 서버 API는 [API 계약 v0.12.0](sori-api/API-CONTRACT.md), 코드는 `frontend/IPadApp/IPadApp/Views/AuthFlowView.swift`부터 보면 된다.
+첫 실행은 **회원가입 → 학습 목표 선택 → 메인 홈**으로 이어진다. 서버 API는 [API 계약 v0.12.0](solfege-api/API-CONTRACT.md), 코드는 `frontend/IPadApp/IPadApp/Views/AuthFlowView.swift`부터 보면 된다.
 
 ## 어떤 화면이 먼저 열리는가
 

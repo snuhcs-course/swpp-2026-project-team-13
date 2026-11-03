@@ -30,6 +30,7 @@ final class LocalStore {
     let root: URL
     init(scope: String) throws {
         let app = try FileManager.default.url(for: .applicationSupportDirectory, in: .userDomainMask, appropriateFor: nil, create: true)
+        // The folder keeps the app's old name: renaming it would lose saved handwriting and attempts.
         root = app.appendingPathComponent("SORI", isDirectory: true).appendingPathComponent(Data(scope.utf8).sha256, isDirectory: true)
         try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
         var values = URLResourceValues(); values.isExcludedFromBackup = true
@@ -65,7 +66,7 @@ final class LocalStore {
 enum TokenVault {
     static let service = "org.snuhcs.team13.sori.development-token"
     static func account(_ server: String) throws -> String {
-        guard let url = URL(string: server), let origin = Origin(url) else { throw SORIError.configuration("API 주소를 확인해 주세요.") }
+        guard let url = URL(string: server), let origin = Origin(url) else { throw SolfegeError.configuration("API 주소를 확인해 주세요.") }
         return origin.key
     }
     static func read(server: String) throws -> String {
@@ -73,20 +74,20 @@ enum TokenVault {
         var result: CFTypeRef?
         let status = SecItemCopyMatching(query as CFDictionary, &result)
         if status == errSecItemNotFound { return "" }
-        guard status == errSecSuccess, let data = result as? Data, let value = String(data: data, encoding: .utf8) else { throw SORIError.storage("Keychain에서 토큰을 읽을 수 없습니다.") }; return value
+        guard status == errSecSuccess, let data = result as? Data, let value = String(data: data, encoding: .utf8) else { throw SolfegeError.storage("Keychain에서 토큰을 읽을 수 없습니다.") }; return value
     }
     static func save(_ value: String, server: String) throws {
         let query: [String: Any] = [kSecClass as String: kSecClassGenericPassword, kSecAttrService as String: service, kSecAttrAccount as String: try account(server)]
         let attributes: [String: Any] = [kSecValueData as String: Data(value.utf8), kSecAttrAccessible as String: kSecAttrAccessibleWhenUnlockedThisDeviceOnly]
         let result = SecItemUpdate(query as CFDictionary, attributes as CFDictionary)
         if result == errSecItemNotFound {
-            guard SecItemAdd(query.merging(attributes) { _, new in new } as CFDictionary, nil) == errSecSuccess else { throw SORIError.storage("Keychain에 토큰을 저장하지 못했습니다.") }
-        } else if result != errSecSuccess { throw SORIError.storage("Keychain의 토큰을 갱신하지 못했습니다. (\(result))") }
+            guard SecItemAdd(query.merging(attributes) { _, new in new } as CFDictionary, nil) == errSecSuccess else { throw SolfegeError.storage("Keychain에 토큰을 저장하지 못했습니다.") }
+        } else if result != errSecSuccess { throw SolfegeError.storage("Keychain의 토큰을 갱신하지 못했습니다. (\(result))") }
     }
     static func delete(server: String) throws {
         let query: [String: Any] = [kSecClass as String: kSecClassGenericPassword, kSecAttrService as String: service, kSecAttrAccount as String: try account(server)]
         let status = SecItemDelete(query as CFDictionary)
-        guard status == errSecSuccess || status == errSecItemNotFound else { throw SORIError.storage("Keychain의 토큰을 삭제하지 못했습니다.") }
+        guard status == errSecSuccess || status == errSecItemNotFound else { throw SolfegeError.storage("Keychain의 토큰을 삭제하지 못했습니다.") }
     }
     // Builds before password login kept a plaintext token copy here.
     static func removeLegacyPlaintextCopies() {
@@ -99,7 +100,7 @@ enum Bundled {
     static func data(_ name: String, ext: String) throws -> Data {
         // Raw PNG extension prevents Xcode pngcrush from changing contract-pinned bytes.
         let raw = ext == "png" ? Bundle.main.url(forResource: name, withExtension: "pngdata") : nil
-        guard let url = raw ?? Bundle.main.url(forResource: name, withExtension: ext) else { throw SORIError.storage("번들 리소스가 없습니다: \(name).\(ext)") }; return try Data(contentsOf: url)
+        guard let url = raw ?? Bundle.main.url(forResource: name, withExtension: ext) else { throw SolfegeError.storage("번들 리소스가 없습니다: \(name).\(ext)") }; return try Data(contentsOf: url)
     }
     static func decode<T: Decodable>(_ name: String) throws -> T { try ContractJSON.decoder().decode(T.self, from: data(name, ext: "json")) }
 }

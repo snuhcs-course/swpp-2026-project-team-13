@@ -7,8 +7,8 @@ struct HomeView: View {
         ScrollView {
             VStack(alignment: .leading, spacing: 28) {
                 VStack(alignment:.leading,spacing:6) {
-                    Text(model.selectedPracticeLevel.map { "\(mode.title) · \($0.title)" } ?? mode.title).font(.system(size:34,weight:.bold)).foregroundStyle(SORITheme.ink).accessibilityAddTraits(.isHeader)
-                    Text(mode.detail).font(.system(size:16)).foregroundStyle(SORITheme.muted)
+                    Text(model.selectedPracticeLevel.map { "\(mode.title) · \($0.title)" } ?? mode.title).font(.system(size:34,weight:.bold)).foregroundStyle(SolfegeTheme.ink).accessibilityAddTraits(.isHeader)
+                    Text(mode.detail).font(.system(size:16)).foregroundStyle(SolfegeTheme.muted)
                 }
                 if !model.connected {
                     Card { VStack(alignment: .leading, spacing: 16) {
@@ -29,7 +29,7 @@ struct HomeView: View {
                     }
                     HStack {
                         if let level = model.selectedPracticeLevel { Text("\(level.title) 청음 연습").font(.title2.bold()) }
-                        else { Text("난이도를 골라보세요").font(.system(size:14,weight:.medium)).foregroundStyle(SORITheme.muted) }
+                        else { Text("난이도를 골라보세요").font(.system(size:14,weight:.medium)).foregroundStyle(SolfegeTheme.muted) }
                         Spacer(); Text("\(visibleQuestions.count)개 문제").font(.subheadline).foregroundStyle(.secondary)
                     }
                     if model.questions.isEmpty { ContentUnavailableView("아직 등록된 문제가 없어요", systemImage: "music.note", description: Text("문제가 게시되면 이곳에서 연습을 시작할 수 있어요.")) }
@@ -54,11 +54,11 @@ struct HomeView: View {
                     ForEach(Array(visibleQuestions.enumerated()), id: \.element.id) { index, q in
                         Button { Task { await model.choose(q.id,mode:mode) } } label: {
                             Card { HStack(spacing: 20) {
-                                Text(String(format: "%02d", index+1)).font(.system(size: 29, weight: .light, design: .rounded)).foregroundStyle(SORITheme.violet).frame(width: 48)
-                                VStack(alignment: .leading, spacing: 10) { Text(q.title).font(.headline).foregroundStyle(SORITheme.ink)
+                                Text(String(format: "%02d", index+1)).font(.system(size: 29, weight: .light, design: .rounded)).foregroundStyle(SolfegeTheme.violet).frame(width: 48)
+                                VStack(alignment: .leading, spacing: 10) { Text(q.title).font(.headline).foregroundStyle(SolfegeTheme.ink)
                                     HStack { Text(q.keySignature.label); Text("·"); Text("\(q.timeSignature.numerator)/\(q.timeSignature.denominator)"); Text("·"); Text("\(q.measureCount)마디"); Text("·"); Text("\(q.recommendedDurationSeconds / 60)분 \(q.recommendedDurationSeconds % 60)초") }.font(.caption).foregroundStyle(.secondary)
                                 }
-                                Spacer(); Image(systemName: "arrow.up.right").font(.title3).foregroundStyle(SORITheme.violet).padding(14).background(SORITheme.soft, in: Circle())
+                                Spacer(); Image(systemName: "arrow.up.right").font(.title3).foregroundStyle(SolfegeTheme.violet).padding(14).background(SolfegeTheme.soft, in: Circle())
                             } }
                         }.buttonStyle(.plain).accessibilityIdentifier("practice-question-\(q.id.uuidString.lowercased())")
                     }
@@ -67,8 +67,8 @@ struct HomeView: View {
                     if model.hasNextPage { Button("문제 더 보기") { Task { await model.loadMore() } }.frame(maxWidth: .infinity) }
                     Button { model.selectedMode = mode; model.navigate(.classical) } label: {
                         HStack {
-                            Text("클래식 선율 문제").font(.system(size:20,weight:.bold)).foregroundStyle(SORITheme.ink)
-                            Spacer(); Image(systemName:"arrow.up.right").font(.system(size:20)).foregroundStyle(SORITheme.violet)
+                            Text("클래식 선율 문제").font(.system(size:20,weight:.bold)).foregroundStyle(SolfegeTheme.ink)
+                            Spacer(); Image(systemName:"arrow.up.right").font(.system(size:20)).foregroundStyle(SolfegeTheme.violet)
                         }.padding(.horizontal,20).frame(maxWidth:.infinity,minHeight:76).background(.white,in:RoundedRectangle(cornerRadius:16))
                     }.buttonStyle(.plain)
                     if model.demo { DemoBadge() }
@@ -94,12 +94,12 @@ struct HomeView: View {
     private func levelCard(_ level: PracticeLevel, count: Int) -> some View {
         VStack(alignment:.leading,spacing:6) {
             HStack(alignment:.top) {
-                Text(level.title).font(.system(size:28,weight:.bold)).foregroundStyle(SORITheme.ink)
-                Spacer(); Image(systemName:"arrow.up.right").font(.system(size:20)).foregroundStyle(SORITheme.violet)
+                Text(level.title).font(.system(size:28,weight:.bold)).foregroundStyle(SolfegeTheme.ink)
+                Spacer(); Image(systemName:"arrow.up.right").font(.system(size:20)).foregroundStyle(SolfegeTheme.violet)
             }
             Spacer(minLength:16)
-            Text(level.subtitle).font(.system(size:14)).foregroundStyle(SORITheme.muted).multilineTextAlignment(.leading).fixedSize(horizontal:false,vertical:true)
-            Text("\(count)개 문제 · 8마디").font(.system(size:14,weight:.semibold)).foregroundStyle(SORITheme.deepViolet)
+            Text(level.subtitle).font(.system(size:14)).foregroundStyle(SolfegeTheme.muted).multilineTextAlignment(.leading).fixedSize(horizontal:false,vertical:true)
+            Text("\(count)개 문제 · 8마디").font(.system(size:14,weight:.semibold)).foregroundStyle(SolfegeTheme.deepViolet)
         }.padding(20).frame(maxWidth:.infinity,minHeight:200,alignment:.topLeading).background(.white,in:RoundedRectangle(cornerRadius:16))
     }
 }
@@ -109,7 +109,7 @@ struct QuestionView: View {
         ScrollView { if let q = model.selectedQuestion {
             VStack(alignment: .leading, spacing: 28) {
                 SectionCaption(eyebrow:"READY TO LISTEN",title:q.title,subtitle:model.selectedMode == .practice ? "멜로디를 듣고 빈 오선에 적은 뒤 정답과 직접 비교해요." : q.description)
-                Text(model.selectedMode.title + " · " + model.selectedMode.detail).font(.subheadline).foregroundStyle(SORITheme.violet)
+                Text(model.selectedMode.title + " · " + model.selectedMode.detail).font(.subheadline).foregroundStyle(SolfegeTheme.violet)
                 HStack {
                     Pill(text:q.keySignature.label,icon:"music.note")
                     Pill(text:"\(q.timeSignature.numerator)/\(q.timeSignature.denominator) · 8마디")
@@ -131,7 +131,7 @@ struct QuestionView: View {
     }
     func instruction(_ index: String, _ title: String, _ detail: String) -> some View {
         HStack(alignment: .top, spacing: 18) {
-            Text(index).font(.caption.bold()).foregroundStyle(SORITheme.violet).padding(12).background(SORITheme.soft, in: Circle())
+            Text(index).font(.caption.bold()).foregroundStyle(SolfegeTheme.violet).padding(12).background(SolfegeTheme.soft, in: Circle())
             VStack(alignment: .leading, spacing: 6) { Text(title).font(.headline); Text(detail).font(.subheadline).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true) }
         }
     }
@@ -146,11 +146,11 @@ struct HistoryView: View {
                 Button { Task { await model.open(r) } } label: {
                     Card { HStack {
                         VStack(alignment: .leading, spacing: 8) { Text(r.attempt.question.title).font(.headline); Text(r.attempt.createdAt, format: .dateTime.year().month().day().hour().minute()).font(.caption).foregroundStyle(.secondary)
-                            Text(r.attempt.studyMode.title).font(.caption.weight(.semibold)).foregroundStyle(SORITheme.violet)
-                            if r.attempt.gradingMode == "demo" { Text("데모 연습").font(.caption).foregroundStyle(SORITheme.violet) }
+                            Text(r.attempt.studyMode.title).font(.caption.weight(.semibold)).foregroundStyle(SolfegeTheme.violet)
+                            if r.attempt.gradingMode == "demo" { Text("데모 연습").font(.caption).foregroundStyle(SolfegeTheme.violet) }
                         }; Spacer()
                         if r.attempt.studyMode == .practice, r.attempt.status == "submitted" { Pill(text:r.selfAssessment?.isCompleted == true && r.practiceEdits == nil && r.selfAssessmentSave == nil ? "자기채점 완료" : "자기채점 중") }
-                        else if r.grading?.status == "completed", let score = r.grading?.score { Text("\(score)점").font(.title2.bold()).foregroundStyle(SORITheme.violet) }
+                        else if r.grading?.status == "completed", let score = r.grading?.score { Text("\(score)점").font(.title2.bold()).foregroundStyle(SolfegeTheme.violet) }
                         else { Pill(text: r.attempt.status == "submitted" ? "결과 확인" : "이어서 연습") }
                         Image(systemName: "chevron.right")
                     } }

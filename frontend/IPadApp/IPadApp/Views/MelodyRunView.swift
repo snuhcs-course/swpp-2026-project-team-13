@@ -23,8 +23,8 @@ struct MiniGameHubView: View {
         Button(action:action) {
             VStack(alignment:.leading,spacing:18) {
                 HStack { Image(systemName:icon).font(.system(size:42,weight:.light)); Spacer(); Image(systemName:"arrow.up.right") }
-                    .foregroundStyle(SORITheme.violet)
-                Text(title).font(.system(size:28,weight:.bold,design:.rounded)).foregroundStyle(SORITheme.ink)
+                    .foregroundStyle(SolfegeTheme.violet)
+                Text(title).font(.system(size:28,weight:.bold,design:.rounded)).foregroundStyle(SolfegeTheme.ink)
                 Text(subtitle).font(.subheadline).foregroundStyle(.secondary).lineLimit(2)
                 Spacer(minLength:0)
             }.padding(28).frame(maxWidth:.infinity,alignment:.leading).frame(height:224)
@@ -41,7 +41,7 @@ struct MelodyRunView: View {
     @State private var importing = false
     var body: some View {
         ZStack {
-            SORITheme.background.ignoresSafeArea()
+            SolfegeTheme.background.ignoresSafeArea()
             switch game.page {
             case .setup: setup
             case .playing: play
@@ -51,7 +51,7 @@ struct MelodyRunView: View {
                 Color.black.opacity(0.12).ignoresSafeArea()
                 ProgressView("피아노와 선율 준비 중").padding(28).background(.regularMaterial,in:RoundedRectangle(cornerRadius:20))
             }
-        }.tint(SORITheme.violet).preferredColorScheme(.light)
+        }.tint(SolfegeTheme.violet).preferredColorScheme(.light)
         .sheet(isPresented:$picking) { MelodyQuestionPicker(game:game) }
         .fileImporter(isPresented:$importing,allowedContentTypes:[.xml,UTType(filenameExtension:"musicxml") ?? .xml],allowsMultipleSelection:true) { result in
             switch result {
@@ -106,7 +106,7 @@ struct MelodyRunView: View {
                     }
                     Card {
                         VStack(alignment:.leading,spacing:18) {
-                            HStack { Text("플레이 감각").font(.headline); Spacer(); Text("♩ = \(Int(game.settings.bpm))").font(.title3.bold().monospacedDigit()).foregroundStyle(SORITheme.violet) }
+                            HStack { Text("플레이 감각").font(.headline); Spacer(); Text("♩ = \(Int(game.settings.bpm))").font(.title3.bold().monospacedDigit()).foregroundStyle(SolfegeTheme.violet) }
                             Slider(value:$game.settings.bpm,in:40...180,step:2) { Text("BPM") }
                             Text("BPM은 4분음표 기준이에요. 예비박은 박자표대로 세어요. 3/4는 3박, 4/4는 4박, 6/8은 6박이에요.").font(.caption).foregroundStyle(.secondary)
                             Divider()
@@ -138,16 +138,16 @@ struct MelodyRunView: View {
                 Image(systemName:icon).font(.system(size:32)).frame(width:60,height:60).background(.white.opacity(0.7),in:RoundedRectangle(cornerRadius:16))
                 VStack(alignment:.leading,spacing:5) { Text(mode.title).font(.title2.bold()); Text(description).font(.subheadline.bold()); Text(detail).font(.caption).foregroundStyle(.secondary) }
                 Spacer(); Image(systemName:selected ? "checkmark.circle.fill" : "circle").font(.title2)
-            }.padding(22).frame(maxWidth:.infinity,alignment:.leading).foregroundStyle(SORITheme.ink)
-                .background(selected ? SORITheme.soft : .white,in:RoundedRectangle(cornerRadius:22))
-                .overlay(RoundedRectangle(cornerRadius:22).stroke(selected ? SORITheme.violet : .clear,lineWidth:2))
+            }.padding(22).frame(maxWidth:.infinity,alignment:.leading).foregroundStyle(SolfegeTheme.ink)
+                .background(selected ? SolfegeTheme.soft : .white,in:RoundedRectangle(cornerRadius:22))
+                .overlay(RoundedRectangle(cornerRadius:22).stroke(selected ? SolfegeTheme.violet : .clear,lineWidth:2))
         }.buttonStyle(.plain).accessibilityAddTraits(selected ? .isSelected : [])
     }
     private var play: some View {
         GeometryReader { geometry in
             VStack(spacing:14) {
                 HStack {
-                    VStack(alignment:.leading,spacing:3) { Text("Memory run / \(game.settings.mode.title)").font(.caption.bold()).tracking(2).foregroundStyle(SORITheme.violet); Text(game.question?.title ?? "").font(.headline).lineLimit(1) }
+                    VStack(alignment:.leading,spacing:3) { Text("Memory run / \(game.settings.mode.title)").font(.caption.bold()).tracking(2).foregroundStyle(SolfegeTheme.violet); Text(game.question?.title ?? "").font(.headline).lineLimit(1) }
                     Spacer(); Pill(text:"\(game.measure) / \(game.round?.score.measures ?? 0)마디")
                     Pill(text:"♩ \(Int(game.settings.bpm))",icon:"metronome")
                     Button { game.paused ? game.resume() : game.pause() } label: { Image(systemName:game.paused ? "play.fill" : "pause.fill").frame(width:44,height:44).background(.white,in:Circle()) }.accessibilityLabel(game.paused ? "계속하기" : "일시 정지")
@@ -160,7 +160,7 @@ struct MelodyRunView: View {
                     Spacer()
                     if game.round != nil {
                         ForEach(0..<game.beatsPerBar,id:\.self) { index in
-                            Circle().fill(game.pulse == index && !game.paused ? SORITheme.violet : SORITheme.violet.opacity(0.15)).frame(width:14,height:14)
+                            Circle().fill(game.pulse == index && !game.paused ? SolfegeTheme.violet : SolfegeTheme.violet.opacity(0.15)).frame(width:14,height:14)
                         }
                     }
                 }
@@ -168,7 +168,7 @@ struct MelodyRunView: View {
                     HStack {
                         Text(game.label).font(.system(size:25,weight:.bold,design:.rounded))
                         Spacer()
-                        if game.canEnter { Text("\(game.currentCount) / \(game.currentTotal)음").font(.title3.bold().monospacedDigit()).foregroundStyle(SORITheme.violet) }
+                        if game.canEnter { Text("\(game.currentCount) / \(game.currentTotal)음").font(.title3.bold().monospacedDigit()).foregroundStyle(SolfegeTheme.violet) }
                         if game.settings.mode == .groove { Text(String(format:"%.1f초",game.remainingSeconds)).font(.subheadline.monospacedDigit()).foregroundStyle(.secondary) }
                     }
                     if game.settings.mode == .groove || game.phase != .input { ProgressView(value:min(1,max(0,game.progress))).padding(.top,5) }
@@ -191,8 +191,8 @@ struct MelodyRunView: View {
                             Button { game.selectBar(bar) } label: {
                                 HStack(spacing:4) { Text("\(bar)"); if game.answers?.complete(bar) == true { Image(systemName:"checkmark").font(.caption2.bold()) } }
                                     .font(.subheadline.bold()).frame(minWidth:38,minHeight:36).padding(.horizontal,6)
-                                    .foregroundStyle(bar == game.measure ? .white : SORITheme.violet)
-                                    .background(bar == game.measure ? SORITheme.violet : SORITheme.soft,in:RoundedRectangle(cornerRadius:9))
+                                    .foregroundStyle(bar == game.measure ? .white : SolfegeTheme.violet)
+                                    .background(bar == game.measure ? SolfegeTheme.violet : SolfegeTheme.soft,in:RoundedRectangle(cornerRadius:9))
                             }.buttonStyle(.plain).accessibilityLabel("\(bar)마디")
                         }
                     }
@@ -213,8 +213,8 @@ struct MelodyRunView: View {
     }
     private func phasePill(_ text: String, icon: String, active: Bool) -> some View {
         Label(text,systemImage:icon).font(.subheadline.bold()).padding(.horizontal,18).padding(.vertical,9)
-            .foregroundStyle(active ? .white : SORITheme.ink.opacity(0.5))
-            .background(active ? SORITheme.violet : .white,in:Capsule())
+            .foregroundStyle(active ? .white : SolfegeTheme.ink.opacity(0.5))
+            .background(active ? SolfegeTheme.violet : .white,in:Capsule())
     }
     private var result: some View {
         ScrollView {
@@ -249,7 +249,7 @@ struct MelodyRunView: View {
         }
     }
     private func resultMetric(_ title: String, _ value: String, icon: String) -> some View {
-        Card { VStack(alignment:.leading,spacing:12) { Label(title,systemImage:icon).font(.subheadline).foregroundStyle(.secondary); Text(value).font(.system(size:42,weight:.bold,design:.rounded)).foregroundStyle(SORITheme.violet) } }
+        Card { VStack(alignment:.leading,spacing:12) { Label(title,systemImage:icon).font(.subheadline).foregroundStyle(.secondary); Text(value).font(.system(size:42,weight:.bold,design:.rounded)).foregroundStyle(SolfegeTheme.violet) } }
     }
     private func resultBar(_ bar: Int, round: MelodyRound, answers: MelodyAnswers) -> some View {
         let expected = round.display(measure:bar,answers:answers.pitches,reveal:true)
@@ -274,8 +274,8 @@ struct MelodyRunView: View {
                         ForEach(Array(indices.enumerated()),id:\.element) { number,index in
                             let right = answers.pitches[index] == round.targets[index].midi
                             Text("\(number+1). \(MelodyRound.noteName(round.targets[index].midi)) → \(MelodyRound.noteName(answers.pitches[index]))")
-                                .font(.caption.weight(.medium)).padding(9).foregroundStyle(right ? SORITheme.green : .red)
-                                .background((right ? SORITheme.green : Color.red).opacity(0.08),in:RoundedRectangle(cornerRadius:8))
+                                .font(.caption.weight(.medium)).padding(9).foregroundStyle(right ? SolfegeTheme.green : .red)
+                                .background((right ? SolfegeTheme.green : Color.red).opacity(0.08),in:RoundedRectangle(cornerRadius:8))
                         }
                     }
                 }
@@ -333,10 +333,10 @@ private struct MelodyQuestionPicker: View {
                         VStack(alignment:.leading,spacing:6) { Text(question.title).font(.headline); Text("\(question.key) · \(question.beats)/\(question.beatType) · \(question.noteCount)음 · \(MelodyRound.noteName(question.lowestMidi))–\(MelodyRound.noteName(question.highestMidi))").font(.caption).foregroundStyle(.secondary) }
                         Spacer(); if game.selection == question.id { Image(systemName:"checkmark.circle.fill") }
                     }.padding(.vertical,5)
-                }.foregroundStyle(SORITheme.ink)
+                }.foregroundStyle(SolfegeTheme.ink)
             }.searchable(text:$query,prompt:"제목, 조성, 박자로 검색")
                 .navigationTitle("선율 고르기 · \(filtered.count)개")
                 .toolbar { ToolbarItem(placement:.topBarTrailing) { Button("닫기") { dismiss() } } }
-        }.tint(SORITheme.violet)
+        }.tint(SolfegeTheme.violet)
     }
 }

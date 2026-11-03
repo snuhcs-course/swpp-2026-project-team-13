@@ -19,7 +19,7 @@ struct AuthFlowView: View {
                 ZStack(alignment: .topTrailing) {
                     form(keyboardVisible: keyboardVisible, topInset: wide ? min(96, max(16, proxy.size.height - Self.formHeight)) : 24)
                     Button { model.navigate(.settings) } label: {
-                        Image(systemName: "slider.horizontal.3").font(.system(size: 19)).foregroundStyle(SORITheme.muted).frame(width: 44, height: 44)
+                        Image(systemName: "slider.horizontal.3").font(.system(size: 19)).foregroundStyle(SolfegeTheme.muted).frame(width: 44, height: 44)
                     }.buttonStyle(.plain).padding(20).accessibilityLabel("서버 연결 설정").accessibilityIdentifier("server-settings")
                 }
                 .padding(.bottom, keyboardOverlap)
@@ -74,11 +74,11 @@ struct AuthHeader: View {
     let compact: Bool
     var body: some View {
         if compact {
-            Text(title).font(.system(size: 22, weight: .bold)).foregroundStyle(SORITheme.ink).accessibilityAddTraits(.isHeader)
+            Text(title).font(.system(size: 22, weight: .bold)).foregroundStyle(SolfegeTheme.ink).accessibilityAddTraits(.isHeader)
         } else {
             VStack(alignment: .leading, spacing: 6) {
-                Text(title).font(.system(size: 34, weight: .bold)).foregroundStyle(SORITheme.ink).accessibilityAddTraits(.isHeader)
-                Text(subtitle).font(.system(size: 16)).foregroundStyle(SORITheme.muted).lineSpacing(2).fixedSize(horizontal: false, vertical: true)
+                Text(title).font(.system(size: 34, weight: .bold)).foregroundStyle(SolfegeTheme.ink).accessibilityAddTraits(.isHeader)
+                Text(subtitle).font(.system(size: 16)).foregroundStyle(SolfegeTheme.muted).lineSpacing(2).fixedSize(horizontal: false, vertical: true)
             }.frame(minHeight: 98, alignment: .top)
         }
     }
@@ -103,13 +103,13 @@ struct AuthField<Input: View>: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
-            Text(title).font(.system(size: 14, weight: .medium)).foregroundStyle(SORITheme.ink)
+            Text(title).font(.system(size: 14, weight: .medium)).foregroundStyle(SolfegeTheme.ink)
             input()
-                .font(.system(size: 17)).foregroundStyle(SORITheme.ink)
+                .font(.system(size: 17)).foregroundStyle(SolfegeTheme.ink)
                 .padding(.horizontal, 16).frame(height: 52)
                 .contentShape(RoundedRectangle(cornerRadius: 12)).onTapGesture(perform: focus)
-                .background(focused || failed ? Color.white : SORITheme.field, in: RoundedRectangle(cornerRadius: 12))
-                .overlay(RoundedRectangle(cornerRadius: 12).stroke(failed ? SORITheme.danger : focused ? SORITheme.violet : .clear, lineWidth: 2))
+                .background(focused || failed ? Color.white : SolfegeTheme.field, in: RoundedRectangle(cornerRadius: 12))
+                .overlay(RoundedRectangle(cornerRadius: 12).stroke(failed ? SolfegeTheme.danger : focused ? SolfegeTheme.violet : .clear, lineWidth: 2))
                 .animation(.easeOut(duration: 0.16), value: focused)
             VStack(alignment: .leading, spacing: 2) {
                 ForEach(hints) { hint in
@@ -118,7 +118,7 @@ struct AuthField<Input: View>: View {
                         Text(hint.text).fixedSize(horizontal: false, vertical: true)
                     }
                     .font(.system(size: 13))
-                    .foregroundStyle(hint.tone == .bad ? SORITheme.danger : hint.tone == .good ? SORITheme.green : SORITheme.muted)
+                    .foregroundStyle(hint.tone == .bad ? SolfegeTheme.danger : hint.tone == .good ? SolfegeTheme.green : SolfegeTheme.muted)
                 }
             }.frame(minHeight: 18, alignment: .top)
         }
@@ -148,7 +148,7 @@ struct AuthPasswordInput<Field: Hashable>: View {
                     revealed.toggle()
                     if focus.wrappedValue == field { Task { await Task.yield(); focus.wrappedValue = field } }
                 } label: {
-                    Image(systemName: revealed ? "eye.slash" : "eye").font(.system(size: 17)).foregroundStyle(SORITheme.muted).frame(width: 44, height: 44)
+                    Image(systemName: revealed ? "eye.slash" : "eye").font(.system(size: 17)).foregroundStyle(SolfegeTheme.muted).frame(width: 44, height: 44)
                 }.buttonStyle(.plain).padding(.trailing, -10).accessibilityLabel(revealed ? "비밀번호 가리기" : "비밀번호 보기")
             }
         }
@@ -160,8 +160,8 @@ struct AuthPrimaryButtonStyle: ButtonStyle {
     var height: CGFloat = 56
     func makeBody(configuration: Configuration) -> some View {
         configuration.label.font(.system(size: 17, weight: .bold)).frame(maxWidth: .infinity).frame(height: height)
-            .foregroundStyle(enabled ? Color.white : SORITheme.disabledText)
-            .background((enabled ? SORITheme.violet : SORITheme.disabledFill).opacity(configuration.isPressed ? 0.75 : 1), in: RoundedRectangle(cornerRadius: 12))
+            .foregroundStyle(enabled ? Color.white : SolfegeTheme.disabledText)
+            .background((enabled ? SolfegeTheme.violet : SolfegeTheme.disabledFill).opacity(configuration.isPressed ? 0.75 : 1), in: RoundedRectangle(cornerRadius: 12))
             .animation(.easeOut(duration: 0.2), value: enabled)
     }
 }
@@ -174,9 +174,9 @@ struct AuthSwitchLink: View {
     let perform: () -> Void
     var body: some View {
         HStack(spacing: 2) {
-            Text(prompt).foregroundStyle(SORITheme.muted)
+            Text(prompt).foregroundStyle(SolfegeTheme.muted)
             Button(action: perform) { Text(action).fontWeight(.medium).underline().padding(.horizontal, 6).frame(height: 44) }
-                .buttonStyle(.plain).foregroundStyle(SORITheme.violet).accessibilityIdentifier(identifier)
+                .buttonStyle(.plain).foregroundStyle(SolfegeTheme.violet).accessibilityIdentifier(identifier)
         }.font(.system(size: 14))
     }
 }
@@ -186,11 +186,11 @@ struct AuthCheckboxStyle: ToggleStyle {
         Button { configuration.isOn.toggle() } label: {
             HStack(spacing: 10) {
                 RoundedRectangle(cornerRadius: 5)
-                    .fill(configuration.isOn ? SORITheme.violet : Color.white)
-                    .overlay(RoundedRectangle(cornerRadius: 5).stroke(configuration.isOn ? SORITheme.violet : SORITheme.muted, lineWidth: 1.5))
+                    .fill(configuration.isOn ? SolfegeTheme.violet : Color.white)
+                    .overlay(RoundedRectangle(cornerRadius: 5).stroke(configuration.isOn ? SolfegeTheme.violet : SolfegeTheme.muted, lineWidth: 1.5))
                     .overlay { if configuration.isOn { Image(systemName: "checkmark").font(.system(size: 12, weight: .bold)).foregroundStyle(.white) } }
                     .frame(width: 22, height: 22)
-                configuration.label.font(.system(size: 15)).foregroundStyle(SORITheme.ink)
+                configuration.label.font(.system(size: 15)).foregroundStyle(SolfegeTheme.ink)
             }.frame(height: 44).contentShape(Rectangle())
         }.buttonStyle(.plain).accessibilityAddTraits(configuration.isOn ? .isSelected : [])
     }

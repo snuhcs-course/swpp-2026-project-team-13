@@ -1,4 +1,4 @@
-# SORI — iPad 청음 연습
+# solfège — iPad 청음 연습
 
 Drill의 **리듬 퍼즐**은 중·고급 선율의 두 마디를 듣고 12개 보기에서 리듬을 조합하는 게임입니다. 259개 구간, 긴 음·잇단음 조각, 타이·되돌리기, 소리 기준 기계채점과 단계별 힌트를 제공합니다. 재청취·제출·노출 조건을 기록하고 로그인한 계정으로 저장합니다. [사용법·기록·보류 사례](docs/RHYTHM-PUZZLE.md)를 확인하세요.
 
@@ -8,13 +8,26 @@ Practice와 Exam 안의 **클래식 선율 문제**에서 작곡가를 고르고
 
 시험의 필기 대기는 **대기 건너뛰기 → 3초 후 다음 재생**으로 줄일 수 있습니다. 로컬 데모 토글은 즉시 저장·전환되며, 새 응시는 더 가까운 두 단 오선과 끝세로줄을 사용합니다. [변경 사항·음계 안내 제안·업데이트](docs/EXAM-CONTROLS.md)를 확인하세요.
 
+## 예전 이름(SORI)이 남아 있는 값
+
+앱 이름은 solfège로 바꿨지만, 아래 값은 저장된 데이터와 이어져 있어 일부러 유지한다. 바꾸면 기존 필기와 응시 기록, 로그인, 서버 데이터를 잃거나 저장된 문제를 검증하지 못한다.
+
+| 값 | 쓰이는 곳 |
+| --- | --- |
+| `SORI` 폴더, `sori.*` 설정 키, `org.snuhcs.team13.sori.*` Keychain 서비스, `sori-local-demo-v3` | 기기에 저장된 필기·기록·설정·로그인 |
+| `sori-monophonic-*`, `sori-tempo-1`, `sori-score-tempo-1`, `sori-piano-*`, `sori-click-v1`, `sori-parser-5` | 문제 데이터와 저장된 응시의 재생·채점 계약 |
+| `sori.local`, `api.sori.example`, `assets.sori.example` | 문제 UUID 생성 기준과 문제 데이터 안의 예시 주소 |
+| Django 앱 라벨 `sori`, `sori_*` 테이블·트리거, `sori:ai-quota` 잠금 키 | 운영 DB와 마이그레이션 |
+| Compose 프로젝트 `sori`, DB 이름·사용자 `sori` | 기존 Docker 볼륨 `sori_postgres_data`, `sori_answer_data` |
+| `grading-prompt-v*.txt`, `notation-rules-v1.txt`, `sori-feedback-2-notation-1` | 버전을 고정한 AI 채점 프롬프트 |
+
 ## 먼저 확인할 문서
 
 - 첫 실행 회원가입·학습 목표·로그인: [docs/ONBOARDING.md](docs/ONBOARDING.md)
 - Windows에서 iPad 앱 설치: [docs/WINDOWS-IPAD.md](docs/WINDOWS-IPAD.md)
 - Windows 서버 실행과 연결: [docs/IPAD-SETUP.md](docs/IPAD-SETUP.md)
 - 친구의 Mac에서 빌드 확인: [docs/MAC-HANDOFF.md](docs/MAC-HANDOFF.md)
-- API 계약: [docs/sori-api/API-CONTRACT.md](docs/sori-api/API-CONTRACT.md)
+- API 계약: [docs/solfege-api/API-CONTRACT.md](docs/solfege-api/API-CONTRACT.md)
 - 악보 Feature v1 명세와 활용 원칙: [docs/FEATURE-V1.md](docs/FEATURE-V1.md)
 - 실제 검증 상태: [docs/VALIDATION.md](docs/VALIDATION.md)
 - MuseScore 악보와 외부 음원 준비: [docs/ASSETS.md](docs/ASSETS.md)
@@ -42,7 +55,7 @@ Practice와 Exam 안의 **클래식 선율 문제**에서 작곡가를 고르고
 생성된 backend/.env의 OPENROUTER_API_KEY에 팀 키를 설정합니다. DJANGO_ALLOWED_HOSTS에 이 PC의 LAN IPv4 주소가 포함되는지 확인합니다.
 
     docker compose --env-file backend/.env up --build -d --wait
-    docker compose --env-file backend/.env exec -T api python manage.py test api sori --noinput
+    docker compose --env-file backend/.env exec -T api python manage.py test api solfege --noinput
 
 관리자가 계정을 생성합니다. 비밀번호는 터미널에서 숨김 입력하며, 같은 명령으로 기존 계정의 비밀번호를 변경할 수도 있습니다.
 

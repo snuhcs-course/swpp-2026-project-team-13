@@ -41,16 +41,16 @@ struct MainHomeView: View {
             .scrollBounceBehavior(.basedOnSize)
             .scrollDisabled(keyboard && proxy.size.height >= 620)
         }
-        .background(SORITheme.soft.ignoresSafeArea())
+        .background(SolfegeTheme.soft.ignoresSafeArea())
     }
 
     private var topBar: some View {
         HStack(spacing: 4) {
-            HStack(spacing: 8) { WaveMark(); Text("SORI").font(.system(size: 29, weight: .heavy, design: .rounded)).tracking(3).foregroundStyle(SORITheme.ink) }
-                .accessibilityElement(children: .ignore).accessibilityLabel("SORI")
+            HStack(spacing: 8) { WaveMark(); Text("solfège").font(.system(size: 29, weight: .heavy, design: .rounded)).tracking(3).foregroundStyle(SolfegeTheme.ink) }
+                .accessibilityElement(children: .ignore).accessibilityLabel("solfège")
             Spacer(minLength: 8)
             if offline { statusChip("연결 안 됨", color: .orange) }
-            else if model.demo && model.connected { statusChip("로컬 데모", color: SORITheme.green) }
+            else if model.demo && model.connected { statusChip("로컬 데모", color: SolfegeTheme.green) }
             barButton("연습 기록", icon: "clock.arrow.circlepath", id: "home-history") { model.navigate(.history) }
             barButton("설정", icon: "slider.horizontal.3", id: "home-settings") { model.navigate(.settings) }
             if let profile = model.profile {
@@ -64,41 +64,41 @@ struct MainHomeView: View {
     private func statusChip(_ text: String, color: Color) -> some View {
         HStack(spacing: 6) {
             Circle().fill(color).frame(width: 7, height: 7)
-            Text(text).font(.system(size: 13, weight: .medium)).foregroundStyle(SORITheme.ink)
+            Text(text).font(.system(size: 13, weight: .medium)).foregroundStyle(SolfegeTheme.ink)
         }.padding(.horizontal, 12).frame(height: 32).background(.white, in: Capsule()).padding(.trailing, 8)
     }
     private func barButton(_ title: String, icon: String, id: String, action: @escaping () -> Void) -> some View {
-        Button(action: action) { Image(systemName: icon).font(.system(size: 19)).foregroundStyle(SORITheme.softInk).frame(width: 44, height: 44).contentShape(Rectangle()) }
+        Button(action: action) { Image(systemName: icon).font(.system(size: 19)).foregroundStyle(SolfegeTheme.softInk).frame(width: 44, height: 44).contentShape(Rectangle()) }
             .buttonStyle(.plain).disabled(locked).accessibilityLabel(title).accessibilityIdentifier(id)
     }
     private func profilePanel(_ profile: UserProfile) -> some View {
         VStack(alignment: .leading, spacing: 16) {
             HStack(spacing: 14) {
-                Avatar(name: profile.displayName, size: 56, fill: SORITheme.soft)
+                Avatar(name: profile.displayName, size: 56, fill: SolfegeTheme.soft)
                 VStack(alignment: .leading, spacing: 0) {
-                    Text(profile.displayName).font(.system(size: 20, weight: .bold)).foregroundStyle(SORITheme.ink).lineLimit(2)
+                    Text(profile.displayName).font(.system(size: 20, weight: .bold)).foregroundStyle(SolfegeTheme.ink).lineLimit(2)
                     if let username = profile.username {
-                        Text(username).font(.system(size: 14)).foregroundStyle(SORITheme.muted).lineLimit(1).truncationMode(.middle)
+                        Text(username).font(.system(size: 14)).foregroundStyle(SolfegeTheme.muted).lineLimit(1).truncationMode(.middle)
                             .accessibilityLabel("아이디 \(username)").accessibilityIdentifier("home-profile-username")
                     }
                 }
             }
             HStack {
-                Text("학습 목표").foregroundStyle(SORITheme.muted)
+                Text("학습 목표").foregroundStyle(SolfegeTheme.muted)
                 Spacer()
-                Text(SORITheme.goal(profile.learningGoal)).fontWeight(.bold).foregroundStyle(SORITheme.ink)
-            }.font(.system(size: 14)).padding(.horizontal, 16).padding(.vertical, 12).background(SORITheme.background, in: RoundedRectangle(cornerRadius: 12))
+                Text(SolfegeTheme.goal(profile.learningGoal)).fontWeight(.bold).foregroundStyle(SolfegeTheme.ink)
+            }.font(.system(size: 14)).padding(.horizontal, 16).padding(.vertical, 12).background(SolfegeTheme.background, in: RoundedRectangle(cornerRadius: 12))
             Button { showingProfile = false; model.navigate(.settings) } label: {
-                Text("프로필과 계정 설정").font(.system(size: 15, weight: .bold)).foregroundStyle(SORITheme.deepViolet)
-                    .frame(maxWidth: .infinity).frame(height: 48).background(SORITheme.soft, in: RoundedRectangle(cornerRadius: 12))
+                Text("프로필과 계정 설정").font(.system(size: 15, weight: .bold)).foregroundStyle(SolfegeTheme.deepViolet)
+                    .frame(maxWidth: .infinity).frame(height: 48).background(SolfegeTheme.soft, in: RoundedRectangle(cornerRadius: 12))
             }.buttonStyle(.plain).accessibilityIdentifier("home-profile-settings")
         }.padding(20).frame(width: 320)
     }
 
     private var headline: some View {
         let greeting = VStack(alignment: .leading, spacing: 6) {
-            Text(model.profile.map { "\($0.displayName)님, 안녕하세요" } ?? "안녕하세요").font(.system(size: 16, weight: .medium)).foregroundStyle(SORITheme.deepViolet).lineLimit(1)
-            Text("오늘은 무엇을 해 볼까요?").font(.system(size: 34, weight: .bold)).foregroundStyle(SORITheme.ink).accessibilityAddTraits(.isHeader)
+            Text(model.profile.map { "\($0.displayName)님, 안녕하세요" } ?? "안녕하세요").font(.system(size: 16, weight: .medium)).foregroundStyle(SolfegeTheme.deepViolet).lineLimit(1)
+            Text("오늘은 무엇을 해 볼까요?").font(.system(size: 34, weight: .bold)).foregroundStyle(SolfegeTheme.ink).accessibilityAddTraits(.isHeader)
         }
         // Notices sit beside the greeting so the keys never move when one appears.
         return ViewThatFits(in: .horizontal) {
@@ -116,19 +116,19 @@ struct MainHomeView: View {
     private func noticeCard(title: String, detail: String, action: String, id: String, perform: @escaping () -> Void) -> some View {
         HStack(spacing: 16) {
             VStack(alignment: .leading, spacing: 0) {
-                Text(title).font(.system(size: 16, weight: .bold)).foregroundStyle(SORITheme.ink).lineLimit(1)
-                Text(detail).font(.system(size: 14)).foregroundStyle(SORITheme.muted).lineLimit(1)
+                Text(title).font(.system(size: 16, weight: .bold)).foregroundStyle(SolfegeTheme.ink).lineLimit(1)
+                Text(detail).font(.system(size: 14)).foregroundStyle(SolfegeTheme.muted).lineLimit(1)
             }
             Spacer(minLength: 0)
             Button(action: perform) {
-                Text(action).font(.system(size: 15, weight: .bold)).foregroundStyle(.white).padding(.horizontal, 20).frame(height: 44).background(SORITheme.violet, in: RoundedRectangle(cornerRadius: 12))
+                Text(action).font(.system(size: 15, weight: .bold)).foregroundStyle(.white).padding(.horizontal, 20).frame(height: 44).background(SolfegeTheme.violet, in: RoundedRectangle(cornerRadius: 12))
             }.buttonStyle(.plain).disabled(locked).accessibilityIdentifier(id)
         }.padding(.leading, 22).padding(.trailing, 15).padding(.vertical, 15).background(.white, in: RoundedRectangle(cornerRadius: 16))
     }
 
     private func keyboard(large: Bool) -> some View {
         VStack(spacing: 0) {
-            Rectangle().fill(SORITheme.ink).frame(height: 8).accessibilityHidden(true)
+            Rectangle().fill(SolfegeTheme.ink).frame(height: 8).accessibilityHidden(true)
             HStack(spacing: Self.keyGap) { ForEach(entries) { key($0, large: large, topRadius: 0) } }
                 .overlay { BlackKeys(gap: Self.keyGap).allowsHitTesting(false).accessibilityHidden(true) }
         }
@@ -140,9 +140,9 @@ struct MainHomeView: View {
     private static let keyGap: CGFloat = 6
     private func key(_ entry: Entry, large: Bool, topRadius: CGFloat) -> some View {
         let unavailable = entry.needsServer && offline
-        let title: Color = unavailable ? SORITheme.softInk : entry.accent ? .white : SORITheme.ink
-        let symbol: Color = unavailable ? SORITheme.softInk : entry.accent ? .white : SORITheme.violet
-        let detail: Color = unavailable ? SORITheme.softInk : entry.accent ? .white : SORITheme.muted
+        let title: Color = unavailable ? SolfegeTheme.softInk : entry.accent ? .white : SolfegeTheme.ink
+        let symbol: Color = unavailable ? SolfegeTheme.softInk : entry.accent ? .white : SolfegeTheme.violet
+        let detail: Color = unavailable ? SolfegeTheme.softInk : entry.accent ? .white : SolfegeTheme.muted
         return Button { model.navigate(entry.screen) } label: {
             VStack(alignment: .leading, spacing: 12) {
                 Spacer(minLength: 0)
@@ -167,7 +167,7 @@ struct MainHomeView: View {
 private struct Avatar: View {
     let name: String; let size: CGFloat; let fill: Color
     var body: some View {
-        Text(String(name.prefix(1))).font(.system(size: size * 0.42, weight: .bold)).foregroundStyle(SORITheme.violet)
+        Text(String(name.prefix(1))).font(.system(size: size * 0.42, weight: .bold)).foregroundStyle(SolfegeTheme.violet)
             .frame(width: size, height: size).background(fill, in: Circle()).accessibilityHidden(true)
     }
 }
@@ -179,8 +179,8 @@ private struct BlackKeys: View {
         GeometryReader { proxy in
             let step = (proxy.size.width + gap) / 4
             ForEach(1..<4, id: \.self) { index in
-                UnevenRoundedRectangle(bottomLeadingRadius: 12, bottomTrailingRadius: 12).fill(SORITheme.ink)
-                    .overlay(alignment: .bottom) { Rectangle().fill(SORITheme.keyHighlight).frame(height: 10) }
+                UnevenRoundedRectangle(bottomLeadingRadius: 12, bottomTrailingRadius: 12).fill(SolfegeTheme.ink)
+                    .overlay(alignment: .bottom) { Rectangle().fill(SolfegeTheme.keyHighlight).frame(height: 10) }
                     .clipShape(UnevenRoundedRectangle(bottomLeadingRadius: 12, bottomTrailingRadius: 12))
                     .frame(width: proxy.size.width * 0.093, height: proxy.size.height * 0.49)
                     .position(x: step * CGFloat(index) - gap / 2, y: proxy.size.height * 0.245)
@@ -195,8 +195,8 @@ private struct PianoKeyStyle: ButtonStyle {
     func makeBody(configuration: Configuration) -> some View {
         let pressed = configuration.isPressed
         let sinks = pressed && !reduceMotion
-        let fill: Color = unavailable ? SORITheme.keyUnavailable : accent ? (pressed ? SORITheme.deepViolet : SORITheme.violet) : (pressed ? SORITheme.keyPressed : .white)
-        let edge: Color = unavailable ? .clear : accent ? SORITheme.deepViolet : SORITheme.keyEdge
+        let fill: Color = unavailable ? SolfegeTheme.keyUnavailable : accent ? (pressed ? SolfegeTheme.deepViolet : SolfegeTheme.violet) : (pressed ? SolfegeTheme.keyPressed : .white)
+        let edge: Color = unavailable ? .clear : accent ? SolfegeTheme.deepViolet : SolfegeTheme.keyEdge
         let shape = UnevenRoundedRectangle(topLeadingRadius: topRadius, bottomLeadingRadius: 24, bottomTrailingRadius: 24, topTrailingRadius: topRadius)
         return configuration.label
             .background { shape.fill(fill).shadow(color: edge, radius: 0, y: sinks ? 2 : 6) }

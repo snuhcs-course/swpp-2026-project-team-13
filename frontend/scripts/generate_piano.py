@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Generate the original, fixed SORI piano-like additive SoundFont (no external samples).
+"""Generate the original, fixed solfège piano-like additive SoundFont (no external samples).
 Uses only the Python standard library; committed bytes are the canonical v1 resource.
 """
 import math, struct, hashlib, json

@@ -24,7 +24,7 @@ API·제출·복구 검증을 실행합니다. 이 검증은 AI mock을 사용�
 
     docker compose --env-file backend/.env exec -T api python manage.py check
     docker compose --env-file backend/.env exec -T api python manage.py makemigrations --check --dry-run
-    docker compose --env-file backend/.env exec -T api python manage.py test api sori --noinput 2>&1 | Tee-Object -FilePath backend/.local/backend-checks.log
+    docker compose --env-file backend/.env exec -T api python manage.py test api solfege --noinput 2>&1 | Tee-Object -FilePath backend/.local/backend-checks.log
 
 실제 HTTP·AI 연결은 아래 명령으로 확인할 수 있습니다. 빈 테스트 답안을 한 번 실제 AI에 보내므로 과금이 발생합니다. 같은 상태 파일로 반복 실행하면 이미 제출된 같은 결과를 조회합니다. 필기 인식 정확도를 검사하는 명령은 아닙니다.
 
@@ -36,7 +36,7 @@ API·제출·복구 검증을 실행합니다. 이 검증은 AI mock을 사용�
 
 ## 2. Windows에서 설치
 
-[WINDOWS-IPAD.md](WINDOWS-IPAD.md)의 순서대로 GitHub CI의 SORI-iPad-install을 다운로드하고, 압축 해제한 SORI-iPad-unsigned.ipa를 Sideloadly에 넣어 개인 iPad에 설치합니다. 무료 Apple 계정을 사용할 수 있으며 서명은 7일마다 갱신해야 합니다.
+[WINDOWS-IPAD.md](WINDOWS-IPAD.md)의 순서대로 GitHub CI의 solfege-iPad-install을 다운로드하고, 압축 해제한 solfege-iPad-unsigned.ipa를 Sideloadly에 넣어 개인 iPad에 설치합니다. 무료 Apple 계정을 사용할 수 있으며 서명은 7일마다 갱신해야 합니다.
 
 친구의 Mac에서 직접 설치하려면 [MAC-HANDOFF.md](MAC-HANDOFF.md)의 Xcode 경로를 사용할 수 있습니다.
 

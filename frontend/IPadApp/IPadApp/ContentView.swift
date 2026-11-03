@@ -13,7 +13,7 @@ struct ContentView: View {
                 GoalSelectionView(model: model).overlay { busyOverlay }
             } else { mainInterface }
         }
-        .tint(SORITheme.violet).preferredColorScheme(.light)
+        .tint(SolfegeTheme.violet).preferredColorScheme(.light)
         .task { await model.connect() }
         .alert("확인이 필요해요", isPresented: Binding(get: { model.error != nil }, set: { if !$0 { model.error = nil } })) { Button("확인") { model.error = nil } } message: { Text(model.error ?? "") }
         .confirmationDialog("서버 로그아웃을 확인하지 못했어요", isPresented: $model.logoutNeedsConfirmation, titleVisibility: .visible) {
@@ -40,7 +40,7 @@ struct ContentView: View {
     private var mainInterface: some View {
         NavigationStack {
             ZStack {
-                SORITheme.background.ignoresSafeArea()
+                SolfegeTheme.background.ignoresSafeArea()
                 switch model.screen {
                 case .main: MainHomeView(model:model)
                 case .dailyTraining: DailyTrainingPlaceholderView()
@@ -59,7 +59,7 @@ struct ContentView: View {
                 ToolbarItem(placement: .topBarLeading) { backButton }
             }
             .toolbar(model.screen == .main ? .hidden : .automatic, for: .navigationBar)
-            .toolbarBackground(SORITheme.background, for: .navigationBar)
+            .toolbarBackground(SolfegeTheme.background, for: .navigationBar)
             .overlay { busyOverlay }
         }
     }

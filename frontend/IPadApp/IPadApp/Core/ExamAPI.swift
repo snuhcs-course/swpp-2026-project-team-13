@@ -29,14 +29,14 @@ import FoundationNetworking
 }
 
 extension ExamAPI {
-    func saveRhythmPlay(_ record: RhythmPlayRecord) async throws -> RhythmReceipt { throw SORIError.unsupported("서버를 리듬 게임 지원 버전으로 업데이트해 주세요.") }
+    func saveRhythmPlay(_ record: RhythmPlayRecord) async throws -> RhythmReceipt { throw SolfegeError.unsupported("서버를 리듬 게임 지원 버전으로 업데이트해 주세요.") }
     func createAttempt(question: Question, mode: StudyMode, key: UUID) async throws -> Attempt {
-        guard mode == .exam else { throw SORIError.unsupported("이 연결은 Practice를 지원하지 않습니다. 앱과 서버를 업데이트해 주세요.") }
+        guard mode == .exam else { throw SolfegeError.unsupported("이 연결은 Practice를 지원하지 않습니다. 앱과 서버를 업데이트해 주세요.") }
         return try await createAttempt(question:question,key:key)
     }
-    func submitPractice(_ id: UUID, answerId: UUID, key: UUID) async throws -> PracticeAssessment { throw SORIError.unsupported("자기채점을 지원하지 않는 연결입니다.") }
-    func practiceAssessment(_ id: UUID) async throws -> PracticeAssessment { throw SORIError.unsupported("자기채점을 지원하지 않는 연결입니다.") }
-    func saveSelfAssessment(_ id: UUID, request: SelfAssessmentWrite, key: UUID) async throws -> PracticeAssessment { throw SORIError.unsupported("자기채점을 지원하지 않는 연결입니다.") }
+    func submitPractice(_ id: UUID, answerId: UUID, key: UUID) async throws -> PracticeAssessment { throw SolfegeError.unsupported("자기채점을 지원하지 않는 연결입니다.") }
+    func practiceAssessment(_ id: UUID) async throws -> PracticeAssessment { throw SolfegeError.unsupported("자기채점을 지원하지 않는 연결입니다.") }
+    func saveSelfAssessment(_ id: UUID, request: SelfAssessmentWrite, key: UUID) async throws -> PracticeAssessment { throw SolfegeError.unsupported("자기채점을 지원하지 않는 연결입니다.") }
     func classicalQuestions(page: Int) async throws -> QuestionPage {
         QuestionPage(count:0,next:nil,previous:nil,results:[])
     }
@@ -76,9 +76,9 @@ final class NoRedirectDelegate: NSObject, URLSessionTaskDelegate, @unchecked Sen
     var scope: String { Origin(base)!.key + "/api/v1/" }
     init(base: URL, token: String = "", session: URLSession? = nil) throws {
         guard let origin = Origin(base), base.query == nil, base.fragment == nil,
-              URLComponents(url: base, resolvingAgainstBaseURL: false)?.path == "/api/v1/", !token.contains("\r"), !token.contains("\n") else { throw SORIError.configuration("서버 주소는 /api/v1/로 끝나야 합니다.") }
+              URLComponents(url: base, resolvingAgainstBaseURL: false)?.path == "/api/v1/", !token.contains("\r"), !token.contains("\n") else { throw SolfegeError.configuration("서버 주소는 /api/v1/로 끝나야 합니다.") }
         #if !DEBUG
-        guard origin.scheme == "https" else { throw SORIError.configuration("배포 앱은 HTTPS 서버가 필요합니다.") }
+        guard origin.scheme == "https" else { throw SolfegeError.configuration("배포 앱은 HTTPS 서버가 필요합니다.") }
         #endif
         _ = origin
         self.base = base; self.token = token
@@ -90,9 +90,9 @@ final class NoRedirectDelegate: NSObject, URLSessionTaskDelegate, @unchecked Sen
     }
     func endpoint(_ path: String) -> URL { base.appendingPathComponent(path) }
     func request(_ url: URL, method: String = "GET", authenticated: Bool = true, accept: String = "application/json", body: Data? = nil, contentType: String? = nil, key: UUID? = nil) throws -> URLRequest {
-        guard let origin = Origin(url), origin.scheme == "https" || Origin(base)?.scheme == "http" else { throw SORIError.configuration("올바르지 않은 자산 주소입니다.") }
-        if authenticated && origin != Origin(base) { throw SORIError.configuration("외부 서버에 인증 정보를 보낼 수 없습니다.") }
-        if authenticated && token.isEmpty { throw SORIError.configuration("로그인이 필요합니다.") }
+        guard let origin = Origin(url), origin.scheme == "https" || Origin(base)?.scheme == "http" else { throw SolfegeError.configuration("올바르지 않은 자산 주소입니다.") }
+        if authenticated && origin != Origin(base) { throw SolfegeError.configuration("외부 서버에 인증 정보를 보낼 수 없습니다.") }
+        if authenticated && token.isEmpty { throw SolfegeError.configuration("로그인이 필요합니다.") }
         var r = URLRequest(url: url); r.httpMethod = method; r.httpBody = body; r.timeoutInterval = contentType?.hasPrefix("multipart/") == true ? 60 : 15
         r.cachePolicy = .reloadIgnoringLocalCacheData; r.setValue(accept, forHTTPHeaderField: "Accept")
         if authenticated { r.setValue("Bearer " + token, forHTTPHeaderField: "Authorization") }
@@ -105,32 +105,32 @@ final class NoRedirectDelegate: NSObject, URLSessionTaskDelegate, @unchecked Sen
             do {
                 guard isCurrent() else { throw CancellationError() }
                 let (bytes, rawResponse) = try await session.bytes(for: request, delegate: redirectDelegate)
-                guard let response = rawResponse as? HTTPURLResponse else { throw SORIError.transport("잘못된 HTTP 응답입니다.") }
+                guard let response = rawResponse as? HTTPURLResponse else { throw SolfegeError.transport("잘못된 HTTP 응답입니다.") }
                 guard isCurrent() else { throw CancellationError() }
                 if response.statusCode == 401, request.value(forHTTPHeaderField: "Authorization") != nil { onUnauthorized() }
                 let success = (200...299).contains(response.statusCode)
                 let cap = success ? limit : 256 * 1024
-                guard response.expectedContentLength <= cap else { throw SORIError.transport("서버 파일이 허용 용량을 초과했습니다.") }
+                guard response.expectedContentLength <= cap else { throw SolfegeError.transport("서버 파일이 허용 용량을 초과했습니다.") }
                 var data = Data(); data.reserveCapacity(min(cap, 64 * 1024))
                 for try await byte in bytes {
-                    guard data.count < cap else { throw SORIError.transport("서버 파일이 허용 용량을 초과했습니다.") }
+                    guard data.count < cap else { throw SolfegeError.transport("서버 파일이 허용 용량을 초과했습니다.") }
                     data.append(byte)
                 }
                 guard isCurrent() else { throw CancellationError() }
                 if success {
                     // A 204 has neither a JSON body nor a required MIME header.
                     if expectsNoContent {
-                        guard response.statusCode == 204 else { throw SORIError.transport("서버 응답을 확인하지 못했습니다.") }
+                        guard response.statusCode == 204 else { throw SolfegeError.transport("서버 응답을 확인하지 못했습니다.") }
                         return Data()
                     }
                     let expected = request.value(forHTTPHeaderField: "Accept") ?? ""
                     let actual = response.mimeType?.lowercased() ?? ""
-                    guard expected == actual else { throw SORIError.transport("서버의 콘텐츠 형식이 계약과 다릅니다. (\(actual))") }
+                    guard expected == actual else { throw SolfegeError.transport("서버의 콘텐츠 형식이 계약과 다릅니다. (\(actual))") }
                     return data
                 }
                 let envelope = try? ContractJSON.decoder().decode(ErrorEnvelope.self, from: data)
                 let delay = Self.retryDelay(response.value(forHTTPHeaderField: "Retry-After"), now: Date())
-                throw SORIError.server(response.statusCode, envelope, retryAfter: delay)
+                throw SolfegeError.server(response.statusCode, envelope, retryAfter: delay)
             } catch {
                 try Task.checkCancellation()
                 let retry = Self.retryPolicy(error, trial: trial)
@@ -138,7 +138,7 @@ final class NoRedirectDelegate: NSObject, URLSessionTaskDelegate, @unchecked Sen
                 try await Task.sleep(for: .seconds(delay))
             }
         }
-        throw SORIError.transport("연결을 다시 확인해 주세요.")
+        throw SolfegeError.transport("연결을 다시 확인해 주세요.")
     }
     static func retryDelay(_ header: String?, now: Date) -> TimeInterval? {
         guard let header else { return nil }
@@ -148,7 +148,7 @@ final class NoRedirectDelegate: NSObject, URLSessionTaskDelegate, @unchecked Sen
     }
     static func retryPolicy(_ error: Error, trial: Int) -> TimeInterval? {
         let backoff = pow(2, Double(trial)) + Double.random(in: 0...0.25)
-        if case SORIError.server(let status, let e, let header) = error {
+        if case SolfegeError.server(let status, let e, let header) = error {
             guard status >= 500 || status == 429 || e?.error.code == "REQUEST_IN_PROGRESS" else { return nil }
             return max(backoff, max(header ?? 0, Double(e?.error.retryAfterMs ?? 0) / 1000))
         }
@@ -182,7 +182,7 @@ final class NoRedirectDelegate: NSObject, URLSessionTaskDelegate, @unchecked Sen
     private func credentialResponse(_ path: String, body: Data) async throws -> LoginResponse {
         let r = try request(endpoint(path), method: "POST", authenticated: false, body: body, contentType: "application/json")
         let value = try ContractJSON.decoder().decode(LoginResponse.self, from: await execute(r, limit: 256 * 1024, retry: false))
-        guard value.tokenType == "Bearer", !value.accessToken.isEmpty, !value.accessToken.contains("\r"), !value.accessToken.contains("\n") else { throw SORIError.transport("로그인 응답을 확인해 주세요.") }
+        guard value.tokenType == "Bearer", !value.accessToken.isEmpty, !value.accessToken.contains("\r"), !value.accessToken.contains("\n") else { throw SolfegeError.transport("로그인 응답을 확인해 주세요.") }
         return value
     }
     func logout() async throws {
@@ -216,7 +216,7 @@ final class NoRedirectDelegate: NSObject, URLSessionTaskDelegate, @unchecked Sen
     func attempt(_ id: UUID) async throws -> Attempt { try await json("attempts/\(id.uuidString.lowercased())/") }
     func start(_ id: UUID) async throws -> Attempt { try await json("attempts/\(id.uuidString.lowercased())/start/", method: "POST") }
     static func multipart(png: Data, clientId: UUID, layout: String, boundary: String) throws -> Data {
-        guard png.count <= 10 * 1024 * 1024, SheetLayout.supports(layout) else { throw SORIError.configuration("답안 이미지의 규격을 확인해 주세요.") }
+        guard png.count <= 10 * 1024 * 1024, SheetLayout.supports(layout) else { throw SolfegeError.configuration("답안 이미지의 규격을 확인해 주세요.") }
         var body = Data()
         func append(_ text: String) { body.append(Data(text.utf8)) }
         for (name, value) in [("client_answer_id", clientId.uuidString.lowercased()), ("answer_format_version", "1"), ("sheet_layout_id", layout)] {
@@ -224,10 +224,10 @@ final class NoRedirectDelegate: NSObject, URLSessionTaskDelegate, @unchecked Sen
         }
         append("--\(boundary)\r\nContent-Disposition: form-data; name=\"image\"; filename=\"answer.png\"\r\nContent-Type: image/png\r\n\r\n")
         body.append(png); append("\r\n--\(boundary)--\r\n")
-        guard body.count <= 11 * 1024 * 1024 else { throw SORIError.configuration("답안 업로드 용량을 초과했습니다.") }; return body
+        guard body.count <= 11 * 1024 * 1024 else { throw SolfegeError.configuration("답안 업로드 용량을 초과했습니다.") }; return body
     }
     func upload(_ id: UUID, png: Data, clientId: UUID, layout: String, key: UUID) async throws -> Answer {
-        let boundary = "sori-" + key.uuidString
+        let boundary = "solfege-" + key.uuidString
         let body = try Self.multipart(png: png, clientId: clientId, layout: layout, boundary: boundary)
         let request = try request(endpoint("attempts/\(id.uuidString.lowercased())/answers/"), method: "POST", body: body, contentType: "multipart/form-data; boundary=\(boundary)", key: key)
         return try ContractJSON.decoder().decode(Answer.self, from: await execute(request, limit: 256 * 1024))

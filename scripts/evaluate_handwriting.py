@@ -1,4 +1,4 @@
-"""Evaluate the three existing handwritten crops through the real SORI HTTP API.
+"""Evaluate the three existing handwritten crops through the real solfège HTTP API.
 
 Offline preparation is the default. --run permits at most one paid submission per
 case in the saved state. Re-running resumes existing attempts; failed AI jobs are
@@ -213,7 +213,7 @@ class API:
 
 
 def multipart(case, state, png):
-    boundary = "sori-handwriting-" + state["upload_key"]
+    boundary = "solfege-handwriting-" + state["upload_key"]
     fields = {"client_answer_id": state["client_answer_id"], "answer_format_version": "1", "sheet_layout_id": case["layout_id"]}
     chunks = []
     for name, value in fields.items():
@@ -231,11 +231,11 @@ def export_diagnostics(job_ids):
     for value in job_ids:
         uuid.UUID(value)
     code = """import json,sys
-from sori.models import GradingJob
+from solfege.models import GradingJob
 ids=json.loads(sys.stdin.read())
 fields=['id','attempt_id','answer_id','status','model','reasoning_effort','prompt_version','prompt_text','timeout_seconds','max_output_tokens','created_at','started_at','updated_at','usage','provider_request_id','recognized_musicxml','failure']
 rows=list(GradingJob.objects.filter(id__in=ids).values(*fields))
-print('SORI_EVALUATION_DIAGNOSTICS='+json.dumps(rows,ensure_ascii=True,default=str))
+print('SOLFEGE_EVALUATION_DIAGNOSTICS='+json.dumps(rows,ensure_ascii=True,default=str))
 """
     try:
         result = subprocess.run(
@@ -243,7 +243,7 @@ print('SORI_EVALUATION_DIAGNOSTICS='+json.dumps(rows,ensure_ascii=True,default=s
              "python", "manage.py", "shell", "-c", code],
             input=json.dumps(job_ids), capture_output=True, text=True, encoding="utf-8", timeout=40, cwd=ROOT,
         )
-        marker = "SORI_EVALUATION_DIAGNOSTICS="
+        marker = "SOLFEGE_EVALUATION_DIAGNOSTICS="
         lines = [line[len(marker):] for line in result.stdout.splitlines() if line.startswith(marker)]
         if result.returncode or not lines:
             return [], "Diagnostics unavailable. Run this script in normal PowerShell with Docker Desktop running."
@@ -366,7 +366,7 @@ def collect(output, manifest, state, report):
     report["completed_at"] = utc_now()
     atomic_json(output / "report.json", report)
     lines = [
-        "# 기존 필기 3문제 / 현재 SORI 서버 평가",
+        "# 기존 필기 3문제 / 현재 solfège 서버 평가",
         "",
         "기존 PDF 필기에 흰 여백만 추가해 실제 API로 제출합니다. 실제 iPad 내보내기·오류 표시 좌표는 검증하지 않습니다.",
         "정답 XML과의 차이는 인식 오류와 학생의 오답을 자동으로 구분하지 못합니다.",

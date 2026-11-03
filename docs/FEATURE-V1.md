@@ -4,7 +4,7 @@
 
 **Feature는 악보에 무엇이 들어 있는지 설명하는 공통 데이터다.** 문제 검색과 구성, 미니게임 구간 선택, 생성 문제 검증에 사용하고, 풀이 기록과 연결해 학습 경향을 관찰한다. 특정 feature가 있는 마디를 틀렸다는 이유만으로 그 feature를 학생의 약점으로 확정하지 않는다.
 
-이 문서는 공통 규칙을 확정한다. `backend/sori/features/`에 v1 추출기와 구간 분석을 구현했고, DB 저장 모델·migration·관리 명령을 추가했다. 현재 앱의 제출 API와 화면에는 아직 연결하지 않았다. 기존 `feature-lab-0.2` 실험 결과와는 버전을 구분한다. [구현 상태와 실행 방법](feature-v1/IMPLEMENTATION.md)을 참고한다.
+이 문서는 공통 규칙을 확정한다. `backend/solfege/features/`에 v1 추출기와 구간 분석을 구현했고, DB 저장 모델·migration·관리 명령을 추가했다. 현재 앱의 제출 API와 화면에는 아직 연결하지 않았다. 기존 `feature-lab-0.2` 실험 결과와는 버전을 구분한다. [구현 상태와 실행 방법](feature-v1/IMPLEMENTATION.md)을 참고한다.
 
 ## 먼저 읽을 내용
 

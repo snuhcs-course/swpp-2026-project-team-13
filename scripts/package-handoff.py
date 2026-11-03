@@ -27,7 +27,7 @@ def allowed(path):
 
 files=sorted((p for p in ROOT.rglob("*") if allowed(p)),key=lambda p:p.as_posix())
 manifest=[]
-with zipfile.ZipFile(OUTPUT/"SORI-iPad-source.zip","w",compression=zipfile.ZIP_DEFLATED) as archive:
+with zipfile.ZipFile(OUTPUT/"solfege-iPad-source.zip","w",compression=zipfile.ZIP_DEFLATED) as archive:
     for path in files:
         name=path.relative_to(ROOT).as_posix()
         data=path.read_bytes()
@@ -35,7 +35,7 @@ with zipfile.ZipFile(OUTPUT/"SORI-iPad-source.zip","w",compression=zipfile.ZIP_D
         if re.search(rb"sk-or-v1-[a-fA-F0-9]{32,}", data):
             raise RuntimeError("Secret-like content detected in source handoff")
         manifest.append({"path":name,"size":len(data),"sha256":hashlib.sha256(data).hexdigest()})
-        archive.writestr("SORI/"+name,data)
+        archive.writestr("solfege/"+name,data)
 (OUTPUT/"manifest.json").write_text(json.dumps(manifest,ensure_ascii=False,indent=2),encoding="utf-8")
-print(f"Packaged {len(files)} files: {OUTPUT / 'SORI-iPad-source.zip'}")
+print(f"Packaged {len(files)} files: {OUTPUT / 'solfege-iPad-source.zip'}")
 print("Excluded credentials, private images, databases and local environments.")
