@@ -79,16 +79,16 @@ enum AnswerExporter {
         }
         // An explicit sRGB, 8-bit, opaque bitmap avoids device gamut and renderer format changes.
         guard let source = image.cgImage, let color = CGColorSpace(name: CGColorSpace.sRGB),
-              let context = CGContext(data: nil, width: 2660, height: 1692, bitsPerComponent: 8, bytesPerRow: 2660*4, space: color, bitmapInfo: CGImageAlphaInfo.noneSkipLast.rawValue) else { throw SORIError.storage("답안 이미지를 만들지 못했습니다.") }
+              let context = CGContext(data: nil, width: 2660, height: 1692, bitsPerComponent: 8, bytesPerRow: 2660*4, space: color, bitmapInfo: CGImageAlphaInfo.noneSkipLast.rawValue) else { throw SolfegeError.storage("답안 이미지를 만들지 못했습니다.") }
         context.draw(source, in: CGRect(x: 0, y: 0, width: 2660, height: 1692))
         let output = NSMutableData()
-        guard let rgb = context.makeImage(), let dest = CGImageDestinationCreateWithData(output, UTType.png.identifier as CFString, 1, nil) else { throw SORIError.storage("PNG를 만들지 못했습니다.") }
+        guard let rgb = context.makeImage(), let dest = CGImageDestinationCreateWithData(output, UTType.png.identifier as CFString, 1, nil) else { throw SolfegeError.storage("PNG를 만들지 못했습니다.") }
         CGImageDestinationAddImage(dest, rgb, nil)
-        guard CGImageDestinationFinalize(dest), output.length <= 10_485_760 else { throw SORIError.storage("답안 PNG 용량이 제한을 초과했습니다.") }
+        guard CGImageDestinationFinalize(dest), output.length <= 10_485_760 else { throw SolfegeError.storage("답안 PNG 용량이 제한을 초과했습니다.") }
         return output as Data
     }
     static func validateTemplate(_ data: Data, layout: SheetLayout) throws -> UIImage {
         guard data.sha256 == layout.templateSha256, let image = UIImage(data: data),
-              image.cgImage?.width == layout.pixelWidth, image.cgImage?.height == layout.pixelHeight else { throw SORIError.invalidScore("오선 템플릿의 해시 또는 크기가 다릅니다.") }; return image
+              image.cgImage?.width == layout.pixelWidth, image.cgImage?.height == layout.pixelHeight else { throw SolfegeError.invalidScore("오선 템플릿의 해시 또는 크기가 다릅니다.") }; return image
     }
 }

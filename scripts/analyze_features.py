@@ -6,7 +6,7 @@ import sys
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "backend"))
-from sori.features import FeatureError, analyze, select_span
+from solfege.features import FeatureError, analyze, select_span
 
 
 def main():

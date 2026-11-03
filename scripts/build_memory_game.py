@@ -16,9 +16,9 @@ import xml.etree.ElementTree as ET
 ROOT = Path(__file__).resolve().parents[1]
 RES = ROOT / "frontend/IPadApp/IPadApp/Resources"
 sys.path.insert(0, str(ROOT / "backend"))
-from sori.features import analyze_bytes, select_span
-from sori.features.musicxml import read_xml, parse_xml
-from sori.rhythm import current_sources, classical_label
+from solfege.features import analyze_bytes, select_span
+from solfege.features.musicxml import read_xml, parse_xml
+from solfege.rhythm import current_sources, classical_label
 from import_melody_library import inspect, compact
 
 VERSION = "memory-run-v2"

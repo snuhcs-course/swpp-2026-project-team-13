@@ -10,9 +10,9 @@ import xml.etree.ElementTree as ET
 import build_memory_game as builder
 from import_melody_library import inspect
 from test_melody_library import musical_signature
-from sori.features import analyze_bytes, select_span
-from sori.features.musicxml import read_xml, parse_xml
-from sori.rhythm import current_sources
+from solfege.features import analyze_bytes, select_span
+from solfege.features.musicxml import read_xml, parse_xml
+from solfege.rhythm import current_sources
 
 RES = builder.RES
 

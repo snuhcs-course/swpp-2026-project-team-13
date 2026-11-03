@@ -35,8 +35,8 @@ struct RhythmPuzzleView: View {
                 }
             }.coordinateSpace(name:"rhythm-puzzle")
                 .onPreferenceChange(RhythmBarFrames.self) { frames = $0 }
-                .background(SORITheme.background.ignoresSafeArea())
-        }.tint(SORITheme.violet).preferredColorScheme(.light)
+                .background(SolfegeTheme.background.ignoresSafeArea())
+        }.tint(SolfegeTheme.violet).preferredColorScheme(.light)
         .task { game.sync(); game.makeExport(); if !tutorialSeen { showingTutorial = true } }
         .sheet(isPresented:$showingTutorial,onDismiss:{ game.activate() }) {
             RhythmTutorialView { tutorialSeen = true; showingTutorial = false }
@@ -67,7 +67,7 @@ struct RhythmPuzzleView: View {
     private func play(_ round: RhythmRound, draft: RhythmDraft, compact: Bool) -> some View {
         VStack(alignment:.leading,spacing:14) {
             HStack(spacing:7) {
-                ForEach(draft.setIds.indices,id:\.self) { i in Capsule().fill(i < draft.index || (i == draft.index && draft.finished) ? SORITheme.violet : SORITheme.violet.opacity(0.13)).frame(height:6) }
+                ForEach(draft.setIds.indices,id:\.self) { i in Capsule().fill(i < draft.index || (i == draft.index && draft.finished) ? SolfegeTheme.violet : SolfegeTheme.violet.opacity(0.13)).frame(height:6) }
                 Text("\(draft.index+1)/\(draft.setIds.count)").font(.caption.monospacedDigit()).padding(.leading,8)
             }
             HStack(alignment:.center) {
@@ -85,12 +85,12 @@ struct RhythmPuzzleView: View {
                 .padding(.horizontal,14).background(.white,in:RoundedRectangle(cornerRadius:18))
             if !game.feedback.isEmpty || !game.message.isEmpty {
                 Text(game.message.isEmpty ? game.feedback : game.message).font(.subheadline)
-                    .foregroundStyle(draft.finished && draft.record.outcome == "correct" ? SORITheme.green : SORITheme.ink)
+                    .foregroundStyle(draft.finished && draft.record.outcome == "correct" ? SolfegeTheme.green : SolfegeTheme.ink)
                     .frame(maxWidth:.infinity,minHeight:28,alignment:.leading)
             }
             if draft.finished && draft.record.outcome == "revealed" {
                 VStack(spacing:4) {
-                    HStack { Text("정답").foregroundStyle(SORITheme.green); Spacer(); Button { game.listen(reason:"reference") } label: { Image(systemName:"speaker.wave.2") }.disabled(game.playing || game.waitingToPlay).accessibilityLabel("정답 리듬 듣기") }
+                    HStack { Text("정답").foregroundStyle(SolfegeTheme.green); Spacer(); Button { game.listen(reason:"reference") } label: { Image(systemName:"speaker.wave.2") }.disabled(game.playing || game.waitingToPlay).accessibilityLabel("정답 리듬 듣기") }
                     RhythmReferenceView(round:round,tiles:game.tiles,compact:compact)
                 }.padding(12).background(.white,in:RoundedRectangle(cornerRadius:14))
             }
@@ -119,8 +119,8 @@ struct RhythmPuzzleView: View {
                 Button { game.undo() } label: { Image(systemName:"arrow.uturn.backward").frame(width:28,height:28) }
                     .buttonStyle(.bordered).disabled(!game.canEdit || draft.undo.isEmpty).accessibilityLabel("되돌리기")
                 Spacer()
-                Button { game.toggleTieMode() } label: { Label { Text("타이") } icon: { RhythmTieIcon(color:game.tieMode ? .blue : SORITheme.violet).frame(width:28,height:28) } }
-                    .buttonStyle(.bordered).tint(game.tieMode ? .blue : SORITheme.violet).disabled(!game.canEdit)
+                Button { game.toggleTieMode() } label: { Label { Text("타이") } icon: { RhythmTieIcon(color:game.tieMode ? .blue : SolfegeTheme.violet).frame(width:28,height:28) } }
+                    .buttonStyle(.bordered).tint(game.tieMode ? .blue : SolfegeTheme.violet).disabled(!game.canEdit)
                     .accessibilityValue(game.tieMode ? "연결할 두 조각을 선택" : "꺼짐")
                 if draft.finished { Button(draft.index+1 == draft.setIds.count ? "완료" : "다음") { game.next() }.buttonStyle(PrimaryButton()) }
                 else { Button("제출") { game.submit() }.buttonStyle(PrimaryButton()).disabled(!game.canSubmit) }
@@ -161,7 +161,7 @@ struct RhythmPuzzleView: View {
 
 struct RhythmTileFace: View {
     let tile: RhythmTile; let pulse: RhythmTime
-    private var color: Color { tile.duration > pulse ? .blue : tile.duration < pulse ? SORITheme.violet : .gray }
+    private var color: Color { tile.duration > pulse ? .blue : tile.duration < pulse ? SolfegeTheme.violet : .gray }
     var body: some View {
         ZStack(alignment:.bottomTrailing) {
             RhythmNotationView(tile:tile).frame(height:98)
@@ -188,13 +188,13 @@ struct RhythmTutorialView: View {
             TabView(selection:$page) {
                 ForEach(0..<4,id:\.self) { index in
                     VStack(spacing:28) {
-                        Image(systemName:icons[index]).font(.system(size:64,weight:.light)).foregroundStyle(SORITheme.violet)
+                        Image(systemName:icons[index]).font(.system(size:64,weight:.light)).foregroundStyle(SolfegeTheme.violet)
                         Text(titles[index]).font(.title.bold())
                         Text(instructions[index]).font(.body).lineSpacing(8).frame(maxWidth:480)
                     }.padding(32).tag(index)
                 }
             }.tabViewStyle(.page(indexDisplayMode:.always))
             Button(page == 3 ? "시작하기" : "다음") { if page == 3 { done() } else { withAnimation { page += 1 } } }.buttonStyle(PrimaryButton()).padding(.horizontal,32)
-        }.padding(.vertical,28).background(SORITheme.background).presentationDetents([.large])
+        }.padding(.vertical,28).background(SolfegeTheme.background).presentationDetents([.large])
     }
 }

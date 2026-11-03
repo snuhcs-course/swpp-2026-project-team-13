@@ -16,7 +16,7 @@ from build_classical_questions import validate_source
 ROOT=Path(__file__).resolve().parents[1]
 CONTENT=ROOT/'backend/content'
 RESOURCES=ROOT/'frontend/IPadApp/IPadApp/Resources'
-spec=importlib.util.spec_from_file_location('playback',ROOT/'backend/sori/playback.py')
+spec=importlib.util.spec_from_file_location('playback',ROOT/'backend/solfege/playback.py')
 playback=importlib.util.module_from_spec(spec);spec.loader.exec_module(playback)
 
 

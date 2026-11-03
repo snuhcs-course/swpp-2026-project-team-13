@@ -23,7 +23,7 @@ def package(app, output, commit):
     if not executable or Path(executable).name != executable or not (app / executable).is_file():
         raise ValueError("The app executable is missing")
     if info.get("UIDeviceFamily") != [2]:
-        raise ValueError("Expected the SORI iPad app")
+        raise ValueError("Expected the solfège iPad app")
     if (app / "embedded.mobileprovision").exists():
         raise ValueError("Expected the unsigned CI app, without a provisioning profile")
     # Debug LAN access is required by the current Windows development server.
@@ -45,10 +45,10 @@ def package(app, output, commit):
         raise ValueError("Output must be outside the app bundle")
     files = sorted(app.rglob("*"))
     if any(path.is_symlink() for path in files):
-        raise ValueError("Unexpected symlink in the SORI app bundle")
+        raise ValueError("Unexpected symlink in the solfège app bundle")
     output.mkdir(parents=True, exist_ok=True)
-    ipa = output / "SORI-iPad-unsigned.ipa"
-    temporary = output / "SORI-iPad-unsigned.ipa.tmp"
+    ipa = output / "solfege-iPad-unsigned.ipa"
+    temporary = output / "solfege-iPad-unsigned.ipa.tmp"
     try:
         with zipfile.ZipFile(temporary, "w", compression=zipfile.ZIP_DEFLATED) as archive:
             for path in files:
@@ -91,7 +91,7 @@ def package(app, output, commit):
     if summary:
         with open(summary, "a", encoding="utf-8") as stream:
             stream.write("## iPad installation package\n\n")
-            stream.write("Download **SORI-iPad-install** from this run's Artifacts, extract the ZIP, ")
+            stream.write("Download **solfege-iPad-install** from this run's Artifacts, extract the ZIP, ")
             stream.write("and open **INSTALL-WINDOWS.md**. The IPA requires local signing with Sideloadly.\n\n")
             stream.write(f"Source commit: {commit}. Device installation is a separate verification step.\n")
 

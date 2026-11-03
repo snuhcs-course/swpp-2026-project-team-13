@@ -33,7 +33,7 @@ final class PianoAudioGraph {
         do { try operation() }
         catch {
             let cause=error as NSError
-            throw NSError(domain:"SORI.AudioGraph",code:cause.code,userInfo:[
+            throw NSError(domain:"Solfege.AudioGraph",code:cause.code,userInfo:[
                 NSLocalizedDescriptionKey:"\(label) 음원을 불러오지 못했습니다. \(file.lastPathComponent) (\(cause.domain) \(cause.code))",
                 NSUnderlyingErrorKey:cause
             ])

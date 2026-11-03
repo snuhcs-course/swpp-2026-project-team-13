@@ -75,7 +75,7 @@ import SwiftUI
     init(connection: RhythmConnection? = nil) {
         do {
             guard let url = Bundle.main.url(forResource:"memory-run-v2",withExtension:"json") else {
-                throw SORIError.invalidScore("미니게임 문제 목록이 없어요.")
+                throw SolfegeError.invalidScore("미니게임 문제 목록이 없어요.")
             }
             let data = try Data(contentsOf:url)
             let value = try JSONDecoder().decode(MemoryCatalog.self,from:data)
@@ -176,9 +176,9 @@ import SwiftUI
         do {
             try settings.validate()
             let url = localURLs[question.id] ?? Bundle.main.url(forResource:question.file,withExtension:nil)
-            guard let url else { throw SORIError.invalidScore("문제 XML을 찾지 못했어요.") }
+            guard let url else { throw SolfegeError.invalidScore("문제 XML을 찾지 못했어요.") }
             let data = try Data(contentsOf:url)
-            if let expected = question.sha256, data.sha256 != expected { throw SORIError.invalidScore("선율 파일이 변경됐어요. 최신 앱을 설치해 주세요.") }
+            if let expected = question.sha256, data.sha256 != expected { throw SolfegeError.invalidScore("선율 파일이 변경됐어요. 최신 앱을 설치해 주세요.") }
             let source = try MelodyXMLParser.parse(data)
             let value = try MelodyRound(source:source,start:settings.startBar,bars:settings.bars)
             runner?.cancel(); audio.stop()

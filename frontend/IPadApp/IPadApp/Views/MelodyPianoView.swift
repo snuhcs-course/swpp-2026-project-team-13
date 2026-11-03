@@ -32,7 +32,7 @@ final class MelodyPianoKeyboard: UIView {
     override init(frame: CGRect) {
         super.init(frame:frame)
         isMultipleTouchEnabled = true; isExclusiveTouch = true
-        backgroundColor = UIColor(SORITheme.ink)
+        backgroundColor = UIColor(SolfegeTheme.ink)
         layer.cornerRadius = 14; clipsToBounds = true
         isAccessibilityElement = false
     }
@@ -56,7 +56,7 @@ final class MelodyPianoKeyboard: UIView {
         for key in geometry.keys {
             let frame = self.rect(key).insetBy(dx:key.black ? 0 : 1,dy:1)
             let active = counts[key.midi,default:0] > 0
-            let color: UIColor = active ? UIColor(key.black ? SORITheme.violet : SORITheme.soft) : key.black ? UIColor(red:0.12,green:0.14,blue:0.21,alpha:1) : .white
+            let color: UIColor = active ? UIColor(key.black ? SolfegeTheme.violet : SolfegeTheme.soft) : key.black ? UIColor(red:0.12,green:0.14,blue:0.21,alpha:1) : .white
             color.setFill(); UIBezierPath(roundedRect:frame,cornerRadius:key.black ? 6 : 7).fill()
             let names = ["도","도♯","레","미♭","미","파","파♯","솔","솔♯","라","시♭","시"]
             let label = solfege && !key.black ? names[key.midi % 12]+" "+MelodyRound.noteName(key.midi) : MelodyRound.noteName(key.midi)
@@ -65,11 +65,11 @@ final class MelodyPianoKeyboard: UIView {
             let size = label.size(withAttributes:attributes)
             label.draw(at:CGPoint(x:frame.midX-size.width/2,y:frame.maxY-size.height-14),withAttributes:attributes)
             if key.midi == reference {
-                UIColor(SORITheme.violet).setFill()
+                UIColor(SolfegeTheme.violet).setFill()
                 UIBezierPath(ovalIn:CGRect(x:frame.midX-4,y:frame.maxY-size.height-30,width:8,height:8)).fill()
             }
             if !key.black {
-                UIColor(SORITheme.violet).withAlphaComponent(active ? 1 : 0.12).setFill()
+                UIColor(SolfegeTheme.violet).withAlphaComponent(active ? 1 : 0.12).setFill()
                 UIBezierPath(roundedRect:CGRect(x:frame.minX+6,y:frame.maxY-6,width:frame.width-12,height:3),cornerRadius:1.5).fill()
             }
         }

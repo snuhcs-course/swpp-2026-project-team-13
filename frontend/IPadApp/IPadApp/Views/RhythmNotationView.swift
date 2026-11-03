@@ -25,8 +25,8 @@ enum RhythmInk {
         var context = context; context.translateBy(x:origin.x,y:origin.y); context.scaleBy(x:scale,y:scale)
         for item in drawing.paths {
             let shape = path(item.commands)
-            if item.fill { context.fill(shape,with:.color(SORITheme.ink)) }
-            if item.stroke > 0 { context.stroke(shape,with:.color(SORITheme.ink),lineWidth:CGFloat(item.stroke)) }
+            if item.fill { context.fill(shape,with:.color(SolfegeTheme.ink)) }
+            if item.stroke > 0 { context.stroke(shape,with:.color(SolfegeTheme.ink),lineWidth:CGFloat(item.stroke)) }
         }
     }
     // Tapered engraving tie: pointed tips and a slightly heavier centre.
@@ -58,7 +58,7 @@ enum RhythmInk {
         for i in -2...2 {
             let y = baseline+CGFloat(i)*8*scale
             var line = Path(); line.move(to:CGPoint(x:start,y:y)); line.addLine(to:CGPoint(x:end,y:y))
-            context.stroke(line,with:.color(SORITheme.ink.opacity(0.38)),lineWidth:0.65*scale)
+            context.stroke(line,with:.color(SolfegeTheme.ink.opacity(0.38)),lineWidth:0.65*scale)
         }
     }
 }

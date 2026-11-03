@@ -1,6 +1,6 @@
 # Memory run v2
 
-Drills의 Memory run 카드에서 시작한다. Rhythm puzzle과 같은 배경·보라색 강조·둥근 카드·진행 표시를 사용한다. 시험 응시·AI 호출 없이 기기에서 동작한다.
+Drill의 Memory run 카드에서 시작한다. Rhythm puzzle과 같은 배경·보라색 강조·둥근 카드·진행 표시를 사용한다. 시험 응시·AI 호출 없이 기기에서 동작한다.
 
 ## 사용 흐름
 

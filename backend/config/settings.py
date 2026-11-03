@@ -44,12 +44,12 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "rest_framework",
     "rest_framework.authtoken",
-    "sori",
+    "solfege",
     "api",
 ]
 MIDDLEWARE = [
-    "sori.errors.RequestMiddleware",
-    "sori.errors.ProxyPathMiddleware",
+    "solfege.errors.RequestMiddleware",
+    "solfege.errors.ProxyPathMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
@@ -61,7 +61,7 @@ MIDDLEWARE = [
 # Only the URL scheme of that request's responses depends on this header.
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 ROOT_URLCONF = "config.urls"
-DEFAULT_EXCEPTION_REPORTER_FILTER = "sori.exception_filters.AuthenticationExceptionReporterFilter"
+DEFAULT_EXCEPTION_REPORTER_FILTER = "solfege.exception_filters.AuthenticationExceptionReporterFilter"
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
@@ -97,8 +97,8 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 # Future endpoints require authentication unless explicitly public, like health.
 REST_FRAMEWORK = {
-    "DEFAULT_AUTHENTICATION_CLASSES": ["sori.authentication.BearerAuthentication"],
-    "EXCEPTION_HANDLER": "sori.errors.exception_handler",
+    "DEFAULT_AUTHENTICATION_CLASSES": ["solfege.authentication.BearerAuthentication"],
+    "EXCEPTION_HANDLER": "solfege.errors.exception_handler",
     "DEFAULT_PERMISSION_CLASSES": ["rest_framework.permissions.IsAuthenticated"],
     "DEFAULT_RENDERER_CLASSES": ["rest_framework.renderers.JSONRenderer"],
 }
@@ -132,6 +132,7 @@ if SIGNUP_ENABLED and (AI_MAX_JOBS_PER_USER_PER_DAY is None or AI_MAX_JOBS_PER_D
 LOGIN_MAX_REQUESTS_PER_IP = limit_setting("LOGIN_MAX_REQUESTS_PER_IP", 30)
 SIGNUP_MAX_REQUESTS_PER_IP = limit_setting("SIGNUP_MAX_REQUESTS_PER_IP", 30)
 SIGNUP_MAX_SUCCESSES_PER_IP = limit_setting("SIGNUP_MAX_SUCCESSES_PER_IP", 20)
+USERNAME_CHECK_MAX_REQUESTS_PER_IP = limit_setting("USERNAME_CHECK_MAX_REQUESTS_PER_IP", 60)
 try:
     TRUSTED_PROXIES = tuple(
         ipaddress.ip_network(entry.strip())
@@ -143,10 +144,10 @@ except ValueError as error:
 CLIENT_IP_HEADER = os.getenv("CLIENT_IP_HEADER", "").strip()
 if bool(TRUSTED_PROXIES) != bool(CLIENT_IP_HEADER):
     raise ImproperlyConfigured("Set TRUSTED_PROXIES and CLIENT_IP_HEADER together.")
-# Attempt logs carry only a keyed prefix of the client IP; see sori.auth_views.
+# Attempt logs carry only a keyed prefix of the client IP; see solfege.auth_views.
 LOGGING = {
     "version": 1,
     "disable_existing_loggers": False,
     "handlers": {"console": {"class": "logging.StreamHandler"}},
-    "loggers": {"sori": {"handlers": ["console"], "level": "INFO", "propagate": False}},
+    "loggers": {"solfege": {"handlers": ["console"], "level": "INFO", "propagate": False}},
 }

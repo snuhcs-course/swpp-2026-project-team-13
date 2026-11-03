@@ -40,13 +40,13 @@ macOS/Linux에서는 실행 경로를 .venv/bin/python으로 바꿉니다. 기�
 
 ## 회원가입 계약 v0.8.0
 
-가입은 기본으로 꺼져 있습니다(`SIGNUP_ENABLED=false`). 설정 이름과 기본값은 `.env.example`과 [AUTH-IMPLEMENTATION.md](../docs/sori-api/AUTH-IMPLEMENTATION.md#운영-설정과-한도)를 따릅니다.
+가입은 기본으로 꺼져 있습니다(`SIGNUP_ENABLED=false`). 설정 이름과 기본값은 `.env.example`과 [AUTH-IMPLEMENTATION.md](../docs/solfege-api/AUTH-IMPLEMENTATION.md#운영-설정과-한도)를 따릅니다.
 
 `SIGNUP_ENABLED=true`로 켜려면 `AI_MAX_JOBS_PER_USER_PER_DAY`와 `AI_MAX_JOBS_PER_DAY`도 함께 정해야 서버가 시작됩니다. 다만 현재는 두 값의 설정 검증만 구현되어 있고, 채점 요청에서 상한을 적용하는 코드는 아직 없습니다. 그동안 비용은 OpenRouter API 키의 지출 한도로만 제한되므로, 터널을 연 채 가입을 켜지 않습니다.
 
 `.env`를 수정한 뒤에는 `docker compose --env-file backend/.env up -d --build`로 컨테이너를 다시 만듭니다. 이번 변경으로 API가 runserver 대신 gunicorn으로 실행되어 이미지를 다시 빌드해야 합니다. gunicorn은 정적 파일을 제공하지 않으므로 관리 화면에 스타일이 적용되지 않을 수 있습니다.
 
-배포 전에 대소문자만 다른 기존 계정이 없는지 [배포 점검 항목](../docs/sori-api/AUTH-IMPLEMENTATION.md#배포-점검-항목)의 조회로 확인합니다. 있으면 `0003_signup` 마이그레이션이 계정 목록을 출력하고 중단합니다.
+배포 전에 대소문자만 다른 기존 계정이 없는지 [배포 점검 항목](../docs/solfege-api/AUTH-IMPLEMENTATION.md#배포-점검-항목)의 조회로 확인합니다. 있으면 `0003_signup` 마이그레이션이 계정 목록을 출력하고 중단합니다.
 
 ## 계정 삭제 계약 v0.8.0
 
@@ -109,7 +109,7 @@ python3 scripts/fetch_soundfont.py --check
 
 [Xcode 프로젝트](../frontend/IPadApp/IPadApp.xcodeproj)를 열고 Scheme `IPadApp`, 실행 대상은 설치된 iPad 시뮬레이터, Run configuration은 `Debug`로 선택한 뒤 실행합니다. 음원 준비는 이후 필기 복구 테스트에서 연습을 시작하기 위해 필요합니다.
 
-앱의 **연결 설정 → 로컬 데모 사용 끄기 → API 기준 주소 입력 → 서버 연결** 순서로 진행합니다. 같은 Mac의 시뮬레이터에서는 `http://127.0.0.1:8000/api/v1/`을 입력합니다. 마지막 `/`를 포함합니다.
+앱의 회원가입·로그인 화면 오른쪽 위 아이콘으로 **연결 설정**에 들어가 **로컬 데모 사용이 꺼져 있는지 확인 → API 기준 주소 입력 → 서버 연결** 순서로 진행합니다. 같은 Mac의 시뮬레이터에서는 `http://127.0.0.1:8000/api/v1/`을 입력합니다. 마지막 `/`를 포함합니다.
 
 실제 iPad에서는 Mac의 LAN IPv4를 사용하고, 같은 네트워크에 연결합니다. 해당 IP를 `.env`의 `DJANGO_ALLOWED_HOSTS`에 추가한 뒤 API를 다시 생성합니다. Release 빌드는 HTTPS를 요구합니다. 자세한 기기 연결은 [설치 안내](../docs/IPAD-SETUP.md)를 따릅니다.
 
@@ -184,7 +184,7 @@ IP별로도 최근 5분 동안 허용한 로그인 요청 30회를 집계합니�
 ### 9. 자동 회귀 검증과 종료
 
 ```sh
-docker compose --env-file backend/.env exec -T api python manage.py test sori.test_auth --noinput
+docker compose --env-file backend/.env exec -T api python manage.py test solfege.test_auth --noinput
 swift test --package-path frontend
 xcodebuild -project frontend/IPadApp/IPadApp.xcodeproj -scheme IPadApp -configuration Debug -destination 'platform=iOS Simulator,name=iPad Pro 13-inch (M5)' -derivedDataPath build/DerivedData CODE_SIGNING_ALLOWED=YES CODE_SIGN_IDENTITY=- -only-testing:IPadAppTests/AuthenticationIntegrationTests -only-testing:IPadAppTests/IntegrationTests/testLocalJournalPersistsImmutableSubmissionKeysAndDrawing test
 ```
@@ -206,7 +206,7 @@ docker compose --env-file backend/.env ps
 
     python manage.py check
     python manage.py makemigrations --check --dry-run
-    python manage.py test api sori --noinput
+    python manage.py test api solfege --noinput
 
 API 테스트의 AI 응답은 명시적으로 mock 처리하므로 과금하지 않습니다. 실제 OpenRouter 호출과 iPad 연동은 별도 통합 확인이 필요합니다. 테스트 DB는 PostgreSQL을 사용합니다. 이 코드의 실행 검증을 SQLite 결과로 대신하지 않습니다.
 

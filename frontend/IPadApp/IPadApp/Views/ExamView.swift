@@ -57,13 +57,13 @@ struct ExamView: View {
                 if let began = player.scaleStartedAt, sounding {
                     TimelineView(.animation(minimumInterval:0.1)) { context in
                         ProgressView(value:min(1,max(0,context.date.timeIntervalSince(began)/max(0.1,player.scaleDuration))))
-                            .tint(SORITheme.violet).accessibilityLabel("음계 재생 진행")
+                            .tint(SolfegeTheme.violet).accessibilityLabel("음계 재생 진행")
                     }
                 }
             }
             Spacer(minLength:0)
-        }.foregroundStyle(SORITheme.violet).padding(18)
-            .frame(maxWidth:.infinity,alignment:.leading).background(SORITheme.soft,in:RoundedRectangle(cornerRadius:16))
+        }.foregroundStyle(SolfegeTheme.violet).padding(18)
+            .frame(maxWidth:.infinity,alignment:.leading).background(SolfegeTheme.soft,in:RoundedRectangle(cornerRadius:16))
             .accessibilityElement(children:.contain).accessibilityIdentifier("scale-notice")
     }
     private var header: some View {
@@ -71,7 +71,7 @@ struct ExamView: View {
             VStack(alignment: .leading, spacing: 6) {
                 Text((model.session?.attempt.studyMode.title ?? "Practice") + " · " + (model.session?.attempt.question.title ?? "청음 연습")).font(.headline)
                 if let tempo = model.session?.attempt.playbackPlan.tempo { Text(tempo.label).font(.caption).foregroundStyle(.secondary) }
-                Text(player.message).font(.subheadline).foregroundStyle(SORITheme.violet).accessibilityIdentifier("playback-status")
+                Text(player.message).font(.subheadline).foregroundStyle(SolfegeTheme.violet).accessibilityIdentifier("playback-status")
             }
             Spacer(minLength: 12)
             TimelineView(.periodic(from: .now, by: 1)) { _ in
@@ -79,7 +79,7 @@ struct ExamView: View {
                 HStack(spacing: 8) {
                     Image(systemName: "clock")
                     Text(String(format: "%02d:%02d", seconds/60, seconds%60)).font(.system(size: 25, weight: .semibold, design: .monospaced)).monospacedDigit()
-                }.foregroundStyle(seconds == 0 && model.session?.attempt.status == "in_progress" ? .orange : SORITheme.ink)
+                }.foregroundStyle(seconds == 0 && model.session?.attempt.status == "in_progress" ? .orange : SolfegeTheme.ink)
                  .accessibilityLabel("권장 남은 시간 \(seconds)초")
             }
         }
@@ -117,6 +117,6 @@ struct ExamView: View {
         }
     }
     private func tool(_ title: String, icon: String, selected: Bool, action: @escaping () -> Void) -> some View {
-        Button(action: action) { Label(title, systemImage: icon).padding(8).background(selected ? SORITheme.soft : .clear, in: RoundedRectangle(cornerRadius: 8)) }.buttonStyle(.plain).foregroundStyle(selected ? SORITheme.violet : SORITheme.ink)
+        Button(action: action) { Label(title, systemImage: icon).padding(8).background(selected ? SolfegeTheme.soft : .clear, in: RoundedRectangle(cornerRadius: 8)) }.buttonStyle(.plain).foregroundStyle(selected ? SolfegeTheme.violet : SolfegeTheme.ink)
     }
 }

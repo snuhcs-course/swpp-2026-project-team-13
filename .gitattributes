@@ -22,7 +22,7 @@ backend/content/source/practice-import/*.musicxml binary
 
 # Keep the specification fixture's XML hash identical across platforms.
 docs/feature-v1/example.musicxml text eol=lf
-backend/sori/features/fixtures/example.musicxml text eol=lf
+backend/solfege/features/fixtures/example.musicxml text eol=lf
 
 # The app and API pin the same exact catalog bytes, including the final newline.
 backend/content/rhythm-puzzle-v1.json text eol=lf

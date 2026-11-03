@@ -2,8 +2,8 @@ import SwiftUI
 import PencilKit
 
 @MainActor final class AppModel: ObservableObject {
-    enum Screen: String { case dailyTraining, home, examLibrary, question, exam, result, history, settings, minigames, classical }
-    @Published var screen: Screen = .home
+    enum Screen: String { case main, dailyTraining, home, examLibrary, question, exam, result, history, settings, minigames, classical }
+    @Published var screen: Screen = .main
     @Published var profile: UserProfile?
     @Published var questions: [QuestionSummary] = []
     @Published var selectedPracticeLevel: PracticeLevel?
@@ -37,10 +37,12 @@ import PencilKit
     @Published var demoOutcome: String
     @Published var authenticating = false
     @Published var loginRetryUntil: Date?
+    @Published var loginMessage: String?
     @Published var showingSignup = false
     @Published var signupEnabled = true
     @Published var signupRetryUntil: Date?
     @Published var signupFieldErrors: [FieldError] = []
+    @Published private var checkedUsername: (server: String, username: String, status: UsernameStatus)?
     @Published var loginPrefill: String?
     @Published var logoutNeedsConfirmation = false
     @Published var logoutFailure: String?
@@ -58,17 +60,26 @@ import PencilKit
     private var operationGeneration = UUID()
     private var loginDeadlines: [String: Date] = [:]
     private var signupDeadlines: [String: Date] = [:]
+    private var usernameCheckDeadlines: [String: Date] = [:]
     // A signup whose outcome is unknown: it may have created the account.
     private var uncertainSignup: (origin: String, username: String)?
     private var pendingLocalLogout: (base: URL, token: String, ticket: AuthenticationTicket)?
+    // A login without "로그인 상태 유지" lives only for this launch, but settings can still reconnect with it.
+    private var sessionOnlyToken: (origin: String, token: String)?
+    private static let accountUsedKey = "sori.accountUsed"
     private var store: LocalStore?
     private var clock = AdvisoryClock()
     @Published private var saveFailed = false
     var isLocked: Bool { !connected || authenticating || session?.frozen == true || session?.attempt.status != "in_progress" || drawingMissing || saveFailed }
     var remaining: Int { clock.remaining() }
     var pendingCreation: Bool { (try? store?.pending()) != nil }
+    var needsAuthentication: Bool { !demo && !connected }
+    var needsGoalSelection: Bool { connected && profile != nil && profile?.learningGoal == nil }
     var libraryScreen: Screen { selectedMode == .practice ? .home : .examLibrary }
     var resultLibraryScreen: Screen { session?.attempt.question.collection == "classical" ? .classical : (session?.attempt.studyMode == .practice ? .home : .examLibrary) }
+    func isUnfinished(_ record: SessionRecord) -> Bool {
+        record.attempt.status != "submitted" || (record.attempt.studyMode == .practice && (record.selfAssessment?.isCompleted != true || record.practiceEdits != nil || record.selfAssessmentSave != nil))
+    }
     var practiceErrors: [MeasureError] { session?.practiceEdits ?? session?.selfAssessment?.errors ?? [] }
     var practiceHasConflict: Bool {
         guard let base = session?.practiceBaseRevision, let current = session?.selfAssessment?.revision else { return false }
@@ -81,9 +92,13 @@ import PencilKit
     init(httpSession: URLSession? = nil) {
         self.httpSession = httpSession
         let d = UserDefaults.standard
-        demo = d.object(forKey: "sori.demo") as? Bool ?? true
-        server = d.string(forKey: "sori.server") ?? Self.defaultServer
+        // First launch starts at signup; a build with no server has only the demo to offer.
+        demo = d.object(forKey: "sori.demo") as? Bool ?? !Self.hasConfiguredServer
+        let savedServer = d.string(forKey: "sori.server") ?? Self.defaultServer
+        server = savedServer
         demoOutcome = d.string(forKey: "sori.demoOutcome") ?? "completed"
+        // Returning users land on login. Older builds never set the flag, so a stored token counts too.
+        showingSignup = !d.bool(forKey: Self.accountUsedKey) && (try? TokenVault.read(server: savedServer))?.isEmpty != false
         TokenVault.removeLegacyPlaintextCopies()
         if let choices: InstrumentChoices = try? Bundled.decode("instruments") {
             instrumentVoices = choices.voices
@@ -98,6 +113,7 @@ import PencilKit
         drawing.onChange = { [weak self] value in self?.saveDrawing(value) }
     }
     private static let demoBase = "https://demo.invalid/api/v1/"
+    private static var hasConfiguredServer: Bool { !(Bundle.main.object(forInfoDictionaryKey: "APIBaseURL") as? String ?? "").isEmpty }
     static var defaultServer: String {
         let configured = Bundle.main.object(forInfoDictionaryKey: "APIBaseURL") as? String ?? ""
         if configured.isEmpty { return "https://your-server.example/api/v1/" }
@@ -121,7 +137,7 @@ import PencilKit
         classicalQuestions = []; classicalLoaded = false; classicalPage = 0; classicalHasNextPage = false; selectedComposer = nil; selectedPracticeLevel = nil
         selectedQuestion = nil; template = nil; submittedImage = nil; mainScore = nil
         correctScoreImage = nil; correctScoreError = nil; prepared = false; connected = false
-        waitingSince = nil; error = nil; screen = .home
+        waitingSince = nil; error = nil; screen = .main
         authenticating = false; logoutNeedsConfirmation = false; logoutFailure = nil; pendingLocalLogout = nil
     }
     private func saveConnection() {
@@ -133,6 +149,7 @@ import PencilKit
         candidate.isCurrent = { [weak self] in self?.authentication.matches(ticket, token: token) == true }
         candidate.onUnauthorized = { [weak self] in
             guard let self, self.authentication.matches(ticket, token: token) else { return }
+            self.sessionOnlyToken = nil
             do {
                 if try TokenVault.read(server: base.absoluteString) == token { try TokenVault.delete(server: base.absoluteString) }
             } catch { self.report(error) }
@@ -141,21 +158,22 @@ import PencilKit
         }
         return candidate
     }
-    private func activateUser(_ user: UserProfile, candidate: any ExamAPI, destination: Screen = .home, current: () -> Bool) async throws {
+    private func activateUser(_ user: UserProfile, candidate: any ExamAPI, destination: Screen = .main, current: () -> Bool) async throws {
         let local = try LocalStore(scope: candidate.scope + ":" + user.id.uuidString)
         let records = try local.all()
         // Keep valid credentials after network/5xx failures so recovery is explicit.
         guard current() else { throw CancellationError() }
         api = candidate; store = local; profile = user; history = records; connected = true
+        if !demo { UserDefaults.standard.set(true, forKey: Self.accountUsedKey); showingSignup = false }
         let list = try await PracticeQuestionList.load { try await candidate.questions(page:$0) }
         guard current() else { throw CancellationError() }
         questions = list.questions; page = list.lastPage; hasNextPage = false; screen = destination
     }
-    func connect(token: String? = nil, destination: Screen = .home) async {
+    func connect(token: String? = nil, destination: Screen = .main) async {
         authentication.cancel(); clearUserState(); saveConnection()
         screen = destination
         // The demo never contacts the saved address, so an invalid one must not block it.
-        guard let base = URL(string: demo ? Self.demoBase : server), Origin(base) != nil else { report(SORIError.configuration("API 주소를 확인해 주세요.")); return }
+        guard let base = URL(string: demo ? Self.demoBase : server), Origin(base) != nil else { report(SolfegeError.configuration("API 주소를 확인해 주세요.")); return }
         let ticket = authentication.begin(base: base)
         authenticating = true; busyText = "학습 공간을 불러오는 중"
         defer { if authentication.matches(ticket) { authenticating = false } }
@@ -168,7 +186,8 @@ import PencilKit
                 _ = try HTTPExamAPI(base: base) // Validate HTTPS and base path before Keychain lookup.
                 loginRetryUntil = loginDeadlines[Origin(base)!.key]
                 signupRetryUntil = signupDeadlines[Origin(base)!.key]
-                let value = try token ?? TokenVault.read(server: server)
+                let sessionOnly = sessionOnlyToken?.origin == Origin(base)!.key ? sessionOnlyToken?.token : nil
+                let value = try token ?? sessionOnly ?? TokenVault.read(server: server)
                 guard !value.isEmpty else { return }
                 authentication.accept(value, for: ticket)
                 let candidate = try securedAPI(base: base, token: value, ticket: ticket)
@@ -180,30 +199,39 @@ import PencilKit
         } catch { if authentication.matches(ticket) { report(error) } }
         if !authentication.matches(ticket), authentication.ticket == nil { authenticating = false }
     }
-    func login(username: String, password: String) async {
-        guard let base = URL(string: server), let origin = Origin(base) else { report(SORIError.configuration("API 주소를 확인해 주세요.")); return }
+    func login(username: String, password: String, keepSignedIn: Bool = true) async {
+        guard let base = URL(string: server), let origin = Origin(base) else { report(SolfegeError.configuration("API 주소를 확인해 주세요.")); return }
         if let deadline = loginDeadlines[origin.key], deadline > Date() { loginRetryUntil = deadline; return }
         authentication.cancel(); clearUserState(); demo = false; saveConnection()
         let ticket = authentication.begin(base: base)
-        authenticating = true; busyText = "로그인 확인 중"
+        authenticating = true; busyText = "로그인 확인 중"; loginMessage = nil
         defer { if authentication.matches(ticket) { authenticating = false } }
         do {
             let client = try HTTPExamAPI(base: base, session: httpSession)
             client.isCurrent = { [weak self] in self?.authentication.matches(ticket) == true }
             let result = try await client.login(username: username, password: password)
             guard authentication.accept(result.accessToken, for: ticket) else { return }
-            try TokenVault.save(result.accessToken, server: base.absoluteString)
+            if keepSignedIn {
+                try TokenVault.save(result.accessToken, server: base.absoluteString); sessionOnlyToken = nil
+            } else {
+                // Another account's stored token must not come back on the next launch.
+                try TokenVault.delete(server: base.absoluteString); sessionOnlyToken = (origin.key, result.accessToken)
+            }
             loginDeadlines[origin.key] = nil; loginRetryUntil = nil
             let candidate = try securedAPI(base: base, token: result.accessToken, ticket: ticket)
             try await activateUser(result.user, candidate: candidate, current: { self.authentication.matches(ticket, token: result.accessToken) })
         } catch {
             guard authentication.matches(ticket) else { return }
-            if let deadline = Self.rateLimitDeadline(error) { loginDeadlines[origin.key] = deadline; loginRetryUntil = deadline }
-            report(error)
+            if let deadline = Self.rateLimitDeadline(error) {
+                loginDeadlines[origin.key] = deadline; loginRetryUntil = deadline
+                loginMessage = "로그인 시도가 많아 잠시 기다려야 해요."
+            } else if case SolfegeError.server(401, let envelope?, _) = error, envelope.error.code == "INVALID_CREDENTIALS" {
+                loginMessage = "아이디 또는 비밀번호가 맞지 않아요."
+            } else { report(error) }
         }
     }
     private static func rateLimitDeadline(_ error: Error) -> Date? {
-        guard case SORIError.server(429, let envelope, let header) = error else { return nil }
+        guard case SolfegeError.server(429, let envelope, let header) = error else { return nil }
         let seconds = max(header ?? 0, Double(envelope?.error.retryAfterMs ?? 0) / 1000)
         return Date().addingTimeInterval(max(1, seconds))
     }
@@ -215,11 +243,29 @@ import PencilKit
         guard !Task.isCancelled, server == requested else { return }
         signupEnabled = enabled
     }
-    func openSignup() { signupFieldErrors = []; showingSignup = true }
-    func closeSignup() { signupFieldErrors = []; showingSignup = false }
+    func openSignup() { signupFieldErrors = []; checkedUsername = nil; loginMessage = nil; showingSignup = true }
+    func closeSignup() { signupFieldErrors = []; checkedUsername = nil; showingSignup = false }
     func clearSignupError(_ field: String) { signupFieldErrors.removeAll { $0.field == field } }
-    func signup(username: String, displayName: String, learningGoal: String, password: String) async {
-        guard let base = URL(string: server), let origin = Origin(base) else { report(SORIError.configuration("API 주소를 확인해 주세요.")); return }
+    // nil until a check of this username on this server has finished.
+    func usernameStatus(_ username: String) -> UsernameStatus? {
+        guard let checkedUsername, checkedUsername.server == server, checkedUsername.username == username else { return nil }
+        return checkedUsername.status
+    }
+    // Advisory only: anything but a clear "taken" lets the form go on, and signup's 409 has the final say.
+    func checkUsername(_ username: String) async {
+        let requested = server
+        var status = UsernameStatus.unknown
+        if !demo, let base = URL(string: requested), let origin = Origin(base), (usernameCheckDeadlines[origin.key] ?? .distantPast) <= Date(),
+           let client = try? HTTPExamAPI(base: base, session: httpSession) {
+            do { status = try await client.usernameCheck(username).available ? .available : .taken }
+            catch { if let deadline = Self.rateLimitDeadline(error) { usernameCheckDeadlines[origin.key] = deadline } }
+        }
+        // The form cancels a check when the username changes, so a late answer never replaces a newer one.
+        guard !Task.isCancelled, server == requested else { return }
+        checkedUsername = (requested, username, status)
+    }
+    func signup(username: String, displayName: String, password: String) async {
+        guard let base = URL(string: server), let origin = Origin(base) else { report(SolfegeError.configuration("API 주소를 확인해 주세요.")); return }
         if let deadline = signupDeadlines[origin.key], deadline > Date() { signupRetryUntil = deadline; return }
         authentication.cancel(); clearUserState(); demo = false; saveConnection()
         let ticket = authentication.begin(base: base)
@@ -230,10 +276,10 @@ import PencilKit
         do {
             let client = try HTTPExamAPI(base: base, session: httpSession)
             client.isCurrent = { [weak self] in self?.authentication.matches(ticket) == true }
-            let result = try await client.signup(username: username, displayName: displayName, learningGoal: learningGoal, password: password)
+            let result = try await client.signup(username: username, displayName: displayName, password: password)
             guard authentication.accept(result.accessToken, for: ticket) else { return }
             uncertainSignup = nil; signupDeadlines[origin.key] = nil; signupRetryUntil = nil; showingSignup = false
-            try TokenVault.save(result.accessToken, server: base.absoluteString)
+            try TokenVault.save(result.accessToken, server: base.absoluteString); sessionOnlyToken = nil
             let candidate = try securedAPI(base: base, token: result.accessToken, ticket: ticket)
             try await activateUser(result.user, candidate: candidate, current: { self.authentication.matches(ticket, token: result.accessToken) })
         } catch {
@@ -244,7 +290,7 @@ import PencilKit
     private func signupFailed(_ error: Error, origin: Origin, username: String, retried: Bool) {
         if let deadline = Self.rateLimitDeadline(error) { signupDeadlines[origin.key] = deadline; signupRetryUntil = deadline }
         // Without a contract error the server may still have created the account.
-        guard case SORIError.server(let status, let envelope?, _) = error, status < 500 else { report(error); return }
+        guard case SolfegeError.server(let status, let envelope?, _) = error, status < 500 else { report(error); return }
         if !retried { uncertainSignup = nil }
         switch envelope.error.code {
         case "USERNAME_TAKEN" where retried:
@@ -264,6 +310,7 @@ import PencilKit
         }
     }
     func cancelLogin() {
+        sessionOnlyToken = nil
         authentication.cancel(); authenticating = false; clearUserState()
     }
     func switchAccount() {
@@ -285,7 +332,7 @@ import PencilKit
             api = candidate
             // 401 also confirms that this token can no longer authenticate.
             do { try await candidate.logout() }
-            catch SORIError.server(401, _, _) { }
+            catch SolfegeError.server(401, _, _) { }
             guard authentication.matches(ticket, token: token) else { authenticating = false; return }
             if try TokenVault.read(server: base.absoluteString) == token { try TokenVault.delete(server: base.absoluteString) }
             cancelLogin()
@@ -333,7 +380,7 @@ import PencilKit
             if !cleaned { self.error = "계정은 삭제했지만 이 기기에 저장된 정보 일부를 지우지 못했어요." }
         } catch {
             guard authentication.matches(ticket, token: token), !(error is CancellationError) else { return }
-            if case SORIError.server(403, let envelope?, _) = error, envelope.error.code == "ACCOUNT_DELETION_NOT_ALLOWED" {
+            if case SolfegeError.server(403, let envelope?, _) = error, envelope.error.code == "ACCOUNT_DELETION_NOT_ALLOWED" {
                 self.error = "관리자 계정은 앱에서 삭제할 수 없어요."
             } else {
                 self.error = "계정이 삭제됐는지 확인하지 못했어요. 연결을 확인한 뒤 다시 시도해 주세요.\n" + error.localizedDescription
@@ -392,7 +439,7 @@ import PencilKit
         }
     }
     private func persist(_ record: SessionRecord) throws {
-        guard let store else { throw SORIError.storage("로컬 저장소가 준비되지 않았습니다.") }
+        guard let store else { throw SolfegeError.storage("로컬 저장소가 준비되지 않았습니다.") }
         try store.save(record); self.session = record; history = try store.all()
     }
     func begin() async {
@@ -400,18 +447,18 @@ import PencilKit
             guard let api = self.api, let store = self.store, let selected = self.selectedQuestion else { return }
             var pending = try store.pending() ?? PendingCreation(question: selected, key: UUID(), mode:self.selectedMode)
             guard pending.question.id == selected.id, pending.studyMode == self.selectedMode else {
-                throw SORIError.storage("이전 문제의 생성 요청을 먼저 복구해 주세요. 연습 기록과 필기는 보관되어 있습니다.")
+                throw SolfegeError.storage("이전 문제의 생성 요청을 먼저 복구해 주세요. 연습 기록과 필기는 보관되어 있습니다.")
             }
             try store.savePending(pending)
             let attempt: Attempt
             do { attempt = try await api.createAttempt(question: pending.question, mode:pending.studyMode, key: pending.key) }
-            catch let error as SORIError where error.code == "QUESTION_VERSION_MISMATCH" {
+            catch let error as SolfegeError where error.code == "QUESTION_VERSION_MISMATCH" {
                 let fresh = try await api.question(pending.question.id); try fresh.validate()
                 pending = PendingCreation(question: fresh, key: UUID(), mode:pending.studyMode); try store.savePending(pending)
                 attempt = try await api.createAttempt(question: fresh, mode:pending.studyMode, key: pending.key)
             }
             guard attempt.studyMode == pending.studyMode, attempt.question.id == pending.question.id, attempt.question.version == pending.question.version else {
-                throw SORIError.transport("생성된 문제의 모드가 요청과 다릅니다. 앱과 서버의 버전을 확인해 주세요.")
+                throw SolfegeError.transport("생성된 문제의 모드가 요청과 다릅니다. 앱과 서버의 버전을 확인해 주세요.")
             }
             var record = SessionRecord(attempt: attempt)
             if store.exists("session.json", id: attempt.id) { record = try store.load(attempt.id); record.attempt = attempt }
@@ -446,14 +493,14 @@ import PencilKit
             drawing.freeze(isLocked)
             try await prepareAssets()
         case "submitted": screen = .result; drawing.freeze(true); try await loadResult()
-        default: throw SORIError.unsupported("지원하지 않는 응시 상태입니다: \(record.attempt.status)")
+        default: throw SolfegeError.unsupported("지원하지 않는 응시 상태입니다: \(record.attempt.status)")
         }
     }
     private func cached(_ name: String, url: URL, authenticated: Bool, sha: String, limit: Int, id: UUID) async throws -> Data {
-        guard let store, let api else { throw SORIError.storage("저장소가 준비되지 않았습니다.") }
+        guard let store, let api else { throw SolfegeError.storage("저장소가 준비되지 않았습니다.") }
         if store.exists(name, id: id) { let data = try store.read(name, id: id); if data.sha256 == sha { return data } }
         let data = try await api.asset(url, authenticated: authenticated, limit: limit)
-        guard data.sha256 == sha else { throw SORIError.invalidScore("SCORE_HASH_MISMATCH: \(name) 파일의 해시가 다릅니다.") }
+        guard data.sha256 == sha else { throw SolfegeError.invalidScore("SCORE_HASH_MISMATCH: \(name) 파일의 해시가 다릅니다.") }
         try store.write(data, name: name, id: id); return data
     }
     private func prepareAssets() async throws {
@@ -469,7 +516,7 @@ import PencilKit
               main.keySignature == q.keySignature,
               scale.keySignature.fifths == q.keySignature.fifths,
               q.keySignature.mode == "unspecified" || scale.keySignature == q.keySignature
-        else { throw SORIError.invalidScore("문제 안내·선율·음계의 조성이나 박자가 다릅니다.") }
+        else { throw SolfegeError.invalidScore("문제 안내·선율·음계의 조성이나 박자가 다릅니다.") }
         self.template = try AnswerExporter.validateTemplate(imageData, layout: q.sheetLayout); self.mainScore = main
         try player.prepare(main: main, scale: scale, plan: plan); player.restore(record.cursor)
         self.prepared = true
@@ -502,9 +549,9 @@ import PencilKit
             // Reconcile before any write: a timed-out submit may already have committed.
             record.attempt = try await api.attempt(record.id); try self.persist(record)
             if record.attempt.status == "submitted" { self.screen = .result; try await self.loadResult(); return }
-            guard record.attempt.status == "in_progress", !self.drawingMissing, !self.saveFailed else { throw SORIError.storage("필기 원본과 응시 상태를 먼저 복구해 주세요.") }
+            guard record.attempt.status == "in_progress", !self.drawingMissing, !self.saveFailed else { throw SolfegeError.storage("필기 원본과 응시 상태를 먼저 복구해 주세요.") }
             if !record.frozen {
-                guard let template = self.template else { throw SORIError.storage("오선 템플릿이 준비되지 않았습니다.") }
+                guard let template = self.template else { throw SolfegeError.storage("오선 템플릿이 준비되지 않았습니다.") }
                 try store.write(self.drawing.canvas.drawing.dataRepresentation(), name: "drawing.pkdrawing", id: record.id)
                 let png = try AnswerExporter.png(template: template, drawing: self.drawing.canvas.drawing, layout: record.attempt.question.sheetLayout)
                 try store.write(png, name: "submission.png", id: record.id)
@@ -512,12 +559,12 @@ import PencilKit
                 try self.persist(record)
             }
             let png = try store.read("submission.png", id: record.id)
-            guard let client = record.clientAnswerId, let uploadKey = record.uploadKey, let submitKey = record.submitKey else { throw SORIError.storage("제출 복구 정보가 손상되었습니다.") }
+            guard let client = record.clientAnswerId, let uploadKey = record.uploadKey, let submitKey = record.submitKey else { throw SolfegeError.storage("제출 복구 정보가 손상되었습니다.") }
             if record.uploaded == nil {
                 let answer = try await api.upload(record.id, png: png, clientId: client, layout: record.attempt.question.sheetLayout.id, key: uploadKey)
                 guard answer.attemptId == record.id, answer.clientAnswerId == client, answer.sha256 == png.sha256, answer.sizeBytes == png.count,
                       answer.imageWidth == 2660, answer.imageHeight == 1692, answer.answerFormatVersion == 1,
-                      answer.sheetLayoutId == record.attempt.question.sheetLayout.id, answer.contentType == "image/png" else { throw SORIError.transport("서버의 업로드 영수증이 제출 파일과 다릅니다.") }
+                      answer.sheetLayoutId == record.attempt.question.sheetLayout.id, answer.contentType == "image/png" else { throw SolfegeError.transport("서버의 업로드 영수증이 제출 파일과 다릅니다.") }
                 record.uploaded = answer; try self.persist(record)
             }
             guard let answer = record.uploaded else { return }
@@ -527,7 +574,7 @@ import PencilKit
                 record.selfAssessment = review; record.grading = nil
             } else {
                 let grading = try await api.submit(record.id, answerId: answer.id, key: submitKey)
-                guard grading.attemptId == record.id, grading.answerId == answer.id else { throw SORIError.transport("제출 결과의 답안 ID가 다릅니다.") }
+                guard grading.attemptId == record.id, grading.answerId == answer.id else { throw SolfegeError.transport("제출 결과의 답안 ID가 다릅니다.") }
                 record.grading = grading
             }
             record.attempt = try await api.attempt(record.id); try self.persist(record)
@@ -537,15 +584,15 @@ import PencilKit
     }
     private func loadResult() async throws {
         guard let api, let store, var record = session else { return }
-        guard let answerId = record.attempt.submittedAnswerId else { throw SORIError.transport("제출한 답안이 없습니다.") }
+        guard let answerId = record.attempt.submittedAnswerId else { throw SolfegeError.transport("제출한 답안이 없습니다.") }
         if record.attempt.studyMode == .practice {
             let review = try await api.practiceAssessment(record.id)
             try review.validate(attemptId:record.id,answerId:answerId,measureCount:record.attempt.question.measureCount)
-            guard review.featureAnalysisId == record.attempt.featureAnalysisId else { throw SORIError.transport("문제 분석 버전이 응시와 다릅니다.") }
+            guard review.featureAnalysisId == record.attempt.featureAnalysisId else { throw SolfegeError.transport("문제 분석 버전이 응시와 다릅니다.") }
             record.selfAssessment = review; record.grading = nil; waitingSince = nil
         } else {
             let grading = try await api.result(record.id)
-            guard grading.attemptId == record.id, grading.answerId == answerId else { throw SORIError.transport("결과가 제출한 답안과 일치하지 않습니다.") }
+            guard grading.attemptId == record.id, grading.answerId == answerId else { throw SolfegeError.transport("결과가 제출한 답안과 일치하지 않습니다.") }
             record.grading = grading
             if grading.isPending && waitingSince == nil { waitingSince = Date() }
         }
@@ -557,18 +604,18 @@ import PencilKit
             }
             if submittedImage == nil {
                 let data = try await api.answerImage(answer)
-                guard data.sha256 == answer.sha256, data.count == answer.sizeBytes, let image = UIImage(data: data), image.cgImage?.width == 2660, image.cgImage?.height == 1692 else { throw SORIError.transport("제출 이미지의 해시·크기가 일치하지 않습니다.") }
+                guard data.sha256 == answer.sha256, data.count == answer.sizeBytes, let image = UIImage(data: data), image.cgImage?.width == 2660, image.cgImage?.height == 1692 else { throw SolfegeError.transport("제출 이미지의 해시·크기가 일치하지 않습니다.") }
                 try store.write(data, name: "submitted.png", id: record.id); submittedImage = image
             }
         } else {
             // latest_answer is not necessarily the submitted answer: address the pinned answer directly.
             if let id = record.attempt.submittedAnswerId {
                 let url = record.attempt.question.scoreAssets.main.url
-                guard let base = URLComponents(url: url, resolvingAgainstBaseURL: false), let scheme = base.scheme, let host = base.host else { throw SORIError.transport("이미지 주소 오류") }
+                guard let base = URLComponents(url: url, resolvingAgainstBaseURL: false), let scheme = base.scheme, let host = base.host else { throw SolfegeError.transport("이미지 주소 오류") }
                 var components = URLComponents(); components.scheme = scheme; components.host = host; components.port = base.port
                 components.path = "/api/v1/attempts/\(record.id.uuidString.lowercased())/answers/\(id.uuidString.lowercased())/image/"
                 let bytes = try await api.asset(components.url!, authenticated: true, limit: 10_485_760)
-                guard let image = UIImage(data: bytes), image.cgImage?.width == 2660, image.cgImage?.height == 1692 else { throw SORIError.transport("제출 이미지 형식 오류") }; submittedImage = image
+                guard let image = UIImage(data: bytes), image.cgImage?.width == 2660, image.cgImage?.height == 1692 else { throw SolfegeError.transport("제출 이미지 형식 오류") }; submittedImage = image
             }
         }
         await loadReferenceImage()
@@ -582,10 +629,10 @@ import PencilKit
         guard correctScoreImage == nil, let record = session, let asset = record.attempt.question.correctScore else { return }
         do {
             guard asset.contentType == "image/png", asset.sizeBytes > 0, asset.sizeBytes <= 2_097_152,
-                  asset.pixelWidth > 0, asset.pixelWidth <= 4096, asset.pixelHeight > 0, asset.pixelHeight <= 2048 else { throw SORIError.invalidScore("정답 이미지 규격을 확인해 주세요.") }
+                  asset.pixelWidth > 0, asset.pixelWidth <= 4096, asset.pixelHeight > 0, asset.pixelHeight <= 2048 else { throw SolfegeError.invalidScore("정답 이미지 규격을 확인해 주세요.") }
             let data = try await cached("correct-score.png", url:asset.url, authenticated:true, sha:asset.sha256, limit:2_097_152, id:record.id)
             guard data.count == asset.sizeBytes, let image = UIImage(data:data), image.cgImage?.width == asset.pixelWidth,
-                  image.cgImage?.height == asset.pixelHeight else { throw SORIError.invalidScore("정답 이미지의 크기가 일치하지 않습니다.") }
+                  image.cgImage?.height == asset.pixelHeight else { throw SolfegeError.invalidScore("정답 이미지의 크기가 일치하지 않습니다.") }
             guard session?.id == record.id else { return }
             correctScoreImage = image; correctScoreError = nil
         } catch { if session?.id == record.id { correctScoreError = error.localizedDescription } }
@@ -609,7 +656,7 @@ import PencilKit
             do {
                 let grading = try await api.retryGrading(record.id, key: record.gradingRetryKey!)
                 record.grading = grading; record.gradingRetryKey = nil; try self.persist(record)
-            } catch let error as SORIError where ["GRADING_IN_PROGRESS", "GRADING_NOT_RETRYABLE"].contains(error.code ?? "") {
+            } catch let error as SolfegeError where ["GRADING_IN_PROGRESS", "GRADING_NOT_RETRYABLE"].contains(error.code ?? "") {
                 record.gradingRetryKey = nil; try self.persist(record); try await self.loadResult()
             }
             self.waitingSince = Date(); self.pollGeneration = UUID()
@@ -628,9 +675,9 @@ import PencilKit
         await run("자기채점 기록을 저장하는 중") {
             guard let api = self.api, var record = self.session, record.attempt.studyMode == .practice,
                   let review = record.selfAssessment, let answerId = record.attempt.submittedAnswerId else { return }
-            guard self.practiceComparisonReady else { throw SORIError.configuration("정답과 내 악보를 불러온 뒤 채점을 완료해 주세요.") }
+            guard self.practiceComparisonReady else { throw SolfegeError.configuration("정답과 내 악보를 불러온 뒤 채점을 완료해 주세요.") }
             if record.selfAssessmentSave == nil {
-                guard !self.practiceHasConflict else { throw SORIError.configuration("변경된 채점 기록을 먼저 확인해 주세요.") }
+                guard !self.practiceHasConflict else { throw SolfegeError.configuration("변경된 채점 기록을 먼저 확인해 주세요.") }
                 let request = SelfAssessmentWrite(expectedRevision:record.practiceBaseRevision ?? review.revision,
                     errors:try SelfAssessmentEdits.normalized(self.practiceErrors,measureCount:record.attempt.question.measureCount),completed:completed)
                 record.practiceBaseRevision = request.expectedRevision
@@ -644,12 +691,12 @@ import PencilKit
                 try saved.validate(attemptId:record.id,answerId:answerId,measureCount:record.attempt.question.measureCount)
                 guard saved.revision == pending.request.expectedRevision+1, saved.featureAnalysisId == record.attempt.featureAnalysisId,
                       saved.errors == pending.request.errors, saved.isCompleted == pending.request.completed else {
-                    throw SORIError.transport("저장된 자기채점 버전이 요청과 다릅니다.")
+                    throw SolfegeError.transport("저장된 자기채점 버전이 요청과 다릅니다.")
                 }
                 record.selfAssessment = saved; record.selfAssessmentSave = nil
                 record.practiceEdits = nil; record.practiceBaseRevision = nil
                 try self.persist(record)
-            } catch let error as SORIError where error.code == "SELF_ASSESSMENT_REVISION_CONFLICT" {
+            } catch let error as SolfegeError where error.code == "SELF_ASSESSMENT_REVISION_CONFLICT" {
                 let latest = try await api.practiceAssessment(record.id)
                 try latest.validate(attemptId:record.id,answerId:answerId,measureCount:record.attempt.question.measureCount)
                 record.selfAssessment = latest; record.selfAssessmentSave = nil

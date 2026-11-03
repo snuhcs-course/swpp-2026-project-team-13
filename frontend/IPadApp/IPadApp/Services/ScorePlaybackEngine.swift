@@ -64,28 +64,28 @@ import AudioToolbox
         if let count = plan.countIn {
             guard count.beatsPerMeasure == main.timeSignature.numerator, count.beatUnit == main.timeSignature.denominator,
                   scale.timeSignature == main.timeSignature, scale.measures == plan.scale.toMeasure,
-                  main.measures == 8 else { throw SORIError.invalidScore("예비박과 문제의 박자표가 다릅니다.") }
+                  main.measures == 8 else { throw SolfegeError.invalidScore("예비박과 문제의 박자표가 다릅니다.") }
         }
         struct Bank: Decodable { var sha256:String; var sizeBytes:Int }
         let choices: InstrumentChoices = try Bundled.decode("instruments")
         guard let voice = choices.voices.first(where: { $0.id == voiceId }) else {
-            throw SORIError.invalidScore("음원 리소스가 없습니다. 음원이 포함된 최신 앱으로 설치해 주세요.")
+            throw SolfegeError.invalidScore("음원 리소스가 없습니다. 음원이 포함된 최신 앱으로 설치해 주세요.")
         }
         if voiceId == "grand-piano" {
             let piano = try ClassicalPiano.load()
             instrumentURL = piano.url; instrumentProgram = piano.program; bankMSB = piano.bankMsb; bankLSB = piano.bankLsb
             outputGain = pow(10,piano.gainDb/20); noteVelocity = Int(piano.noteVelocity)
         } else {
-            guard let url = Bundle.main.url(forResource:"GeneralUser-GS",withExtension:"sf2") else { throw SORIError.invalidScore("음원 리소스가 없습니다.") }
+            guard let url = Bundle.main.url(forResource:"GeneralUser-GS",withExtension:"sf2") else { throw SolfegeError.invalidScore("음원 리소스가 없습니다.") }
             let bank: Bank = try Bundled.decode("instrument-bank")
             let data = try Data(contentsOf:url)
-            guard data.count == bank.sizeBytes, data.sha256 == bank.sha256 else { throw SORIError.invalidScore("SOUND_BANK_UNAVAILABLE: 음원 리소스가 손상되었습니다.") }
+            guard data.count == bank.sizeBytes, data.sha256 == bank.sha256 else { throw SolfegeError.invalidScore("SOUND_BANK_UNAVAILABLE: 음원 리소스가 손상되었습니다.") }
             instrumentURL = url; instrumentProgram = voice.program; bankMSB = 121; bankLSB = 0
             outputGain = pow(10,voice.gainDb / 20); noteVelocity = plan.velocity
         }
         clickURL = nil
         if let count = plan.countIn {
-            guard let url = Bundle.main.url(forResource:count.profileId,withExtension:"wav") else { throw SORIError.invalidScore("예비박 소리 리소스가 없습니다.") }
+            guard let url = Bundle.main.url(forResource:count.profileId,withExtension:"wav") else { throw SolfegeError.invalidScore("예비박 소리 리소스가 없습니다.") }
             clickURL = url
         }
         self.main = main; self.scale = scale; self.plan = plan
@@ -102,7 +102,7 @@ import AudioToolbox
         let audio = AVAudioSession.sharedInstance()
         try audio.setCategory(.playback,mode:.default,options:[])
         try audio.setActive(true)
-        guard let url = instrumentURL else { throw SORIError.invalidScore("SOUND_BANK_UNAVAILABLE") }
+        guard let url = instrumentURL else { throw SolfegeError.invalidScore("SOUND_BANK_UNAVAILABLE") }
         try audioGraph.rebuild(bank:url,program:instrumentProgram,bankMSB:bankMSB,bankLSB:bankLSB,clickURL:clickURL,gain:outputGain)
         sequencer = AVAudioSequencer(audioEngine:engine)
         engine.prepare(); graphNeedsRebuild = false
@@ -122,7 +122,7 @@ import AudioToolbox
         return count
     }
     private func midi(index:Int) throws -> Data {
-        guard let plan, let main, let scale else { throw SORIError.invalidScore("PLAYBACK_PREPARE_FAILED") }
+        guard let plan, let main, let scale else { throw SolfegeError.invalidScore("PLAYBACK_PREPARE_FAILED") }
         let score = index == 0 ? scale : main
         let from = index == 0 ? 1 : plan.steps[index-1].fromMeasure
         let through = index == 0 ? plan.scale.toMeasure : plan.steps[index-1].toMeasure
@@ -184,7 +184,7 @@ import AudioToolbox
                     guard generation == playbackGeneration else { throw CancellationError() }
                     let index = cursor.index
                     if cursor.phase != "gap" {
-                        guard let seq = sequencer, let score = (index == 0 ? self.scale : self.main) else { throw SORIError.invalidScore("PLAYBACK_PREPARE_FAILED") }
+                        guard let seq = sequencer, let score = (index == 0 ? self.scale : self.main) else { throw SolfegeError.invalidScore("PLAYBACK_PREPARE_FAILED") }
                         seq.stop()
                         try seq.load(from:midi(index:index),options:[])
                         route(seq,index:index)

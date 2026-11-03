@@ -24,19 +24,19 @@ enum SelfAssessmentEdits {
     static func normalized(_ errors: [MeasureError], measureCount: Int) throws -> [MeasureError] {
         var seen = Set<Int>()
         let order = SelfAssessmentErrorType.allCases.map(\.rawValue)
-        guard measureCount > 0, errors.count <= measureCount else { throw SORIError.configuration("마디별 오류 기록을 확인해 주세요.") }
+        guard measureCount > 0, errors.count <= measureCount else { throw SolfegeError.configuration("마디별 오류 기록을 확인해 주세요.") }
         return try errors.map { error in
             guard (1...measureCount).contains(error.measure), seen.insert(error.measure).inserted,
                   !error.types.isEmpty, Set(error.types).count == error.types.count,
                   error.types.allSatisfy({ order.contains($0) }) else {
-                throw SORIError.configuration("마디 번호와 음정·리듬·기타 항목을 확인해 주세요.")
+                throw SolfegeError.configuration("마디 번호와 음정·리듬·기타 항목을 확인해 주세요.")
             }
             return MeasureError(measure:error.measure, types:order.filter { error.types.contains($0) })
         }.sorted { $0.measure < $1.measure }
     }
 
     static func toggling(_ errors: [MeasureError], measure: Int, type: SelfAssessmentErrorType, measureCount: Int) throws -> [MeasureError] {
-        guard measureCount > 0, (1...measureCount).contains(measure) else { throw SORIError.configuration("마디 번호를 확인해 주세요.") }
+        guard measureCount > 0, (1...measureCount).contains(measure) else { throw SolfegeError.configuration("마디 번호를 확인해 주세요.") }
         var values = try normalized(errors,measureCount:measureCount)
         if let index = values.firstIndex(where: { $0.measure == measure }) {
             if values[index].types.contains(type.rawValue) { values[index].types.removeAll { $0 == type.rawValue } }
@@ -59,7 +59,7 @@ struct PracticeAssessment: Codable, Equatable {
         guard self.attemptId == attemptId, self.answerId == answerId,
               mode == "practice", gradingMode == "self", source == "self", revision >= 0,
               ["pending","completed"].contains(status), isCompleted == (completedAt != nil) else {
-            throw SORIError.transport("자기채점 기록이 제출 답안과 일치하지 않습니다.")
+            throw SolfegeError.transport("자기채점 기록이 제출 답안과 일치하지 않습니다.")
         }
         _ = try SelfAssessmentEdits.normalized(errors,measureCount:measureCount)
     }

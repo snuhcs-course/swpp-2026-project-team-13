@@ -60,7 +60,7 @@ struct MemoryCatalog: Codable {
                     && (level != .beginner || $0.beginnerEligible)
                     && (level != .beginner || index >= 2 || ($0.attacks <= 5 && $0.pitchRange <= 5 && $0.largestInterval <= 2))
             }
-            guard !candidates.isEmpty else { throw SORIError.invalidScore("이 난이도의 선율을 준비하지 못했어요.") }
+            guard !candidates.isEmpty else { throw SolfegeError.invalidScore("이 난이도의 선율을 준비하지 못했어요.") }
             let groups: [(String,Double)] = [("library",0.6),("intermediate",0.2),("classical",0.2)]
                 .filter { group in candidates.contains { sourceMap[$0.sourceId]?.collection == group.0 } }
             let totalGroupWeight = groups.reduce(0) { $0+$1.1 }
@@ -83,7 +83,7 @@ struct MemoryCatalog: Codable {
               ids.count == sources.count, Set(excerpts.map(\.id)).count == excerpts.count,
               sources.allSatisfy({ ["library","intermediate","classical"].contains($0.collection ?? "") && $0.sha256?.count == 64 }),
               excerpts.allSatisfy({ ids.contains($0.sourceId) && [2,4].contains($0.bars) && $0.first >= 1 && $0.first+$0.bars <= 9 && $0.attacks >= 2 && (0...100).contains($0.score) }) else {
-            throw SORIError.invalidScore("Memory run 문제 파일을 확인해 주세요.")
+            throw SolfegeError.invalidScore("Memory run 문제 파일을 확인해 주세요.")
         }
     }
 }
