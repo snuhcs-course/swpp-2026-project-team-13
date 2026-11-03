@@ -10,6 +10,7 @@ Practice와 Exam 안의 **클래식 선율 문제**에서 작곡가를 고르고
 
 ## 먼저 확인할 문서
 
+- 첫 실행 회원가입·학습 목표·로그인: [docs/ONBOARDING.md](docs/ONBOARDING.md)
 - Windows에서 iPad 앱 설치: [docs/WINDOWS-IPAD.md](docs/WINDOWS-IPAD.md)
 - Windows 서버 실행과 연결: [docs/IPAD-SETUP.md](docs/IPAD-SETUP.md)
 - 친구의 Mac에서 빌드 확인: [docs/MAC-HANDOFF.md](docs/MAC-HANDOFF.md)
@@ -47,7 +48,7 @@ Practice와 Exam 안의 **클래식 선율 문제**에서 작곡가를 고르고
 
     docker compose --env-file backend/.env exec api python manage.py create_practice_user student01
 
-앱의 연결 설정에서 로컬 데모를 끄고 http://<이 PC의 IPv4>:8000/api/v1/로 연결한 뒤 해당 아이디·비밀번호로 로그인합니다. Windows와 iPad는 같은 LAN을 사용합니다. 서버 시작 시 개발 토큰을 자동 발급하지 않습니다.
+앱의 회원가입·로그인 화면 오른쪽 위 아이콘으로 연결 설정에 들어가 http://<이 PC의 IPv4>:8000/api/v1/로 연결한 뒤 해당 아이디·비밀번호로 로그인합니다. Windows와 iPad는 같은 LAN을 사용합니다. 서버 시작 시 개발 토큰을 자동 발급하지 않습니다.
 
 ## 소스와 데이터
 

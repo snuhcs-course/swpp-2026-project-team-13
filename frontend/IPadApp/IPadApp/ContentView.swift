@@ -6,6 +6,40 @@ struct ContentView: View {
     @State private var visibility: NavigationSplitViewVisibility = .all
     @Environment(\.scenePhase) private var phase
     var body: some View {
+        // A ZStack, not a Group: the modifiers below must run once, not once per branch.
+        ZStack {
+            if model.needsAuthentication && model.screen != .settings {
+                AuthFlowView(model: model)
+            } else if model.needsGoalSelection {
+                GoalSelectionView(model: model).overlay { busyOverlay }
+            } else { mainInterface }
+        }
+        .tint(SORITheme.violet).preferredColorScheme(.light)
+        .task { await model.connect() }
+        .alert("확인이 필요해요", isPresented: Binding(get: { model.error != nil }, set: { if !$0 { model.error = nil } })) { Button("확인") { model.error = nil } } message: { Text(model.error ?? "") }
+        .confirmationDialog("서버 로그아웃을 확인하지 못했어요", isPresented: $model.logoutNeedsConfirmation, titleVisibility: .visible) {
+            Button("서버 로그아웃 재시도") { Task { await model.logout() } }
+            Button("이 기기에서만 로그아웃", role: .destructive) { model.localLogout() }
+            Button("취소", role: .cancel) { }
+        } message: { Text(model.logoutFailure ?? "") }
+        .onChange(of: model.screen) { _, screen in visibility = screen == .exam ? .detailOnly : .all }
+        .onChange(of: phase) { _, phase in
+            if phase == .active { Task { await model.foregroundAgain() } }
+            else { model.background() }
+        }
+        .onReceive(NotificationCenter.default.publisher(for: AVAudioSession.interruptionNotification).receive(on: RunLoop.main)) { _ in model.player.invalidateAudio() }
+        .onReceive(NotificationCenter.default.publisher(for: AVAudioSession.mediaServicesWereResetNotification).receive(on: RunLoop.main)) { _ in model.player.invalidateAudio() }
+        .onReceive(NotificationCenter.default.publisher(for: .AVAudioEngineConfigurationChange).receive(on: RunLoop.main)) { notification in model.player.audioConfigurationChanged(notification) }
+        .onReceive(NotificationCenter.default.publisher(for: AVAudioSession.routeChangeNotification)) { notification in
+            if let raw = notification.userInfo?[AVAudioSessionRouteChangeReasonKey] as? UInt, AVAudioSession.RouteChangeReason(rawValue: raw) == .oldDeviceUnavailable { model.player.pause() }
+        }
+    }
+    @ViewBuilder private var busyOverlay: some View {
+        if model.busy || (model.authenticating && model.connected) {
+            ZStack { Color.black.opacity(0.12).ignoresSafeArea(); VStack(spacing: 14) { ProgressView(); Text(model.busyText).font(.subheadline) }.padding(28).background(.regularMaterial, in: RoundedRectangle(cornerRadius: 20)) }
+        }
+    }
+    private var mainInterface: some View {
         NavigationSplitView(columnVisibility: $visibility) {
             VStack(alignment: .leading, spacing: 24) {
                 HStack(spacing: 8) { WaveMark(); Text("SORI").font(.system(size: 29, weight: .heavy, design: .rounded)).tracking(3) }.padding(.horizontal, 24).padding(.top, 32)
@@ -31,9 +65,7 @@ struct ContentView: View {
             NavigationStack {
                 ZStack {
                     SORITheme.background.ignoresSafeArea()
-                    if !model.demo && !model.connected && model.screen != .settings {
-                        if model.showingSignup { SignupView(model: model) } else { LoginView(model: model) }
-                    } else { switch model.screen {
+                    switch model.screen {
                     case .dailyTraining: DailyTrainingPlaceholderView()
                     case .home: HomeView(model:model,mode:.practice)
                     case .examLibrary: HomeView(model:model,mode:.exam)
@@ -44,12 +76,14 @@ struct ContentView: View {
                     case .settings: SettingsView(model: model)
                     case .minigames: MiniGameHubView(connection:model.rhythmConnection).id(model.rhythmConnection?.identity ?? "disconnected")
                     case .classical: ClassicalExamLibraryView(model:model)
-                    } }
+                    }
                 }
                 .toolbar {
                     ToolbarItem(placement: .topBarLeading) {
                         if [.question,.exam,.result].contains(model.screen) {
                             Button { model.navigate(model.selectedQuestion?.collection == "classical" ? .classical : model.libraryScreen) } label: { Label(model.selectedQuestion?.collection == "classical" ? "클래식" : model.selectedMode.title, systemImage:"chevron.left") }
+                        } else if model.needsAuthentication {
+                            Button { model.navigate(.home) } label: { Label("돌아가기", systemImage:"chevron.left") }.accessibilityIdentifier("back-to-auth")
                         }
                     }
                     ToolbarItem(placement: .topBarTrailing) {
@@ -57,29 +91,8 @@ struct ContentView: View {
                     }
                 }
                 .toolbarBackground(SORITheme.background, for: .navigationBar)
-                .overlay { if model.busy || (model.authenticating && model.connected) {
-                    ZStack { Color.black.opacity(0.12).ignoresSafeArea(); VStack(spacing: 14) { ProgressView(); Text(model.busyText).font(.subheadline) }.padding(28).background(.regularMaterial, in: RoundedRectangle(cornerRadius: 20)) }
-                } }
+                .overlay { busyOverlay }
             }
-        }
-        .tint(SORITheme.violet).preferredColorScheme(.light)
-        .task { await model.connect() }
-        .alert("확인이 필요해요", isPresented: Binding(get: { model.error != nil }, set: { if !$0 { model.error = nil } })) { Button("확인") { model.error = nil } } message: { Text(model.error ?? "") }
-        .confirmationDialog("서버 로그아웃을 확인하지 못했어요", isPresented: $model.logoutNeedsConfirmation, titleVisibility: .visible) {
-            Button("서버 로그아웃 재시도") { Task { await model.logout() } }
-            Button("이 기기에서만 로그아웃", role: .destructive) { model.localLogout() }
-            Button("취소", role: .cancel) { }
-        } message: { Text(model.logoutFailure ?? "") }
-        .onChange(of: model.screen) { _, screen in visibility = screen == .exam ? .detailOnly : .all }
-        .onChange(of: phase) { _, phase in
-            if phase == .active { Task { await model.foregroundAgain() } }
-            else { model.background() }
-        }
-        .onReceive(NotificationCenter.default.publisher(for: AVAudioSession.interruptionNotification).receive(on: RunLoop.main)) { _ in model.player.invalidateAudio() }
-        .onReceive(NotificationCenter.default.publisher(for: AVAudioSession.mediaServicesWereResetNotification).receive(on: RunLoop.main)) { _ in model.player.invalidateAudio() }
-        .onReceive(NotificationCenter.default.publisher(for: .AVAudioEngineConfigurationChange).receive(on: RunLoop.main)) { notification in model.player.audioConfigurationChanged(notification) }
-        .onReceive(NotificationCenter.default.publisher(for: AVAudioSession.routeChangeNotification)) { notification in
-            if let raw = notification.userInfo?[AVAudioSessionRouteChangeReasonKey] as? UInt, AVAudioSession.RouteChangeReason(rawValue: raw) == .oldDeviceUnavailable { model.player.pause() }
         }
     }
     private func sidebar(_ title: String, icon: String, screen: AppModel.Screen) -> some View {

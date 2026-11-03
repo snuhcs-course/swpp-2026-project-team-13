@@ -109,7 +109,7 @@ python3 scripts/fetch_soundfont.py --check
 
 [Xcode 프로젝트](../frontend/IPadApp/IPadApp.xcodeproj)를 열고 Scheme `IPadApp`, 실행 대상은 설치된 iPad 시뮬레이터, Run configuration은 `Debug`로 선택한 뒤 실행합니다. 음원 준비는 이후 필기 복구 테스트에서 연습을 시작하기 위해 필요합니다.
 
-앱의 **연결 설정 → 로컬 데모 사용 끄기 → API 기준 주소 입력 → 서버 연결** 순서로 진행합니다. 같은 Mac의 시뮬레이터에서는 `http://127.0.0.1:8000/api/v1/`을 입력합니다. 마지막 `/`를 포함합니다.
+앱의 회원가입·로그인 화면 오른쪽 위 아이콘으로 **연결 설정**에 들어가 **로컬 데모 사용이 꺼져 있는지 확인 → API 기준 주소 입력 → 서버 연결** 순서로 진행합니다. 같은 Mac의 시뮬레이터에서는 `http://127.0.0.1:8000/api/v1/`을 입력합니다. 마지막 `/`를 포함합니다.
 
 실제 iPad에서는 Mac의 LAN IPv4를 사용하고, 같은 네트워크에 연결합니다. 해당 IP를 `.env`의 `DJANGO_ALLOWED_HOSTS`에 추가한 뒤 API를 다시 생성합니다. Release 빌드는 HTTPS를 요구합니다. 자세한 기기 연결은 [설치 안내](../docs/IPAD-SETUP.md)를 따릅니다.
 

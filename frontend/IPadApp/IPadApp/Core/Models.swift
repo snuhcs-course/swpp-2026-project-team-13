@@ -7,7 +7,8 @@ import Darwin
 struct UserProfile: Codable, Identifiable, Equatable {
     var id: UUID
     var displayName: String
-    var learningGoal: String
+    // nil until a signed-up user picks a goal on the onboarding screen.
+    var learningGoal: String?
 }
 struct KeySignature: Codable, Equatable {
     var tonic: String; var mode: String; var fifths: Int

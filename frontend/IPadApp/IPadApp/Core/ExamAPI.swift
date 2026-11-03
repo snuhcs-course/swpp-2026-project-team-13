@@ -167,8 +167,9 @@ final class NoRedirectDelegate: NSObject, URLSessionTaskDelegate, @unchecked Sen
         let r = try request(endpoint("auth/signup-availability/"), authenticated: false)
         return try ContractJSON.decoder().decode(SignupAvailability.self, from: await execute(r, limit: 256 * 1024, retry: false))
     }
-    func signup(username: String, displayName: String, learningGoal: String, password: String) async throws -> LoginResponse {
-        let body = try JSONSerialization.data(withJSONObject: ["username": username, "display_name": displayName, "learning_goal": learningGoal, "password": password])
+    // The goal is chosen on the next screen and saved with updateGoal.
+    func signup(username: String, displayName: String, password: String) async throws -> LoginResponse {
+        let body = try JSONSerialization.data(withJSONObject: ["username": username, "display_name": displayName, "password": password])
         return try await credentialResponse("auth/signup/", body: body)
     }
     private func credentialResponse(_ path: String, body: Data) async throws -> LoginResponse {

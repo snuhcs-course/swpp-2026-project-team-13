@@ -155,7 +155,7 @@ v0.8.0이 추가하는 서버 설정은 아래 환경 변수로 조정합니다.
 
 1. 요청 IP의 가입 성공 집계 행을 잠그고 성공 한도를 다시 확인합니다. 집계는 로그인과 같은 LoginThrottle 모델에 별도 종류("signup-success")의 키로 두고 locked_throttle로 잠급니다. 한도에 도달했으면 입력이 유효하더라도 429를 반환하고 아무것도 생성하지 않습니다.
 2. 사용 가능한 비밀번호를 가진 활성 사용자를 생성합니다. is_staff와 is_superuser는 false이며 email, first_name, last_name은 빈 값입니다. 유일 인덱스·제약 위반은 409 USERNAME_TAKEN입니다.
-3. 요청의 display_name과 learning_goal, created_via=signup을 가진 UserProfile을 생성합니다.
+3. 요청의 display_name과 learning_goal(생략하면 null), created_via=signup을 가진 UserProfile을 생성합니다.
 4. 사용자의 DRF Token을 생성합니다.
 5. 해당 아이디의 로그인 실패 횟수와 차단 상태를 초기화합니다. 가입 전에 같은 아이디로 발생한 로그인 실패가 새 계정의 로그인을 막지 않게 하기 위함입니다.
 6. 요청 IP의 가입 성공 집계에 이번 성공을 기록하고 커밋합니다.
@@ -183,7 +183,7 @@ v0.8.0이 추가하는 서버 설정은 아래 환경 변수로 조정합니다.
 - 제어 문자·줄·문단 구분자는 unicodedata.category가 Cc, Zl, Zp인 문자입니다.
 - 양방향 제어 문자(Bidi_Control)는 U+061C, U+200E, U+200F, U+202A–U+202E, U+2066–U+2069입니다. 이모지 조합에 쓰이는 ZWJ(U+200D) 등 다른 서식 문자(Cf)는 허용합니다.
 - 필드 검사는 기존 로그인 구현(auth_views.credentials)과 같은 순서로, required → 문자열 여부(invalid) → blank → max_length → UTF-8 인코딩 가능 여부(invalid) → min_length → invalid_format → invalid_choice입니다. 인코딩 검사는 value.encode("utf-8")의 UnicodeError로 판정합니다.
-- learning_goal의 허용 목록은 sori/views.py의 GOALS와 같은 집합을 사용합니다.
+- learning_goal의 허용 목록은 sori/views.py의 GOALS와 같은 집합을 사용합니다. UserProfile.learning_goal은 null을 허용하며(마이그레이션 0006), null은 가입 후 아직 고르지 않은 상태입니다. 모델 기본값 other는 관리자 생성 경로에만 적용됩니다.
 
 ### 클라이언트 IP 판정
 
@@ -234,6 +234,7 @@ v0.8.0이 추가하는 서버 설정은 아래 환경 변수로 조정합니다.
 
 - 가입 화면의 username 입력란은 로그인 화면(LoginView.swift)과 같이 .textContentType(.username), .textInputAutocapitalization(.never), .autocorrectionDisabled()를 사용합니다.
 - 비밀번호와 비밀번호 확인 입력란은 .textContentType(.newPassword)를 사용합니다. iOS의 강력한 비밀번호 제안과 자동 저장은 Associated Domains(webcredentials) 설정과 고정 도메인의 apple-app-site-association 파일이 있어야 확실히 동작합니다. Xcode 무료 개인 팀 서명과 주소가 바뀌는 Quick Tunnel에서는 사용할 수 없으므로 복구 불가 안내가 주된 대책입니다.
+- 인증 화면은 사이드바 없는 전체 화면(AuthFlowView)이며 SettingsView로 가는 아이콘을 둡니다. 입력란은 아이디 → 닉네임 → 비밀번호 → 비밀번호 확인 순으로 앞 칸이 유효하고 0.35초 입력이 멈추면 펼칩니다. 펼친 칸은 접지 않으며 포커스를 옮기지 않습니다. 자세한 규칙은 [온보딩 안내](../ONBOARDING.md)에 있습니다.
 - username은 Regex의 wholeMatch처럼 문자열 전체 일치로 확인합니다.
 - display_name 길이는 String.count(문자소 단위)가 아닌 unicodeScalars.count로 확인합니다. 문자 규칙은 Unicode.Scalar.Properties의 isWhitespace(앞뒤), generalCategory(.control, .lineSeparator, .paragraphSeparator), isBidiControl로 확인합니다.
 - 서버 주소에는 터널의 https://<호스트>/api/v1/을 입력합니다. Quick Tunnel 주소가 바뀌면 기존 서버 변경 흐름(인증 작업 세대 갱신, origin별 토큰 분리)을 그대로 사용합니다.
@@ -255,7 +256,7 @@ v0.8.0이 추가하는 서버 설정은 아래 환경 변수로 조정합니다.
 
 - OpenAPI에서 POST /auth/signup/, GET /auth/signup-availability/, DELETE /me/, SignupRequest·SignupAvailability 스키마, 로그인 응답 스키마를 재사용한 201 응답과 오류 예시를 구현과 맞춥니다. AI 채점 사용량 상한을 구현한 뒤 GRADING_QUOTA_EXCEEDED의 x-status: planned를 제거하고 info.version을 0.8.0으로 맞춥니다.
 - [운영 설정과 한도](#운영-설정과-한도)의 모든 설정을 settings.py에서 읽고 검증하며, backend/.env.example에 추가합니다.
-- 성공 응답과 생성된 사용자·프로필·토큰, 요청한 learning_goal과 created_via=signup 저장, 절대 URL인 Location(.../api/v1/me/), 가입 직후 토큰으로 /me/ 조회, 같은 자격 증명으로 로그인 시 같은 토큰 반환을 검증합니다.
+- 성공 응답과 생성된 사용자·프로필·토큰, 요청한 learning_goal과 created_via=signup 저장, learning_goal 생략 시 null 저장과 로그인·/me/의 null 응답, 명시적 null의 invalid, PATCH /me/의 null 거절과 이후 저장, 절대 URL인 Location(.../api/v1/me/), 가입 직후 토큰으로 /me/ 조회, 같은 자격 증명으로 로그인 시 같은 토큰 반환을 검증합니다.
 - 필드별 code 우선순위, password의 다중 FieldError, 알 수 없는 필드·객체가 아닌 본문의 fields=[], 짝이 맞지 않는 서로게이트의 invalid와 1024자 초과 시 max_length 우선, "student01\n"·"student01 "의 invalid_format, display_name의 양방향 제어 문자 거절과 ZWJ 허용, learning_goal의 invalid_choice, 비밀번호 정책을 검증합니다. 로그인의 password도 같은 우선순위인지 검증합니다.
 - 대소문자만 다른 아이디의 409(가입과 관리자 생성 경로 모두), 동시 가입 시 하나만 성공, 실패 시 사용자·프로필·토큰이 남지 않는지 검증합니다.
 - SIGNUP_ENABLED=false의 403, 32 KiB 경계와 Content-Length 없는 초과 요청의 413, 두 IP 제한과 해제, 같은 IP의 동시 가입이 성공 한도를 넘지 않는지, IP 제한 중 입력 오류의 429, 두 제한이 겹칠 때 더 긴 Retry-After, 로그인 시도 제한과의 분리, 가입 성공 시 아이디별 로그인 실패 초기화를 검증합니다.
@@ -270,7 +271,7 @@ v0.8.0이 추가하는 서버 설정은 아래 환경 변수로 조정합니다.
 - GET /auth/signup-availability/는 설정값 반영, 잘못된 Authorization 헤더와 무관한 200, 시도 제한 미포함을 검증합니다.
 - 계정 삭제는 204 후 사용자·프로필·토큰·응시·답안·채점 작업·자기채점 이력·멱등성 영수증·로그인 실패 기록·이미지 파일이 남지 않는지, 이전 토큰의 401, 같은 아이디 재가입 시 새 UUID, 관리자 계정의 403과 데이터 유지, 본문·Content-Type과 무관한 204, 다른 사용자의 데이터 유지, 실패 시 일부만 삭제되지 않는지, 이미지 파일 삭제 실패에도 204인지를 검증합니다. 진행 중인 채점 작업이 있을 때 삭제하면 워커가 종료되지 않고 결과만 버려지는지, 삭제와 겹친 응시 생성 요청이 500이 아닌 401을 받는지, 삭제와 겹친 제출·업로드가 교착 상태 없이 끝나는지도 검증합니다. delete_practice_user도 같은 결과를 내는지 검증합니다.
 - 남용 대응 절차대로 계정을 비활성화하면 토큰이 폐기되고 로그인·제출이 거절되는지 검증합니다.
-- 앱에서는 가입 성공 후 인증 상태와 로컬 기록 연결, 이전 세대 가입 응답 무시, 오류 후 자동 재전송하지 않음, 응답 유실 후 409·429 안내, signup-availability 결과에 따른 가입 버튼 표시, 403 후 버튼 숨김, 학습 목표 선택 필수, 개인정보·복구 불가 안내 표시, GRADING_QUOTA_EXCEEDED 안내와 자동 재전송하지 않음, 대기 시간이 30초를 넘는 429의 자동 재시도 제외, 80자 display_name 표시를 검증합니다.
+- 앱에서는 가입 성공 후 인증 상태와 로컬 기록 연결, 이전 세대 가입 응답 무시, 오류 후 자동 재전송하지 않음, 응답 유실 후 409·429 안내, signup-availability 결과에 따른 가입 버튼 표시, 403 후 버튼 숨김, 가입 요청에 학습 목표를 보내지 않음, 목표 선택 전 재실행 시 선택 화면 복귀, 목표 저장 실패 시 화면 유지, 첫 실행의 가입 화면과 계정 사용 후의 로그인 화면, 로그인 상태 유지를 끈 로그인의 Keychain 미저장·재연결·재실행·로그아웃·401, 개인정보·복구 불가 안내 표시, GRADING_QUOTA_EXCEEDED 안내와 자동 재전송하지 않음, 대기 시간이 30초를 넘는 429의 자동 재시도 제외, 80자 display_name 표시를 검증합니다.
 - 앱의 계정 삭제는 204 후 토큰·로컬 기록 삭제와 로그인 화면 이동, 진행 중이던 필기가 삭제 후 다시 저장되지 않음, 403 ACCOUNT_DELETION_NOT_ALLOWED 후 토큰 유지, 이전 세대 삭제 응답 무시, 오류 후 자동 재전송하지 않음, 응답 유실 후 401의 안내와 로컬 기록 유지, 본문을 해석할 수 없는 403을 관리자 계정 오류로 처리하지 않음을 검증합니다.
 
 ### 배포 테스트

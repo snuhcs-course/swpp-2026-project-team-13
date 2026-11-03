@@ -6,9 +6,9 @@ Native SwiftUI / PencilKit app for the SORI v0.7.0 personal-practice contract. i
 
 ## Run
 
-Open `IPadApp/IPadApp.xcodeproj`, select the shared `IPadApp` scheme and an iPad simulator, and Run. The default **local demo** works without a server. The app includes the exact API fixtures, staff template, MXL examples, a native notation renderer, and a fixed synthesized piano SoundFont. Demo results are explicitly marked as examples and do not analyze handwriting.
+Open `IPadApp/IPadApp.xcodeproj`, select the shared `IPadApp` scheme and an iPad simulator, and Run. A fresh install opens signup when the build has a server address (`API_BASE_URL`) and the **local demo** when it has none. The demo works without a server and can be turned on from **연결 설정**, reached by the icon at the top right of signup and login. See [onboarding](../docs/ONBOARDING.md). The app includes the exact API fixtures, staff template, MXL examples, a native notation renderer, and a fixed synthesized piano SoundFont. Demo results are explicitly marked as examples and do not analyze handwriting.
 
-Use **연결 설정** to switch to the backend. Enter an absolute base URL ending `/api/v1/`, then log in with an administrator-created username and password. Inputs retain whitespace and case. Only the returned token is stored in this device's Keychain, keyed by server origin; passwords are never persisted. Relaunch verifies the stored token with `/me/`. Release requires HTTPS. Debug permits HTTP for local development. For a physical iPad use the backend PC's LAN address; `localhost` on an iPad means the iPad itself.
+Use **연결 설정** to choose the backend. Enter an absolute base URL ending `/api/v1/`, then sign up, or log in with an existing username and password. Inputs retain whitespace and case. Only the returned token is stored in this device's Keychain, keyed by server origin; passwords are never persisted. Turning off **로그인 상태 유지** keeps the token in memory for that launch instead. Relaunch verifies the stored token with `/me/`. Release requires HTTPS. Debug permits HTTP for local development. For a physical iPad use the backend PC's LAN address; `localhost` on an iPad means the iPad itself.
 
 The Django backend implements the versioned SORI operations with PostgreSQL and an OpenRouter worker. Follow ../docs/IPAD-SETUP.md to start the server and create an account. Local demo is deliberately separate from live API errors.
 
@@ -18,6 +18,7 @@ For Windows installation without a Mac, follow [the Sideloadly guide](../docs/WI
 
 ## Screens and contract behavior
 
+- Onboarding: full-screen signup with fields opening one at a time, a learning goal screen shown while the profile's goal is `null`, and login.
 - Practice room: current user, five learning goals, beginner/intermediate/advanced selection cards, all server pages loaded before classification, pending creation recovery, saved unfinished attempt.
 - Question instructions and preparation: use the attempt's immutable snapshot; download and verify template, main/scale MXL, validate the limited profile, prepare every segment and the bundled piano before `start`.
 - Exam: fixed logical 1330×846 PencilKit canvas, black pens, vector eraser, undo/redo, Pencil or finger input, 100/150/200% zoom, continuous monotonic advisory timer (including system sleep). No automatic submission when time reaches zero.

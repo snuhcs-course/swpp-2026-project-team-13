@@ -3,7 +3,7 @@ import XCTest
 
 @MainActor private final class SignupFixture {
     let base = "https://signup-\(UUID().uuidString.lowercased()).example/api/v1/"
-    let user = UserProfile(id: UUID(), displayName: "청음 연습생", learningGoal: "college_entrance")
+    var user = UserProfile(id: UUID(), displayName: "청음 연습생", learningGoal: "college_entrance")
     let http: URLSession
     let defaults = UserDefaults.standard.dictionaryRepresentation()
     // nil means success. Each signup takes the next outcome and the last one repeats.
@@ -14,6 +14,9 @@ import XCTest
     var signupCalls = 0
     var loginCalls = 0
     var availabilityCalls = 0
+    var signupBody: [String: String]?
+    var goalPatches: [[String: String]] = []
+    var patchStatus = 200
     var lastAuthorization: String?
     var held: ((AuthenticationAppProtocol) -> Bool)?
 
@@ -29,6 +32,7 @@ import XCTest
                 request.respond(self.availability.status, data: Data(self.availability.body.utf8))
             } else if path.contains("auth/signup") {
                 self.signupCalls += 1
+                self.signupBody = Self.jsonBody(request.request)
                 self.lastAuthorization = request.request.value(forHTTPHeaderField: "Authorization")
                 if self.held?(request) == true { return }
                 if self.dropConnection {
@@ -42,10 +46,25 @@ import XCTest
                     request.respond(201, data: self.success)
                 }
             } else if path.contains("auth/login") { self.loginCalls += 1; request.respond(401, data: self.failure("INVALID_CREDENTIALS")) }
-            else if path.contains("/me") { request.respond(200, data: try! ContractJSON.encoder().encode(self.user)) }
+            else if path.contains("/me") {
+                if request.request.httpMethod == "PATCH" {
+                    let body = Self.jsonBody(request.request) ?? [:]
+                    self.goalPatches.append(body)
+                    if self.patchStatus != 200 { request.respond(self.patchStatus, data: self.failure("VALIDATION_ERROR")); return }
+                    self.user.learningGoal = body["learning_goal"]
+                }
+                request.respond(200, data: try! ContractJSON.encoder().encode(self.user))
+            }
             else if path.contains("/questions") { request.respond(200, data: try! Bundled.data("questions", ext: "json")) }
             else { request.respond(404, data: self.failure("RESOURCE_NOT_FOUND")) }
         }
+    }
+    private static func jsonBody(_ request: URLRequest) -> [String: String]? {
+        guard let stream = request.httpBodyStream else { return request.httpBody.flatMap { try? JSONSerialization.jsonObject(with: $0) as? [String: String] } }
+        stream.open(); defer { stream.close() }
+        var data = Data(); var buffer = [UInt8](repeating: 0, count: 4096)
+        while stream.hasBytesAvailable { let count = stream.read(&buffer, maxLength: buffer.count); if count <= 0 { break }; data.append(buffer, count: count) }
+        return try? JSONSerialization.jsonObject(with: data) as? [String: String]
     }
     var success: Data { try! ContractJSON.encoder().encode(LoginResponse(accessToken: "signup-token", tokenType: "Bearer", user: user)) }
     func failure(_ code: String, fields: [FieldError] = [], retry: Int? = nil) -> Data {
@@ -64,7 +83,7 @@ import XCTest
 
 @MainActor final class SignupIntegrationTests: XCTestCase {
     private func signup(_ model: AppModel, username: String = "student01") async {
-        await model.signup(username: username, displayName: "청음 연습생", learningGoal: "college_entrance", password: "quiet-lantern-48")
+        await model.signup(username: username, displayName: "청음 연습생", password: "quiet-lantern-48")
     }
 
     func testSuccessStoresTokenLinksLocalRecordsAndSurvivesRelaunch() async throws {
@@ -293,6 +312,69 @@ import XCTest
         try XCTUnwrap(pending).respond(200, data: Data("{\"signup_enabled\": false}".utf8))
         await lookup.value
         XCTAssertTrue(model.signupEnabled)
+    }
+
+    func testSignupSendsNoGoalAndTheGoalScreenEndsOnceOneIsSaved() async throws {
+        let fixture = SignupFixture(); defer { fixture.cleanup() }
+        fixture.user.learningGoal = nil
+        let model = fixture.model(); model.openSignup()
+        await signup(model)
+        XCTAssertEqual(fixture.signupBody, ["username": "student01", "display_name": "청음 연습생", "password": "quiet-lantern-48"])
+        XCTAssertTrue(model.connected); XCTAssertTrue(model.needsGoalSelection); XCTAssertNil(model.error)
+        await model.updateGoal("teacher_exam")
+        XCTAssertEqual(fixture.goalPatches, [["learning_goal": "teacher_exam"]])
+        XCTAssertEqual(model.profile?.learningGoal, "teacher_exam")
+        XCTAssertFalse(model.needsGoalSelection); XCTAssertEqual(model.screen, .home)
+    }
+
+    func testGoalScreenReturnsAfterRelaunchUntilAGoalIsChosen() async throws {
+        let fixture = SignupFixture(); defer { fixture.cleanup() }
+        fixture.user.learningGoal = nil
+        let first = fixture.model(); first.openSignup()
+        await signup(first)
+        let relaunched = fixture.model(); await relaunched.connect()
+        XCTAssertTrue(relaunched.needsGoalSelection)
+        await relaunched.updateGoal("other")
+        let again = fixture.model(); await again.connect()
+        XCTAssertTrue(again.connected); XCTAssertFalse(again.needsGoalSelection)
+    }
+
+    func testFailedGoalSaveStaysOnTheGoalScreenWithAnError() async throws {
+        let fixture = SignupFixture(); defer { fixture.cleanup() }
+        fixture.user.learningGoal = nil
+        let model = fixture.model(); model.openSignup()
+        await signup(model)
+        fixture.patchStatus = 400
+        await model.updateGoal("other")
+        XCTAssertTrue(model.needsGoalSelection); XCTAssertNotNil(model.error); XCTAssertTrue(model.connected)
+    }
+
+    func testFirstLaunchOpensSignupAndAUsedAccountOpensLogin() async throws {
+        let fixture = SignupFixture(); defer { fixture.cleanup() }
+        let defaults = UserDefaults.standard
+        let saved = (defaults.object(forKey: "sori.accountUsed"), defaults.object(forKey: "sori.server"))
+        defer { defaults.set(saved.0, forKey: "sori.accountUsed"); defaults.set(saved.1, forKey: "sori.server") }
+        defaults.removeObject(forKey: "sori.accountUsed"); defaults.set(fixture.base, forKey: "sori.server")
+        XCTAssertTrue(AppModel().showingSignup)
+        // A build older than the flag still has its token and must not look like a first visit.
+        try TokenVault.save("older-build-token", server: fixture.base)
+        XCTAssertFalse(AppModel().showingSignup)
+        try TokenVault.delete(server: fixture.base)
+        let model = fixture.model(); model.openSignup()
+        await signup(model)
+        XCTAssertFalse(model.showingSignup)
+        try TokenVault.delete(server: fixture.base)
+        XCTAssertFalse(AppModel().showingSignup)
+    }
+
+    func testFreshInstallWithAConfiguredServerStartsOutsideTheDemo() throws {
+        let defaults = UserDefaults.standard
+        let saved = defaults.object(forKey: "sori.demo")
+        defer { defaults.set(saved, forKey: "sori.demo") }
+        defaults.removeObject(forKey: "sori.demo")
+        XCTAssertFalse(AppModel().demo)
+        defaults.set(true, forKey: "sori.demo")
+        XCTAssertTrue(AppModel().demo, "an existing choice is kept")
     }
 
     func testLongAdminDisplayNameIsAccepted() async throws {

@@ -85,11 +85,11 @@ final class DelayedAuthProtocol: URLProtocol {
             XCTAssertNil(request.value(forHTTPHeaderField: "Idempotency-Key"))
             XCTAssertEqual(request.value(forHTTPHeaderField: "Content-Type"), "application/json")
             let fields = try JSONSerialization.jsonObject(with: requestBody(request)) as? [String: String]
-            XCTAssertEqual(fields, ["username": "student01", "display_name": " 청음 ", "learning_goal": "teacher_exam", "password": " password \n"])
+            XCTAssertEqual(fields, ["username": "student01", "display_name": " 청음 ", "password": " password \n"])
             return (201, "application/json", data)
         }
         defer { StubProtocol.handler = nil }
-        let actual = try await api.signup(username: "student01", displayName: " 청음 ", learningGoal: "teacher_exam", password: " password \n")
+        let actual = try await api.signup(username: "student01", displayName: " 청음 ", password: " password \n")
         XCTAssertEqual(actual.accessToken, "opaque-token"); XCTAssertEqual(actual.user, user)
     }
     func testSignupNeverAutomaticallyRetriesAnyFailure() async throws {
@@ -102,7 +102,7 @@ final class DelayedAuthProtocol: URLProtocol {
                 if status == 0 { throw URLError(.networkConnectionLost) }
                 return (status, "application/json", data)
             }
-            do { _ = try await api.signup(username: "user", displayName: "n", learningGoal: "other", password: "p"); XCTFail("Expected failure") }
+            do { _ = try await api.signup(username: "user", displayName: "n", password: "p"); XCTFail("Expected failure") }
             catch { XCTAssertEqual(calls, 1, "status \(status)") }
         }
         StubProtocol.handler = nil
@@ -112,7 +112,7 @@ final class DelayedAuthProtocol: URLProtocol {
             let api = try client()
             let data = try ContractJSON.encoder().encode(LoginResponse(accessToken: token, tokenType: type, user: user))
             StubProtocol.handler = { _ in (201, "application/json", data) }
-            do { _ = try await api.signup(username: "user", displayName: "n", learningGoal: "other", password: "p"); XCTFail("Expected rejection") }
+            do { _ = try await api.signup(username: "user", displayName: "n", password: "p"); XCTFail("Expected rejection") }
             catch { XCTAssertTrue(error is SORIError) }
         }
         StubProtocol.handler = nil
@@ -123,7 +123,7 @@ final class DelayedAuthProtocol: URLProtocol {
         let data = try ContractJSON.encoder().encode(ErrorEnvelope(error: ErrorDetail(code: "VALIDATION_ERROR", message: "확인", fields: codes.map { FieldError(field: "password", code: $0, message: $0) }, retryAfterMs: nil), requestId: "request"))
         StubProtocol.handler = { _ in (400, "application/json", data) }
         defer { StubProtocol.handler = nil }
-        do { _ = try await api.signup(username: "user", displayName: "n", learningGoal: "other", password: "1234"); XCTFail("Expected failure") }
+        do { _ = try await api.signup(username: "user", displayName: "n", password: "1234"); XCTFail("Expected failure") }
         catch SORIError.server(400, let envelope, _) { XCTAssertEqual(envelope?.error.fields.map(\.code), codes) }
     }
     func testSignupAvailabilityIsPublicAndIgnoresUnknownFields() async throws {
@@ -150,7 +150,7 @@ final class DelayedAuthProtocol: URLProtocol {
         DelayedAuthProtocol.started = { pending = $0; started.fulfill() }
         defer { DelayedAuthProtocol.started = nil }
         let request = Task { @MainActor in
-            do { _ = try await api.signup(username: "user", displayName: "n", learningGoal: "other", password: "p"); XCTFail("Stale signup was accepted") }
+            do { _ = try await api.signup(username: "user", displayName: "n", password: "p"); XCTFail("Stale signup was accepted") }
             catch is CancellationError { } catch { XCTFail("Unexpected error: \(error)") }
         }
         await fulfillment(of: [started], timeout: 5)
@@ -182,6 +182,37 @@ final class DelayedAuthProtocol: URLProtocol {
         XCTAssertFalse(SignupRules.passwordLengthIsValid(""))
         XCTAssertTrue(SignupRules.passwordLengthIsValid(String(repeating: "x", count: 1024)))
         XCTAssertFalse(SignupRules.passwordLengthIsValid(String(repeating: "x", count: 1025)))
+    }
+    func testPasswordPolicyGuidanceMatchesTheRulesTheServerSpellsOut() {
+        XCTAssertTrue(SignupRules.passwordMeetsPolicy("quiet-lantern-48"))
+        XCTAssertTrue(SignupRules.passwordMeetsPolicy("abcd1234"))
+        XCTAssertFalse(SignupRules.passwordMeetsPolicy("abc1234"), "too short")
+        XCTAssertFalse(SignupRules.passwordMeetsPolicy("12345678"), "all digits")
+        XCTAssertFalse(SignupRules.passwordMeetsPolicy("١٢٣٤٥٦٧٨"), "all digits in another script")
+        XCTAssertFalse(SignupRules.passwordMeetsPolicy(String(repeating: "x", count: 1025)))
+    }
+    func testConfirmationStaysQuietWhileTheSamePasswordIsBeingTyped() {
+        XCTAssertEqual(SignupRules.confirmation("", of: "lantern-48"), .pending)
+        XCTAssertEqual(SignupRules.confirmation("lan", of: "lantern-48"), .pending)
+        XCTAssertEqual(SignupRules.confirmation("lantern-48", of: "lantern-48"), .matches)
+        XCTAssertEqual(SignupRules.confirmation("lax", of: "lantern-48"), .differs)
+        XCTAssertEqual(SignupRules.confirmation("lantern-489", of: "lantern-48"), .differs)
+    }
+    func testUsernameIssueExplainsEachRejectedShape() {
+        let cases: [(String, SignupRules.UsernameIssue)] = [
+            ("", .empty), ("a", .tooShort), ("abc", .tooShort), ("abcd", .none), ("melody_01", .none),
+            ("Melody", .mustStartWithLowercase), ("1abc", .mustStartWithLowercase), ("_abc", .mustStartWithLowercase), ("가나다라", .mustStartWithLowercase),
+            ("abC", .invalidCharacter), ("ab-cd", .invalidCharacter), ("ab cd", .invalidCharacter), ("abcd\n", .invalidCharacter),
+            (String(repeating: "a", count: 20), .none), (String(repeating: "a", count: 21), .tooLong),
+        ]
+        for (value, issue) in cases { XCTAssertEqual(SignupRules.usernameIssue(value), issue, value) }
+        // The two checks must agree, or a "valid" hint could sit beside a closed form.
+        for (value, issue) in cases { XCTAssertEqual(SignupRules.usernameIsValid(value), issue == .none, value) }
+    }
+    func testProfileDecodesAnUnchosenGoalFromNullOrAbsence() throws {
+        for body in ["{\"id\":\"11111111-1111-4111-8111-111111111111\",\"display_name\":\"x\",\"learning_goal\":null}", "{\"id\":\"11111111-1111-4111-8111-111111111111\",\"display_name\":\"x\"}"] {
+            XCTAssertNil(try ContractJSON.decoder().decode(UserProfile.self, from: Data(body.utf8)).learningGoal, body)
+        }
     }
     func testLogoutAccepts204WithoutBodyOrContentType() async throws {
         let api = try client(token: "token")

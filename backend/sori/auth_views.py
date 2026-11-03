@@ -236,7 +236,8 @@ def signup_field_codes(data):
     codes = {
         "username": text_error(data, "username", 20),
         "display_name": text_error(data, "display_name", 20),
-        "learning_goal": text_error(data, "learning_goal", math.inf),
+        # Optional: the app asks for the goal after the account exists.
+        "learning_goal": text_error(data, "learning_goal", math.inf) if "learning_goal" in data else None,
         "password": text_error(data, "password", 1024),
     }
     if not codes["username"]:
@@ -336,7 +337,7 @@ class SignupView(APIView):
             except IntegrityError:
                 raise username_taken() from None
             profile = UserProfile.objects.create(
-                user=user, display_name=data["display_name"], learning_goal=data["learning_goal"], created_via="signup",
+                user=user, display_name=data["display_name"], learning_goal=data.get("learning_goal"), created_via="signup",
             )
             token = Token.objects.create(user=user)
             # Failures before the account existed must not lock the new account out.

@@ -35,7 +35,8 @@ class UserProfile(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     display_name = models.CharField(max_length=80, default="학습자")
-    learning_goal = models.CharField(max_length=40, default="other")
+    # None: signed up but not chosen yet. "other" is a real choice, so it cannot stand in for this.
+    learning_goal = models.CharField(max_length=40, default="other", null=True, blank=True)
     created_via = models.CharField(max_length=10, choices=[("admin", "admin"), ("signup", "signup")], default="admin")
 
 class Question(models.Model):

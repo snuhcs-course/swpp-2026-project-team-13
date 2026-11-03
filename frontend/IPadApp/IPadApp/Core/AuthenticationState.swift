@@ -53,4 +53,25 @@ enum SignupRules {
         }
     }
     static func passwordLengthIsValid(_ value: String) -> Bool { (1...1024).contains(value.unicodeScalars.count) }
+    // The two policy rules that need no server: length and all digits. The server also refuses common passwords.
+    static func passwordMeetsPolicy(_ value: String) -> Bool {
+        (8...1024).contains(value.unicodeScalars.count) && !value.allSatisfy(\.isNumber)
+    }
+
+    enum Confirmation: Equatable { case pending, matches, differs }
+    // Still typing the same password is not a mistake yet.
+    static func confirmation(_ value: String, of password: String) -> Confirmation {
+        if value.isEmpty { return .pending }
+        if value == password { return .matches }
+        return password.hasPrefix(value) ? .pending : .differs
+    }
+
+    enum UsernameIssue: Equatable { case empty, tooShort, tooLong, mustStartWithLowercase, invalidCharacter, none }
+    static func usernameIssue(_ value: String) -> UsernameIssue {
+        guard let first = value.unicodeScalars.first else { return .empty }
+        if !("a"..."z").contains(first) { return .mustStartWithLowercase }
+        if !value.unicodeScalars.allSatisfy({ ("a"..."z").contains($0) || ("0"..."9").contains($0) || $0 == "_" }) { return .invalidCharacter }
+        if value.unicodeScalars.count > 20 { return .tooLong }
+        return value.unicodeScalars.count < 4 ? .tooShort : .none
+    }
 }

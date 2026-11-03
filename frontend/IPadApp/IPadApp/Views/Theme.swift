@@ -6,8 +6,17 @@ enum SORITheme {
     static let background = Color(red: 0.97, green: 0.97, blue: 0.98)
     static let soft = Color(red: 0.93, green: 0.92, blue: 0.99)
     static let green = Color(red: 0.17, green: 0.46, blue: 0.36)
+    static let muted = Color(red: 0.37, green: 0.38, blue: 0.46)
+    static let softInk = Color(red: 0.29, green: 0.27, blue: 0.44)
+    static let field = Color(red: 0.96, green: 0.96, blue: 0.97)
+    static let danger = Color(red: 0.75, green: 0.20, blue: 0.12)
+    static let disabledFill = Color(red: 0.89, green: 0.88, blue: 0.96)
+    static let disabledText = Color(red: 0.44, green: 0.42, blue: 0.57)
     static let goals: [(String, String)] = [("arts_school_entrance","예중·예고 입시"),("arts_school_student","예중·예고 재학생"),("college_entrance","음대 입시"),("teacher_exam","중등 음악 임용"),("other","기타")]
-    static func goal(_ value: String) -> String { goals.first { $0.0 == value }?.1 ?? "지원하지 않는 목표" }
+    static func goal(_ value: String?) -> String {
+        guard let value else { return "목표 미선택" }
+        return goals.first { $0.0 == value }?.1 ?? "지원하지 않는 목표"
+    }
 }
 struct WaveMark: View {
     var body: some View {
