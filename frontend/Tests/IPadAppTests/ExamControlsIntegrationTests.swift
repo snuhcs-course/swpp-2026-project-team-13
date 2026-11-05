@@ -46,6 +46,30 @@ import ImageIO
         player.restore(saved); player.resume()
         XCTAssertEqual(player.cursor.nextSegmentIndex,5)
     }
+    func testUndoAndRedoAvailabilityFollowsTheUndoStack() async throws {
+        let scene = try XCTUnwrap(UIApplication.shared.connectedScenes.compactMap { $0 as? UIWindowScene }.first)
+        let window = UIWindow(windowScene:scene), drawing = DrawingController()
+        window.addSubview(drawing.canvas); window.isHidden = false
+        defer { drawing.canvas.removeFromSuperview(); window.isHidden = true }
+        let manager = try XCTUnwrap(drawing.canvas.undoManager)
+        manager.removeAllActions(); drawing.syncUndoState()
+        XCTAssertFalse(drawing.canUndo); XCTAssertFalse(drawing.canRedo)
+        func registerChange() {
+            manager.registerUndo(withTarget:drawing) { target in
+                manager.registerUndo(withTarget:target) { _ in }
+            }
+        }
+        // A change made outside the buttons, as a Pencil stroke is, has to reach the state on its own.
+        manager.beginUndoGrouping(); registerChange(); manager.endUndoGrouping()
+        try await Task.sleep(for:.milliseconds(50))
+        XCTAssertTrue(drawing.canUndo); XCTAssertFalse(drawing.canRedo)
+        drawing.undo()
+        XCTAssertFalse(drawing.canUndo); XCTAssertTrue(drawing.canRedo)
+        drawing.redo()
+        XCTAssertTrue(drawing.canUndo); XCTAssertFalse(drawing.canRedo)
+        drawing.load(PKDrawing())
+        XCTAssertFalse(drawing.canUndo); XCTAssertFalse(drawing.canRedo)
+    }
     func testDemoRecommendationNeverOffersClassical() async throws {
         let api = try DemoExamAPI(outcome:"completed")
         var seen = Set<UUID>()

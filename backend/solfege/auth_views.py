@@ -265,10 +265,8 @@ def signup_fields(data):
         for name, code in codes.items() if code
     ]
     if not codes["password"]:
-        # Similarity to the username is checked only for a username that could exist.
-        user = get_user_model()(username=data["username"]) if not codes["username"] else None
         try:
-            validate_password(data["password"], user)
+            validate_password(data["password"])
         except ValidationError as error:
             errors += [{"field": "password", "code": item.code, "message": " ".join(item.messages)} for item in error.error_list]
     return errors

@@ -1,4 +1,5 @@
 import SwiftUI
+import Combine
 import PencilKit
 import ImageIO
 import UniformTypeIdentifiers
@@ -10,16 +11,29 @@ import UniformTypeIdentifiers
     @Published var penWidth: CGFloat = 2 { didSet { updateTool() } }
     @Published var fingerDrawing = false { didSet { canvas.drawingPolicy = fingerDrawing ? .anyInput : .pencilOnly } }
     @Published var revision = 0
+    @Published private(set) var canUndo = false
+    @Published private(set) var canRedo = false
+    private var undoObservation: AnyCancellable?
     var onChange: ((PKDrawing) -> Void)?
     init() {
         canvas.backgroundColor = .clear; canvas.isOpaque = false; canvas.overrideUserInterfaceStyle = .light
         canvas.contentSize = CGSize(width: 1330, height: 846); canvas.isScrollEnabled = false
         canvas.drawingPolicy = .pencilOnly; canvas.addInteraction(pencilInteraction); updateTool()
+        // The undo manager posts these before its own state settles, so read it on the next main-queue turn.
+        let changes: [Notification.Name] = [.NSUndoManagerDidUndoChange, .NSUndoManagerDidRedoChange, .NSUndoManagerDidCloseUndoGroup, .NSUndoManagerCheckpoint]
+        undoObservation = Publishers.MergeMany(changes.map { NotificationCenter.default.publisher(for: $0) })
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] _ in self?.syncUndoState() }
     }
     func updateTool() { canvas.tool = erasing ? PKEraserTool(.vector) : PKInkingTool(.pen, color: .black, width: penWidth) }
-    func undo() { canvas.undoManager?.undo() }
-    func redo() { canvas.undoManager?.redo() }
-    func load(_ drawing: PKDrawing) { canvas.drawing = drawing; canvas.undoManager?.removeAllActions(); revision += 1 }
+    func undo() { canvas.undoManager?.undo(); syncUndoState() }
+    func redo() { canvas.undoManager?.redo(); syncUndoState() }
+    func load(_ drawing: PKDrawing) { canvas.drawing = drawing; canvas.undoManager?.removeAllActions(); revision += 1; syncUndoState() }
+    func syncUndoState() {
+        let undo = canvas.undoManager?.canUndo == true, redo = canvas.undoManager?.canRedo == true
+        if undo != canUndo { canUndo = undo }
+        if redo != canRedo { canRedo = redo }
+    }
     func freeze(_ value: Bool) { canvas.isUserInteractionEnabled = !value }
 }
 

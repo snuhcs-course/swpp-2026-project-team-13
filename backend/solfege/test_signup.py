@@ -297,21 +297,17 @@ class SignupValidationTests(ErrorAssertions, TestCase):
 
     def test_password_policy_returns_one_error_per_violation_in_policy_order(self):
         self.assertEqual(self.fields_for(form(password="1234")), [
-            ("password", "password_too_short"), ("password", "password_too_common"), ("password", "password_entirely_numeric"),
+            ("password", "password_too_short"), ("password", "password_missing_letter_or_digit"),
         ])
         self.assertEqual(self.fields_for(form(password="short1x")), [("password", "password_too_short")])
-        self.assertEqual(self.fields_for(form(password="password1")), [("password", "password_too_common")])
-        self.assertEqual(self.fields_for(form(password="94817263550")), [("password", "password_entirely_numeric")])
-        self.assertEqual(self.fields_for(form(password="student01")), [("password", "password_too_similar")])
-        self.assertEqual(self.fields_for(form(username="qzxvk", password="qzxvk")), [
-            ("password", "password_too_similar"), ("password", "password_too_short"),
-        ])
+        for password in ("94817263550", "onlyletters", "한글비밀번호입니다", "abcd١٢٣٤"):
+            self.assertEqual(self.fields_for(form(password=password)), [("password", "password_missing_letter_or_digit")])
 
-    def test_password_similarity_needs_a_valid_username(self):
-        self.assertEqual(self.fields_for(form(username="StudentName1", password="StudentName1")), [("username", "invalid_format")])
+    def test_common_passwords_are_allowed(self):
+        self.assertEqual(post_json(self.client, form(password="password1")).status_code, 201)
 
-    def test_password_similarity_ignores_display_name(self):
-        self.assertEqual(post_json(self.client, form(display_name="violetriver77", password="violetriver77")).status_code, 201)
+    def test_passwords_like_the_username_are_allowed(self):
+        self.assertEqual(post_json(self.client, form(password=VALID["username"])).status_code, 201)
 
     def test_password_policy_only_runs_after_shape_checks(self):
         with patch("solfege.auth_views.validate_password") as policy:
