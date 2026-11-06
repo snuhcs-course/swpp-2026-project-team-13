@@ -76,6 +76,8 @@ struct RhythmPuzzleView: View {
             HStack(alignment:.center) {
                 Text("\(round.meter.numerator)/\(round.meter.denominator)").font(.system(size:34,weight:.bold,design:.rounded))
                 Text(round.tempoLabel).font(.subheadline).foregroundStyle(.secondary)
+                Text(game.waitingToPlay ? "잠시 후 재생" : game.playing ? "선율 재생 중" : draft.finished ? "결과 확인" : "리듬을 채우세요")
+                    .font(.caption).foregroundStyle(.secondary)
                 Spacer()
                 if game.waitingToPlay { ProgressView().controlSize(.small).accessibilityLabel("1초 후 재생") }
                 Text("\(round.difficulty.score)/100").font(.caption.monospacedDigit()).foregroundStyle(.secondary).accessibilityLabel("리듬 난도 \(round.difficulty.score), 실험값")

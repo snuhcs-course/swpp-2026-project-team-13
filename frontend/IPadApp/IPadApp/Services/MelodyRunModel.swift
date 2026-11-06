@@ -312,7 +312,8 @@ import SwiftUI
     func clearBar() { guard canEnter else { return }; answers?.clear(measure:measure); replacementMeasure = nil; message = ""; updateActual() }
     func selectBar(_ bar: Int) {
         guard freeRecall, canEnter, let round, (1...round.score.measures).contains(bar) else { return }
-        measure = bar; replacementMeasure = answers?.complete(bar) == true && !round.targetIndices(measure:bar).isEmpty ? bar : nil
+        measure = bar
+        replacementMeasure = round.targetIndices(measure:bar).contains(where:{ answers?.pitches[$0] != nil }) ? bar : nil
         message = replacementMeasure == nil ? "" : "건반을 누르면 \(bar)마디를 첫 음부터 다시 입력해요."
     }
     func finish() {

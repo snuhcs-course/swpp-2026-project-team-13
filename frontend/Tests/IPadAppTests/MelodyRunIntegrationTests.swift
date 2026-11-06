@@ -70,6 +70,12 @@ import SwiftUI
         defer { game.stop() }
         await game.start(); try await waitUntil({game.canEnter})
         let round = try XCTUnwrap(game.round)
+        let guided = try XCTUnwrap(round.targets.first?.midi)
+        game.keyDown(guided); game.keyUp(guided)
+        game.selectBar(1); XCTAssertEqual(game.replacementMeasure,1)
+        game.keyDown(guided); game.keyUp(guided)
+        XCTAssertEqual(round.targetIndices(measure:1).filter { game.answers?.pitches[$0] != nil }.count,1)
+        game.clearBar()
         for i in round.targetIndices(measure:1) { game.keyDown(round.targets[i].midi); game.keyUp(round.targets[i].midi) }
         let before = try XCTUnwrap(game.answers?.pitches)
         game.selectBar(1); XCTAssertEqual(game.replacementMeasure,1)
