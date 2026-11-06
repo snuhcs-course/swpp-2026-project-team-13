@@ -25,8 +25,10 @@ class LoginThrottle(models.Model):
 def locked_throttle(kind, value):
     key = throttle_key(kind, value)
     while True:
-        LoginThrottle.objects.get_or_create(key=key)
-        # The hourly purge can delete the row between these two queries.
+        # INSERT ... ON CONFLICT DO NOTHING. get_or_create raised IntegrityError when a
+        # concurrent request created the row and a signup deleted it before the retry read.
+        LoginThrottle.objects.bulk_create([LoginThrottle(key=key)], ignore_conflicts=True)
+        # The purge, a signup or an account deletion can delete the row before this lock.
         row = LoginThrottle.objects.select_for_update().filter(key=key).first()
         if row is not None:
             return row
