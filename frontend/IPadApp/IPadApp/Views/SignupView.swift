@@ -49,7 +49,7 @@ struct SignupView: View {
                 }
                 if revealed >= 2 {
                     AuthField(title: "비밀번호", focused: focus == .password, hints: passwordHints, focus: { focus = .password }) {
-                        AuthPasswordInput(placeholder: passwordWasCleared ? "비밀번호를 다시 입력해 주세요" : "8자 이상", text: $password, revealed: $showPassword, contentType: .newPassword, identifier: "signup-password", focus: $focus, field: Field.password)
+                        AuthPasswordInput(placeholder: passwordWasCleared ? "비밀번호를 다시 입력해 주세요" : "영문·숫자 포함 8자 이상", text: $password, revealed: $showPassword, contentType: .newPassword, identifier: "signup-password", focus: $focus, field: Field.password)
                             .submitLabel(.next).onSubmit { advance(from: .password) }
                     }.id(Field.password).transition(.opacity.combined(with: .move(edge: .top)))
                 }
@@ -129,7 +129,19 @@ struct SignupView: View {
         return hints.isEmpty ? [AuthHint(text: "가입 후에는 바꿀 수 없어요. 실명 대신 별명을 써 주세요.")] : hints
     }
     // The no-recovery notice stays visible even next to a server error.
-    private var passwordHints: [AuthHint] { serverHints("password") + [AuthHint(text: "숫자로만은 안 돼요. 잊으면 복구할 수 없어요.")] }
+    private var passwordHints: [AuthHint] {
+        let server = serverHints("password")
+        return (server.isEmpty ? passwordRuleHint : server) + [AuthHint(text: "잊으면 복구할 수 없어요.")]
+    }
+    private var passwordRuleHint: [AuthHint] {
+        switch SignupRules.passwordIssue(password) {
+        case .empty: return []
+        case .tooShort: return [AuthHint(text: "8자 이상 입력해 주세요", tone: .bad)]
+        case .tooLong: return [AuthHint(text: "1024자 이하로 입력해 주세요", tone: .bad)]
+        case .missingLetterOrDigit: return [AuthHint(text: "영문과 숫자를 함께 넣어 주세요", tone: .bad)]
+        case .none: return [AuthHint(text: "사용할 수 있는 비밀번호예요", tone: .good)]
+        }
+    }
     private var confirmationHints: [AuthHint] {
         switch SignupRules.confirmation(confirmation, of: password) {
         case .pending: return []

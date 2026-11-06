@@ -336,7 +336,7 @@ learning_goal은 사용자가 직접 고른 값이며, 앱은 가입 직후의 �
 
 아이디 중복은 대소문자를 구분하지 않고 관리자가 만든 계정을 포함한 모든 계정과 비교합니다. 예를 들어 관리자가 만든 Student01이 있으면 student01로 가입할 수 없습니다. 서버는 가입 외의 계정 생성·아이디 변경 경로에서도 대소문자만 다른 아이디를 허용하지 않습니다. 같은 아이디로 동시에 가입하면 하나만 201이고 나머지는 409입니다.
 
-비밀번호 정책은 현재 서버 설정상 최소 8자, 흔한 비밀번호 금지, 숫자로만 된 비밀번호 금지, 아이디와 유사한 비밀번호 금지입니다. username이 형식 규칙을 통과한 경우에만 아이디 유사성까지 검사합니다. 정책은 가입 시에만 적용하며 로그인 검증에는 다시 적용하지 않습니다. 비밀번호 확인 입력은 앱 화면에서만 비교하고 서버로 보내지 않습니다.
+비밀번호 정책은 현재 서버 설정상 최소 8자, 영문(A-Z, a-z)과 숫자(0-9) 각 1자 이상 포함입니다. 특수문자 등 다른 문자도 함께 쓸 수 있으며, 흔한 비밀번호와 아이디와 비슷한 비밀번호도 허용합니다. 정책은 가입 시에만 적용하며 로그인 검증에는 다시 적용하지 않습니다. 비밀번호 확인 입력은 앱 화면에서만 비교하고 서버로 보내지 않습니다.
 
 성공 시 201과 로그인 성공과 같은 스키마의 객체를 반환합니다. 모든 필드는 필수이며 token_type은 항상 Bearer입니다. user.learning_goal은 요청한 값이며, 생략했다면 null입니다. 기존 201 응답과 같이 생성된 리소스의 절대 URL을 Location 헤더로 반환합니다. 가입으로 만든 프로필은 발급한 토큰으로 조회하는 /api/v1/me/이므로 값은 https://<공개 호스트>/api/v1/me/처럼 [통신과 인증](#통신과-인증)의 공개 origin 규칙을 따릅니다.
 
@@ -398,9 +398,9 @@ learning_goal은 사용자가 직접 고른 값이며, 앱은 가입 직후의 �
 
 | field | code | 조건 |
 |---|---|---|
-| password | password_too_short / password_too_common / password_entirely_numeric / password_too_similar | 서버 비밀번호 정책 위반 |
+| password | password_too_short / password_missing_letter_or_digit | 서버 비밀번호 정책 위반 |
 
-예를 들어 username "Ab"는 min_length 하나, "1abc"와 "student01\n"은 invalid_format입니다. password "1234"는 password_too_short, password_too_common, password_entirely_numeric 세 개를 반환합니다. 1025자이면서 짝이 맞지 않는 서로게이트를 포함한 password는 max_length입니다.
+예를 들어 username "Ab"는 min_length 하나, "1abc"와 "student01\n"은 invalid_format입니다. password "1234"는 password_too_short, password_missing_letter_or_digit 두 개를 반환합니다. 1025자이면서 짝이 맞지 않는 서로게이트를 포함한 password는 max_length입니다.
 
 409 USERNAME_TAKEN은 fields=[{"field": "username", "code": "taken", ...}]로 반환합니다. 로그인은 원인과 관계없이 같은 오류를 반환해 계정 존재 여부를 숨기지만, 가입은 아이디의 존재 여부를 알려줄 수밖에 없습니다. [아이디 중복 확인](#아이디-중복-확인-post-apiv1authusername-check) API도 같은 정보를 알려 주며, 비밀번호 없이 더 쉽게 확인할 수 있습니다. 두 API 모두 SIGNUP_ENABLED=false이면 403이므로, 가입을 끄면 이 경로로 계정 존재 여부를 알 수 없습니다. 가입을 켜면 로그인의 존재 여부 숨김이 완전하지 않다는 점을 수용하고, 각 API의 IP 제한으로 대량 확인을 막습니다.
 

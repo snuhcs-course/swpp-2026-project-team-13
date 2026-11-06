@@ -6065,13 +6065,8 @@
                   },
                   {
                     "field": "password",
-                    "code": "password_too_common",
-                    "message": "너무 흔한 비밀번호입니다."
-                  },
-                  {
-                    "field": "password",
-                    "code": "password_entirely_numeric",
-                    "message": "비밀번호가 숫자로만 되어 있습니다."
+                    "code": "password_missing_letter_or_digit",
+                    "message": "비밀번호에 영문과 숫자를 모두 넣어 주세요."
                   }
                 ],
                 "retry_after_ms": null

@@ -25,6 +25,9 @@ struct AuthFlowView: View {
                 .padding(.bottom, keyboardOverlap)
                 .background(Color.white.ignoresSafeArea())
             }
+            // Fields and buttons keep their own taps; anywhere else puts the keyboard away.
+            .contentShape(Rectangle())
+            .onTapGesture { UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil) }
             .onReceive(NotificationCenter.default.publisher(for: UIResponder.keyboardWillChangeFrameNotification)) { note in
                 guard let frame = note.userInfo?[UIResponder.keyboardFrameEndUserInfoKey] as? CGRect else { return }
                 let overlap = proxy.frame(in: .global).maxY - frame.minY

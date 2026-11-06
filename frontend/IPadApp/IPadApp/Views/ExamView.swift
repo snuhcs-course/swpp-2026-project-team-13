@@ -22,8 +22,8 @@ struct ExamView: View {
                     tool("지우개", icon: "eraser", selected: drawing.erasing) { drawing.erasing = true }
                     Picker("펜 굵기", selection: $drawing.penWidth) { Text("가는 펜").tag(CGFloat(1.5)); Text("보통 펜").tag(CGFloat(2)); Text("굵은 펜").tag(CGFloat(3)) }.pickerStyle(.menu)
                     Divider().frame(height: 22)
-                    Button { drawing.undo() } label: { Image(systemName: "arrow.uturn.backward") }.accessibilityLabel("실행 취소")
-                    Button { drawing.redo() } label: { Image(systemName: "arrow.uturn.forward") }.accessibilityLabel("다시 실행")
+                    Button { drawing.undo() } label: { Image(systemName: "arrow.uturn.backward") }.disabled(!drawing.canUndo).accessibilityLabel("실행 취소")
+                    Button { drawing.redo() } label: { Image(systemName: "arrow.uturn.forward") }.disabled(!drawing.canRedo).accessibilityLabel("다시 실행")
                     Spacer()
                     Toggle(isOn: $drawing.fingerDrawing) { Image(systemName: "hand.draw").accessibilityLabel("손가락으로 그리기") }.toggleStyle(.button).help("손가락 필기")
                     Menu { ForEach([1.0,1.5,2.0], id: \.self) { value in Button("\(Int(value*100))%") { zoom = value } } } label: { Label("\(Int(zoom*100))%", systemImage: "magnifyingglass") }

@@ -126,7 +126,7 @@ final class DelayedAuthProtocol: URLProtocol {
     }
     func testSignupErrorsKeepFieldCodesEvenWhenAFieldRepeats() async throws {
         let api = try client()
-        let codes = ["password_too_short", "password_too_common", "password_entirely_numeric"]
+        let codes = ["password_too_short", "password_missing_letter_or_digit"]
         let data = try ContractJSON.encoder().encode(ErrorEnvelope(error: ErrorDetail(code: "VALIDATION_ERROR", message: "확인", fields: codes.map { FieldError(field: "password", code: $0, message: $0) }, retryAfterMs: nil), requestId: "request"))
         StubProtocol.handler = { _ in (400, "application/json", data) }
         defer { StubProtocol.handler = nil }
@@ -239,13 +239,25 @@ final class DelayedAuthProtocol: URLProtocol {
         XCTAssertTrue(SignupRules.passwordMeetsPolicy("quiet-lantern-48"))
         XCTAssertTrue(SignupRules.passwordMeetsPolicy("abcd1234"))
         XCTAssertFalse(SignupRules.passwordMeetsPolicy("abc1234"), "too short")
-        XCTAssertFalse(SignupRules.passwordMeetsPolicy("12345678"), "all digits")
-        XCTAssertFalse(SignupRules.passwordMeetsPolicy("١٢٣٤٥٦٧٨"), "all digits in another script")
+        XCTAssertTrue(SignupRules.passwordMeetsPolicy("password1"), "common passwords are allowed")
+        XCTAssertFalse(SignupRules.passwordMeetsPolicy("12345678"), "no letter")
+        XCTAssertFalse(SignupRules.passwordMeetsPolicy("onlyletters"), "no digit")
+        XCTAssertFalse(SignupRules.passwordMeetsPolicy("한글비밀번호입니다"), "no ASCII letter or digit")
+        XCTAssertFalse(SignupRules.passwordMeetsPolicy("abcd١٢٣٤"), "digits in another script do not count")
         XCTAssertFalse(SignupRules.passwordMeetsPolicy(String(repeating: "x", count: 1025)))
     }
-    func testConfirmationStaysQuietWhileTheSamePasswordIsBeingTyped() {
+    func testPasswordIssueNamesOneRuleWithLengthFirst() {
+        let cases: [(String, SignupRules.PasswordIssue)] = [
+            ("", .empty), ("a", .tooShort), ("abc1234", .tooShort), ("1234", .tooShort),
+            ("abcdefgh", .missingLetterOrDigit), ("12345678", .missingLetterOrDigit),
+            ("abcd1234", .none), ("quiet-lantern-48", .none), (String(repeating: "x", count: 1025), .tooLong),
+        ]
+        for (value, issue) in cases { XCTAssertEqual(SignupRules.passwordIssue(value), issue, value) }
+    }
+
+    func testConfirmationIsCheckedOnEveryKeystroke() {
         XCTAssertEqual(SignupRules.confirmation("", of: "lantern-48"), .pending)
-        XCTAssertEqual(SignupRules.confirmation("lan", of: "lantern-48"), .pending)
+        XCTAssertEqual(SignupRules.confirmation("lan", of: "lantern-48"), .differs)
         XCTAssertEqual(SignupRules.confirmation("lantern-48", of: "lantern-48"), .matches)
         XCTAssertEqual(SignupRules.confirmation("lax", of: "lantern-48"), .differs)
         XCTAssertEqual(SignupRules.confirmation("lantern-489", of: "lantern-48"), .differs)

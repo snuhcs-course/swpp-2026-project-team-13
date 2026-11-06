@@ -90,10 +90,8 @@ DATABASES = {"default": {
     "OPTIONS": {"connect_timeout": 10},
 }}
 AUTH_PASSWORD_VALIDATORS = [
-    {"NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"},
     {"NAME": "django.contrib.auth.password_validation.MinimumLengthValidator"},
-    {"NAME": "django.contrib.auth.password_validation.CommonPasswordValidator"},
-    {"NAME": "django.contrib.auth.password_validation.NumericPasswordValidator"},
+    {"NAME": "solfege.password_validation.LetterAndDigitPasswordValidator"},
 ]
 # Future endpoints require authentication unless explicitly public, like health.
 REST_FRAMEWORK = {

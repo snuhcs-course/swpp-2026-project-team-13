@@ -66,17 +66,26 @@ enum SignupRules {
         }
     }
     static func passwordLengthIsValid(_ value: String) -> Bool { (1...1024).contains(value.unicodeScalars.count) }
-    // The two policy rules that need no server: length and all digits. The server also refuses common passwords.
-    static func passwordMeetsPolicy(_ value: String) -> Bool {
-        (8...1024).contains(value.unicodeScalars.count) && !value.allSatisfy(\.isNumber)
+    // The whole policy, the same as the server's: length, and at least one ASCII letter and digit.
+    static func passwordMeetsPolicy(_ value: String) -> Bool { passwordIssue(value) == .none }
+
+    // The one rule to show next, length first.
+    enum PasswordIssue: Equatable { case empty, tooShort, tooLong, missingLetterOrDigit, none }
+    static func passwordIssue(_ value: String) -> PasswordIssue {
+        let scalars = value.unicodeScalars
+        if scalars.isEmpty { return .empty }
+        if scalars.count < 8 { return .tooShort }
+        if scalars.count > 1024 { return .tooLong }
+        let hasLetter = scalars.contains { ("a"..."z").contains($0) || ("A"..."Z").contains($0) }
+        let hasDigit = scalars.contains { ("0"..."9").contains($0) }
+        return hasLetter && hasDigit ? .none : .missingLetterOrDigit
     }
 
     enum Confirmation: Equatable { case pending, matches, differs }
-    // Still typing the same password is not a mistake yet.
+    // Checked on every keystroke, so a password typed only partway reads as different.
     static func confirmation(_ value: String, of password: String) -> Confirmation {
         if value.isEmpty { return .pending }
-        if value == password { return .matches }
-        return password.hasPrefix(value) ? .pending : .differs
+        return value == password ? .matches : .differs
     }
 
     enum UsernameIssue: Equatable { case empty, tooShort, tooLong, mustStartWithLowercase, invalidCharacter, none }

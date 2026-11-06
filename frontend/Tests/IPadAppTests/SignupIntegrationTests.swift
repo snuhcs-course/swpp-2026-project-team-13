@@ -227,7 +227,7 @@ import XCTest
 
     func testValidationKeepsEveryPasswordError() async throws {
         let fixture = SignupFixture(); defer { fixture.cleanup() }
-        let codes = ["password_too_short", "password_too_common", "password_entirely_numeric"]
+        let codes = ["password_too_short", "password_missing_letter_or_digit"]
         fixture.outcomes = [(400, "VALIDATION_ERROR", codes.map { FieldError(field: "password", code: $0, message: $0) }, nil)]
         let model = fixture.model(); model.openSignup()
         await signup(model)

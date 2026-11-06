@@ -297,21 +297,17 @@ class SignupValidationTests(ErrorAssertions, TestCase):
 
     def test_password_policy_returns_one_error_per_violation_in_policy_order(self):
         self.assertEqual(self.fields_for(form(password="1234")), [
-            ("password", "password_too_short"), ("password", "password_too_common"), ("password", "password_entirely_numeric"),
+            ("password", "password_too_short"), ("password", "password_missing_letter_or_digit"),
         ])
         self.assertEqual(self.fields_for(form(password="short1x")), [("password", "password_too_short")])
-        self.assertEqual(self.fields_for(form(password="password1")), [("password", "password_too_common")])
-        self.assertEqual(self.fields_for(form(password="94817263550")), [("password", "password_entirely_numeric")])
-        self.assertEqual(self.fields_for(form(password="student01")), [("password", "password_too_similar")])
-        self.assertEqual(self.fields_for(form(username="qzxvk", password="qzxvk")), [
-            ("password", "password_too_similar"), ("password", "password_too_short"),
-        ])
+        for password in ("94817263550", "onlyletters", "한글비밀번호입니다", "abcd١٢٣٤"):
+            self.assertEqual(self.fields_for(form(password=password)), [("password", "password_missing_letter_or_digit")])
 
-    def test_password_similarity_needs_a_valid_username(self):
-        self.assertEqual(self.fields_for(form(username="StudentName1", password="StudentName1")), [("username", "invalid_format")])
+    def test_common_passwords_are_allowed(self):
+        self.assertEqual(post_json(self.client, form(password="password1")).status_code, 201)
 
-    def test_password_similarity_ignores_display_name(self):
-        self.assertEqual(post_json(self.client, form(display_name="violetriver77", password="violetriver77")).status_code, 201)
+    def test_passwords_like_the_username_are_allowed(self):
+        self.assertEqual(post_json(self.client, form(password=VALID["username"])).status_code, 201)
 
     def test_password_policy_only_runs_after_shape_checks(self):
         with patch("solfege.auth_views.validate_password") as policy:
@@ -1005,17 +1001,17 @@ class ThrottlePurgeTests(TestCase):
             self.assertIn(throttle_key(kind, value), keys)
 
     def test_locked_throttle_recreates_a_row_purged_between_its_queries(self):
-        original = LoginThrottle.objects.get_or_create
+        original = LoginThrottle.objects.bulk_create
         calls = []
 
-        def purge_after_lookup(**kwargs):
-            result = original(**kwargs)
+        def purge_after_insert(objs, **kwargs):
+            result = original(objs, **kwargs)
             if not calls:
-                LoginThrottle.objects.filter(**kwargs).delete()
-            calls.append(kwargs)
+                LoginThrottle.objects.filter(key=objs[0].key).delete()
+            calls.append(objs[0].key)
             return result
 
-        with patch.object(LoginThrottle.objects, "get_or_create", side_effect=purge_after_lookup), transaction.atomic():
+        with patch.object(LoginThrottle.objects, "bulk_create", side_effect=purge_after_insert), transaction.atomic():
             row = locked_throttle("ip", "203.0.113.7")
         self.assertEqual(len(calls), 2)
         self.assertEqual(row.key, throttle_key("ip", "203.0.113.7"))
@@ -1343,3 +1339,27 @@ class SignupConcurrencyTests(TransactionTestCase):
         for response in responses[1:]:
             self.assertIn(response.status_code, (200, 401))
         self.assertEqual(post_json(APIClient(), {"username": "student01", "password": PASSWORD}, path=LOGIN).data["access_token"], responses[0].data["access_token"])
+
+    def test_throttle_lock_survives_the_row_being_deleted_while_it_is_created(self):
+        # Two logins create the same row while a signup deletes it, the race that
+        # once surfaced as an IntegrityError. One round rarely hits it; many rounds do.
+        key = throttle_key("username", "student01")
+
+        def lock(barrier):
+            barrier.wait(10)
+            with transaction.atomic():
+                return locked_throttle("username", "student01").key
+
+        def reset(barrier):
+            barrier.wait(10)
+            for _ in range(3):
+                LoginThrottle.objects.filter(key=key).delete()
+
+        for _ in range(100):
+            LoginThrottle.objects.filter(key=key).delete()
+            barrier = Barrier(3)
+            with ThreadPoolExecutor(max_workers=3) as pool:
+                futures = [pool.submit(self.in_connection, lambda: lock(barrier)) for _ in range(2)]
+                futures.append(pool.submit(self.in_connection, lambda: reset(barrier)))
+                results = [future.result(20) for future in futures]
+            self.assertEqual(results[:2], [key, key])
