@@ -18,6 +18,8 @@ import SwiftUI
     private var transitionPending = false
     private var inputStarted: TimeInterval?
     var excerpt: MemoryExcerpt? { setExcerpts.indices.contains(setIndex) ? setExcerpts[setIndex] : nil }
+    var setCount: Int { setExcerpts.isEmpty ? difficulty.barPlan.count : setExcerpts.count }
+    var isLastRound: Bool { setIndex+1 >= setCount }
     var tempoLabel: String {
         let meter = round?.score.timeSignature ?? TimeSignature(numerator:4,denominator:4)
         if meter.denominator == 8 && [6,9,12].contains(meter.numerator) { return "♩. = \(Int((settings.bpm/1.5).rounded()))" }
@@ -89,7 +91,9 @@ import SwiftUI
                 throw SolfegeError.invalidScore("미니게임 문제 목록이 없어요.")
             }
             let data = try Data(contentsOf:url)
-            let value = try JSONDecoder().decode(MemoryCatalog.self,from:data)
+            var value = try JSONDecoder().decode(MemoryCatalog.self,from:data)
+            let groove: MemoryGroovePolicy = try Bundled.decode("memory-groove-v1")
+            try value.applyGroovePolicy(groove,catalogSha256:data.sha256)
             try value.validate(); catalog = value; catalogHash = data.sha256
             questions = value.sources
             let root = try LocalStore(scope:connection?.scope ?? "memory-run-guest").root
@@ -151,8 +155,10 @@ import SwiftUI
         do {
             endObservation(outcome:"abandoned")
             var rng = SystemRandomNumberGenerator()
-            setExcerpts = try catalog.makeSet(level:difficulty,using:&rng)
-            setIndex = 0; setScores = Array(repeating:nil,count:4); setId = UUID()
+            let heard = records.filter { $0.listenStarts > 0 }
+            setExcerpts = try catalog.makeSet(level:difficulty,mode:settings.mode,
+                recentSourceIds:heard.suffix(20).map(\.sourceId),recentFingerprints:Set(heard.suffix(40).map(\.fingerprint)),using:&rng)
+            setIndex = 0; setScores = Array(repeating:nil,count:setExcerpts.count); setId = UUID()
             queueStart()
         } catch { self.error = error.localizedDescription }
     }
@@ -191,6 +197,9 @@ import SwiftUI
             let data = try Data(contentsOf:url)
             if let expected = question.sha256, data.sha256 != expected { throw SolfegeError.invalidScore("선율 파일이 변경됐어요. 최신 앱을 설치해 주세요.") }
             let source = try MelodyXMLParser.parse(data)
+            guard settings.mode != .groove || source.supportsGroove(start:settings.startBar,bars:settings.bars) else {
+                throw SolfegeError.invalidScore("이 선율은 마디를 잇는 붙임줄이 있어 Groove에서 사용할 수 없어요.")
+            }
             let value = try MelodyRound(source:source,start:settings.startBar,bars:settings.bars)
             runner?.cancel(); audio.stop()
             round = value; answers = MelodyAnswers(round:value,guideFirst:true); measure = 1; freeRecall = false
@@ -204,7 +213,7 @@ import SwiftUI
     private func beginClock(from measure: Int, includeCountIn: Bool = true) throws {
         guard let round else { return }
         let value = MelodyTimeline(round:round,settings:settings,fromMeasure:measure,includeCountIn:includeCountIn)
-        timeline = value; phase = .countIn; lastWindow = nil; inputReady = false; pulse = -1
+        timeline = value; phase = value.windows.first?.phase ?? .listen; lastWindow = nil; inputReady = false; pulse = -1
         scheduled = settings.mode == .memory ? Set(measure...round.score.measures) : [measure]
         try audio.start(value,round:round,settings:settings)
         runner?.cancel()

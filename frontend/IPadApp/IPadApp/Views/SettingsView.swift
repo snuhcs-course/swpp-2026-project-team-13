@@ -29,13 +29,13 @@ struct SettingsView: View {
                 Picker("재생 악기",selection:Binding(get:{model.selectedVoice},set:{model.selectVoice($0)})) {
                     ForEach(model.instrumentVoices) { voice in Text(voice.title).tag(voice.id) }
                 }
-                Text("클래식 그랜드 피아노는 미니게임과 청음 시험에서 같은 소리로 재생돼요. 선택한 음색은 다음 연습의 음계와 선율에 함께 적용됩니다.").font(.subheadline).foregroundStyle(.secondary)
-                Text("YDP Grand Piano · FreePats / 그 외 악기: GeneralUser GS").font(.caption).foregroundStyle(.secondary)
-                Button("음원 출처와 이용 조건") { showSoundLicense = true }.font(.caption)
             } }
             if let user=model.profile {
                 Card { VStack(alignment:.leading,spacing:16) {
-                    Text("나의 학습 목표").font(.headline)
+                    HStack(alignment:.firstTextBaseline,spacing:12) {
+                        Text("나의 학습 목표").font(.headline)
+                        Text("이 선택은 앱 기능에 영향을 주지 않아요.").font(.caption).foregroundStyle(.secondary)
+                    }
                     Picker("학습 목표",selection:Binding(get:{user.learningGoal},set:{ goal in if let goal { Task { await model.updateGoal(goal) } } })) { ForEach(SolfegeTheme.goals,id:\.0) { key,title in Text(title).tag(String?.some(key)) } }
                 } }
                 if !model.demo {
@@ -60,18 +60,19 @@ struct SettingsView: View {
                 }
             }
             Card { VStack(alignment:.leading,spacing:12) {
-                Label("필기와 응시 복구",systemImage:"externaldrive").font(.headline)
-                Text("필기 원본, 고정된 제출 이미지와 요청 키는 사용자·서버별로 이 iPad에 보관합니다. 앱을 지우거나 기기를 바꾸면 편집 가능한 필기를 복구할 수 없습니다.").font(.subheadline).foregroundStyle(.secondary).lineSpacing(5)
-                Text("API 계약 v0.13.0 · MusicXML 4.0 · GeneralUser GS").font(.caption).foregroundStyle(.tertiary)
+                Label("답안 저장과 이어 풀기",systemImage:"externaldrive").font(.headline)
+                Text("앱을 나갔다 돌아와도 진행하던 시험과 필기를 이어갈 수 있어요. 제출 전 답안과 수정 가능한 필기는 이 iPad에 저장돼요. 앱을 삭제하거나 다른 기기로 바꾸면 다시 불러올 수 없어요.").font(.subheadline).foregroundStyle(.secondary).lineSpacing(5)
             } }
+            Button("출처와 이용 조건") { showSoundLicense = true }.font(.caption)
         }.padding(32).frame(maxWidth:900).frame(maxWidth:.infinity) }
         .sheet(isPresented:$showSoundLicense) {
             NavigationStack {
                 ScrollView { VStack(alignment:.leading,spacing:24) {
+                    Text((try? String(data:Bundled.data("melody-source-license",ext:"txt"),encoding:.utf8)) ?? "문제 출처를 불러오지 못했습니다.")
                     Text((try? String(data:Bundled.data("melody-piano-license",ext:"txt"),encoding:.utf8)) ?? "클래식 피아노 라이선스를 불러오지 못했습니다.")
                     Text((try? String(data:Bundled.data("generaluser-license",ext:"txt"),encoding:.utf8)) ?? "GeneralUser GS 라이선스를 불러오지 못했습니다.")
                 }.font(.footnote).textSelection(.enabled).padding() }
-                    .navigationTitle("음원 출처와 이용 조건")
+                    .navigationTitle("출처와 이용 조건")
                     .toolbar { ToolbarItem(placement:.confirmationAction) { Button("닫기") { showSoundLicense = false } } }
             }
         }

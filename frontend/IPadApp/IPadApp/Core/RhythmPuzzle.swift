@@ -83,14 +83,23 @@ struct RhythmCatalog: Decodable {
         }
     }
     // Interleave same-meter difficulty thirds; never overlap excerpts from the same source in a set.
-    func set(count: Int = 5) -> [RhythmRound] {
-        var ordered = rounds.shuffled(), buckets = [[RhythmRound](),[RhythmRound](),[RhythmRound]()]
+    func set(count: Int = 5, recentSourceIds: [UUID] = [], recentRhythmKeys: Set<String> = []) -> [RhythmRound] {
+        let desired = min(count,Set(rounds.map(\.questionId)).count)
+        let recent = Set(recentSourceIds)
+        var pool = rounds
+        let freshSources = pool.filter { !recent.contains($0.questionId) }
+        if Set(freshSources.map(\.questionId)).count >= desired { pool = freshSources }
+        let freshPatterns = pool.filter { !recentRhythmKeys.contains($0.rhythmKey) }
+        if Set(freshPatterns.map(\.questionId)).count >= desired { pool = freshPatterns }
+        var ordered = pool.shuffled(), buckets = [[RhythmRound](),[RhythmRound](),[RhythmRound]()]
         for r in ordered { buckets[min(2,r.difficulty.score/34)].append(r) }
         ordered = []; var sources = Set<UUID>()
         while ordered.count < count {
             var added = false
             for i in buckets.indices {
-                if let j = buckets[i].firstIndex(where: { !sources.contains($0.questionId) }) {
+                let available = buckets[i].indices.filter { !sources.contains(buckets[i][$0].questionId) }
+                let oldest = available.map { recentSourceIds.lastIndex(of:buckets[i][$0].questionId) ?? -1 }.min()
+                if let oldest, let j = available.first(where: { (recentSourceIds.lastIndex(of:buckets[i][$0].questionId) ?? -1) == oldest }) {
                     let r = buckets[i].remove(at:j); sources.insert(r.questionId); ordered.append(r); added = true
                     if ordered.count == count { break }
                 }

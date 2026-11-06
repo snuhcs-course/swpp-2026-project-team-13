@@ -108,6 +108,27 @@ class MemoryGameTests(unittest.TestCase):
         self.assertGreater(b["pitch"], a["pitch"])
         self.assertGreater(b["raw"], a["raw"])
 
+    def test_groove_policy_matches_original_ties_and_is_pinned_to_the_unchanged_catalog(self):
+        policy = json.loads((RES / "memory-groove-v1.json").read_text(encoding="utf-8"))
+        self.assertEqual(policy["catalogSha256"], hashlib.sha256((RES / "memory-run-v2.json").read_bytes()).hexdigest())
+        excluded = set(policy["excludedExcerptIds"])
+        self.assertEqual(len(excluded), 91)
+        crossings = {}
+        for q in self.sources.values():
+            root = ET.fromstring((RES / q["file"]).read_bytes())
+            previous, boundaries = None, []
+            for mi, measure in enumerate(root.findall("part/measure"), 1):
+                for note in measure.findall("note"):
+                    kinds = {t.get("type") for t in note.findall("tie")}
+                    if "stop" in kinds and previous is not None and previous != mi:
+                        boundaries.append((previous, mi))
+                    previous = mi if "start" in kinds else None
+            crossings[q["id"]] = boundaries
+        for e in self.data["excerpts"]:
+            end = e["first"]+e["bars"]-1
+            crosses = any(left <= end and right >= e["first"] for left, right in crossings[e["sourceId"]])
+            self.assertEqual(e["id"] in excluded, crosses, e["id"])
+
 
 if __name__ == "__main__":
     unittest.main()

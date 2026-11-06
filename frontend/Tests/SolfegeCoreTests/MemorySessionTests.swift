@@ -6,7 +6,11 @@ final class MemorySessionTests: XCTestCase {
         URL(fileURLWithPath:#filePath).deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent().appendingPathComponent("IPadApp/IPadApp/Resources")
     }
     private func catalog() throws -> MemoryCatalog {
-        try JSONDecoder().decode(MemoryCatalog.self,from:Data(contentsOf:resources.appendingPathComponent("memory-run-v2.json")))
+        let data = try Data(contentsOf:resources.appendingPathComponent("memory-run-v2.json"))
+        var bank = try JSONDecoder().decode(MemoryCatalog.self,from:data)
+        let policy = try JSONDecoder().decode(MemoryGroovePolicy.self,from:Data(contentsOf:resources.appendingPathComponent("memory-groove-v1.json")))
+        try bank.applyGroovePolicy(policy,catalogSha256:data.sha256)
+        return bank
     }
     struct Seeded: RandomNumberGenerator {
         var value: UInt64 = 42
@@ -43,6 +47,7 @@ final class MemorySessionTests: XCTestCase {
             XCTAssertEqual(data.sha256,q.sha256)
             let source = try MelodyXMLParser.parse(data)
             for excerpt in bank.excerpts.filter({ $0.sourceId == q.id }) {
+                XCTAssertEqual(excerpt.grooveEligible,source.supportsGroove(start:excerpt.first,bars:excerpt.bars),excerpt.id)
                 let round = try MelodyRound(source:source,start:excerpt.first,bars:excerpt.bars)
                 XCTAssertEqual(round.targets.count,excerpt.attacks,excerpt.id)
                 var answers = MelodyAnswers(round:round,provideFirst:true)
@@ -78,5 +83,38 @@ final class MemorySessionTests: XCTestCase {
             XCTAssertTrue(round.targets.allSatisfy { (60...72).contains($0.midi) && [0,2,4,5,7,9,11].contains($0.midi % 12) })
             XCTAssertEqual(MelodyAnswers(round:round,provideFirst:true).result.expected.count,e.attacks-1)
         }
+    }
+    func testGrooveFiltersCrossBarTiesAndKeepsEveryLevelPlayable() throws {
+        let bank = try catalog()
+        XCTAssertEqual(bank.excerpts.filter { $0.grooveEligible == true }.count,5645)
+        XCTAssertTrue(bank.excerpts.contains { $0.grooveEligible == false })
+        var rng = Seeded()
+        for level in MemoryDifficulty.allCases {
+            for _ in 0..<20 {
+                let set = try bank.makeSet(level:level,mode:.groove,using:&rng)
+                XCTAssertEqual(set.map(\.bars),level.barPlan)
+                XCTAssertTrue(set.allSatisfy { $0.grooveEligible == true })
+            }
+        }
+        let original = try JSONDecoder().decode(MemoryCatalog.self,from:Data(contentsOf:resources.appendingPathComponent("memory-run-v2.json")))
+        XCTAssertThrowsError(try original.makeSet(level:.beginner,mode:.groove,using:&rng))
+        var invalid = bank
+        XCTAssertThrowsError(try invalid.applyGroovePolicy(MemoryGroovePolicy(version:"memory-groove-v1",catalogSha256:"wrong",excludedExcerptIds:[]),catalogSha256:"expected"))
+    }
+    func testNewSetsAvoidRecentlyHeardMelodiesAndFallBackWhenThePoolIsSmall() throws {
+        let bank = try catalog(); var rng = Seeded()
+        for level in MemoryDifficulty.allCases {
+            let first = try bank.makeSet(level:level,using:&rng)
+            let sources = first.map(\.sourceId), patterns = Set(first.map(\.fingerprint))
+            for _ in 0..<20 {
+                let next = try bank.makeSet(level:level,recentSourceIds:sources,recentFingerprints:patterns,using:&rng)
+                XCTAssertTrue(Set(next.map(\.sourceId)).isDisjoint(with:Set(sources)))
+                XCTAssertTrue(Set(next.map(\.fingerprint)).isDisjoint(with:patterns))
+            }
+        }
+        // All sources recently heard: still produce a complete, non-repeating set.
+        let recent = bank.sources.map(\.id)
+        let fallback = try bank.makeSet(level:.beginner,recentSourceIds:recent,using:&rng)
+        XCTAssertEqual(fallback.count,4); XCTAssertEqual(Set(fallback.map(\.sourceId)).count,4)
     }
 }

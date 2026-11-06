@@ -43,24 +43,46 @@ struct MemoryExcerpt: Codable, Identifiable, Equatable {
     let fingerprint: String
     let beginnerEligible: Bool
     let largestInterval: Int
+    var grooveEligible: Bool? = nil
 }
 
 struct MemoryCatalog: Codable {
     let version: String
     let difficultyVersion: String
     let sources: [MelodyQuestion]
-    let excerpts: [MemoryExcerpt]
-    func makeSet<R: RandomNumberGenerator>(level: MemoryDifficulty, using rng: inout R) throws -> [MemoryExcerpt] {
+    var excerpts: [MemoryExcerpt]
+    mutating func applyGroovePolicy(_ policy: MemoryGroovePolicy, catalogSha256: String) throws {
+        let excluded = Set(policy.excludedExcerptIds)
+        guard policy.version == "memory-groove-v1", policy.catalogSha256 == catalogSha256,
+              excluded.count == policy.excludedExcerptIds.count,
+              excluded.isSubset(of:Set(excerpts.map(\.id))) else {
+            throw SolfegeError.invalidScore("Groove 문제 목록의 버전을 확인해 주세요.")
+        }
+        for i in excerpts.indices { excerpts[i].grooveEligible = !excluded.contains(excerpts[i].id) }
+    }
+    func makeSet<R: RandomNumberGenerator>(level: MemoryDifficulty, mode: MelodyMode = .memory,
+        recentSourceIds: [String] = [], recentFingerprints: Set<String> = [], using rng: inout R) throws -> [MemoryExcerpt] {
         var chosen: [MemoryExcerpt] = []
         let sourceMap = Dictionary(uniqueKeysWithValues:sources.map { ($0.id,$0) })
         for (index,bars) in level.barPlan.enumerated() {
             let used = Set(chosen.map(\.sourceId)), patterns = Set(chosen.map(\.fingerprint))
-            let candidates = excerpts.filter {
+            var candidates = excerpts.filter {
                 $0.bars == bars && !used.contains($0.sourceId) && !patterns.contains($0.fingerprint)
+                    && (mode != .groove || $0.grooveEligible == true)
                     && (level != .beginner || $0.beginnerEligible)
                     && (level != .beginner || index >= 2 || ($0.attacks <= 5 && $0.pitchRange <= 5 && $0.largestInterval <= 2))
             }
             guard !candidates.isEmpty else { throw SolfegeError.invalidScore("이 난이도의 선율을 준비하지 못했어요.") }
+            let recentSources = Set(recentSourceIds)
+            let fresh = candidates.filter { !recentSources.contains($0.sourceId) && !recentFingerprints.contains($0.fingerprint) }
+            let freshSources = candidates.filter { !recentSources.contains($0.sourceId) }
+            if !fresh.isEmpty { candidates = fresh }
+            else if !freshSources.isEmpty { candidates = freshSources }
+            else {
+                // A small pool remains playable; repeat the least recent source first.
+                let oldest = candidates.map { recentSourceIds.lastIndex(of:$0.sourceId) ?? -1 }.min() ?? -1
+                candidates = candidates.filter { (recentSourceIds.lastIndex(of:$0.sourceId) ?? -1) == oldest }
+            }
             let groups: [(String,Double)] = [("library",0.6),("intermediate",0.2),("classical",0.2)]
                 .filter { group in candidates.contains { sourceMap[$0.sourceId]?.collection == group.0 } }
             let totalGroupWeight = groups.reduce(0) { $0+$1.1 }
@@ -86,6 +108,12 @@ struct MemoryCatalog: Codable {
             throw SolfegeError.invalidScore("Memory run 문제 파일을 확인해 주세요.")
         }
     }
+}
+
+struct MemoryGroovePolicy: Codable {
+    let version: String
+    let catalogSha256: String
+    let excludedExcerptIds: [String]
 }
 
 struct MemoryPlayRecord: Codable, Identifiable {

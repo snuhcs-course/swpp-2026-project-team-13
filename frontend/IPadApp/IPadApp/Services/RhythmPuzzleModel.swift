@@ -17,6 +17,7 @@ import SwiftUI
     @Published var syncMessage = ""
     @Published var level = "beginner"
     @Published private(set) var selectedTiePiece: RhythmPlacement?
+    @Published private(set) var completedSetCount = 5
     private(set) var engraving: RhythmEngraving?
     @Published var exportURL: URL?
     let audio = RhythmPuzzleAudio()
@@ -39,6 +40,7 @@ import SwiftUI
     var pending: Int { journal.records.filter { !journal.synced.contains($0.id) }.count }
     var canResume: Bool { draft.map { catalogVersions[$0.record.catalogSha256] != nil } == true && round != nil }
     var canEdit: Bool { draft?.finished == false && !storageFailed }
+    var setCount: Int { draft?.setIds.count ?? completedSetCount }
     var hintPositions: [RhythmTime] {
         guard let draft, let round, draft.hintLevel >= 2, draft.record.outcome != "correct",
               let submission = draft.record.submissions.last else { return [] }
@@ -95,7 +97,12 @@ import SwiftUI
         if draft != nil && draft?.finished == false { abandon() }
         var bank = catalog; bank.rounds = bank.rounds.filter { currentRoundIds.contains($0.id) }
         if level != "mixed" { bank.rounds = bank.rounds.filter { $0.level == level } }
-        let selected = bank.set()
+        var history = journal.records
+        if let draft, !history.contains(where: { $0.id == draft.record.id }) { history.append(draft.record) }
+        let heard = history.filter { $0.listens.contains(where: { $0.reason != "reference" }) }
+        let byId = Dictionary(uniqueKeysWithValues:catalog.rounds.map { ($0.id,$0) })
+        let selected = bank.set(recentSourceIds:heard.suffix(20).compactMap { byId[$0.roundId]?.questionId },
+            recentRhythmKeys:Set(heard.suffix(40).compactMap { byId[$0.roundId]?.rhythmKey }))
         guard !selected.isEmpty else { error = "이 난이도의 문제가 없어요."; return }
         begin(set:selected.map(\.id),index:0)
     }
@@ -136,22 +143,22 @@ import SwiftUI
         }
         listening = nil; playing = false; audio.stop()
     }
-    func listen(reason: String = "replay") {
+    func listen(reason: String = "replay", includeCountIn: Bool = true) {
         guard round != nil, !storageFailed, !playing, !waitingToPlay, (draft?.record.listens.count ?? 0) < 200 else { return }
         if draft?.finished == true && reason != "reference" { return }
         checkpoint(); anchor = nil; waitingToPlay = true
         startTask = Task { [weak self] in
             do { try await Task.sleep(for:.seconds(1)) } catch { return }
             guard let self, !Task.isCancelled, self.page == .playing else { return }
-            self.waitingToPlay = false; self.startTask = nil; self.startListening(reason:reason)
+            self.waitingToPlay = false; self.startTask = nil; self.startListening(reason:reason,includeCountIn:includeCountIn)
         }
     }
-    private func startListening(reason: String) {
+    private func startListening(reason: String, includeCountIn: Bool) {
         guard let round, !storageFailed else { return }
         let recording = draft?.finished == false
         if recording { activate(); checkpoint(); anchor = nil }
         do {
-            try audio.play(round,reference:reason == "reference")
+            try audio.play(round,reference:reason == "reference",includeCountIn:includeCountIn)
             if recording {
                 // Bank loading is setup time, not learner response time.
                 activate()
@@ -238,11 +245,12 @@ import SwiftUI
         guard board.complete(round:round,tiles:tiles) else {
             let time = board.firstGap(tiles:tiles), bar = (time/round.measureDuration).floor
             let beat = ((time-round.measureDuration*bar)/round.pulse).floor
-            missingPosition = time; message = "\(bar+1)마디 \(beat+1)박에 빈칸이 남아 있어요. 채우거나 도움말에서 정답을 보고 넘길 수 있어요."
+            missingPosition = time; message = "\(bar+1)마디 \(beat+1)박에 빈칸이 남아 있어요."
             return
         }
         checkpoint()
         do {
+            message = ""; missingPosition = nil
             _ = try journal.draft?.submit(round:round,tiles:tiles)
             if draft?.finished == true { anchor = nil; enqueue() }
             save()
@@ -252,7 +260,7 @@ import SwiftUI
     func revealAndSkip() {
         guard canEdit else { return }
         stopListening(completed:false); checkpoint()
-        journal.draft?.revealAndSkip(); anchor = nil; missingPosition = nil
+        journal.draft?.revealAndSkip(); anchor = nil; missingPosition = nil; message = ""; tieMode = false; selectedTiePiece = nil
         enqueue(); save(); sync()
     }
     private func enqueue() {
@@ -263,7 +271,12 @@ import SwiftUI
         guard let draft, draft.finished else { return }
         stopListening(completed:false)
         if draft.index+1 < draft.setIds.count { begin(set:draft.setIds,index:draft.index+1,hash:draft.record.catalogSha256) }
-        else { journal.draft = nil; page = .summary; anchor = nil; save(); makeExport() }
+        else { completedSetCount = draft.setIds.count; journal.draft = nil; page = .summary; anchor = nil; save(); makeExport() }
+    }
+    func setup() {
+        checkpoint(); stopListening(completed:false); anchor = nil; audio.invalidate()
+        message = ""; missingPosition = nil; tieMode = false; selectedTiePiece = nil
+        page = .setup; save()
     }
     private func abandon() {
         stopListening(completed:false); checkpoint()

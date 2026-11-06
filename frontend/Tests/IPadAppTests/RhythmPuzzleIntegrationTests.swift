@@ -64,9 +64,11 @@ import SwiftUI
         XCTAssertTrue(game.canSubmit); game.submit()
         XCTAssertEqual(game.missingPosition,.zero); XCTAssertTrue(game.draft?.record.submissions.isEmpty == true)
         game.revealAndSkip(); XCTAssertEqual(game.draft?.record.outcome,"skipped")
+        XCTAssertTrue(game.message.isEmpty); XCTAssertNil(game.missingPosition)
         XCTAssertEqual(game.journal.records.count,1)
         XCTAssertTrue(try store.load().records[0].skipped == true)
         game.next(); XCTAssertEqual(game.page,.summary)
+        XCTAssertEqual(game.setCount,1)
     }
     func testCSVExportKeepsFirstAttemptReplayCountsAndSourceMetadata() throws {
         let connection = try connection()
@@ -205,5 +207,25 @@ import SwiftUI
         XCTAssertTrue(game.board.ties.contains(round.measureDuration)); XCTAssertFalse(game.tieMode)
         game.toggleTie(round.measureDuration)
         XCTAssertFalse(game.board.ties.contains(round.measureDuration))
+    }
+    func testBackToDifficultyCancelsPlaybackAndPreservesResumableSet() async throws {
+        let game = RhythmPuzzleModel(connection:try connection()); defer { game.close() }
+        game.newSet()
+        let id = try XCTUnwrap(game.draft?.record.id)
+        game.setup()
+        try await Task.sleep(for:.milliseconds(1100))
+        XCTAssertEqual(game.page,.setup); XCTAssertTrue(game.canResume)
+        XCTAssertFalse(game.playing); XCTAssertFalse(game.waitingToPlay)
+        XCTAssertEqual(game.draft?.record.id,id)
+        game.resume(); XCTAssertEqual(game.page,.playing)
+    }
+    func testDirectReplayOmitsOnlyTheCountIn() throws {
+        let bank: RhythmCatalog = try Bundled.decode("rhythm-puzzle-v3")
+        let round = try XCTUnwrap(bank.rounds.first)
+        let audio = RhythmPuzzleAudio(); defer { audio.shutdown() }
+        try audio.play(round,includeCountIn:false)
+        XCTAssertEqual(audio.endTick,round.totalDuration.ticks)
+        try audio.play(round,includeCountIn:true)
+        XCTAssertEqual(audio.endTick,try XCTUnwrap(round.totalDuration.ticks)+round.meter.ticksPerMeasure)
     }
 }
