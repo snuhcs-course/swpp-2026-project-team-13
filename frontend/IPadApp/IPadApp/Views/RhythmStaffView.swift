@@ -38,9 +38,6 @@ struct RhythmStaffBar: View {
                 for part in layout.segments {
                     if let p = part.placement, let drawing = RhythmInk.drawings[p.tileId] {
                         RhythmInk.draw(drawing,in:context,at:CGPoint(x:point(part.x),y:top),scale:scale)
-                    } else {
-                        let x = point(part.x+part.width/2)
-                        context.fill(Path(ellipseIn:CGRect(x:x-1.5,y:baseline+25*scale,width:3,height:3)),with:.color(.gray.opacity(0.25)))
                     }
                 }
                 for time in board.ties {
@@ -58,6 +55,17 @@ struct RhythmStaffBar: View {
                     }
                 }
             }.allowsHitTesting(false)
+            ForEach(Array(layout.slots.enumerated()),id:\.offset) { _,slot in
+                if slot.empty {
+                    let highlighted = hints.contains { slot.start <= $0 && $0 < slot.start+slot.duration }
+                    RoundedRectangle(cornerRadius:5)
+                        .fill(highlighted ? Color.orange.opacity(0.1) : Color.gray.opacity(0.025))
+                        .overlay(RoundedRectangle(cornerRadius:5).stroke(highlighted ? Color.orange : Color.gray.opacity(0.35),style:StrokeStyle(lineWidth:1,dash:[4,3])))
+                        .overlay(alignment:.bottom) { Text(slot.label(pulse:round.pulse)).font(.system(size:10)).foregroundStyle(.secondary).padding(.bottom,3) }
+                        .frame(width:max(8,point(slot.width)-4),height:82*scale)
+                        .offset(x:point(slot.x)+2,y:top+12*scale).allowsHitTesting(false)
+                }
+            }
             ForEach(layout.segments.compactMap(\.placement)) { placement in
                 if let part = layout.segments.first(where: { $0.placement == placement }) {
                     let hinted = hints.contains { placement.start <= $0 && $0 < placement.start+part.duration }
@@ -80,14 +88,6 @@ struct RhythmStaffBar: View {
             }
         }.frame(width:point(layout.width),height:128)
             .background(GeometryReader { geo in Color.clear.preference(key:RhythmBarFrames.self,value:editable ? [bar:geo.frame(in:.named("rhythm-puzzle"))] : [:]) })
-            .simultaneousGesture(DragGesture(minimumDistance:14).onEnded { value in
-                guard editable, value.startLocation.y >= baseline-4, value.location.y >= baseline-4 else { return }
-                for t in board.validBoundaries(tiles:tiles) {
-                    guard let ends = endpoints(t) else { continue }
-                    let from = value.startLocation.x, to = value.location.x
-                    if (abs(from-ends.0) < 25 && abs(to-ends.1) < 25) || (abs(from-ends.1) < 25 && abs(to-ends.0) < 25) { tapTie(t); return }
-                }
-            })
     }
 }
 
@@ -95,7 +95,7 @@ struct RhythmPuzzleBoardView: View {
     @ObservedObject var game: RhythmPuzzleModel
     let round: RhythmRound; var compact = false
     var body: some View {
-        RhythmStaffSystem(round:round,board:game.board,tiles:game.tiles,compact:compact,hints:game.hintPositions,selected:game.selectedTiePiece,editable:game.canEdit,tapPiece:game.tapPiece,tapTie:game.toggleTie)
+        RhythmStaffSystem(round:round,board:game.board,tiles:game.tiles,compact:compact,hints:game.hintPositions+(game.missingPosition.map { [$0] } ?? []),selected:game.selectedTiePiece,editable:game.canEdit,tapPiece:game.tapPiece,tapTie:game.toggleTie,connect:game.connect)
     }
 }
 
@@ -103,15 +103,14 @@ struct RhythmStaffSystem: View {
     let round: RhythmRound; let board: RhythmBoard; let tiles: [String:RhythmTile]
     var compact = false; var hints: [RhythmTime] = []; var selected: RhythmPlacement? = nil; var editable = false
     var tapPiece: (RhythmPlacement) -> Void = { _ in }; var tapTie: (RhythmTime) -> Void = { _ in }
+    var connect: (RhythmPlacement,RhythmPlacement) -> Void = { _,_ in }
     var body: some View {
         GeometryReader { geo in
             let a = RhythmBarLayout(round:round,bar:0,board:board,tiles:tiles,drawings:RhythmInk.drawings)
             let b = RhythmBarLayout(round:round,bar:1,board:board,tiles:tiles,drawings:RhythmInk.drawings)
-            let scale = min(CGFloat(1.2),geo.size.width/CGFloat(compact ? max(a.width,b.width) : a.width+b.width+12))
-            Group {
-                if compact { VStack(spacing:0) { staff(0,scale:scale,split:true); staff(1,scale:scale,split:true) } }
-                else {
-                    HStack(spacing:12*scale) { staff(0,scale:scale,split:false); staff(1,scale:scale,split:false) }
+            let scale = min(CGFloat(1.2),max(0.7,geo.size.width/CGFloat(a.width+b.width)))
+            ScrollView(.horizontal,showsIndicators:false) {
+                    HStack(spacing:0) { staff(0,scale:scale,split:false); staff(1,scale:scale,split:false) }
                         .overlay(alignment:.topLeading) {
                             Canvas { context,_ in
                                 let boundary = round.measureDuration
@@ -120,13 +119,41 @@ struct RhythmStaffSystem: View {
                                       let right = board.placements.first(where:{ $0.start == boundary }),
                                       let x = a.lastHead(left), let y = b.firstHead(right) else { return }
                                 let start = CGPoint(x:CGFloat(x+5)*scale,y:16+65*scale)
-                                let end = CGPoint(x:CGFloat(a.width+12+y-5)*scale,y:16+65*scale)
+                                let end = CGPoint(x:CGFloat(a.width+y-5)*scale,y:16+65*scale)
                                 context.fill(RhythmInk.tie(from:start,to:end),with:.color(SolfegeTheme.ink))
                             }.allowsHitTesting(false)
                         }
-                }
+                        .overlay {
+                            if editable {
+                                MiniGameTouchSurface { start,end,tap in
+                                    func part(at point: CGPoint) -> RhythmPlacement? {
+                                        guard point.y >= 24, point.y < 16+100*scale else { return nil }
+                                        let x = Double(point.x/scale)
+                                        let layout = x < a.width ? a : b
+                                        let local = x < a.width ? x : x-a.width
+                                        return layout.segments.first { $0.x <= local && local <= $0.x+$0.width }?.placement
+                                    }
+                                    if tap {
+                                        // A narrow curved hit region separates ties from notehead boxes.
+                                        for t in board.ties {
+                                            guard let left = board.placements.first(where:{board.end($0,tiles:tiles) == t}), let right = board.placements.first(where:{$0.start == t}) else { continue }
+                                            let leftLayout = left.start < round.measureDuration ? a : b
+                                            let rightLayout = right.start < round.measureDuration ? a : b
+                                            guard let lx = leftLayout.lastHead(left), let rx = rightLayout.firstHead(right) else { continue }
+                                            let x1 = CGFloat(lx+5+(left.start < round.measureDuration ? 0 : a.width))*scale
+                                            let x2 = CGFloat(rx-5+(right.start < round.measureDuration ? 0 : a.width))*scale
+                                            let path = RhythmInk.tie(from:CGPoint(x:x1,y:16+65*scale),to:CGPoint(x:x2,y:16+65*scale))
+                                            if path.strokedPath(StrokeStyle(lineWidth:16)).contains(end) { tapTie(t); return }
+                                        }
+                                        if let p = part(at:end) { tapPiece(p) }
+                                    } else if let first = part(at:start), let second = part(at:end), first != second { connect(first,second) }
+                                }
+                                .accessibilityHidden(true)
+                            }
+                        }
+                        .frame(width:CGFloat(a.width+b.width)*scale)
             }.frame(maxWidth:.infinity,alignment:.center)
-        }.frame(height:compact ? 256 : 128)
+        }.frame(height:140)
     }
     private func staff(_ bar: Int, scale: CGFloat, split: Bool) -> some View {
         RhythmStaffBar(round:round,bar:bar,board:board,tiles:tiles,scale:scale,hints:hints,selected:selected,splitTie:split,editable:editable,tapPiece:tapPiece,tapTie:tapTie)

@@ -43,6 +43,15 @@ class RhythmAPITests(TestCase):
         self.assertEqual(row.result["source"], "deterministic")
         self.assertEqual(GradingJob.objects.count(), before)
 
+    def test_skip_without_complete_board_is_stored_separately(self):
+        self.payload.update(submissions=[], skipped=True, outcome="skipped")
+        response = self.send()
+        self.assertEqual(response.status_code, 201, response.data)
+        row = RhythmPlay.objects.get()
+        self.assertEqual(row.result["outcome"], "skipped")
+        self.assertIsNone(row.result["first_correct"])
+        self.assertFalse(row.result["calibration_eligible"])
+
     def test_v2_beginner_and_existing_v1_clients_both_save_against_their_frozen_catalog(self):
         self.assertEqual(self.send().status_code, 201)
         data = (settings.CONTENT_ROOT / "rhythm-puzzle-v2.json").read_bytes()

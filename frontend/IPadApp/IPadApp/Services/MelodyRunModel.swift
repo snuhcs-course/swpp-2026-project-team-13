@@ -18,7 +18,12 @@ import SwiftUI
     private var transitionPending = false
     private var inputStarted: TimeInterval?
     var excerpt: MemoryExcerpt? { setExcerpts.indices.contains(setIndex) ? setExcerpts[setIndex] : nil }
-    var tempoLabel: String { difficulty.tempoLabel(for:round?.score.timeSignature ?? TimeSignature(numerator:4,denominator:4)) }
+    var tempoLabel: String {
+        let meter = round?.score.timeSignature ?? TimeSignature(numerator:4,denominator:4)
+        if meter.denominator == 8 && [6,9,12].contains(meter.numerator) { return "♩. = \(Int((settings.bpm/1.5).rounded()))" }
+        if meter.denominator == 2 { return "𝅗𝅥 = \(Int((settings.bpm/2).rounded()))" }
+        return "♩ = \(Int(settings.bpm.rounded()))"
+    }
     var keyboardRange: ClosedRange<Int> { difficulty == .beginner && excerpt != nil ? 60...72 : round?.keyboardRange ?? 60...84 }
     @Published var settings = MelodySettings()
     @Published private(set) var questions: [MelodyQuestion] = []
@@ -37,6 +42,12 @@ import SwiftUI
     @Published private(set) var replaying: String?
     @Published var error: String?
     @Published var importMessage: String?
+    @Published private(set) var message = ""
+    @Published private(set) var replacementMeasure: Int?
+    var guidedPitch: Int? {
+        guard let answers, answers.guideFirst, (answers.pitches.first ?? nil) == nil else { return nil }
+        return round?.targets.first?.midi
+    }
     let audio = MelodyRunAudio()
     private var timeline: MelodyTimeline?
     private var runner: Task<Void,Never>?
@@ -65,10 +76,10 @@ import SwiftUI
         if paused { return "잠시 쉬는 중" }
         if inputReady, phase == .beat { return "미리 입력해도 좋아요" }
         switch phase {
-        case .countIn: return "비트를 느껴 보세요"
-        case .listen: return "귀에 담아요"
-        case .beat: return "머릿속으로 한 번 더"
-        case .input: return currentCount == currentTotal ? "입력 완료!" : "건반으로 이어 보세요"
+        case .countIn: return "예비박 듣는 중"
+        case .listen: return "선율 재생 중"
+        case .beat: return "입력 준비"
+        case .input: return currentCount == currentTotal ? "마디 입력 완료" : "건반으로 입력하세요"
         }
     }
 
@@ -182,16 +193,17 @@ import SwiftUI
             let source = try MelodyXMLParser.parse(data)
             let value = try MelodyRound(source:source,start:settings.startBar,bars:settings.bars)
             runner?.cancel(); audio.stop()
-            round = value; answers = MelodyAnswers(round:value,provideFirst:true); measure = 1; freeRecall = false
+            round = value; answers = MelodyAnswers(round:value,guideFirst:true); measure = 1; freeRecall = false
+            replacementMeasure = nil; message = ""
             try audio.prepare()
             page = .playing; paused = false
             beginObservation()
             try beginClock(from:1)
         } catch { audio.stop(); endObservation(outcome:"technical_error"); page = .setup; self.error = error.localizedDescription }
     }
-    private func beginClock(from measure: Int) throws {
+    private func beginClock(from measure: Int, includeCountIn: Bool = true) throws {
         guard let round else { return }
-        let value = MelodyTimeline(round:round,settings:settings,fromMeasure:measure)
+        let value = MelodyTimeline(round:round,settings:settings,fromMeasure:measure,includeCountIn:includeCountIn)
         timeline = value; phase = .countIn; lastWindow = nil; inputReady = false; pulse = -1
         scheduled = settings.mode == .memory ? Set(measure...round.score.measures) : [measure]
         try audio.start(value,round:round,settings:settings)
@@ -267,7 +279,14 @@ import SwiftUI
         guard page == .playing, !paused else { return }
         audio.noteOn(midi)
         guard canEnter else { return }
-        guard answers?.enter(midi,measure:measure) == true else { return }
+        let accepted: Bool
+        if replacementMeasure == measure { accepted = answers?.replace(measure:measure,with:midi) == true }
+        else { accepted = answers?.enter(midi,measure:measure) == true }
+        guard accepted else {
+            message = guidedPitch != nil ? "강조된 시작음을 먼저 눌러 주세요." : "이 마디는 다 채웠어요. 수정할 마디를 누르거나 제출해 주세요."
+            return
+        }
+        replacementMeasure = nil; message = ""
         updateActual()
         if freeRecall { advanceMemory() }
         else if settings.advanceEarly, let value = timeline, let index = value.inputIndex(at:audio.tick,bpm:settings.bpm), answers?.complete(measure) == true {
@@ -288,9 +307,14 @@ import SwiftUI
             answers?.undo(in:measure)
         }
         updateActual()
+        replacementMeasure = nil; message = ""
     }
-    func clearBar() { guard canEnter else { return }; answers?.clear(measure:measure); updateActual() }
-    func selectBar(_ bar: Int) { guard freeRecall, canEnter else { return }; measure = bar }
+    func clearBar() { guard canEnter else { return }; answers?.clear(measure:measure); replacementMeasure = nil; message = ""; updateActual() }
+    func selectBar(_ bar: Int) {
+        guard freeRecall, canEnter, let round, (1...round.score.measures).contains(bar) else { return }
+        measure = bar; replacementMeasure = answers?.complete(bar) == true && !round.targetIndices(measure:bar).isEmpty ? bar : nil
+        message = replacementMeasure == nil ? "" : "건반을 누르면 \(bar)마디를 첫 음부터 다시 입력해요."
+    }
     func finish() {
         guard page == .playing else { return }
         runner?.cancel(); runner = nil; audio.stopClock(); audio.releaseKeys(); page = .result; paused = false
@@ -320,10 +344,14 @@ import SwiftUI
         runner?.cancel(); runner = nil; audio.stop(); replaying = nil
         endObservation(outcome:"abandoned")
     }
-    func listenAgain() {
+    func listenAgain(includeCountIn: Bool = true) {
         guard page == .playing, settings.mode == .memory, freeRecall, !paused, !working else { return }
-        accumulateInputTime(); freeRecall = false
-        do { try beginClock(from:1) }
+        accumulateInputTime(); freeRecall = false; replacementMeasure = nil; message = ""
+        mutateRecord {
+            if includeCountIn { $0.replayWithCountIn = ($0.replayWithCountIn ?? 0)+1 }
+            else { $0.replayDirect = ($0.replayDirect ?? 0)+1 }
+        }
+        do { try beginClock(from:1,includeCountIn:includeCountIn) }
         catch { pause(); self.error = error.localizedDescription }
     }
     private func beginObservation() {
@@ -335,7 +363,11 @@ import SwiftUI
             priorExposures:records.filter { $0.excerptId == excerpt.id && $0.listenStarts > 0 }.count,
             priorPatternExposures:records.filter { $0.fingerprint == excerpt.fingerprint && $0.listenStarts > 0 }.count,
             expected:round.targets.map(\.midi),givenIndices:answers.givenIndices.sorted(),actual:answers.pitches)
-        records.append(record); currentRecordId = record.id; persist()
+        var updated = record
+        updated.inputPolicy = "guided-first-manual-v3"
+        updated.replayWithCountIn = 0; updated.replayDirect = 0
+        updated.retryOf = records.last(where: { $0.setId == setId && $0.setIndex == setIndex && $0.outcome == "submitted" })?.id
+        records.append(updated); currentRecordId = updated.id; persist()
     }
     private func mutateRecord(_ change: (inout MemoryPlayRecord)->Void) {
         guard let id = currentRecordId, let i = records.firstIndex(where: { $0.id == id }) else { return }

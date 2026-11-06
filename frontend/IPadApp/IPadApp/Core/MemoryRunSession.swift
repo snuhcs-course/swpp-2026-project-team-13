@@ -117,6 +117,11 @@ struct MemoryPlayRecord: Codable, Identifiable {
     var listenCompleted = 0
     var inputMs = 0
     var interruptions = 0
+    // Optional to preserve existing on-device records. Guided starts are not scored.
+    var inputPolicy: String? = nil
+    var replayWithCountIn: Int? = nil
+    var replayDirect: Int? = nil
+    var retryOf: UUID? = nil
 }
 
 // Intrinsic width at a fixed staff size, independent of the screen's width.

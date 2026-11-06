@@ -51,7 +51,8 @@ import SwiftUI
         game.resume(); XCTAssertNil(game.error); XCTAssertFalse(game.paused)
         XCTAssertEqual(game.answers?.pitches,before)
         game.undo(); XCTAssertNil(game.answers?.pitches[target])
-        XCTAssertEqual(game.answers?.pitches.first ?? nil,game.round?.targets.first?.midi)
+        XCTAssertNil(game.answers?.pitches.first ?? nil)
+        XCTAssertEqual(game.guidedPitch,game.round?.targets.first?.midi)
     }
     func testFinalPreparationBeatAlreadyAcceptsGrooveInput() async throws {
         let game = makeGame(mode:.groove)
@@ -63,6 +64,39 @@ import SwiftUI
         let pitch = try XCTUnwrap(game.round?.targets[target].midi)
         game.keyDown(pitch); game.keyUp(pitch)
         XCTAssertEqual(game.answers?.pitches[target],pitch)
+    }
+    func testSelectedCompletedBarReplacesOnKeyPressAndUndoRestoresIt() async throws {
+        let game = makeGame(mode:.memory)
+        defer { game.stop() }
+        await game.start(); try await waitUntil({game.canEnter})
+        let round = try XCTUnwrap(game.round)
+        for i in round.targetIndices(measure:1) { game.keyDown(round.targets[i].midi); game.keyUp(round.targets[i].midi) }
+        let before = try XCTUnwrap(game.answers?.pitches)
+        game.selectBar(1); XCTAssertEqual(game.replacementMeasure,1)
+        let first = try XCTUnwrap(round.targets.first?.midi)
+        game.keyDown(first); game.keyUp(first)
+        XCTAssertEqual(round.targetIndices(measure:1).filter { game.answers?.pitches[$0] != nil }.count,1)
+        game.undo(); XCTAssertEqual(game.answers?.pitches,before)
+        game.listenAgain(includeCountIn:false)
+        try await waitUntil({game.canEnter})
+        XCTAssertEqual(game.answers?.pitches,before)
+        XCTAssertEqual(game.tempoLabel,"♩ = 180")
+    }
+    func testConnectedEngravingAndTutorialsRenderInBothOrientations() async throws {
+        let game = makeGame(mode:.memory)
+        await game.start(); defer { game.stop() }
+        let round = try XCTUnwrap(game.round), answers = try XCTUnwrap(game.answers)
+        XCTAssertEqual(MemoryGlyphInk.glyphs.count,29)
+        for width in [CGFloat(834),1194] {
+            let content = VStack {
+                Text("정답"); MemoryPhraseView(round:round,answers:answers.pitches,reveal:true)
+                Text("내 답"); MemoryPhraseView(round:round,answers:answers.pitches,markErrors:true)
+            }.padding(24).frame(width:width).background(.white)
+            let image = try XCTUnwrap(ImageRenderer(content:content).uiImage)
+            let attachment = XCTAttachment(image:image); attachment.name = "memory-connected-\(Int(width))"; attachment.lifetime = .keepAlways; add(attachment)
+        }
+        let tutorial = ImageRenderer(content:MemoryTutorialView(done:{}).frame(width:834,height:1000))
+        XCTAssertNotNil(tutorial.uiImage)
     }
     func testExpandedPoolContainsOtherKeysClassicalAndIntermediateWithoutAdvancedDictation() {
         let game = MelodyRunModel()
@@ -85,7 +119,8 @@ import SwiftUI
             XCTAssertEqual(game.keyboardRange,60...72)
             XCTAssertTrue(game.excerpt?.beginnerEligible == true)
             let given = try XCTUnwrap(game.round?.targets.first?.midi)
-            XCTAssertEqual(game.answers?.pitches.first ?? nil,given)
+            XCTAssertNil(game.answers?.pitches.first ?? nil)
+            XCTAssertEqual(game.guidedPitch,given)
             game.finish() // A deliberately incomplete submission is recorded, not filled in.
             XCTAssertEqual(game.page,.result)
             XCTAssertEqual(game.answers?.result.accuracy,0)

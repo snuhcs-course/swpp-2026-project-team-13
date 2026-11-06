@@ -164,27 +164,43 @@ struct MelodyAnswers {
     let round: MelodyRound
     private(set) var pitches: [Int?]
     // Undo follows actual input order, including after moving to another bar.
-    private var history: [Int] = []
+    private struct Edit { let pitches: [Int?]; let measure: Int }
+    private var history: [Edit] = []
     let givenIndices: Set<Int>
-    init(round: MelodyRound, provideFirst: Bool = false) {
+    private let protectedIndices: Set<Int>
+    let guideFirst: Bool
+    init(round: MelodyRound, provideFirst: Bool = false, guideFirst: Bool = false) {
         self.round = round; pitches = Array(repeating:nil,count:round.targets.count)
-        givenIndices = provideFirst && !round.targets.isEmpty ? [0] : []
-        if givenIndices.contains(0) { pitches[0] = round.targets[0].midi }
+        self.guideFirst = guideFirst
+        givenIndices = (provideFirst || guideFirst) && !round.targets.isEmpty ? [0] : []
+        protectedIndices = provideFirst && !round.targets.isEmpty ? [0] : []
+        if protectedIndices.contains(0) { pitches[0] = round.targets[0].midi }
     }
     func next(in measure: Int) -> Int? { round.targetIndices(measure:measure).first { pitches[$0] == nil } }
     func complete(_ measure: Int) -> Bool { next(in:measure) == nil }
     @discardableResult mutating func enter(_ midi: Int, measure: Int) -> Bool {
         guard (0...127).contains(midi), let index = next(in:measure) else { return false }
-        pitches[index] = midi; history.append(index); return true
+        guard !(guideFirst && index == 0 && midi != round.targets[0].midi) else { return false }
+        history.append(Edit(pitches:pitches,measure:measure)); pitches[index] = midi; return true
+    }
+    // One edit: undo restores the previous complete bar, including its first note.
+    @discardableResult mutating func replace(measure: Int, with midi: Int) -> Bool {
+        guard (0...127).contains(midi), let index = round.targetIndices(measure:measure).first(where:{ !protectedIndices.contains($0) }) else { return false }
+        guard !(guideFirst && index == 0 && midi != round.targets[0].midi) else { return false }
+        history.append(Edit(pitches:pitches,measure:measure))
+        for i in round.targetIndices(measure:measure) where !protectedIndices.contains(i) { pitches[i] = nil }
+        pitches[index] = midi; return true
     }
     @discardableResult mutating func undo(in measure: Int? = nil) -> Int? {
-        guard let index = history.last, measure == nil || round.targets[index].measure == measure else { return nil }
+        guard let edit = history.last, measure == nil || edit.measure == measure else { return nil }
         history.removeLast()
-        pitches[index] = nil; return round.targets[index].measure
+        pitches = edit.pitches; return edit.measure
     }
     mutating func clear(measure: Int) {
         let indices = Set(round.targetIndices(measure:measure))
-        for i in indices where !givenIndices.contains(i) { pitches[i] = nil }; history.removeAll { indices.contains($0) }
+        guard indices.contains(where:{ !protectedIndices.contains($0) && pitches[$0] != nil }) else { return }
+        history.append(Edit(pitches:pitches,measure:measure))
+        for i in indices where !protectedIndices.contains(i) { pitches[i] = nil }
     }
     var result: MelodyResult {
         let graded = round.targets.indices.filter { !givenIndices.contains($0) }
@@ -233,7 +249,7 @@ struct MelodyTimeline {
     let meter: TimeSignature
     let mode: MelodyMode
     var end: Int { windows.last?.end ?? 0 }
-    init(round: MelodyRound, settings: MelodySettings, fromMeasure: Int = 1) {
+    init(round: MelodyRound, settings: MelodySettings, fromMeasure: Int = 1, includeCountIn: Bool = true) {
         meter = round.score.timeSignature
         mode = settings.mode
         // Count every notated beat: 3/4 = three quarters, 6/8 = six eighths.
@@ -244,7 +260,7 @@ struct MelodyTimeline {
             guard duration > 0 else { return }
             windows.append(MelodyWindow(phase:phase,measure:measure,start:tick,end:tick+duration)); tick += duration
         }
-        append(.countIn,fromMeasure,meter.ticksPerMeasure)
+        if includeCountIn { append(.countIn,fromMeasure,meter.ticksPerMeasure) }
         for measure in fromMeasure...round.score.measures {
             append(.listen,measure,meter.ticksPerMeasure)
             if settings.mode == .groove {
@@ -260,7 +276,7 @@ struct MelodyTimeline {
         return windows.firstIndex { $0.phase == .input && $0.start-early <= tick && tick < $0.end }
     }
     func clickEvents(leadTicks: Int = 0) -> [MusicEvent] {
-        let limit = mode == .memory ? (windows.first?.end ?? 0) : end
+        let limit = mode == .memory ? (windows.first(where: { $0.phase == .countIn })?.end ?? 0) : end
         return stride(from:0,to:limit,by:pulseTicks).map { MusicEvent(midi:60,onset:$0+leadTicks,duration:30) }
     }
     // Early completion advances on the next beat with enough audio scheduling lead time.

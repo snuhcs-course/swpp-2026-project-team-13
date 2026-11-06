@@ -35,15 +35,16 @@ struct MelodyRunView: View {
     @StateObject private var game: MelodyRunModel
     @Environment(\.dismiss) private var dismiss
     @Environment(\.scenePhase) private var scenePhase
-    @AppStorage("memory-run-tutorial-v2") private var tutorialSeen = false
+    @AppStorage("memory-run-tutorial-v3") private var tutorialSeen = false
     @State private var showingTutorial = false
+    @State private var choosingDifficulty = false
     init(connection: RhythmConnection? = nil) { _game = StateObject(wrappedValue:MelodyRunModel(connection:connection)) }
     var body: some View {
         VStack(spacing:16) {
             HStack {
                 Text("Memory run").font(.title2.bold())
                 Spacer()
-                Button { game.pause(); showingTutorial = true } label: { Image(systemName:"questionmark.circle").frame(width:44,height:44) }.accessibilityLabel("게임 방법")
+                Button { game.pause(); showingTutorial = true } label: { Label("게임 방법",systemImage:"questionmark.circle").frame(minHeight:44) }.accessibilityLabel("게임 방법")
                 Button { game.stop(); dismiss() } label: { Image(systemName:"xmark").frame(width:44,height:44) }.accessibilityLabel("게임 닫기")
             }
             switch game.page {
@@ -70,25 +71,34 @@ struct MelodyRunView: View {
     private var setup: some View {
         ScrollView {
             VStack(alignment:.leading,spacing:26) {
-                Text("듣고, 기억하고, 건반으로 이어보세요.").font(.title3).padding(.top,28)
-                Picker("모드",selection:$game.settings.mode) { Text("메모리").tag(MelodyMode.memory); Text("그루브").tag(MelodyMode.groove) }.pickerStyle(.segmented)
-                Picker("난이도",selection:$game.difficulty) { ForEach(MemoryDifficulty.allCases) { Text($0.title).tag($0) } }.pickerStyle(.segmented)
-                VStack(alignment:.leading,spacing:14) {
-                    HStack { Text(game.difficulty.title).font(.title3.bold()); Spacer(); Text(game.difficulty == .beginner ? "처음이어도 괜찮아요" : game.difficulty == .intermediate ? "조금 더 길게" : "네 마디를 한 번에").foregroundStyle(.secondary) }
-                    HStack(spacing:10) {
-                        ForEach(Array(game.difficulty.barPlan.enumerated()),id:\.offset) { i,bars in
-                            VStack(spacing:8) { Text("\(i+1)").font(.caption).foregroundStyle(.secondary); Text("\(bars)마디").font(.headline) }
-                                .frame(maxWidth:.infinity).padding(.vertical,16).background(SolfegeTheme.soft,in:RoundedRectangle(cornerRadius:12))
-                        }
-                    }
-                    Text(game.settings.mode == .memory ? "예비박 뒤 선율을 쭉 듣고 복원해요. 입력 시간은 무제한이에요." : "한 마디를 듣고, 준비박 뒤 건반으로 답해요.").font(.subheadline).foregroundStyle(.secondary)
-                    if game.difficulty == .beginner { Text("짧고 단순한 선율 · 흰건반 · 첫 음 제공").font(.subheadline).foregroundStyle(SolfegeTheme.violet) }
-                }.padding(22).background(.white,in:RoundedRectangle(cornerRadius:18))
-                Button("4문제 시작") { game.newSet() }.buttonStyle(PrimaryButton()).disabled(game.catalog == nil || game.working || showingTutorial)
+                if !choosingDifficulty {
+                    Text("어떻게 연습할까요?").font(.title2.bold()).padding(.top,28)
+                    modeButton(.memory,title:"Memory",description:"선율 전체를 듣고, 기억한 음을 건반으로 복원해요. 입력 시간은 무제한이에요.",icon:"brain.head.profile")
+                    modeButton(.groove,title:"Groove",description:"한 마디 듣기와 정해진 시간 안에 입력하기를 번갈아 해요.",icon:"metronome")
+                } else {
+                    Button("모드 다시 선택",systemImage:"chevron.left") { choosingDifficulty = false }
+                    Text(game.settings.mode == .memory ? "Memory" : "Groove").font(.title2.bold())
+                    Picker("난이도",selection:$game.difficulty) { ForEach(MemoryDifficulty.allCases) { Text($0.title).tag($0) } }.pickerStyle(.segmented)
+                    VStack(alignment:.leading,spacing:12) {
+                        Text(game.difficulty == .beginner ? "짧고 익숙한 선율부터" : game.difficulty == .intermediate ? "조금 더 길고 빠르게" : "네 마디를 한 번에").font(.title3.bold())
+                        Text(game.difficulty == .beginner ? "2마디씩 4문제 · 느린 속도 · 흰건반" : game.difficulty == .intermediate ? "2 · 2 · 4 · 4마디 · 보통 속도" : "4마디씩 4문제 · 빠른 속도").foregroundStyle(.secondary)
+                        Text("난이도에 따라 길이·재생 속도·선율의 복잡도가 달라져요. 첫 음은 표시된 건반을 직접 눌러 시작하세요.").font(.subheadline).foregroundStyle(.secondary)
+                    }.padding(22).frame(maxWidth:.infinity,alignment:.leading).background(.white,in:RoundedRectangle(cornerRadius:18))
+                    Button("4문제 시작") { game.newSet() }.buttonStyle(PrimaryButton()).disabled(game.catalog == nil || game.working || showingTutorial)
+                }
                 storage
                 credits
             }
         }
+    }
+    private func modeButton(_ mode: MelodyMode,title: String,description: String,icon: String) -> some View {
+        Button { game.settings.mode = mode; choosingDifficulty = true } label: {
+            HStack(spacing:24) {
+                Image(systemName:icon).font(.system(size:36,weight:.light)).frame(width:56).foregroundStyle(SolfegeTheme.violet)
+                VStack(alignment:.leading,spacing:10) { Text(title).font(.title.bold()); Text(description).font(.body).foregroundStyle(.secondary) }
+                Spacer(); Image(systemName:"chevron.right")
+            }.padding(28).frame(maxWidth:.infinity,alignment:.leading).background(.white,in:RoundedRectangle(cornerRadius:18))
+        }.buttonStyle(.plain)
     }
     private var setProgress: some View {
         HStack(spacing:7) {
@@ -111,17 +121,25 @@ struct MelodyRunView: View {
                 if game.phase != .input { ProgressView(value:min(1,max(0,game.progress))).tint(SolfegeTheme.violet) }
                 ScrollView {
                     if let round = game.round, let answers = game.answers {
-                        LazyVGrid(columns:Array(repeating:GridItem(.flexible(),spacing:12),count:geometry.size.width < 650 ? 1 : 2),spacing:12) {
-                            ForEach(1...round.score.measures,id:\.self) { bar in
-                                playBar(bar,round:round,answers:answers)
-                            }
-                        }
+                        MemoryPhraseView(round:round,answers:answers.pitches,selectedBar:game.measure,selectBar:game.selectBar)
+                            .padding(.horizontal,12).background(.white,in:RoundedRectangle(cornerRadius:16))
                     }
                 }.frame(maxHeight:.infinity)
-                MelodyPianoView(range:game.keyboardRange,enabled:game.canEnter,solfege:game.difficulty == .beginner,reference:game.round?.targets.first?.midi,onDown:game.keyDown,onUp:game.keyUp)
+                HStack {
+                    Text(game.message.isEmpty ? (game.canEnter ? "\(game.measure)마디 · \(game.currentCount)/\(game.currentTotal)음 입력" : "선율을 듣는 동안 건반 입력을 잠시 기다려 주세요.") : game.message)
+                        .font(.subheadline).foregroundStyle(.secondary)
+                    Spacer()
+                    if let first = game.guidedPitch { Text("첫 음 \(MelodyRound.noteName(first)) ↓").font(.subheadline.bold()).foregroundStyle(SolfegeTheme.violet) }
+                }
+                MelodyPianoView(range:game.keyboardRange,enabled:game.canEnter,solfege:game.difficulty == .beginner,reference:game.guidedPitch,onDown:game.keyDown,onUp:game.keyUp)
                     .frame(height:max(150,min(230,geometry.size.height*0.30))).frame(maxWidth:game.difficulty == .beginner ? 780 : .infinity)
                 HStack(spacing:12) {
-                    if game.settings.mode == .memory { Button { game.listenAgain() } label: { Label("다시 듣기",systemImage:"arrow.counterclockwise") }.buttonStyle(.bordered).disabled(!game.canEnter) }
+                    if game.settings.mode == .memory {
+                        Menu {
+                            Button("바로 다시 듣기",systemImage:"play.fill") { game.listenAgain(includeCountIn:false) }
+                            Button("예비박부터 듣기",systemImage:"metronome") { game.listenAgain(includeCountIn:true) }
+                        } label: { Label("다시 듣기",systemImage:"arrow.counterclockwise") }.buttonStyle(.bordered).disabled(!game.canEnter)
+                    }
                     Button { game.undo() } label: { Image(systemName:"arrow.uturn.backward").frame(width:24,height:24) }.buttonStyle(.bordered).disabled(!game.canEnter).accessibilityLabel("한 음 취소")
                     Button { game.clearBar() } label: { Image(systemName:"eraser").frame(width:24,height:24) }.buttonStyle(.bordered).disabled(!game.canEnter).accessibilityLabel("이 마디 지우기")
                     Spacer()
@@ -131,28 +149,6 @@ struct MelodyRunView: View {
                 VStack(spacing:18) { Text("잠시 쉬는 중").font(.title3.bold()); Button("계속하기") { game.resume() }.buttonStyle(PrimaryButton()) }
                     .frame(maxWidth:.infinity,maxHeight:.infinity).background(.regularMaterial,in:RoundedRectangle(cornerRadius:18))
             } }
-        }
-    }
-    private func playBar(_ bar: Int, round: MelodyRound, answers: MelodyAnswers) -> some View {
-        let display = round.display(measure:bar,answers:answers.pitches)
-        return VStack(alignment:.leading,spacing:4) {
-            HStack {
-                Text("\(bar)마디").font(.caption).foregroundStyle(.secondary)
-                Spacer()
-                if bar == round.targets.first?.measure { Text("첫 음 제공").font(.caption2).foregroundStyle(SolfegeTheme.violet) }
-            }
-            fittedStaff(display.0,round:round,pending:display.1,bar:bar)
-        }.padding(12).frame(maxWidth:.infinity,alignment:.leading).background(.white,in:RoundedRectangle(cornerRadius:16))
-            .overlay(RoundedRectangle(cornerRadius:16).stroke(game.measure == bar ? SolfegeTheme.violet.opacity(0.65) : .clear,lineWidth:1.5))
-            .contentShape(Rectangle()).onTapGesture { game.selectBar(bar) }
-    }
-    private func fittedStaff(_ score: MusicScore, round: MelodyRound, pending: Set<Int> = [], incorrect: Set<Int> = [], bar: Int) -> some View {
-        let source = round.score.symbols.filter { $0.measure == bar }
-        let spacing = MelodyBarSpacing(symbols:source,fifths:round.source.fifths,clef:round.source.clef,displayedSymbols:score.symbols)
-        return ViewThatFits(in:.horizontal) {
-            MelodyStaff(score:score,fifths:round.source.fifths,clef:round.source.clef,pending:pending,incorrect:incorrect,spacing:spacing,scale:0.8)
-            MelodyStaff(score:score,fifths:round.source.fifths,clef:round.source.clef,pending:pending,incorrect:incorrect,spacing:spacing,scale:0.65)
-            ScrollView(.horizontal,showsIndicators:true) { MelodyStaff(score:score,fifths:round.source.fifths,clef:round.source.clef,pending:pending,incorrect:incorrect,spacing:spacing,scale:0.8) }.frame(height:spacing.height*0.8)
         }
     }
     private var result: some View {
@@ -172,17 +168,13 @@ struct MelodyRunView: View {
                         Spacer(); Button("다시 풀기") { game.retry() }.buttonStyle(.bordered).disabled(game.working)
                         Button(game.setIndex == 3 ? "세트 결과" : "다음") { game.next() }.buttonStyle(PrimaryButton(compact:true)).disabled(game.working)
                     }
-                    ForEach(1...round.score.measures,id:\.self) { bar in
-                        let expected = round.display(measure:bar,answers:answers.pitches,reveal:true)
-                        let actual = round.display(measure:bar,answers:answers.pitches)
-                        VStack(alignment:.leading,spacing:8) {
-                            Text("\(bar)마디").font(.caption).foregroundStyle(.secondary)
-                            HStack(alignment:.top,spacing:18) {
-                                VStack(alignment:.leading,spacing:4) { Text("정답").font(.caption).foregroundStyle(SolfegeTheme.green); fittedStaff(expected.0,round:round,bar:bar) }
-                                VStack(alignment:.leading,spacing:4) { Text("내 답").font(.caption).foregroundStyle(.secondary); fittedStaff(actual.0,round:round,pending:actual.1,incorrect:actual.2,bar:bar) }
-                            }
-                        }.padding(16).frame(maxWidth:.infinity,alignment:.leading).background(.white,in:RoundedRectangle(cornerRadius:16))
-                    }
+                    VStack(alignment:.leading,spacing:8) {
+                        Text("정답").font(.headline).foregroundStyle(SolfegeTheme.green)
+                        MemoryPhraseView(round:round,answers:answers.pitches,reveal:true)
+                        Divider().padding(.vertical,8)
+                        Text("내 답").font(.headline)
+                        MemoryPhraseView(round:round,answers:answers.pitches,markErrors:true)
+                    }.padding(16).frame(maxWidth:.infinity,alignment:.leading).background(.white,in:RoundedRectangle(cornerRadius:16))
                     storage
                 }
             }
@@ -236,30 +228,5 @@ struct MelodyStaff: View {
         Canvas { context,size in NativeScoreRenderer(singleMeasure:true,keyFifths:fifths,clef:clef,pending:pending,incorrect:incorrect,compactSpacing:layout).render(score,context:&context,size:size) }
             .frame(width:layout.width*scale,height:layout.height*scale).background(.white)
             .accessibilityLabel("\(score.symbols.filter { $0.midi != nil }.count)음의 리듬 악보, \(pending.count)음 미입력")
-    }
-}
-
-struct MemoryTutorialView: View {
-    let done: ()->Void
-    @State private var step = 0
-    private let icons = ["ear","pianokeys","arrow.uturn.backward","checkmark.circle"]
-    private let titles = ["먼저 선율을 들어요","첫 음부터 이어보세요","천천히 고쳐도 괜찮아요","네 문제를 한 세트로"]
-    private let messages = [
-        "메모리는 예비박 뒤 두 마디 또는 네 마디를 끊지 않고 들려줘요. 다 들은 뒤 입력해요. 그루브는 한 마디 듣기와 입력을 번갈아 해요.",
-        "첫 음은 이미 적혀 있어요. 회색 음표 자리에 나머지 음을 건반으로 차례대로 넣으세요. 리듬·쉼표·붙임줄은 자동이에요. 초급은 도레미가 적힌 흰건반을 사용해요.",
-        "메모리는 시간제한이 없어요. 다시 듣기, 한 음 취소, 마디 지우기를 사용할 수 있어요. 마디를 눌러 수정할 곳을 고르세요. 그루브는 입력 시간이 끝나면 다음 마디로 넘어가요.",
-        "제출하면 정답과 내 답을 함께 확인해요. 첫 음을 제외한 음높이를 채점해요. 중급은 2·2·4·4마디, 초급은 모두 2마디, 고급은 모두 4마디예요."
-    ]
-    var body: some View {
-        VStack(spacing:28) {
-            HStack { Text("Memory run · 게임 방법").font(.headline); Spacer(); Button("닫기",action:done) }
-            Spacer()
-            Image(systemName:icons[step]).font(.system(size:72,weight:.light)).foregroundStyle(SolfegeTheme.violet).frame(width:150,height:150).background(SolfegeTheme.soft,in:RoundedRectangle(cornerRadius:26))
-            Text(titles[step]).font(.title2.bold())
-            Text(messages[step]).font(.body).lineSpacing(7).multilineTextAlignment(.center).frame(maxWidth:490)
-            Spacer()
-            HStack(spacing:8) { ForEach(0..<4,id:\.self) { i in Capsule().fill(i == step ? SolfegeTheme.violet : SolfegeTheme.soft).frame(width:26,height:5) } }
-            HStack { if step > 0 { Button("이전") { step -= 1 } }; Spacer(); Button(step == 3 ? "시작해 볼게요" : "다음") { if step == 3 { done() } else { step += 1 } }.buttonStyle(PrimaryButton(compact:true)) }
-        }.padding(32).frame(maxWidth:650).frame(maxWidth:.infinity).background(SolfegeTheme.background.ignoresSafeArea())
     }
 }

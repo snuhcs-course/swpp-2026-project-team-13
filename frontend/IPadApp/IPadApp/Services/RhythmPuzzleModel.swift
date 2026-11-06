@@ -13,6 +13,7 @@ import SwiftUI
     @Published var tieMode = false
     @Published var error: String?
     @Published var message = ""
+    @Published private(set) var missingPosition: RhythmTime?
     @Published var syncMessage = ""
     @Published var level = "beginner"
     @Published private(set) var selectedTiePiece: RhythmPlacement?
@@ -34,7 +35,7 @@ import SwiftUI
     var draft: RhythmDraft? { journal.draft }
     var round: RhythmRound? { catalog?.rounds.first { $0.id == draft?.record.roundId } }
     var board: RhythmBoard { draft?.board ?? RhythmBoard() }
-    var canSubmit: Bool { !storageFailed && !playing && !waitingToPlay && draft?.finished == false && draft?.hasListened == true && round.map { board.complete(round:$0,tiles:tiles) } == true }
+    var canSubmit: Bool { !storageFailed && !playing && !waitingToPlay && draft?.finished == false && draft?.hasListened == true }
     var pending: Int { journal.records.filter { !journal.synced.contains($0.id) }.count }
     var canResume: Bool { draft.map { catalogVersions[$0.record.catalogSha256] != nil } == true && round != nil }
     var canEdit: Bool { draft?.finished == false && !storageFailed }
@@ -187,13 +188,14 @@ import SwiftUI
         let before = draft.board
         let requested = at ?? before.firstGap(tiles:tiles)
         let target = before.placements.first { $0.start <= requested && requested < before.end($0,tiles:tiles) }?.start ?? requested
-        guard draft.board.place(id,at:at,round:round,tiles:tiles) else { message = "이 조각이 들어갈 빈 공간을 확인해 주세요."; return }
+        if let issue = draft.board.placementIssue(id,at:at,round:round,tiles:tiles) { message = issue; return }
+        guard draft.board.place(id,at:at,round:round,tiles:tiles) else { message = "다른 조각과 겹치지 않는 빈칸에 놓아 주세요."; return }
         if tieMode {
             guard draft.board.toggleTie(target,tiles:tiles) else { message = "바로 앞 음표와 연결할 수 있는 위치에 넣어 주세요."; return }
             tieMode = false; selectedTiePiece = nil
         }
         draft.undo.append(before); draft.undo = Array(draft.undo.suffix(100)); journal.draft = draft
-        checkpoint(); message = ""; save()
+        checkpoint(); message = ""; missingPosition = nil; save()
     }
     func remove(_ p: RhythmPlacement) {
         guard canEdit, var draft else { return }
@@ -207,6 +209,13 @@ import SwiftUI
         draft.undo.append(previous); journal.draft = draft; checkpoint(); save()
     }
     func toggleTieMode() { tieMode.toggle(); selectedTiePiece = nil }
+    func connect(_ first: RhythmPlacement, _ second: RhythmPlacement) {
+        guard canEdit, var draft else { return }
+        let before = draft.board
+        guard draft.board.connect(first,second,tiles:tiles) else { message = "서로 붙어 있는 음표 조각끼리 연결해 주세요. 쉼표는 연결할 수 없어요."; return }
+        if before != draft.board { draft.undo.append(before); journal.draft = draft; checkpoint(); save() }
+        selectedTiePiece = nil; tieMode = false; message = ""
+    }
     func tapPiece(_ p: RhythmPlacement) {
         guard canEdit else { return }
         guard tieMode else { remove(p); return }
@@ -217,7 +226,8 @@ import SwiftUI
               board.validBoundaries(tiles:tiles).contains(b) else {
             selectedTiePiece = p; return
         }
-        toggleTie(b); selectedTiePiece = nil; tieMode = false
+        if let right = board.placements.first(where: { $0.start == b }) { connect(left,right) }
+        selectedTiePiece = nil; tieMode = false
     }
     func undo() {
         guard canEdit, let previous = journal.draft?.undo.popLast() else { return }
@@ -225,6 +235,12 @@ import SwiftUI
     }
     func submit() {
         guard canSubmit, let round else { return }
+        guard board.complete(round:round,tiles:tiles) else {
+            let time = board.firstGap(tiles:tiles), bar = (time/round.measureDuration).floor
+            let beat = ((time-round.measureDuration*bar)/round.pulse).floor
+            missingPosition = time; message = "\(bar+1)마디 \(beat+1)박에 빈칸이 남아 있어요. 채우거나 도움말에서 정답을 보고 넘길 수 있어요."
+            return
+        }
         checkpoint()
         do {
             _ = try journal.draft?.submit(round:round,tiles:tiles)
@@ -232,6 +248,12 @@ import SwiftUI
             save()
             if draft?.finished == true { sync() }
         } catch { self.error = error.localizedDescription }
+    }
+    func revealAndSkip() {
+        guard canEdit else { return }
+        stopListening(completed:false); checkpoint()
+        journal.draft?.revealAndSkip(); anchor = nil; missingPosition = nil
+        enqueue(); save(); sync()
     }
     private func enqueue() {
         guard let record = draft?.record else { return }

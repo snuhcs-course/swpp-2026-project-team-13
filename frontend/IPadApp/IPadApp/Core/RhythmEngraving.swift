@@ -29,7 +29,7 @@ struct RhythmBarLayout {
         func gap(until limit: RhythmTime) {
             while cursor < limit {
                 let next = min(limit,beginning+round.pulse*((((cursor-beginning)/round.pulse).floor)+1))
-                let duration = next-cursor, w = max(24,44*(duration/round.pulse).value)
+                let duration = next-cursor, w = max(12,48*(duration/round.pulse).value)
                 parts.append(Segment(placement:nil,start:cursor,duration:duration,x:x,width:w,symbolXs:[]))
                 x += w; cursor = next
             }
@@ -70,4 +70,30 @@ struct RhythmBarLayout {
         guard let p = segments.first(where: { $0.placement == placement }), let head = p.symbolXs.last else { return nil }
         return p.x+head
     }
+    struct Slot {
+        let start: RhythmTime; let duration: RhythmTime; let x: Double; let width: Double; let empty: Bool
+        func label(pulse: RhythmTime) -> String {
+            let fraction = duration/pulse
+            return fraction == RhythmTime(1) ? "빈칸" : fraction == RhythmTime(1,2) ? "½박" : fraction.description+"박"
+        }
+    }
+    var slots: [Slot] {
+        segments.flatMap { part -> [Slot] in
+            var result: [Slot] = [], time = part.start
+            while time < part.start+part.duration {
+                let boundary = beginning+round.pulse*((((time-beginning)/round.pulse).floor)+1)
+                let stop = min(boundary,part.start+part.duration)
+                let left = part.x+(time-part.start).value/part.duration.value*part.width
+                let w = (stop-time).value/part.duration.value*part.width
+                result.append(Slot(start:time,duration:stop-time,x:left,width:w,empty:part.placement == nil))
+                time = stop
+            }
+            return result
+        }
+    }
+}
+
+enum MiniGameGesture {
+    // Screen points, independent of score scaling. Pencil taps include normal tip drift.
+    static func isTap(maximumDistance: Double, pencil: Bool) -> Bool { maximumDistance <= (pencil ? 16 : 10) }
 }
