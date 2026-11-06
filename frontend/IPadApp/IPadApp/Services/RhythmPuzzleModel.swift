@@ -110,7 +110,7 @@ import SwiftUI
         let related = Set(catalog?.rounds.filter { $0.rhythmKey == r.rhythmKey }.map(\.id) ?? [])
         record.priorPatternExposures = journal.records.filter { related.contains($0.roundId) }.count
         journal.draft = RhythmDraft(setIds:set,index:index,record:record)
-        tieMode = false; selectedTiePiece = nil; message = ""; page = .playing; activate(); save()
+        tieMode = false; selectedTiePiece = nil; missingPosition = nil; message = ""; page = .playing; activate(); save()
         listen(reason:"initial")
     }
     func resume() {
@@ -224,7 +224,7 @@ import SwiftUI
         let a = min(first.start,p.start), b = max(first.start,p.start)
         guard let left = board.placements.first(where: { $0.start == a }), board.end(left,tiles:tiles) == b,
               board.validBoundaries(tiles:tiles).contains(b) else {
-            selectedTiePiece = p; return
+            selectedTiePiece = p; message = "바로 이웃한 음표 조각끼리 연결해 주세요. 쉼표는 연결할 수 없어요."; return
         }
         if let right = board.placements.first(where: { $0.start == b }) { connect(left,right) }
         selectedTiePiece = nil; tieMode = false

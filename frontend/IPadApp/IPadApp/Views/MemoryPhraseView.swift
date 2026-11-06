@@ -48,10 +48,10 @@ private struct MemoryPhraseSystem: View {
             }.frame(width:CGFloat(layout.width)*scale,height:CGFloat(layout.height)*scale)
                 .overlay {
                     if let selectBar {
-                        MiniGameTouchSurface { _,point,tap in
+                        MiniGameTouchSurface(ended:{ _,point,tap in
                             guard tap, let bar = layout.bars.first(where:{ CGFloat($0.x)*scale <= point.x && point.x <= CGFloat($0.x+$0.width)*scale }) else { return }
                             selectBar(bar.number)
-                        }.accessibilityHidden(true)
+                        }).accessibilityHidden(true)
                     }
                 }
                 .accessibilityElement(children:.contain)

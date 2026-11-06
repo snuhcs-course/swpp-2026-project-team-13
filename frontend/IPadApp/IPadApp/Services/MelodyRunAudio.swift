@@ -40,7 +40,9 @@ import AVFoundation
         transportLeadTicks = MelodyTimeline.ticks(milliseconds:MelodyTimeline.audioLeadMilliseconds,bpm:settings.bpm)
         let seq = AVAudioSequencer(audioEngine:graph.engine)
         try seq.load(from:timeline.midi(tempo:settings.bpm,leadTicks:transportLeadTicks),options:[])
-        guard !seq.tracks.isEmpty else { throw SolfegeError.invalidScore("게임 오디오 준비 실패") }
+        // A direct replay legitimately has only a tempo track. Core Audio may
+        // omit that empty track; the piano track is explicitly appended below.
+        guard timeline.clickEvents().isEmpty || !seq.tracks.isEmpty else { throw SolfegeError.invalidScore("게임 오디오 준비 실패") }
         for track in seq.tracks { track.destinationAudioUnit = graph.click }
         let reference = seq.createAndAppendTrack()
         reference.destinationAudioUnit = graph.piano

@@ -58,12 +58,14 @@ struct RhythmStaffBar: View {
             ForEach(Array(layout.slots.enumerated()),id:\.offset) { _,slot in
                 if slot.empty {
                     let highlighted = hints.contains { slot.start <= $0 && $0 < slot.start+slot.duration }
-                    RoundedRectangle(cornerRadius:5)
-                        .fill(highlighted ? Color.orange.opacity(0.1) : Color.gray.opacity(0.025))
-                        .overlay(RoundedRectangle(cornerRadius:5).stroke(highlighted ? Color.orange : Color.gray.opacity(0.35),style:StrokeStyle(lineWidth:1,dash:[4,3])))
-                        .overlay(alignment:.bottom) { Text(slot.label(pulse:round.pulse)).font(.system(size:10)).foregroundStyle(.secondary).padding(.bottom,3) }
-                        .frame(width:max(8,point(slot.width)-4),height:82*scale)
+                    RhythmEmptySlot(label:slot.label(pulse:round.pulse),highlighted:highlighted,
+                                    width:max(CGFloat(8),point(slot.width)-4),height:82*scale)
                         .offset(x:point(slot.x)+2,y:top+12*scale).allowsHitTesting(false)
+                } else {
+                    Rectangle().fill(SolfegeTheme.violet.opacity(0.025))
+                        .overlay(alignment:.leading) { Rectangle().fill(Color.gray.opacity(0.12)).frame(width:0.6) }
+                        .frame(width:point(slot.width),height:82*scale)
+                        .offset(x:point(slot.x),y:top+12*scale).allowsHitTesting(false)
                 }
             }
             ForEach(layout.segments.compactMap(\.placement)) { placement in
@@ -125,7 +127,7 @@ struct RhythmStaffSystem: View {
                         }
                         .overlay {
                             if editable {
-                                MiniGameTouchSurface { start,end,tap in
+                                MiniGameTouchSurface(ended:{ start,end,tap in
                                     func part(at point: CGPoint) -> RhythmPlacement? {
                                         guard point.y >= 24, point.y < 16+100*scale else { return nil }
                                         let x = Double(point.x/scale)
@@ -147,16 +149,30 @@ struct RhythmStaffSystem: View {
                                         }
                                         if let p = part(at:end) { tapPiece(p) }
                                     } else if let first = part(at:start), let second = part(at:end), first != second { connect(first,second) }
-                                }
+                                })
                                 .accessibilityHidden(true)
                             }
                         }
                         .frame(width:CGFloat(a.width+b.width)*scale)
+                        .frame(minWidth:geo.size.width,alignment:.center)
             }.frame(maxWidth:.infinity,alignment:.center)
         }.frame(height:140)
     }
     private func staff(_ bar: Int, scale: CGFloat, split: Bool) -> some View {
         RhythmStaffBar(round:round,bar:bar,board:board,tiles:tiles,scale:scale,hints:hints,selected:selected,splitTie:split,editable:editable,tapPiece:tapPiece,tapTie:tapTie)
+    }
+}
+
+private struct RhythmEmptySlot: View {
+    let label: String; let highlighted: Bool; let width: CGFloat; let height: CGFloat
+    var body: some View {
+        let fill: Color = highlighted ? Color.orange.opacity(0.1) : Color.gray.opacity(0.025)
+        let outline: Color = highlighted ? Color.orange : Color.gray.opacity(0.35)
+        return ZStack(alignment:.bottom) {
+            RoundedRectangle(cornerRadius:5).fill(fill)
+            RoundedRectangle(cornerRadius:5).stroke(outline,style:StrokeStyle(lineWidth:1,dash:[4,3]))
+            Text(label).font(.system(size:10)).foregroundStyle(Color.secondary).padding(.bottom,3)
+        }.frame(width:width,height:height)
     }
 }
 
