@@ -5,7 +5,7 @@ struct RhythmPuzzleView: View {
     @StateObject private var game: RhythmPuzzleModel
     @Environment(\.dismiss) private var dismiss
     @Environment(\.scenePhase) private var phase
-    @AppStorage("rhythm-puzzle-tutorial-v2") private var tutorialSeen = false
+    @AppStorage("rhythm-puzzle-tutorial-v3") private var tutorialSeen = false
     @State private var showingTutorial = false
     @State private var frames: [Int:CGRect] = [:]
     @State private var dragId: String?
@@ -19,7 +19,10 @@ struct RhythmPuzzleView: View {
                         HStack {
                             Text("Rhythm puzzle").font(.title2.bold())
                             Spacer()
-                            Button { game.pause(); showingTutorial = true } label: { Image(systemName:"questionmark.circle").frame(width:44,height:44) }.accessibilityLabel("게임 방법")
+                            Menu {
+                                Button("게임 방법",systemImage:"questionmark.circle") { game.pause(); showingTutorial = true }
+                                if game.canEdit { Button("정답 보고 넘기기",systemImage:"forward.end") { game.revealAndSkip() } }
+                            } label: { Label("게임 방법",systemImage:"questionmark.circle").frame(minHeight:44) }
                             Button { game.close(); dismiss() } label: { Image(systemName:"xmark").frame(width:44,height:44) }.accessibilityLabel("게임 닫기")
                         }
                         if game.page == .setup { setup }
@@ -73,6 +76,8 @@ struct RhythmPuzzleView: View {
             HStack(alignment:.center) {
                 Text("\(round.meter.numerator)/\(round.meter.denominator)").font(.system(size:34,weight:.bold,design:.rounded))
                 Text(round.tempoLabel).font(.subheadline).foregroundStyle(.secondary)
+                Text(game.waitingToPlay ? "잠시 후 재생" : game.playing ? "선율 재생 중" : draft.finished ? "결과 확인" : "리듬을 채우세요")
+                    .font(.caption).foregroundStyle(.secondary)
                 Spacer()
                 if game.waitingToPlay { ProgressView().controlSize(.small).accessibilityLabel("1초 후 재생") }
                 Text("\(round.difficulty.score)/100").font(.caption.monospacedDigit()).foregroundStyle(.secondary).accessibilityLabel("리듬 난도 \(round.difficulty.score), 실험값")
@@ -88,7 +93,7 @@ struct RhythmPuzzleView: View {
                     .foregroundStyle(draft.finished && draft.record.outcome == "correct" ? SolfegeTheme.green : SolfegeTheme.ink)
                     .frame(maxWidth:.infinity,minHeight:28,alignment:.leading)
             }
-            if draft.finished && draft.record.outcome == "revealed" {
+            if draft.finished && ["revealed","skipped"].contains(draft.record.outcome) {
                 VStack(spacing:4) {
                     HStack { Text("정답").foregroundStyle(SolfegeTheme.green); Spacer(); Button { game.listen(reason:"reference") } label: { Image(systemName:"speaker.wave.2") }.disabled(game.playing || game.waitingToPlay).accessibilityLabel("정답 리듬 듣기") }
                     RhythmReferenceView(round:round,tiles:game.tiles,compact:compact)
@@ -99,15 +104,21 @@ struct RhythmPuzzleView: View {
                     if let tile = game.tiles[id] {
                         RhythmTileFace(tile:tile,pulse:round.pulse)
                             .opacity(dragId == id ? 0.3 : 1).contentShape(RoundedRectangle(cornerRadius:12))
-                            .highPriorityGesture(DragGesture(minimumDistance:0,coordinateSpace:.named("rhythm-puzzle"))
-                                .onChanged { value in
-                                    if hypot(value.translation.width,value.translation.height) > 3 { dragId = id; dragPoint = value.location }
-                                }.onEnded { value in
-                                    defer { dragId = nil }
-                                    guard game.canEdit else { return }
-                                    if hypot(value.translation.width,value.translation.height) < 6 { game.place(id) }
-                                    else { drop(id,at:value.location) }
-                                })
+                            .overlay {
+                                GeometryReader { proxy in
+                                    let frame = proxy.frame(in:.named("rhythm-puzzle"))
+                                    MiniGameTouchSurface(moved:{ start,point in
+                                        if hypot(point.x-start.x,point.y-start.y) > 10 {
+                                            dragId = id; dragPoint = CGPoint(x:frame.minX+point.x,y:frame.minY+point.y)
+                                        }
+                                    },ended:{ _,point,tap in
+                                        defer { dragId = nil }
+                                        guard game.canEdit else { return }
+                                        if tap { game.place(id) }
+                                        else { drop(id,at:CGPoint(x:frame.minX+point.x,y:frame.minY+point.y)) }
+                                    },cancelled:{ dragId = nil }).accessibilityHidden(true)
+                                }
+                            }
                             .accessibilityAddTraits(.isButton).accessibilityLabel("리듬 조각, \(tile.label(pulse:round.pulse))")
                             .accessibilityAction { game.place(id) }
                     }
@@ -136,7 +147,7 @@ struct RhythmPuzzleView: View {
             let distanceA = abs(a.value.midY-location.y), distanceB = abs(b.value.midY-location.y)
             return distanceA == distanceB ? a.key < b.key : distanceA < distanceB
         }
-        guard let entry else { return }
+        guard let entry else { game.message = "위 악보의 점선 빈칸에 놓아 주세요."; return }
         let layout = RhythmBarLayout(round:round,bar:entry.key,board:game.board,tiles:game.tiles,drawings:RhythmInk.drawings)
         let scale = Double(entry.value.width)/layout.width
         let x = Double(location.x-entry.value.minX)/scale
@@ -168,33 +179,5 @@ struct RhythmTileFace: View {
             if tile.duration != pulse { Text(tile.label(pulse:pulse)).font(.system(size:10,weight:.medium)).foregroundStyle(color).padding(6) }
         }.frame(maxWidth:.infinity).background(color.opacity(tile.duration == pulse ? 0.025 : 0.065),in:RoundedRectangle(cornerRadius:12))
             .overlay(RoundedRectangle(cornerRadius:12).stroke(color.opacity(0.17)))
-    }
-}
-
-struct RhythmTutorialView: View {
-    var done: () -> Void
-    @State private var page = 0
-    private let titles = ["두 마디 듣기", "리듬 조각 채우기", "붙임줄 연결하기", "채점과 연습"]
-    private let icons = ["ear", "hand.draw", "link", "checkmark.circle"]
-    private let instructions = [
-        "화면이 나오면 1초 뒤 예비박 한 마디와 선율 두 마디가 들려요. 다시 듣기도 1초 뒤 시작해요. 6/8의 예비박은 6번, 첫 박은 더 크게 들려요.",
-        "조각을 탭하면 첫 빈 곳에 들어가요. 기다리지 않고 바로 끌어 원하는 위치에 놓아도 돼요. 채운 조각을 탭하면 삭제되고, 되돌리기로 복원할 수 있어요. 파란 조각은 한 박보다 길고, 보라 조각은 짧아요.",
-        "오른쪽 아래 타이를 켜고 새 조각을 넣으면 앞 음과 이어져요. 이미 채웠다면 타이를 켜고 이웃한 두 조각을 차례로 눌러요. 첫 조각의 마지막 음과 둘째 조각의 첫 음이 연결돼요. 붙임줄을 누르면 삭제돼요. 쉼표나 떨어진 조각은 연결되지 않아요.",
-        "모두 채운 뒤 제출하세요. 첫 오답에는 정오만, 두 번째에는 힌트, 세 번째에는 정답을 보여줘요. 음표 모양이 달라도 실제로 들리는 리듬이 같으면 정답이에요. 초급부터 시작해 5문제를 풀어보세요. 오른쪽 위 물음표로 언제든 이 설명을 다시 볼 수 있어요."
-    ]
-    var body: some View {
-        VStack(spacing:28) {
-            HStack { Text("Rhythm puzzle").font(.headline); Spacer(); Button("닫기",action:done) }.padding(.horizontal,28)
-            TabView(selection:$page) {
-                ForEach(0..<4,id:\.self) { index in
-                    VStack(spacing:28) {
-                        Image(systemName:icons[index]).font(.system(size:64,weight:.light)).foregroundStyle(SolfegeTheme.violet)
-                        Text(titles[index]).font(.title.bold())
-                        Text(instructions[index]).font(.body).lineSpacing(8).frame(maxWidth:480)
-                    }.padding(32).tag(index)
-                }
-            }.tabViewStyle(.page(indexDisplayMode:.always))
-            Button(page == 3 ? "시작하기" : "다음") { if page == 3 { done() } else { withAnimation { page += 1 } } }.buttonStyle(PrimaryButton()).padding(.horizontal,32)
-        }.padding(.vertical,28).background(SolfegeTheme.background).presentationDetents([.large])
     }
 }

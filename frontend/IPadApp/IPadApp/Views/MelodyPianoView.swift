@@ -65,8 +65,12 @@ final class MelodyPianoKeyboard: UIView {
             let size = label.size(withAttributes:attributes)
             label.draw(at:CGPoint(x:frame.midX-size.width/2,y:frame.maxY-size.height-14),withAttributes:attributes)
             if key.midi == reference {
-                UIColor(SolfegeTheme.violet).setFill()
-                UIBezierPath(ovalIn:CGRect(x:frame.midX-4,y:frame.maxY-size.height-30,width:8,height:8)).fill()
+                UIColor(SolfegeTheme.violet).setStroke()
+                let outline = UIBezierPath(roundedRect:frame.insetBy(dx:2,dy:2),cornerRadius:6)
+                outline.lineWidth = 4; outline.stroke()
+                let cue = "첫 음 ↓", attributes: [NSAttributedString.Key:Any] = [.font:UIFont.systemFont(ofSize:12,weight:.bold),.foregroundColor:key.black ? UIColor.white : UIColor(SolfegeTheme.violet)]
+                let width = cue.size(withAttributes:attributes).width
+                cue.draw(at:CGPoint(x:frame.midX-width/2,y:frame.maxY-size.height-40),withAttributes:attributes)
             }
             if !key.black {
                 UIColor(SolfegeTheme.violet).withAlphaComponent(active ? 1 : 0.12).setFill()
@@ -106,7 +110,7 @@ final class MelodyPianoKeyboard: UIView {
     private func buildAccessibility() {
         accessibilityElements = geometry.keys.sorted { $0.midi < $1.midi }.map { key in
             let element = MelodyPianoAccessibleKey(accessibilityContainer:self)
-            element.accessibilityLabel = MelodyRound.noteName(key.midi)
+            element.accessibilityLabel = MelodyRound.noteName(key.midi)+(key.midi == reference ? ", 안내된 첫 음" : "")
             element.accessibilityTraits = .button
             // White-key accessibility targets occupy their unobscured lower region.
             var frame = rect(key)

@@ -111,6 +111,29 @@ struct RhythmBoard: Codable, Equatable {
         return cursor
     }
     func complete(round: RhythmRound, tiles: [String:RhythmTile]) -> Bool { firstGap(tiles:tiles) == round.totalDuration }
+    func placementIssue(_ id: String, at requested: RhythmTime? = nil, round: RhythmRound, tiles: [String:RhythmTile]) -> String? {
+        guard round.choices.contains(id), let tile = tiles[id] else { return "이 문제의 리듬 조각을 선택해 주세요." }
+        var start = requested ?? firstGap(tiles:tiles)
+        let old = placements.first { $0.start <= start && start < end($0,tiles:tiles) }
+        if let old { start = old.start }
+        guard start >= .zero, start < round.totalDuration else { return "빈칸이 없어요. 입력한 조각을 눌러 지우거나 제출해 주세요." }
+        let barEnd = round.measureDuration*((start/round.measureDuration).floor+1)
+        let next = placements.filter { $0.id != old?.id && $0.start >= start }.map(\.start).min() ?? barEnd
+        let available = min(barEnd,next)-start
+        if tile.duration > available {
+            let beats = available/round.pulse
+            let label = beats == RhythmTime(1,2) ? "반 박" : beats.description+"박"
+            return "여기에는 \(label)만 남아 있어요. 더 짧은 조각을 골라 주세요."
+        }
+        return nil
+    }
+    @discardableResult mutating func connect(_ a: RhythmPlacement, _ b: RhythmPlacement, tiles: [String:RhythmTile]) -> Bool {
+        guard a != b, placements.contains(a), placements.contains(b) else { return false }
+        let left = a.start < b.start ? a : b, right = a.start < b.start ? b : a
+        guard end(left,tiles:tiles) == right.start, validBoundaries(tiles:tiles).contains(right.start) else { return false }
+        if !ties.contains(right.start) { ties.append(right.start); ties.sort() }
+        return true
+    }
     func validBoundaries(tiles: [String:RhythmTile]) -> [RhythmTime] {
         let sorted = placements.sorted { $0.start < $1.start }
         return zip(sorted,sorted.dropFirst()).compactMap { a,b in
@@ -184,6 +207,7 @@ struct RhythmPlayRecord: Codable, Identifiable {
     var clientPlayId = UUID(); var catalogSha256: String; var roundId: String; var gameVersion = "rhythm-puzzle-v1"
     var choiceOrder: [String]; var startedAt: Date; var finishedAt: Date
     var outcome = "abandoned"; var activeMs = 0; var submissions: [RhythmSubmission] = []; var listens: [RhythmListen] = []
+    var skipped: Bool? = nil
     var interruptions = 0; var priorExposures = 0; var priorPatternExposures = 0
 }
 struct RhythmReceipt: Codable { var id: UUID; var clientPlayId: UUID; var roundId: String; var catalogSha256: String }
@@ -193,6 +217,10 @@ struct RhythmDraft: Codable {
     var wrongCount: Int { finished && record.outcome == "correct" ? max(0,record.submissions.count-1) : record.submissions.count }
     var hasListened: Bool { record.listens.contains { $0.completed && $0.reason != "reference" } }
     var hintLevel: Int { min(3,wrongCount) }
+    mutating func revealAndSkip(now: Date = Date()) {
+        guard !finished else { return }
+        finished = true; record.skipped = true; record.outcome = "skipped"; record.finishedAt = now
+    }
     mutating func submit(round: RhythmRound, tiles: [String:RhythmTile], now: Date = Date()) throws -> Bool {
         guard !finished, hasListened, record.submissions.count < 3 else { throw SolfegeError.configuration("음원을 끝까지 듣고 제출해 주세요.") }
         let actual = try board.sounds(round:round,tiles:tiles)

@@ -7,8 +7,11 @@ from .rhythm import grade
 def validate_record(payload, catalog, catalog_sha256):
     required = {"client_play_id", "catalog_sha256", "round_id", "game_version", "choice_order", "started_at", "finished_at",
                 "outcome", "active_ms", "submissions", "listens", "interruptions", "prior_exposures", "prior_pattern_exposures"}
-    if not isinstance(payload, dict) or set(payload) != required:
+    if not isinstance(payload, dict) or not required <= set(payload) or set(payload) - required - {"skipped"}:
         raise ValueError("invalid_record_fields")
+    skipped = payload.get("skipped", False)
+    if type(skipped) is not bool:
+        raise ValueError("invalid_skip")
     def ident(value):
         if not isinstance(value, str):
             raise ValueError("invalid_event_id")
@@ -61,7 +64,9 @@ def validate_record(payload, catalog, catalog_sha256):
             raise ValueError("invalid_listen_time")
     if submissions and not any(l["completed"] and l["reason"] != "reference" and l["ended_ms"] <= submissions[0]["active_ms"] for l in listens):
         raise ValueError("submit_before_complete_listen")
-    expected = "correct" if done else "revealed" if len(results) == 3 else "abandoned"
+    if skipped and (done or len(results) == 3):
+        raise ValueError("skip_after_finished")
+    expected = "correct" if done else "revealed" if len(results) == 3 else "skipped" if skipped else "abandoned"
     if payload["outcome"] != expected:
         raise ValueError("outcome_mismatch")
     # Hints and correction attempts never become independent unaided opportunities.
@@ -69,5 +74,5 @@ def validate_record(payload, catalog, catalog_sha256):
                    first_correct=results[0]["correct"] if results else None,
                    replay_started=sum(l["reason"] == "replay" for l in listens),
                    replay_completed=sum(l["reason"] == "replay" and l["completed"] for l in listens),
-                   telemetry_source="client_reported", calibration_eligible=bool(results),
+                   telemetry_source="client_reported", calibration_eligible=bool(results), skipped=skipped,
                    task={key: r[key] for key in ("question_id", "question_version", "analysis_key", "rhythm_key", "first_measure", "meter", "pulse", "tempo_bpm", "difficulty")})

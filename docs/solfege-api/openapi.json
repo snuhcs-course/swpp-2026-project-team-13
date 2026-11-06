@@ -5311,7 +5311,8 @@
             "enum": [
               "correct",
               "revealed",
-              "abandoned"
+              "abandoned",
+              "skipped"
             ]
           },
           "active_ms": {
@@ -5347,6 +5348,10 @@
             "type": "integer",
             "minimum": 0,
             "maximum": 1000000
+          },
+          "skipped": {
+            "type": "boolean",
+            "description": "Optional for legacy clients. True only when the learner explicitly reveals and skips an unfinished round. No synthetic incorrect submission is added."
           }
         },
         "required": [

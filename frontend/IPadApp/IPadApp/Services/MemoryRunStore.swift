@@ -16,7 +16,7 @@ final class MemoryRunStore {
     }
     func csv(_ records: [MemoryPlayRecord]) throws -> URL {
         func cell(_ value: String) -> String { "\""+value.replacingOccurrences(of:"\"",with:"\"\"")+"\"" }
-        var lines = [["play_id","set_id","set_index","excerpt_id","source_id","source_sha256","catalog_sha256","analysis_key","difficulty_version","level","mode","first_bar","bars","quarter_bpm","difficulty","prior_exposures","prior_pattern_exposures","outcome","accuracy","listen_starts","listen_completed","input_ms","interruptions","expected","actual","given_indices"].map(cell).joined(separator:",")]
+        var lines = [["play_id","set_id","set_index","excerpt_id","source_id","source_sha256","catalog_sha256","analysis_key","difficulty_version","level","mode","first_bar","bars","quarter_bpm","difficulty","prior_exposures","prior_pattern_exposures","outcome","accuracy","listen_starts","listen_completed","input_ms","interruptions","expected","actual","given_indices","input_policy","replay_with_count_in","replay_direct","retry_of"].map(cell).joined(separator:",")]
         for p in records {
             let expected = p.expected.map { String($0) }.joined(separator:";")
             let actual = p.actual.map { $0.map { String($0) } ?? "" }.joined(separator:";")
@@ -25,7 +25,8 @@ final class MemoryRunStore {
                 p.sourceSha256,p.catalogSha256,p.analysisKey,p.difficultyVersion,p.level.rawValue,p.mode,
                 String(p.first),String(p.bars),String(p.bpm),String(p.score),String(p.priorExposures),String(p.priorPatternExposures),
                 p.outcome,accuracy,String(p.listenStarts),String(p.listenCompleted),String(p.inputMs),String(p.interruptions),
-                expected,actual,p.givenIndices.map { String($0) }.joined(separator:";")]
+                expected,actual,p.givenIndices.map { String($0) }.joined(separator:";"),p.inputPolicy ?? "prefilled-first-v2",
+                p.replayWithCountIn.map(String.init) ?? "",p.replayDirect.map(String.init) ?? "",p.retryOf?.uuidString ?? ""]
             lines.append(values.map(cell).joined(separator:","))
         }
         let url = root.appendingPathComponent("memory-observations.csv")

@@ -52,6 +52,22 @@ import SwiftUI
         try a.removeAll()
         XCTAssertFalse(FileManager.default.fileExists(atPath:store.file.path))
     }
+    func testIncompleteSubmitHighlightsGapAndSkipSavesWithoutWrongAnswer() throws {
+        let context = try connection(), bank: RhythmCatalog = try Bundled.decode("rhythm-puzzle-v3")
+        let round = try XCTUnwrap(bank.rounds.first), now = Date(), data = try Bundled.data("rhythm-puzzle-v3",ext:"json")
+        var record = RhythmPlayRecord(catalogSha256:data.sha256,roundId:round.id,choiceOrder:round.choices,startedAt:now,finishedAt:now)
+        record.gameVersion = bank.version
+        record.listens = [RhythmListen(reason:"initial",startedMs:0,endedMs:1000,completed:true)]; record.activeMs = 1000
+        let store = try RhythmPuzzleStore(root:LocalStore(scope:context.scope).root)
+        try store.save(RhythmJournal(draft:RhythmDraft(setIds:[round.id],index:0,record:record)))
+        let game = RhythmPuzzleModel(connection:context); defer { game.close() }; game.resume()
+        XCTAssertTrue(game.canSubmit); game.submit()
+        XCTAssertEqual(game.missingPosition,.zero); XCTAssertTrue(game.draft?.record.submissions.isEmpty == true)
+        game.revealAndSkip(); XCTAssertEqual(game.draft?.record.outcome,"skipped")
+        XCTAssertEqual(game.journal.records.count,1)
+        XCTAssertTrue(try store.load().records[0].skipped == true)
+        game.next(); XCTAssertEqual(game.page,.summary)
+    }
     func testCSVExportKeepsFirstAttemptReplayCountsAndSourceMetadata() throws {
         let connection = try connection()
         let accountStore = try LocalStore(scope:connection.scope)
@@ -186,6 +202,8 @@ import SwiftUI
         game.toggleTieMode(); game.tapPiece(first); game.tapPiece(second)
         XCTAssertTrue(game.board.ties.contains(round.measureDuration)); XCTAssertFalse(game.tieMode)
         game.toggleTieMode(); game.tapPiece(second); game.tapPiece(first)
-        XCTAssertFalse(game.board.ties.contains(round.measureDuration)); XCTAssertFalse(game.tieMode)
+        XCTAssertTrue(game.board.ties.contains(round.measureDuration)); XCTAssertFalse(game.tieMode)
+        game.toggleTie(round.measureDuration)
+        XCTAssertFalse(game.board.ties.contains(round.measureDuration))
     }
 }
