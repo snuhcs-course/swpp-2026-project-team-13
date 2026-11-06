@@ -60,7 +60,10 @@ struct MelodyRunView: View {
             .overlay { if game.working { ProgressView("잠시 후 시작해요").padding(24).background(.regularMaterial,in:RoundedRectangle(cornerRadius:18)).allowsHitTesting(false) } }
             .task { if !tutorialSeen { showingTutorial = true } }
             .sheet(isPresented:$showingTutorial) { MemoryTutorialView { tutorialSeen = true; showingTutorial = false } }
-            .alert("확인이 필요해요",isPresented:Binding(get:{game.error != nil},set:{if !$0 {game.error = nil}})) { Button("확인") { game.error = nil } } message: { Text(game.error ?? "") }
+            .alert("확인이 필요해요",isPresented:Binding(get:{game.error != nil},set:{if !$0 {game.error = nil}})) {
+                if game.storageFailed { Button("저장 다시 시도") { game.retryStorage() } }
+                Button("확인") { game.error = nil }
+            } message: { Text(game.error ?? "") }
             .onChange(of:scenePhase) { _, phase in if phase != .active { game.pause() } }
             .onReceive(NotificationCenter.default.publisher(for:AVAudioSession.interruptionNotification).receive(on:RunLoop.main)) { _ in game.pause() }
             .onReceive(NotificationCenter.default.publisher(for:AVAudioSession.mediaServicesWereResetNotification).receive(on:RunLoop.main)) { _ in game.pause() }

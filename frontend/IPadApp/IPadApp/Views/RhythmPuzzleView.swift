@@ -43,7 +43,10 @@ struct RhythmPuzzleView: View {
         .sheet(isPresented:$showingTutorial,onDismiss:{ game.activate() }) {
             RhythmTutorialView { tutorialSeen = true; showingTutorial = false }
         }
-        .alert("확인이 필요해요",isPresented:Binding(get:{game.error != nil},set:{if !$0 {game.error = nil}})) { Button("확인") { game.error = nil } } message: { Text(game.error ?? "") }
+        .alert("확인이 필요해요",isPresented:Binding(get:{game.error != nil},set:{if !$0 {game.error = nil}})) {
+            if game.storageFailed { Button("저장 다시 시도") { game.retryStorage() } }
+            Button("확인") { game.error = nil }
+        } message: { Text(game.error ?? "") }
         .onChange(of:phase) { _, value in if value == .active { game.activate() } else { dragId = nil; game.pause() } }
         .onReceive(NotificationCenter.default.publisher(for:AVAudioSession.interruptionNotification).receive(on:RunLoop.main)) { _ in game.pause() }
         .onReceive(NotificationCenter.default.publisher(for:AVAudioSession.mediaServicesWereResetNotification).receive(on:RunLoop.main)) { _ in game.pause() }
