@@ -86,17 +86,25 @@ final class MelodyRunTests: XCTestCase {
             XCTAssertNil(timeline.inputIndex(at:window.end,bpm:bpm))
         }
     }
-    func testEarlyCompletionNeverTruncatesPreparationMeasure() throws {
+    func testGrooveStartsInputImmediatelyAndEarlyCompletionPreservesReferenceMeasure() throws {
         let round = try MelodyRound(source:source(),start:1,bars:2)
         var settings = MelodySettings(); settings.mode = .groove
         var timeline = MelodyTimeline(round:round,settings:settings)
+        XCTAssertEqual(timeline.windows.filter { $0.phase == .countIn }.count,1)
+        XCTAssertFalse(timeline.windows.contains { $0.phase == .beat })
+        for i in timeline.windows.indices where timeline.windows[i].phase == .listen {
+            XCTAssertEqual(timeline.windows[i+1].phase,.input)
+            XCTAssertEqual(timeline.windows[i+1].start,timeline.windows[i].end)
+            XCTAssertEqual(timeline.windows[i+1].end-timeline.windows[i+1].start,settings.inputBars*round.score.ticksPerMeasure)
+        }
         let index = try XCTUnwrap(timeline.windows.firstIndex { $0.phase == .input })
         let preparation = timeline.windows[index-1]
         XCTAssertTrue(timeline.shortenInput(at:index,now:timeline.windows[index].start-100,lead:96))
         XCTAssertEqual(timeline.windows[index-1],preparation)
         XCTAssertEqual(timeline.windows[index].end-timeline.windows[index].start,timeline.pulseTicks)
-        let nextPreparation = try XCTUnwrap(timeline.windows.dropFirst(index+1).first { $0.phase == .beat })
-        XCTAssertEqual(timeline.clickEvents().filter { $0.onset >= nextPreparation.start && $0.onset < nextPreparation.end }.count,round.score.timeSignature.numerator)
+        let nextListen = try XCTUnwrap(timeline.windows.dropFirst(index+1).first { $0.phase == .listen })
+        XCTAssertEqual(nextListen.end-nextListen.start,round.score.ticksPerMeasure)
+        XCTAssertEqual(timeline.clickEvents().filter { $0.onset >= nextListen.start && $0.onset < nextListen.end }.count,round.score.timeSignature.numerator)
     }
     func testDemoSelectionAgreesWithActualXMLKeys() throws {
         let catalog = try JSONDecoder().decode([MelodyQuestion].self,from:Data(contentsOf:resources.appendingPathComponent("melody-catalog.json")))

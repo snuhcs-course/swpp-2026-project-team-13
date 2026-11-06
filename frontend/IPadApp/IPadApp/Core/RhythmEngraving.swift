@@ -74,7 +74,7 @@ struct RhythmBarLayout {
         let start: RhythmTime; let duration: RhythmTime; let x: Double; let width: Double; let empty: Bool
         func label(pulse: RhythmTime) -> String {
             let fraction = duration/pulse
-            return fraction == RhythmTime(1) ? "빈칸" : fraction == RhythmTime(1,2) ? "½박" : fraction.description+"박"
+            return fraction == RhythmTime(1) ? "" : fraction == RhythmTime(1,2) ? "½박" : fraction.description+"박"
         }
     }
     var slots: [Slot] {

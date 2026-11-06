@@ -98,4 +98,17 @@ final class RhythmPuzzleTests: XCTestCase {
         let receipt = try await api.saveRhythmPlay(record)
         XCTAssertEqual(receipt.clientPlayId,record.id)
     }
+    func testNewSetAvoidsRecentMelodiesAndStillFillsASmallPool() throws {
+        var catalog = try bank()
+        let first = catalog.set(), sources = first.map(\.questionId), patterns = Set(first.map(\.rhythmKey))
+        for _ in 0..<30 {
+            let next = catalog.set(recentSourceIds:sources,recentRhythmKeys:patterns)
+            XCTAssertEqual(next.count,5)
+            XCTAssertTrue(Set(next.map(\.questionId)).isDisjoint(with:Set(sources)))
+            XCTAssertTrue(Set(next.map(\.rhythmKey)).isDisjoint(with:patterns))
+        }
+        catalog.rounds = first
+        let fallback = catalog.set(recentSourceIds:sources,recentRhythmKeys:patterns)
+        XCTAssertEqual(fallback.count,5); XCTAssertEqual(Set(fallback.map(\.questionId)).count,5)
+    }
 }

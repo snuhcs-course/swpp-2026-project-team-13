@@ -9,7 +9,7 @@ import AVFoundation
     var tick: Int { Int(((sequencer?.currentPositionInBeats ?? 0)*480).rounded(.down)) }
     var running: Bool { graph.engine.isRunning }
     func owns(_ notification: Notification) -> Bool { (notification.object as? AVAudioEngine) === graph.engine }
-    func play(_ round: RhythmRound, reference: Bool = false) throws {
+    func play(_ round: RhythmRound, reference: Bool = false, includeCountIn: Bool = true) throws {
         stop()
         let session = AVAudioSession.sharedInstance()
         try session.setCategory(.playback,mode:.default,options:[]); try session.setActive(true)
@@ -29,12 +29,14 @@ import AVFoundation
             return MusicEvent(midi:n.midi,onset:start,duration:duration)
         }
         guard let total = round.totalDuration.ticks else { throw SolfegeError.invalidScore("리듬 길이를 확인해 주세요.") }
-        let data = MIDIFile.withCountIn(events:events,totalTicks:total,tempo:round.tempoBpm,countIn:count,velocity:Int(selected.noteVelocity))
+        let data = includeCountIn
+            ? MIDIFile.withCountIn(events:events,totalTicks:total,tempo:round.tempoBpm,countIn:count,velocity:Int(selected.noteVelocity))
+            : MIDIFile.make(events:events,totalTicks:total,tempo:round.tempoBpm,velocity:Int(selected.noteVelocity))
         let seq = AVAudioSequencer(audioEngine:graph.engine)
         try seq.load(from:data,options:[])
-        guard seq.tracks.count == 2 else { throw SolfegeError.invalidScore("리듬 재생 트랙을 확인해 주세요.") }
+        guard seq.tracks.count == (includeCountIn ? 2 : 1) else { throw SolfegeError.invalidScore("리듬 재생 트랙을 확인해 주세요.") }
         for (i,track) in seq.tracks.enumerated() { track.destinationAudioUnit = i == 0 ? graph.piano : graph.click }
-        endTick = count.totalTicks+total
+        endTick = (includeCountIn ? count.totalTicks : 0)+total
         sequencer = seq; seq.currentPositionInBeats = 0; seq.prepareToPlay(); try seq.start()
     }
     func stop() {

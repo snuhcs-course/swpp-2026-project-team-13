@@ -19,11 +19,10 @@ struct RhythmPuzzleView: View {
                         HStack {
                             Text("Rhythm puzzle").font(.title2.bold())
                             Spacer()
-                            Menu {
-                                Button("게임 방법",systemImage:"questionmark.circle") { game.pause(); showingTutorial = true }
-                                if game.canEdit { Button("정답 보고 넘기기",systemImage:"forward.end") { game.revealAndSkip() } }
-                            } label: { Label("게임 방법",systemImage:"questionmark.circle").frame(minHeight:44) }
-                            Button { game.close(); dismiss() } label: { Image(systemName:"xmark").frame(width:44,height:44) }.accessibilityLabel("게임 닫기")
+                            if game.page == .setup || (game.page == .playing && game.draft?.finished == false) {
+                                Button { game.pause(); showingTutorial = true } label: { Label("게임 방법",systemImage:"questionmark.circle").frame(minHeight:44) }
+                            }
+                            Button(action:back) { Image(systemName:"xmark").frame(width:44,height:44) }.accessibilityLabel("뒤로가기")
                         }
                         if game.page == .setup { setup }
                         else if game.page == .summary { summary }
@@ -60,11 +59,14 @@ struct RhythmPuzzleView: View {
             Picker("난이도",selection:$game.level) {
                 Text("초급").tag("beginner"); Text("중급").tag("intermediate"); Text("고급").tag("advanced")
             }.pickerStyle(.segmented)
+            VStack(alignment:.leading,spacing:12) {
+                Text(game.level == "beginner" ? "기본 리듬부터 차근차근" : game.level == "intermediate" ? "엇박과 붙임줄에 익숙해지기" : "복잡한 리듬에 도전하기").font(.title3.bold())
+                Text("2마디").foregroundStyle(.secondary)
+            }.padding(22).frame(maxWidth:.infinity,alignment:.leading).background(.white,in:RoundedRectangle(cornerRadius:18))
             HStack(spacing:14) {
                 if game.canResume { Button("이어서 풀기") { game.resume() }.buttonStyle(PrimaryButton()) }
                 Button("5문제 시작") { game.newSet() }.buttonStyle(PrimaryButton()).disabled(game.catalog == nil || game.connection == nil || game.storageFailed)
             }
-            storage
         }.padding(.vertical,32)
     }
     private func play(_ round: RhythmRound, draft: RhythmDraft, compact: Bool) -> some View {
@@ -81,10 +83,6 @@ struct RhythmPuzzleView: View {
                 Spacer()
                 if game.waitingToPlay { ProgressView().controlSize(.small).accessibilityLabel("1초 후 재생") }
                 Text("\(round.difficulty.score)/100").font(.caption.monospacedDigit()).foregroundStyle(.secondary).accessibilityLabel("리듬 난도 \(round.difficulty.score), 실험값")
-            }
-            if let source = round.sourceLabel {
-                Text(source).font(.caption2).foregroundStyle(.secondary).lineLimit(1)
-                    .accessibilityIdentifier("rhythm-source-credit")
             }
             RhythmPuzzleBoardView(game:game,round:round,compact:compact)
                 .padding(.horizontal,14).background(.white,in:RoundedRectangle(cornerRadius:18))
@@ -125,15 +123,23 @@ struct RhythmPuzzleView: View {
                 }
             }.allowsHitTesting(game.canEdit).opacity(draft.finished ? 0.5 : 1)
             HStack(spacing:14) {
-                Button { game.listen() } label: { Label("다시 듣기",systemImage:game.playing ? "speaker.wave.2.fill" : "arrow.counterclockwise") }
+                Button { game.listen(includeCountIn:false) } label: { Label("바로 듣기",systemImage:"play.fill") }
+                    .buttonStyle(.bordered).disabled(game.playing || game.waitingToPlay || draft.finished)
+                Button { game.listen(includeCountIn:true) } label: { Label("예비박부터 듣기",systemImage:"metronome") }
                     .buttonStyle(.bordered).disabled(game.playing || game.waitingToPlay || draft.finished)
                 Button { game.undo() } label: { Image(systemName:"arrow.uturn.backward").frame(width:28,height:28) }
                     .buttonStyle(.bordered).disabled(!game.canEdit || draft.undo.isEmpty).accessibilityLabel("되돌리기")
                 Spacer()
+            }
+            HStack(spacing:14) {
+                if !draft.finished {
+                    Button("정답 보고 넘기기",systemImage:"forward.end") { game.revealAndSkip() }.buttonStyle(.bordered).disabled(!game.canEdit)
+                }
+                Spacer()
                 Button { game.toggleTieMode() } label: { Label { Text("타이") } icon: { RhythmTieIcon(color:game.tieMode ? .blue : SolfegeTheme.violet).frame(width:28,height:28) } }
                     .buttonStyle(.bordered).tint(game.tieMode ? .blue : SolfegeTheme.violet).disabled(!game.canEdit)
                     .accessibilityValue(game.tieMode ? "연결할 두 조각을 선택" : "꺼짐")
-                if draft.finished { Button(draft.index+1 == draft.setIds.count ? "완료" : "다음") { game.next() }.buttonStyle(PrimaryButton()) }
+                if draft.finished { Button(draft.index+1 == draft.setIds.count ? "결과 보기" : "다음") { game.next() }.buttonStyle(PrimaryButton()) }
                 else { Button("제출") { game.submit() }.buttonStyle(PrimaryButton()).disabled(!game.canSubmit) }
             }.padding(.top,6)
         }
@@ -156,17 +162,15 @@ struct RhythmPuzzleView: View {
     private var summary: some View {
         VStack(alignment:.leading,spacing:24) {
             Text("연습 완료").font(.largeTitle.bold())
-            Button("다시 연습하기") { game.page = .setup }.buttonStyle(PrimaryButton())
-            storage
+            HStack(spacing:16) {
+                Button("다시 \(game.setCount)문제 풀기") { game.newSet() }.buttonStyle(PrimaryButton())
+                Button("난이도 변경하기") { game.setup() }.buttonStyle(.bordered)
+            }
         }.padding(.vertical,32)
     }
-    private var storage: some View {
-        HStack {
-            Text(game.connection?.demo == true ? "기기에 저장됨" : game.syncMessage.isEmpty ? "기기에 저장됨" : game.syncMessage).font(.caption).foregroundStyle(.secondary)
-            Spacer()
-            if game.connection?.demo == false && game.pending > 0 { Button("저장 재시도") { game.sync() }.font(.caption).disabled(game.syncing) }
-            if let url = game.exportURL { ShareLink(item:url) { Image(systemName:"square.and.arrow.up") }.accessibilityLabel("기록 내보내기") }
-        }
+    private func back() {
+        if game.page == .playing { game.setup() }
+        else { game.close(); dismiss() }
     }
 }
 

@@ -71,7 +71,7 @@ def burden(record, first, bars):
 
 
 def build():
-    sources, excerpts, generated, exceptions = [], [], {}, []
+    sources, excerpts, generated, exceptions, groove_excluded = [], [], {}, [], []
     existing = json.loads((RES / "melody-catalog.json").read_text(encoding="utf-8"))
     candidates = [(dict(q, collection="library"), (RES / q["file"]).read_bytes(), None) for q in existing]
     for row in current_sources(ROOT / "backend/content", include_classical=True):
@@ -118,7 +118,12 @@ def build():
                         and metrics["largestInterval"] <= 5 and metrics["meanInterval"] <= 3
                         and metrics["chromaticShare"] == 0 and metrics["shortestQuarter"] >= .5
                         and metrics["offbeatShare"] <= .34)
-                    accepted.append(dict(id=f"{q['id']}:v{q.get('version',1)}:{first}:{bars}", sourceId=q["id"], first=first, bars=bars, **metrics))
+                    excerpt_id = f"{q['id']}:v{q.get('version',1)}:{first}:{bars}"
+                    accepted.append(dict(id=excerpt_id, sourceId=q["id"], first=first, bars=bars, **metrics))
+                    members = {e["id"]: e["measure"] for e in record["events"]}
+                    if any(len({members[eid] for eid in a["member_event_ids"]}) > 1
+                           for a in record["attacks"] if first <= members[a["id"]] < first+bars):
+                        groove_excluded.append(excerpt_id)
                 except ValueError as error:
                     exceptions.append(dict(sourceId=q["id"], title=q["title"], first=first, bars=bars, reason=str(error)))
         if accepted:
@@ -130,11 +135,15 @@ def build():
             if e["bars"] == bars:
                 e["score"] = round(100*(bisect.bisect_left(values, e["raw"])+bisect.bisect_right(values, e["raw"]))/2/len(values), 2)
     catalog = dict(version=VERSION, difficultyVersion=DIFFICULTY, sources=sources, excerpts=excerpts)
+    catalog_bytes = (json.dumps(catalog, ensure_ascii=False, separators=(",", ":"))+"\n").encode()
+    policy = dict(version="memory-groove-v1", catalogSha256=sha(catalog_bytes), excludedExcerptIds=sorted(groove_excluded))
+    generated["memory-groove-v1.json"] = (json.dumps(policy, ensure_ascii=False, indent=2)+"\n").encode()
     report = dict(version=VERSION, sources=len(sources), excerpts=len(excerpts),
                   collections=dict(Counter(q["collection"] for q in sources)),
                   lengths=dict(Counter(e["bars"] for e in excerpts)),
                   beginnerExcerpts=sum(e["beginnerEligible"] for e in excerpts),
                   beginnerSources=len({e["sourceId"] for e in excerpts if e["beginnerEligible"]}),
+                  grooveExcerpts=len(excerpts)-len(groove_excluded),
                   deferred=dict(Counter(e["reason"] for e in exceptions)), exceptions=exceptions)
     return catalog, generated, report
 

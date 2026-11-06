@@ -59,6 +59,18 @@ struct MelodySource {
         let names = mode == "minor" ? ["Ab","Eb","Bb","F","C","G","D","A","E","B","F#","C#","G#","D#","A#"] : ["Cb","Gb","Db","Ab","Eb","Bb","F","C","G","D","A","E","B","F#","C#"]
         return names[min(14,max(0,fifths+7))]+" "+mode
     }
+    // Check the original score, before slicing clears ties at excerpt edges.
+    func supportsGroove(start: Int, bars: Int) -> Bool {
+        let end = start+bars-1
+        guard start >= 1, bars > 0, end <= score.measures else { return false }
+        var tiedFrom: Int?
+        for symbol in score.symbols where symbol.midi != nil {
+            if symbol.tieStop, let previous = tiedFrom, previous != symbol.measure,
+               previous <= end, symbol.measure >= start { return false }
+            tiedFrom = symbol.tieStart ? symbol.measure : nil
+        }
+        return true
+    }
 }
 
 struct MelodyTarget: Equatable {
@@ -264,7 +276,6 @@ struct MelodyTimeline {
         for measure in fromMeasure...round.score.measures {
             append(.listen,measure,meter.ticksPerMeasure)
             if settings.mode == .groove {
-                append(.beat,measure,meter.ticksPerMeasure)
                 append(.input,measure,settings.inputBars*meter.ticksPerMeasure)
             }
         }

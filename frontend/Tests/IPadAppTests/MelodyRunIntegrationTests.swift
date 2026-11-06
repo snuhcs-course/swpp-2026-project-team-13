@@ -54,11 +54,11 @@ import SwiftUI
         XCTAssertNil(game.answers?.pitches.first ?? nil)
         XCTAssertEqual(game.guidedPitch,game.round?.targets.first?.midi)
     }
-    func testFinalPreparationBeatAlreadyAcceptsGrooveInput() async throws {
+    func testEndOfListeningAlreadyAcceptsGrooveInputWithoutAPreparationBar() async throws {
         let game = makeGame(mode:.groove)
         defer { game.stop() }
         await game.start(); XCTAssertNil(game.error)
-        try await waitUntil({game.inputReady && game.phase == .beat})
+        try await waitUntil({game.inputReady && game.phase == .listen})
         XCTAssertTrue(game.canEnter)
         let target = try XCTUnwrap(game.answers?.next(in:game.measure))
         let pitch = try XCTUnwrap(game.round?.targets[target].midi)
@@ -146,6 +146,18 @@ import SwiftUI
         try await Task.sleep(for:.milliseconds(1100))
         XCTAssertEqual(game.page,.setup); XCTAssertFalse(game.audio.isRunning)
         game.stop()
+    }
+    func testBackToDifficultyStopsPendingAndActivePlayback() async throws {
+        let game = MelodyRunModel(); defer { game.stop() }
+        game.settings.mode = .groove; game.difficulty = .intermediate
+        game.newSet()
+        game.setup()
+        try await Task.sleep(for:.milliseconds(1100))
+        XCTAssertEqual(game.page,.setup); XCTAssertFalse(game.audio.isRunning); XCTAssertFalse(game.working)
+        XCTAssertEqual(game.settings.mode,.groove); XCTAssertEqual(game.difficulty,.intermediate)
+        let active = makeGame(mode:.memory); defer { active.stop() }
+        await active.start(); XCTAssertEqual(active.page,.playing)
+        active.setup(); XCTAssertEqual(active.page,.setup); XCTAssertFalse(active.audio.isRunning)
     }
     func testMiniGameDoesNotReplacePreparedExamAttempt() async throws {
         let exam = AppModel(); exam.demo = true
