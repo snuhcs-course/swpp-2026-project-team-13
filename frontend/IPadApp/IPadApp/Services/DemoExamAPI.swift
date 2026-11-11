@@ -20,6 +20,45 @@ import Foundation
     private struct EngravingManifest: Decodable { var scores: [String: ImageEntry] }
     private struct ImageEntry: Decodable { var resource:String; var contentType:String; var sha256:String; var sizeBytes:Int; var pixelWidth:Int; var pixelHeight:Int; var renderer:String }
     private var cachedCatalog: [Question]?
+    private struct DemoRating: Codable {
+        var state = ExamRatingState()
+        var offer: ExamOffer? = nil
+        var changes: [String:ExamRatingChange] = [:]
+    }
+    private func ratingLedger() throws -> DemoRating {
+        let url = store.root.appendingPathComponent("exam-rating-v1.json")
+        guard FileManager.default.fileExists(atPath:url.path) else { return DemoRating() }
+        return try ContractJSON.decoder().decode(DemoRating.self,from:Data(contentsOf:url))
+    }
+    private func saveRating(_ ledger: DemoRating) throws {
+        try ContractJSON.encoder().encode(ledger).write(to:store.root.appendingPathComponent("exam-rating-v1.json"),options:.atomic)
+    }
+    private func pools() throws -> QuestionPoolManifest { try Bundled.decode("question-pools") }
+    func examRecommendations() async throws -> ExamOffer {
+        var ledger = try ratingLedger()
+        let taken = Set(try store.all().map { $0.attempt.question.id })
+        let pool = try pools()
+        let candidates = try catalog().filter { pool.contains($0.id,in:"exam") && !taken.contains($0.id) }
+        if let offer = ledger.offer, offer.choices.allSatisfy({ choice in
+            choice.questionId == nil || candidates.contains(where: { $0.id == choice.questionId && $0.version == choice.questionVersion })
+        }) { return offer }
+        let offer = ExamOffer(id:UUID(),poolVersion:pool.version,rating:ledger.state,
+            choices:ExamRatingModel.choices(rating:ledger.state.value,questions:candidates))
+        try offer.validate(); ledger.offer = offer; try saveRating(ledger)
+        return offer
+    }
+    private func withRating(_ grading: Grading, record: SessionRecord) throws -> Grading {
+        guard record.attempt.studyMode == .exam, grading.status == "completed", let score = grading.score,
+              let snapshot = record.attempt.examRatingSnapshot else { return grading }
+        var ledger = try ratingLedger(), value = grading
+        let id = record.id.uuidString.lowercased()
+        if let existing = ledger.changes[id] { value.ratingChange = existing; return value }
+        let change = try ExamRatingModel.update(ledger.state,difficulty:snapshot.difficultyScore,grade:score,
+            difficultyVersion:snapshot.difficultyVersion,poolVersion:snapshot.poolVersion)
+        ledger.changes[id] = change; ledger.state.value = change.after; ledger.state.completed += 1
+        ledger.offer = nil; try saveRating(ledger)
+        value.ratingChange = change; return value
+    }
     private var difficultyManifest: PracticeDifficultyManifest?
     private var cachedEngraving: EngravingManifest?
     private func catalog() throws -> [Question] {
@@ -48,7 +87,8 @@ import Foundation
         cachedCatalog = resolved; return resolved
     }
     func questions(page: Int) async throws -> QuestionPage {
-        let values = try catalog().filter { $0.collection != "classical" && difficultyManifest?.records[$0.id.uuidString.lowercased()] != nil }
+        let pool = try pools()
+        let values = try catalog().filter { $0.collection != "classical" && pool.contains($0.id,in:"practice") && difficultyManifest?.records[$0.id.uuidString.lowercased()] != nil }
         return QuestionPage(count: values.count, next: nil, previous: nil, results: values.map { q in QuestionSummary(id:q.id,version:q.version,title:q.title,source:q.source,keySignature:q.keySignature,timeSignature:q.timeSignature,measureCount:q.measureCount,recommendedDurationSeconds:q.recommendedDurationSeconds,tempo:q.tempo,difficulty:q.difficulty,practiceLevelNumber:q.practiceLevelNumber,difficultyScore:q.difficultyScore,difficultyVersion:q.difficultyVersion) })
     }
     func classicalQuestions(page: Int) async throws -> QuestionPage {
@@ -60,7 +100,10 @@ import Foundation
         })
     }
     func recommendedQuestion() async throws -> Question {
-        guard let q = try catalog().filter({ $0.collection != "classical" && difficultyManifest?.records[$0.id.uuidString.lowercased()] != nil }).randomElement() else { throw SolfegeError.configuration("추천할 문제가 없습니다.") }; return q
+        let offer = try await examRecommendations()
+        let choice = offer.choices.first(where: { $0.category == "matched" && $0.questionId != nil }) ?? offer.choices.first(where: { $0.questionId != nil })
+        guard let id = choice?.questionId else { throw SolfegeError.configuration("아직 풀지 않은 시험 문제가 없습니다.") }
+        return try await question(id)
     }
     func question(_ id: UUID) async throws -> Question {
         guard let q = try catalog().first(where: { $0.id == id }) else { throw SolfegeError.configuration("데모 문제를 찾을 수 없습니다.") }; return q
@@ -75,11 +118,32 @@ import Foundation
             guard existing.question.id == question.id, existing.question.version == question.version, existing.studyMode == mode else { throw SolfegeError.configuration("IDEMPOTENCY_KEY_REUSED") }
             return existing
         }
+        // Recover a crash between the durable reservation and its key receipt.
+        if let record = try store.all().first(where: { $0.creationKey == key }) {
+            guard record.attempt.question.id == question.id, record.attempt.question.version == question.version,
+                  record.attempt.studyMode == mode else { throw SolfegeError.configuration("IDEMPOTENCY_KEY_REUSED") }
+            try ContractJSON.encoder().encode(record.attempt).write(to:path,options:.atomic)
+            return record.attempt
+        }
         var attempt: Attempt = try Bundled.decode("attempt-ready")
+        let pool = try pools()
+        guard question.collection == "classical" && mode == .practice || pool.contains(question.id,in:mode.rawValue) else {
+            throw SolfegeError.configuration("이 문제는 선택한 모드의 전용 문제가 아닙니다.")
+        }
+        if mode == .exam {
+            guard !(try store.all()).contains(where: { $0.attempt.question.id == question.id }) else {
+                throw SolfegeError.configuration("이미 선택한 시험 문제입니다. 진행 중인 시험은 이어서 풀어 주세요.")
+            }
+            guard let difficulty = question.difficultyScore, let version = question.difficultyVersion else {
+                throw SolfegeError.configuration("시험 난이도 정보를 확인해 주세요.")
+            }
+            attempt.examRatingSnapshot = ExamRatingSnapshot(modelVersion:ExamRatingModel.version,poolVersion:pool.version,difficultyVersion:version,difficultyScore:difficulty)
+        }
         attempt.playbackPlan = .exam(meter:question.timeSignature,setting:question.tempo,scaleMeasures:question.scoreAssets.scale.measureCount)
         attempt.id = UUID(); attempt.question = question; attempt.createdAt = Date(); attempt.serverTime = Date()
         attempt.mode = mode.rawValue; attempt.gradingMode = mode == .practice ? "self" : "demo"
-        try store.save(SessionRecord(attempt: attempt))
+        var record = SessionRecord(attempt:attempt); record.creationKey = key
+        try store.save(record)
         try ContractJSON.encoder().encode(attempt).write(to: path, options: .atomic); return attempt
     }
     func attempt(_ id: UUID) async throws -> Attempt {
@@ -123,10 +187,13 @@ import Foundation
     func result(_ id: UUID) async throws -> Grading {
         var r = try store.load(id)
         guard let old = r.grading else { throw SolfegeError.configuration("NOT_SUBMITTED") }
-        guard old.isPending else { return old }
+        guard old.isPending else {
+            let value = try withRating(old,record:r); r.grading = value; try store.save(r); return value
+        }
         let name = Date().timeIntervalSince(old.createdAt) < 4 ? "grading-processing" : "grading-\(outcome)"
         var g: Grading = try Bundled.decode(name)
         g.attemptId = id; g.answerId = old.answerId; g.jobId = old.jobId; g.createdAt = old.createdAt; g.updatedAt = Date(); g.serverTime = Date()
+        g = try withRating(g,record:r)
         r.grading = g; try store.save(r); return g
     }
     func retryGrading(_ id: UUID, key: UUID) async throws -> Grading {

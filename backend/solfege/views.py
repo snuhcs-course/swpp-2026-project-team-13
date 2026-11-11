@@ -50,7 +50,7 @@ def result_location(request, attempt):
 def new_job(attempt, answer):
     if attempt.mode != "exam":
         raise ContractError("AI_GRADING_NOT_AVAILABLE", "Practice는 자기채점으로 진행합니다.", 409)
-    job = GradingJob.objects.create(attempt=attempt, answer=answer, grading_version=attempt.grading_version, model=settings.OPENROUTER_MODEL, reasoning_effort=settings.OPENROUTER_REASONING_EFFORT, prompt_version=settings.AI_PROMPT_VERSION, timeout_seconds=settings.AI_TIMEOUT_SECONDS, max_output_tokens=settings.AI_MAX_OUTPUT_TOKENS, prompt_text=(settings.BASE_DIR / "solfege" / "grading-prompt-v2.txt").read_text(encoding="utf-8") + "\n" + (settings.BASE_DIR / "solfege" / "notation-rules-v1.txt").read_text(encoding="utf-8"))
+    job = GradingJob.objects.create(attempt=attempt, answer=answer, grading_version=attempt.grading_version, model=settings.OPENROUTER_MODEL, reasoning_effort=settings.OPENROUTER_REASONING_EFFORT, prompt_version=settings.AI_PROMPT_VERSION, timeout_seconds=settings.AI_TIMEOUT_SECONDS, max_output_tokens=settings.AI_MAX_OUTPUT_TOKENS, prompt_text=(settings.BASE_DIR / "solfege" / "grading-prompt-v3.txt").read_text(encoding="utf-8") + "\n" + (settings.BASE_DIR / "solfege" / "notation-rules-v2.txt").read_text(encoding="utf-8"))
     attempt.current_job = job
     return job
 
@@ -104,7 +104,7 @@ def questions(request):
 
 @api_view(["GET"])
 def recommended_question(request):
-    version = recommended_version()
+    version = recommended_version(request.user)
     if version is None:
         raise ContractError("RECOMMENDATION_UNAVAILABLE", "추천할 문제가 없습니다.", 404)
     return Response(question_json(request, timed_question(version.metadata)))
@@ -114,6 +114,12 @@ def question_detail(request, question_id):
     question = get_object_or_404(Question, id=question_id, published=True)
     version = get_object_or_404(QuestionVersion, question=question, version=question.current_version)
     return Response(question_json(request, timed_question(version.metadata)))
+
+
+@api_view(["GET"])
+def exam_recommendations(request):
+    from .exam_rating import offer_for
+    return Response(offer_for(request.user))
 
 @api_view(["POST"])
 @parser_classes([JSONParser])
@@ -132,6 +138,14 @@ def create_attempt(request):
             raise ContractError("QUESTION_VERSION_MISMATCH", "문제 버전이 변경되었습니다.", 409)
         version = get_object_or_404(QuestionVersion, question=question, version=version_number)
         snapshot = timed_question(version.metadata)
+        rating_snapshot = None
+        if mode == "exam":
+            from .exam_rating import reserve_exam
+            rating_snapshot = reserve_exam(request.user, version, snapshot)
+        elif snapshot.get("collection") != "classical":
+            from .question_pools import membership
+            if membership(question_id) != "practice":
+                raise ContractError("QUESTION_NOT_IN_PRACTICE_POOL", "Practice 전용 문제를 선택해 주세요.", 409)
         plan = make_playback_plan(snapshot)
         try:
             analysis = ensure_question_analysis(version)
@@ -140,7 +154,8 @@ def create_attempt(request):
         attempt = Attempt.objects.create(user=request.user, question_version=version, question_snapshot=snapshot, playback_plan=plan,
                                          mode=mode, feature_analysis=analysis,
                                          grading_mode="self" if mode == "practice" else "automatic",
-                                         grading_version="self-measure-v1" if mode == "practice" else "ai-melodic-v1")
+                                         grading_version="self-measure-v1" if mode == "practice" else "ai-melodic-v2",
+                                         exam_rating_snapshot=rating_snapshot)
         return attempt_json(request, attempt), 201, absolute(request, f"/api/v1/attempts/{attempt.id}/")
     return run_idempotent(request, dict(request.data), operation)
 

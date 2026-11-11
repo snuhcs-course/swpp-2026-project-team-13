@@ -7,7 +7,7 @@ import SwiftUI
         let api = try DemoExamAPI(outcome:"completed")
         let list = try await api.questions(page:1)
         let manifest: PracticeDifficultyManifest = try Bundled.decode("practice-difficulty")
-        XCTAssertEqual(list.results.count,manifest.records.count)
+        XCTAssertEqual(list.results.count,1550)
         XCTAssertEqual(Set(list.results.map { $0.practiceLevel.number }),Set(1...9))
         for q in list.results {
             let entry = try XCTUnwrap(manifest.records[q.id.uuidString.lowercased()])
@@ -54,12 +54,12 @@ import SwiftUI
     func testPracticeLevelsScreenAndImportedExamRestore() async throws {
         let model = AppModel(); model.demo = true; model.demoOutcome = "completed"; await model.connect()
         let manifest: PracticeDifficultyManifest = try Bundled.decode("practice-difficulty")
-        XCTAssertNil(model.error); XCTAssertEqual(model.questions.count,manifest.records.count)
+        XCTAssertNil(model.error); XCTAssertEqual(model.questions.count,1550)
         let renderer = ImageRenderer(content:HomeView(model:model).frame(width:1180,height:1024)); renderer.scale = 2
         let attachment = XCTAttachment(image:try XCTUnwrap(renderer.uiImage)); attachment.name = "practice-level-selection"; attachment.lifetime = .keepAlways; add(attachment)
         let summary = try XCTUnwrap(model.questions.first { $0.practiceLevel == .level2 && $0.keySignature.fifths != 0 })
         model.selectedPracticeLevel = .level2
-        await model.choose(summary.id); await model.begin()
+        await model.choose(summary.id,mode:.practice); await model.begin()
         XCTAssertNil(model.error); XCTAssertTrue(model.prepared)
         let id = try XCTUnwrap(model.session?.id)
         await model.start(); model.player.pause(); await model.submit()

@@ -19,6 +19,7 @@ struct SessionRecord: Codable, Identifiable {
     var selfAssessmentSave: PendingSelfAssessment? = nil
     var hasDrawing = false
     var parserVersion = MusicXMLParser.version
+    var creationKey: UUID? = nil
 }
 struct PendingCreation: Codable {
     var question: Question; var key: UUID

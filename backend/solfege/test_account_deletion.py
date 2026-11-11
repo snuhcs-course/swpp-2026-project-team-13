@@ -67,7 +67,7 @@ class AccountFlow:
         return client.post("/api/v1/" + path, data, format="json", HTTP_IDEMPOTENCY_KEY=str(uuid.uuid4()))
 
     def started_attempt(self, client):
-        question = QuestionVersion.objects.filter(version=F("question__current_version")).order_by("question__order").first().metadata
+        question = client.get("/api/v1/questions/recommended/").data
         attempt = self.post(client, "attempts/", {"question_id": question["id"], "question_version": question["version"]})
         self.assertEqual(attempt.status_code, 201, attempt.data)
         self.assertEqual(self.post(client, f'attempts/{attempt.data["id"]}/start/').status_code, 200)
@@ -437,7 +437,8 @@ class DeletionConcurrencyTests(AccountFlow, TemporaryMedia, TransactionTestCase)
     def test_attempt_created_during_deletion_gets_401_and_leaves_nothing(self):
         user, client = self.account()
         user_id = user.pk
-        question = QuestionVersion.objects.filter(version=F("question__current_version")).order_by("question__order").first().metadata
+        from .recommendation import current_versions
+        question = current_versions("exam").first().metadata
         inserted, deleted = Event(), Event()
         original = views.attempt_json
 
@@ -458,7 +459,8 @@ class DeletionConcurrencyTests(AccountFlow, TemporaryMedia, TransactionTestCase)
     def test_attempt_committed_after_the_first_scan_is_also_deleted(self):
         user, client = self.account()
         user_id = user.pk
-        question = QuestionVersion.objects.filter(version=F("question__current_version")).order_by("question__order").first().metadata
+        from .recommendation import current_versions
+        question = current_versions("exam").first().metadata
         original = get_user_model
 
         def commit_attempt_before_the_user_lock():

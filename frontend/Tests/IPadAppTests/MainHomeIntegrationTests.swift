@@ -6,17 +6,17 @@ import XCTest
         let model = AppModel(); model.demo = true; await model.connect()
         XCTAssertNil(model.error); XCTAssertEqual(model.screen, .main)
         await model.startRecommendedExam()
-        XCTAssertEqual(model.screen, .question); XCTAssertEqual(model.selectedMode, .exam)
+        XCTAssertEqual(model.screen, .examSelection); XCTAssertEqual(model.selectedMode, .exam)
         model.navigate(model.questionLibraryScreen)
-        XCTAssertEqual(model.screen, .main); XCTAssertEqual(model.selectedMode, .exam)
+        XCTAssertEqual(model.screen, .examSelection); XCTAssertEqual(model.selectedMode, .exam)
         model.navigate(.home)
         XCTAssertEqual(model.screen, .home); XCTAssertEqual(model.selectedMode, .practice)
     }
 
     func testResumeOffersExamOnlyUntilSubmitted() async throws {
         let model = AppModel(); model.demo = true; model.demoOutcome = "completed"; await model.connect()
-        let summary = try XCTUnwrap(model.questions.first)
-        await model.choose(summary.id, mode: .exam); await model.begin(); await model.start(); model.player.pause()
+        await model.startRecommendedExam()
+        await model.chooseExam(try XCTUnwrap(model.examOffer?.choices.first { $0.category == "matched" && $0.questionId != nil })); await model.begin(); await model.start(); model.player.pause()
         XCTAssertNil(model.error)
         let id = try XCTUnwrap(model.session?.id)
         XCTAssertTrue(model.isUnfinished(try XCTUnwrap(model.history.first { $0.id == id })))

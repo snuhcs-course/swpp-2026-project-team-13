@@ -77,7 +77,7 @@ import ImageIO
             let q = try await api.recommendedQuestion()
             XCTAssertNotEqual(q.collection,"classical"); seen.insert(q.id)
         }
-        XCTAssertGreaterThan(seen.count,1)
+        XCTAssertEqual(seen.count,1)
     }
     func testRecommendedExamHoldsItsQuestionUntilTheAttemptExists() async throws {
         let model = AppModel(); model.demo = true; model.demoOutcome = "completed"; await model.connect()
@@ -86,26 +86,22 @@ import ImageIO
         while model.screen == .main { await Task.yield() }
         XCTAssertEqual(model.screen,.recommendingExam)
         await loading.value
-        XCTAssertGreaterThanOrEqual(ContinuousClock.now - started,AppModel.recommendationMinimum)
-        XCTAssertNil(model.error); XCTAssertEqual(model.screen,.question); XCTAssertEqual(model.selectedMode,.exam)
-        XCTAssertEqual(model.questionLibraryScreen,.main)
-        let held = try XCTUnwrap(model.selectedQuestion)
-        model.navigate(model.questionLibraryScreen)
+        XCTAssertGreaterThanOrEqual(ContinuousClock.now-started,AppModel.recommendationMinimum)
+        XCTAssertNil(model.error); XCTAssertEqual(model.screen,.examSelection)
+        let offer = try XCTUnwrap(model.examOffer)
         await model.startRecommendedExam()
-        XCTAssertEqual(model.selectedQuestion?.id,held.id)
+        XCTAssertEqual(model.examOffer,offer)
+        let choice = try XCTUnwrap(offer.choices.first { $0.category == "matched" && $0.questionId != nil })
+        await model.chooseExam(choice)
+        XCTAssertEqual(model.screen,.question); XCTAssertEqual(model.questionLibraryScreen,.examSelection)
         await model.begin()
-        XCTAssertNil(model.error); XCTAssertEqual(model.session?.attempt.studyMode,.exam); XCTAssertEqual(model.session?.attempt.question.id,held.id)
-        // A draw can repeat by chance, but three in a row means the held question was never released.
-        var next = held.id
-        for _ in 0..<3 where next == held.id {
-            await model.startRecommendedExam(); next = try XCTUnwrap(model.selectedQuestion?.id)
-            if next == held.id { await model.begin() }
-        }
-        XCTAssertNotEqual(next,held.id)
+        XCTAssertNil(model.error); XCTAssertEqual(model.session?.attempt.question.id,choice.questionId)
+        await model.startRecommendedExam()
+        XCTAssertFalse(try XCTUnwrap(model.examOffer).choices.contains { $0.questionId == choice.questionId })
     }
     func testRecommendedExamRecoversPendingCreationInsteadOfReplacingIt() async throws {
         let model = AppModel(); model.demo = true; model.demoOutcome = "completed"; await model.connect()
-        let q = try await DemoExamAPI(outcome:"completed").question(try XCTUnwrap(model.questions.first).id)
+        let q = try await DemoExamAPI(outcome:"completed").recommendedQuestion()
         let store = try LocalStore(scope:"sori-local-demo-v3:" + (try XCTUnwrap(model.profile)).id.uuidString)
         try store.savePending(PendingCreation(question:q,key:UUID(),mode:.exam))
         XCTAssertTrue(model.pendingCreation)
@@ -113,7 +109,7 @@ import ImageIO
         XCTAssertNil(model.error); XCTAssertFalse(model.pendingCreation)
         XCTAssertEqual(model.session?.attempt.question.id,q.id); XCTAssertEqual(model.screen,.exam)
     }
-    func testClassicalIsPracticeOnlyAndOlderClassicalExamsReturnHome() async throws {
+    func testClassicalIsPracticeOnlyAndReturnsToItsLibrary() async throws {
         let model = AppModel(); model.demo = true; model.demoOutcome = "completed"; await model.connect(); await model.loadClassical()
         let q = try XCTUnwrap(model.classicalQuestions.first)
         model.selectedMode = .exam; model.navigate(.classical)
@@ -121,16 +117,16 @@ import ImageIO
         await model.choose(q.id,mode:.practice)
         XCTAssertEqual(model.questionLibraryScreen,.classical)
         await model.choose(q.id,mode:.exam)
-        XCTAssertEqual(model.questionLibraryScreen,.main)
+        XCTAssertEqual(model.questionLibraryScreen,.classical)
         await model.begin(); await model.start(); model.player.pause(); await model.submit()
         XCTAssertNil(model.error); XCTAssertEqual(model.screen,.result)
-        XCTAssertEqual(model.resultLibraryScreen,.main)
+        XCTAssertEqual(model.resultLibraryScreen,.classical)
     }
     func testScaleNoticeUsesActualScaleKeyAndRendersBeforePlayback() async throws {
         let model = AppModel(); model.demo = true
         await model.connect(); await model.loadClassical()
         let q = try XCTUnwrap(model.classicalQuestions.first(where: { $0.composer == "브람스" && $0.keySignature.mode == "minor" }))
-        await model.choose(q.id); await model.begin()
+        await model.choose(q.id,mode:.practice); await model.begin()
         XCTAssertNil(model.error); XCTAssertTrue(model.player.showsScaleNotice)
         XCTAssertEqual(model.player.scaleKey,q.keySignature)
         XCTAssertEqual(model.player.scaleKey?.mode,"minor")
@@ -152,7 +148,7 @@ import ImageIO
         XCTAssertTrue(model.demo); XCTAssertTrue(defaults.bool(forKey:"sori.demo"))
         let restored = AppModel(); XCTAssertTrue(restored.demo)
         await restored.connect()
-        await restored.choose(try XCTUnwrap(restored.questions.first?.id)); await restored.begin()
+        await restored.startRecommendedExam(); await restored.chooseExam(try XCTUnwrap(restored.examOffer?.choices.first { $0.category == "matched" && $0.questionId != nil })); await restored.begin()
         XCTAssertNil(restored.error); XCTAssertEqual(restored.session?.attempt.gradingMode,"demo")
         restored.player.pause()
         // A failed live connection must still remember the chosen mode and must

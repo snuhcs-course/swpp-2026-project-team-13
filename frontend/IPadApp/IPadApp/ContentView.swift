@@ -45,6 +45,7 @@ struct ContentView: View {
                 case .main: MainHomeView(model:model)
                 case .home: HomeView(model:model)
                 case .recommendingExam: ExamRecommendationView()
+                case .examSelection: ExamSelectionView(model:model)
                 case .question: QuestionView(model: model)
                 case .exam: ExamView(model: model, drawing: model.drawing, player: model.player)
                 case .result: ResultView(model: model)
@@ -57,7 +58,7 @@ struct ContentView: View {
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) { backButton }
             }
-            .toolbar([.main,.recommendingExam].contains(model.screen) ? .hidden : .automatic, for: .navigationBar)
+            .toolbar([.main,.recommendingExam,.examSelection].contains(model.screen) ? .hidden : .automatic, for: .navigationBar)
             .toolbarBackground(SolfegeTheme.background, for: .navigationBar)
             .overlay { if model.screen != .recommendingExam { busyOverlay } }
         }

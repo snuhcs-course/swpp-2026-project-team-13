@@ -220,6 +220,7 @@ struct Attempt: Codable, Identifiable, Equatable {
     var question: Question; var playbackPlan: PlaybackPlan; var serverTime: Date
     var mode: String? = nil
     var featureAnalysisId: UUID? = nil
+    var examRatingSnapshot: ExamRatingSnapshot? = nil
     var studyMode: StudyMode { mode.flatMap { StudyMode(rawValue:$0) } ?? (gradingMode == "self" ? .practice : .exam) }
 }
 struct BBox: Codable, Equatable {
@@ -246,6 +247,7 @@ struct Grading: Codable, Equatable {
     var status: String; var stage: String; var score: Int?; var pitchAccuracy: Double?; var rhythmAccuracy: Double?
     var feedback: Feedback?; var annotations: [Annotation]; var failure: GradingFailure?; var pollAfterMs: Int
     var createdAt: Date; var updatedAt: Date; var serverTime: Date
+    var ratingChange: ExamRatingChange? = nil
     var isPending: Bool { status == "queued" || status == "processing" }
     var canRetry: Bool { status == "failed" && failure?.retryable == true }
 }

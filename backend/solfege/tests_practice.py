@@ -48,7 +48,9 @@ class PracticeFlowTests(TestCase):
         self.client.credentials(HTTP_AUTHORIZATION="Bearer " + self.token.key)
 
     def create(self, mode="practice"):
-        body = {"question_id": str(self.q.question_id), "question_version": self.q.version}
+        from .recommendation import current_versions
+        q = self.q if mode == "practice" else current_versions("exam").first()
+        body = {"question_id": str(q.question_id), "question_version": q.version}
         if mode is not None:
             body["mode"] = mode
         response = self.client.post("/api/v1/attempts/", body, format="json", HTTP_IDEMPOTENCY_KEY=str(uuid.uuid4()))

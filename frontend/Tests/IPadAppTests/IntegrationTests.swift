@@ -58,7 +58,7 @@ import ImageIO
         await model.connect(); XCTAssertNil(model.error)
         for voice in model.instrumentVoices {
             model.selectVoice(voice.id)
-            await model.choose(try XCTUnwrap(model.questions.first?.id)); await model.begin()
+            await model.choose(try XCTUnwrap(model.questions.first?.id),mode:.practice); await model.begin()
             XCTAssertNil(model.error); XCTAssertTrue(model.prepared)
             XCTAssertEqual(model.player.voiceId,voice.id)
             let restored = AppModel()
@@ -98,7 +98,7 @@ import ImageIO
     func testRealAppFlowPrepareStartSubmitAndRestoreResult() async throws {
         let model=AppModel();model.demo=true;model.demoOutcome="completed";await model.connect()
         XCTAssertNil(model.error);XCTAssertTrue(model.connected)
-        await model.choose(try XCTUnwrap(model.questions.first?.id));await model.begin()
+        await model.startRecommendedExam(); await model.chooseExam(try XCTUnwrap(model.examOffer?.choices.first { $0.category == "matched" && $0.questionId != nil })); await model.begin()
         XCTAssertNil(model.error);XCTAssertTrue(model.prepared);XCTAssertEqual(model.session?.attempt.status,"ready")
         let id=try XCTUnwrap(model.session?.id)
         await model.start();model.player.pause();XCTAssertNil(model.error);XCTAssertEqual(model.session?.attempt.status,"in_progress")
@@ -111,7 +111,8 @@ import ImageIO
     }
     func testDemoBackendIdempotencyAndOtherTerminalOutcomes() async throws {
         for outcome in ["needs-review","failed"] {
-            let api=try DemoExamAPI(outcome:outcome),q:Question=try Bundled.decode("question"),key=UUID()
+            let api=try DemoExamAPI(outcome:outcome), key=UUID()
+            let q = try await api.recommendedQuestion()
             let a=try await api.createAttempt(question:q,key:key),same=try await api.createAttempt(question:q,key:key);XCTAssertEqual(a.id,same.id)
             let started=try await api.start(a.id),twice=try await api.start(a.id);XCTAssertEqual(started.startedAt,twice.startedAt)
             let png=try Bundled.data("staff-8bars-v1",ext:"png"),client=UUID(),up=UUID()

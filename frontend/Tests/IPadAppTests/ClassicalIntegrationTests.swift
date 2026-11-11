@@ -7,7 +7,7 @@ import SwiftUI
         let api = try DemoExamAPI(outcome:"completed")
         let practice = try await api.questions(page:1)
         let bank: PracticeDifficultyManifest = try Bundled.decode("practice-difficulty")
-        XCTAssertEqual(practice.results.count,bank.records.count)
+        XCTAssertEqual(practice.results.count,1550)
         let classical = try await api.classicalQuestions(page:1)
         XCTAssertEqual(classical.results.count,34)
         let order: [UUID] = try Bundled.decode("classical-question-order")
@@ -16,7 +16,7 @@ import SwiftUI
             let q = try await api.question(summary.id); try q.validate()
             if q.composer == "말러" || q.composer == "브람스" {
                 XCTAssertEqual(q.tempo?.policyId,"sori-score-tempo-1")
-                let attempt = try await api.createAttempt(question:q,key:UUID())
+                let attempt = try await api.createAttempt(question:q,mode:.practice,key:UUID())
                 XCTAssertEqual(attempt.playbackPlan.tempo,q.tempo)
                 XCTAssertEqual(attempt.playbackPlan.tempoBpm,q.tempo?.quarterBpm)
                 if q.composer == "브람스" { XCTAssertEqual(q.version,2) }
@@ -39,14 +39,14 @@ import SwiftUI
         let model = AppModel(); model.demo = true; model.demoOutcome = "completed"
         await model.connect(); await model.loadClassical()
         let bank: PracticeDifficultyManifest = try Bundled.decode("practice-difficulty")
-        XCTAssertNil(model.error); XCTAssertEqual(model.questions.count,bank.records.count); XCTAssertEqual(model.classicalQuestions.count,34)
+        XCTAssertNil(model.error); XCTAssertEqual(model.questions.count,1550); XCTAssertEqual(model.classicalQuestions.count,34)
         let view = ImageRenderer(content:ClassicalExamLibraryView(model:model).frame(width:1024,height:768))
         view.scale = 2
         let screenshot = try XCTUnwrap(view.uiImage)
         let attachment = XCTAttachment(image:screenshot); attachment.name = "classical-composer-selection"; attachment.lifetime = .keepAlways; add(attachment)
         let q = try XCTUnwrap(model.classicalQuestions.first(where: { $0.keySignature.mode == "minor" }))
         model.selectedComposer = q.composer
-        await model.choose(q.id); await model.begin()
+        await model.choose(q.id,mode:.practice); await model.begin()
         XCTAssertNil(model.error); XCTAssertTrue(model.prepared)
         XCTAssertEqual(model.mainScore?.keySignature,q.keySignature)
         let id = try XCTUnwrap(model.session?.id)

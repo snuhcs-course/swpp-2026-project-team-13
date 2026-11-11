@@ -18,6 +18,24 @@ final class StubProtocol:URLProtocol {
     override func stopLoading() { }
 }
 @MainActor final class HTTPContractTests:XCTestCase {
+    func testExamOfferUsesAuthenticatedReadAndDecodesContinuousScores() async throws {
+        let config = URLSessionConfiguration.ephemeral; config.protocolClasses = [StubProtocol.self]
+        let api = try HTTPExamAPI(base:URL(string:"https://api.sori.example/api/v1/")!,token:"test-token",session:URLSession(configuration:config))
+        let offer = ExamOffer(id:UUID(),poolVersion:"question-pools-1",rating:ExamRatingState(),choices:[
+            ExamChoice(category:"challenge",questionId:UUID(),questionVersion:1,difficultyScore:8,ratingDifference:1,reason:nil),
+            ExamChoice(category:"matched",questionId:UUID(),questionVersion:1,difficultyScore:7,ratingDifference:0,reason:nil),
+            ExamChoice(category:"easy",questionId:UUID(),questionVersion:1,difficultyScore:6,ratingDifference:-1,reason:nil)])
+        let payload = try ContractJSON.encoder().encode(offer)
+        StubProtocol.handler = { request in
+            XCTAssertEqual(request.url?.path,"/api/v1/exam/recommendations/")
+            XCTAssertEqual(request.httpMethod,"GET"); XCTAssertNil(request.httpBody)
+            XCTAssertEqual(request.value(forHTTPHeaderField:"Authorization"),"Bearer test-token")
+            return (200,"application/json",payload)
+        }
+        defer { StubProtocol.handler = nil }
+        let result = try await api.examRecommendations(); try result.validate()
+        XCTAssertEqual(result,offer)
+    }
     var root:URL { URL(fileURLWithPath:#filePath).deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent().appendingPathComponent("docs/solfege-api") }
     func testAllThirteenOperationsUseCorrectMethodsPathsHeadersAndPayloads() async throws {
         let config=URLSessionConfiguration.ephemeral;config.protocolClasses=[StubProtocol.self]

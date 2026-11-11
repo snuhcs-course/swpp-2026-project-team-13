@@ -67,6 +67,8 @@ jobs:
         run: python ../scripts/test_rhythm_game.py
       - name: Verify compact MuseScore rhythm drawings and notehead anchors
         run: python ../scripts/test_rhythm_engraving.py
+      - name: Verify frozen Exam split and fractional-score rating
+        run: python ../scripts/test_exam_rating.py
       - run: python manage.py test api solfege --noinput
 
   frontend:
@@ -107,7 +109,7 @@ jobs:
         run: |
           SIM_ID=$(xcrun simctl list devices available -j | python3 -c 'import json,sys; d=json.load(sys.stdin); print(next(x["udid"] for group in d["devices"].values() for x in group if x["name"].startswith("iPad")))')
           set -o pipefail
-          xcodebuild -project frontend/IPadApp/IPadApp.xcodeproj -scheme IPadApp -configuration Debug -destination "platform=iOS Simulator,id=$SIM_ID" -derivedDataPath build/DerivedData -resultBundlePath build/Comparison.xcresult CODE_SIGNING_ALLOWED=YES CODE_SIGN_IDENTITY=- -only-testing:IPadAppTests/IntegrationTests/testDemoReferenceAssetRoutesReturnPinnedPNGWithOrWithoutSlash -only-testing:IPadAppTests/IntegrationTests/testReferenceImagesAndCompactAnswerRenderTogether -only-testing:IPadAppTests/IntegrationTests/testVoiceSelectionPersistsAndCanPrepareNextProblem -only-testing:IPadAppTests/IntegrationTests/testRealAppFlowPrepareStartSubmitAndRestoreResult -only-testing:IPadAppTests/AuthenticationIntegrationTests -only-testing:IPadAppTests/SignupIntegrationTests -only-testing:IPadAppTests/AccountDeletionIntegrationTests -only-testing:IPadAppTests/MelodyRunIntegrationTests -only-testing:IPadAppTests/ClassicalIntegrationTests -only-testing:IPadAppTests/PracticeLibraryIntegrationTests -only-testing:IPadAppTests/ExamControlsIntegrationTests -only-testing:IPadAppTests/PracticeIntegrationTests -only-testing:IPadAppTests/RhythmPuzzleIntegrationTests -only-testing:IPadAppTests/MainHomeIntegrationTests test 2>&1 | tee build/ipad-tests.log
+          xcodebuild -project frontend/IPadApp/IPadApp.xcodeproj -scheme IPadApp -configuration Debug -destination "platform=iOS Simulator,id=$SIM_ID" -derivedDataPath build/DerivedData -resultBundlePath build/Comparison.xcresult CODE_SIGNING_ALLOWED=YES CODE_SIGN_IDENTITY=- -only-testing:IPadAppTests/IntegrationTests/testDemoReferenceAssetRoutesReturnPinnedPNGWithOrWithoutSlash -only-testing:IPadAppTests/IntegrationTests/testReferenceImagesAndCompactAnswerRenderTogether -only-testing:IPadAppTests/IntegrationTests/testVoiceSelectionPersistsAndCanPrepareNextProblem -only-testing:IPadAppTests/IntegrationTests/testRealAppFlowPrepareStartSubmitAndRestoreResult -only-testing:IPadAppTests/AuthenticationIntegrationTests -only-testing:IPadAppTests/SignupIntegrationTests -only-testing:IPadAppTests/AccountDeletionIntegrationTests -only-testing:IPadAppTests/MelodyRunIntegrationTests -only-testing:IPadAppTests/ClassicalIntegrationTests -only-testing:IPadAppTests/PracticeLibraryIntegrationTests -only-testing:IPadAppTests/ExamControlsIntegrationTests -only-testing:IPadAppTests/PracticeIntegrationTests -only-testing:IPadAppTests/RhythmPuzzleIntegrationTests -only-testing:IPadAppTests/MainHomeIntegrationTests -only-testing:IPadAppTests/ExamRatingIntegrationTests test 2>&1 | tee build/ipad-tests.log
       - name: Export rendered simulator screenshots
         if: always() && hashFiles('build/Comparison.xcresult/Info.plist') != ''
         run: xcrun xcresulttool export attachments --path build/Comparison.xcresult --output-path build/Screenshots
