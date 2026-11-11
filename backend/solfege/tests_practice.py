@@ -49,7 +49,11 @@ class PracticeFlowTests(TestCase):
 
     def create(self, mode="practice"):
         from .recommendation import current_versions
-        q = self.q if mode == "practice" else current_versions("exam").first()
+        if mode == "practice":
+            q = self.q
+        else:
+            seen = Attempt.objects.filter(user=self.user).values("question_version__question_id")
+            q = current_versions("exam").exclude(question_id__in=seen).first()
         body = {"question_id": str(q.question_id), "question_version": q.version}
         if mode is not None:
             body["mode"] = mode
