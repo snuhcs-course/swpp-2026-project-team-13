@@ -97,6 +97,15 @@ import SwiftUI
             XCTAssertGreaterThan(host.view.bounds.width,500)
         }
     }
+    func testBundledPianoPlaysAndRestartsAfterStopping() async throws {
+        let audio = EchoDragonAudio()
+        defer { audio.stop() }
+        try audio.prepare()
+        try await audio.pair(60,61)
+        audio.stop()
+        try audio.prepare()
+        try await audio.pair(67,65)
+    }
 }
 
 @MainActor private final class SilentDragonAudio: EchoDragonPlaying {

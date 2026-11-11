@@ -38,12 +38,12 @@ import AVFoundation
             Button("확인") { game.error = nil }
         } message: { Text(game.error ?? "") }
         .onChange(of:scenePhase) { _, phase in if phase != .active { game.pause() } }
-        .onReceive(NotificationCenter.default.publisher(for:AVAudioSession.interruptionNotification)) { _ in game.pause() }
-        .onReceive(NotificationCenter.default.publisher(for:AVAudioSession.mediaServicesWereResetNotification)) { _ in game.pause() }
-        .onReceive(NotificationCenter.default.publisher(for:.AVAudioEngineConfigurationChange)) { note in
+        .onReceive(NotificationCenter.default.publisher(for:AVAudioSession.interruptionNotification).receive(on:RunLoop.main)) { _ in game.pause() }
+        .onReceive(NotificationCenter.default.publisher(for:AVAudioSession.mediaServicesWereResetNotification).receive(on:RunLoop.main)) { _ in game.pause() }
+        .onReceive(NotificationCenter.default.publisher(for:.AVAudioEngineConfigurationChange).receive(on:RunLoop.main)) { note in
             if game.audio.needsRecovery(note) { game.pause() }
         }
-        .onReceive(NotificationCenter.default.publisher(for:AVAudioSession.routeChangeNotification)) { note in
+        .onReceive(NotificationCenter.default.publisher(for:AVAudioSession.routeChangeNotification).receive(on:RunLoop.main)) { note in
             if let raw = note.userInfo?[AVAudioSessionRouteChangeReasonKey] as? UInt,
                AVAudioSession.RouteChangeReason(rawValue:raw) == .oldDeviceUnavailable { game.pause() }
         }
@@ -69,7 +69,7 @@ import AVFoundation
                 }.buttonStyle(PrimaryButton()).accessibilityIdentifier("echo-continue")
                 Button("거울 대답 미리 체험") { game.open(25,preview:true) }
                     .buttonStyle(.bordered).accessibilityIdentifier("echo-preview-mirror")
-                Button("모든 음정 미리 체험") { game.open(72,preview:true) }.buttonStyle(.bordered)
+                Button("옥타브 미리 체험") { game.open(67,preview:true) }.buttonStyle(.bordered)
             }
             Text("반음 → 온음 → 3도 → 4도 … 25판에서는 호수 속 친구와 거울 대답을 해요.")
                 .font(.subheadline).foregroundStyle(SolfegeTheme.muted)
