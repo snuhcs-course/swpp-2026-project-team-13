@@ -5,7 +5,7 @@ struct HomeView: View {
     private let mode = StudyMode.practice
     var body: some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: 28) {
+            LazyVStack(alignment: .leading, spacing: 28) {
                 VStack(alignment:.leading,spacing:6) {
                     Text(model.selectedPracticeLevel.map { "\(mode.title) · \($0.title)" } ?? mode.title).font(.system(size:34,weight:.bold)).foregroundStyle(SolfegeTheme.ink).accessibilityAddTraits(.isHeader)
                     Text(mode.detail).font(.system(size:16)).foregroundStyle(SolfegeTheme.muted)
@@ -58,6 +58,7 @@ struct HomeView: View {
                                 Text(String(format: "%02d", index+1)).font(.system(size: 29, weight: .light, design: .rounded)).foregroundStyle(SolfegeTheme.violet).frame(width: 48)
                                 VStack(alignment: .leading, spacing: 10) { Text(q.title).font(.headline).foregroundStyle(SolfegeTheme.ink)
                                     HStack { Text(q.keySignature.label); Text("·"); Text("\(q.timeSignature.numerator)/\(q.timeSignature.denominator)"); Text("·"); Text("\(q.measureCount)마디"); Text("·"); Text("\(q.recommendedDurationSeconds / 60)분 \(q.recommendedDurationSeconds % 60)초") }.font(.caption).foregroundStyle(.secondary)
+                                    if let score = q.difficultyScore { Text(String(format:"난이도 %.1f",score)).font(.caption).foregroundStyle(.secondary) }
                                 }
                                 Spacer(); Image(systemName: "arrow.up.right").font(.title3).foregroundStyle(SolfegeTheme.violet).padding(14).background(SolfegeTheme.soft, in: Circle())
                             } }
@@ -83,7 +84,11 @@ struct HomeView: View {
     }
     private var levelQuestions: [QuestionSummary] {
         guard let level = model.selectedPracticeLevel else { return model.questions }
-        return model.questions.filter { $0.practiceLevel == level }
+        return model.questions.filter { $0.practiceLevel == level }.sorted {
+            let a=$0.difficultyScore ?? Double.greatestFiniteMagnitude
+            let b=$1.difficultyScore ?? Double.greatestFiniteMagnitude
+            return a == b ? $0.id.uuidString < $1.id.uuidString : a < b
+        }
     }
     private var visibleQuestions: [QuestionSummary] { model.practiceFilter.apply(to:levelQuestions) }
     // A menu with one option cannot narrow anything, as with the keys of 중급 and 고급.
@@ -139,7 +144,7 @@ struct HomeView: View {
             Spacer(minLength:16)
             Text(level.subtitle).font(.system(size:14)).foregroundStyle(SolfegeTheme.muted).multilineTextAlignment(.leading).fixedSize(horizontal:false,vertical:true)
             Text("\(count)개 문제 · 8마디").font(.system(size:14,weight:.semibold)).foregroundStyle(SolfegeTheme.deepViolet)
-        }.padding(20).frame(maxWidth:.infinity,minHeight:200,alignment:.topLeading).background(.white,in:RoundedRectangle(cornerRadius:16))
+        }.padding(20).frame(maxWidth:.infinity,minHeight:150,alignment:.topLeading).background(.white,in:RoundedRectangle(cornerRadius:16))
     }
 }
 struct QuestionView: View {

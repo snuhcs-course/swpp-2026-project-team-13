@@ -19,28 +19,37 @@ import Foundation
     func usernameCheck(_ username: String) async throws -> UsernameCheck { UsernameCheck(available: true) }
     private struct EngravingManifest: Decodable { var scores: [String: ImageEntry] }
     private struct ImageEntry: Decodable { var resource:String; var contentType:String; var sha256:String; var sizeBytes:Int; var pixelWidth:Int; var pixelHeight:Int; var renderer:String }
+    private var cachedCatalog: [Question]?
+    private var difficultyManifest: PracticeDifficultyManifest?
+    private var cachedEngraving: EngravingManifest?
     private func catalog() throws -> [Question] {
+        if let cachedCatalog { return cachedCatalog }
         let practice: [Question] = try Bundled.decode("practice-catalog")
         let classical: [Question] = try Bundled.decode("classical-catalog")
         let brahms: [Question] = try Bundled.decode("brahms-catalog")
         let mahler: [Question] = try Bundled.decode("mahler-catalog")
         let additional: [Question] = try Bundled.decode("additional-practice-catalog")
+        let bank: [Question] = try Bundled.decode("practice-bank-catalog")
+        let difficulty: PracticeDifficultyManifest = try Bundled.decode("practice-difficulty")
+        try difficulty.validate(); difficultyManifest = difficulty
         let revisions: [Question] = try Bundled.decode("sheet-revisions")
         let tempoRevisions: [Question] = try Bundled.decode("classical-tempo-revisions")
         let current = Dictionary(uniqueKeysWithValues:(revisions + tempoRevisions).map { ($0.id,$0) })
-        let values = (practice + classical + brahms + mahler + additional).map { current[$0.id] ?? $0 }
+        let values = (practice + classical + brahms + mahler + additional + bank).map { current[$0.id] ?? $0 }
         let engraving: EngravingManifest = try Bundled.decode("engraving-manifest")
-        return values.map { source in
+        cachedEngraving = engraving
+        let resolved: [Question] = values.map { source in
             var q = source
             if let image = engraving.scores[q.scoreAssets.main.sha256] {
                 q.correctScore = ReferenceImage(url:q.scoreAssets.main.url.deletingLastPathComponent().deletingLastPathComponent().appendingPathComponent("display",isDirectory:true),contentType:image.contentType,sha256:image.sha256,sizeBytes:image.sizeBytes,pixelWidth:image.pixelWidth,pixelHeight:image.pixelHeight,renderer:image.renderer)
             }
-            q.tempo = q.tempo ?? TempoDefaults.setting(for:q.timeSignature); q.recommendedDurationSeconds = Int(ceil(PlaybackPlan.exam(meter:q.timeSignature,setting:q.tempo,scaleMeasures:q.scoreAssets.scale.measureCount).nominalDurationSeconds(meter:q.timeSignature))); return q
+            q.tempo = q.tempo ?? TempoDefaults.setting(for:q.timeSignature); q.recommendedDurationSeconds = Int(ceil(PlaybackPlan.exam(meter:q.timeSignature,setting:q.tempo,scaleMeasures:q.scoreAssets.scale.measureCount).nominalDurationSeconds(meter:q.timeSignature))); return difficulty.annotating(q)
         }
+        cachedCatalog = resolved; return resolved
     }
     func questions(page: Int) async throws -> QuestionPage {
-        let values = try catalog().filter { $0.collection != "classical" }
-        return QuestionPage(count: values.count, next: nil, previous: nil, results: values.map { q in QuestionSummary(id:q.id,version:q.version,title:q.title,source:q.source,keySignature:q.keySignature,timeSignature:q.timeSignature,measureCount:q.measureCount,recommendedDurationSeconds:q.recommendedDurationSeconds,tempo:q.tempo,difficulty:q.practiceLevel.rawValue) })
+        let values = try catalog().filter { $0.collection != "classical" && difficultyManifest?.records[$0.id.uuidString.lowercased()] != nil }
+        return QuestionPage(count: values.count, next: nil, previous: nil, results: values.map { q in QuestionSummary(id:q.id,version:q.version,title:q.title,source:q.source,keySignature:q.keySignature,timeSignature:q.timeSignature,measureCount:q.measureCount,recommendedDurationSeconds:q.recommendedDurationSeconds,tempo:q.tempo,difficulty:q.difficulty,practiceLevelNumber:q.practiceLevelNumber,difficultyScore:q.difficultyScore,difficultyVersion:q.difficultyVersion) })
     }
     func classicalQuestions(page: Int) async throws -> QuestionPage {
         let order: [UUID] = try Bundled.decode("classical-question-order")
@@ -51,7 +60,7 @@ import Foundation
         })
     }
     func recommendedQuestion() async throws -> Question {
-        guard let q = try catalog().filter({ $0.collection != "classical" }).randomElement() else { throw SolfegeError.configuration("추천할 문제가 없습니다.") }; return q
+        guard let q = try catalog().filter({ $0.collection != "classical" && difficultyManifest?.records[$0.id.uuidString.lowercased()] != nil }).randomElement() else { throw SolfegeError.configuration("추천할 문제가 없습니다.") }; return q
     }
     func question(_ id: UUID) async throws -> Question {
         guard let q = try catalog().first(where: { $0.id == id }) else { throw SolfegeError.configuration("데모 문제를 찾을 수 없습니다.") }; return q
@@ -192,7 +201,7 @@ import Foundation
         if let index = values.firstIndex(where: { url.path.lowercased().contains($0.id.uuidString.lowercased()) }) {
             // Foundation URL.path strips a trailing slash on Apple platforms.
             if url.lastPathComponent == "display" {
-                let manifest: EngravingManifest = try Bundled.decode("engraving-manifest")
+                let manifest = try cachedEngraving ?? Bundled.decode("engraving-manifest")
                 guard let item = manifest.scores[values[index].scoreAssets.main.sha256] else { throw SolfegeError.configuration("정답 이미지가 없습니다.") }
                 let image = try Bundled.data(item.resource,ext:"png")
                 guard image.count <= limit else { throw SolfegeError.storage("정답 이미지 용량 초과") }

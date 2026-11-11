@@ -22,7 +22,8 @@ from rest_framework.renderers import JSONRenderer
 from .accounts import delete_account, profile_body
 from .renderers import MXLRenderer, PNGRenderer
 from .engraving import reference_asset
-from .playback import make_playback_plan, timed_question
+from .playback import make_playback_plan
+from .practice_bank import timed_practice_question as timed_question
 from .errors import ContractError
 from .idempotency import run_idempotent, uuid_value
 from .models import Answer, Attempt, GradingJob, Question, QuestionVersion, SelfAssessmentRevision, UserProfile
@@ -76,7 +77,7 @@ def questions(request):
     try:
         page = int(request.query_params.get("page", "1"))
         size = int(request.query_params.get("page_size", "20"))
-        if str(page) != request.query_params.get("page", "1") or page < 1 or not 1 <= size <= 50:
+        if str(page) != request.query_params.get("page", "1") or page < 1 or not 1 <= size <= 200:
             raise ValueError
     except ValueError:
         raise ContractError("INVALID_PAGE", "페이지 범위를 확인해 주세요.") from None
@@ -92,7 +93,7 @@ def questions(request):
     for version in items[(page - 1) * size:page * size]:
         metadata = timed_question(version.metadata)
         summary = {k: metadata[k] for k in ("id", "version", "title", "source", "key_signature", "time_signature", "measure_count", "recommended_duration_seconds", "tempo")}
-        summary.update({k: metadata[k] for k in ("collection", "composer") if k in metadata})
+        summary.update({k: metadata[k] for k in ("collection", "composer", "practice_level", "difficulty_score", "difficulty_version") if k in metadata})
         difficulty = practice_difficulty(metadata)
         if difficulty is not None:
             summary["difficulty"] = difficulty

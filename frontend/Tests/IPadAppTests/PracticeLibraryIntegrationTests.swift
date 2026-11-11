@@ -6,10 +6,14 @@ import SwiftUI
     func testEveryImportedDemoAssetUsesTheExistingExamRoutes() async throws {
         let api = try DemoExamAPI(outcome:"completed")
         let list = try await api.questions(page:1)
-        XCTAssertEqual(list.results.count,113)
-        XCTAssertEqual(list.results.filter { $0.practiceLevel == .beginner }.count,40)
-        XCTAssertEqual(list.results.filter { $0.practiceLevel == .intermediate }.count,14)
-        XCTAssertEqual(list.results.filter { $0.practiceLevel == .advanced }.count,59)
+        let manifest: PracticeDifficultyManifest = try Bundled.decode("practice-difficulty")
+        XCTAssertEqual(list.results.count,manifest.records.count)
+        XCTAssertEqual(Set(list.results.map { $0.practiceLevel.number }),Set(1...9))
+        for q in list.results {
+            let entry = try XCTUnwrap(manifest.records[q.id.uuidString.lowercased()])
+            XCTAssertEqual(q.practiceLevel.number,entry.level)
+            XCTAssertEqual(try XCTUnwrap(q.difficultyScore),entry.score,accuracy:0.000001)
+        }
         let added: [Question] = try Bundled.decode("additional-practice-catalog")
         for item in added {
             let q = try await api.question(item.id); try q.validate()
@@ -30,17 +34,16 @@ import SwiftUI
         let model = AppModel(); model.demo = true; await model.connect()
         XCTAssertNil(model.error)
         let level: (PracticeLevel) -> [QuestionSummary] = { value in model.questions.filter { $0.practiceLevel == value } }
-        XCTAssertEqual(QuestionFilter.keyOptions(in:level(.beginner)).count,12)
-        XCTAssertEqual(QuestionFilter.keyOptions(in:level(.intermediate)).count,1)
-        XCTAssertEqual(QuestionFilter.keyOptions(in:level(.advanced)).map(\.label),["조표 없음"])
-        XCTAssertEqual(QuestionFilter.meterOptions(in:level(.advanced)).count,7)
-        model.selectedPracticeLevel = .beginner
-        let key = KeySignature(tonic:"G",mode:"minor",fifths:-2)
+        XCTAssertGreaterThan(QuestionFilter.keyOptions(in:level(.level2)).count,1)
+        XCTAssertGreaterThan(QuestionFilter.keyOptions(in:level(.level9)).count,1)
+        XCTAssertGreaterThan(QuestionFilter.meterOptions(in:level(.level9)).count,1)
+        model.selectedPracticeLevel = .level2
+        let key = try XCTUnwrap(QuestionFilter.keyOptions(in:level(.level2)).first)
         model.practiceFilter.key = key
-        XCTAssertEqual(model.practiceFilter.apply(to:level(.beginner)).count,4)
+        XCTAssertEqual(model.practiceFilter.apply(to:level(.level2)).map(\.id),level(.level2).filter { $0.keySignature == key }.map(\.id))
         let renderer = ImageRenderer(content:HomeView(model:model).frame(width:1180,height:1024)); renderer.scale = 2
         let attachment = XCTAttachment(image:try XCTUnwrap(renderer.uiImage)); attachment.name = "practice-filter"; attachment.lifetime = .keepAlways; add(attachment)
-        model.navigate(.question); model.navigate(.home); model.selectedPracticeLevel = .beginner
+        model.navigate(.question); model.navigate(.home); model.selectedPracticeLevel = .level2
         XCTAssertEqual(model.practiceFilter.key,key)
         model.selectedPracticeLevel = .advanced
         XCTAssertEqual(model.practiceFilter,QuestionFilter())
@@ -50,11 +53,12 @@ import SwiftUI
     }
     func testPracticeLevelsScreenAndImportedExamRestore() async throws {
         let model = AppModel(); model.demo = true; model.demoOutcome = "completed"; await model.connect()
-        XCTAssertNil(model.error); XCTAssertEqual(model.questions.count,113)
+        let manifest: PracticeDifficultyManifest = try Bundled.decode("practice-difficulty")
+        XCTAssertNil(model.error); XCTAssertEqual(model.questions.count,manifest.records.count)
         let renderer = ImageRenderer(content:HomeView(model:model).frame(width:1180,height:1024)); renderer.scale = 2
         let attachment = XCTAttachment(image:try XCTUnwrap(renderer.uiImage)); attachment.name = "practice-level-selection"; attachment.lifetime = .keepAlways; add(attachment)
-        let summary = try XCTUnwrap(model.questions.first { $0.practiceLevel == .beginner && $0.keySignature.fifths != 0 })
-        model.selectedPracticeLevel = .beginner
+        let summary = try XCTUnwrap(model.questions.first { $0.practiceLevel == .level2 && $0.keySignature.fifths != 0 })
+        model.selectedPracticeLevel = .level2
         await model.choose(summary.id); await model.begin()
         XCTAssertNil(model.error); XCTAssertTrue(model.prepared)
         let id = try XCTUnwrap(model.session?.id)
@@ -62,7 +66,7 @@ import SwiftUI
         XCTAssertNil(model.error); XCTAssertEqual(model.screen,.result)
         let restored = AppModel(); restored.demo = true; await restored.connect()
         await restored.open(try XCTUnwrap(restored.history.first { $0.id == id }))
-        XCTAssertNil(restored.error); XCTAssertEqual(restored.selectedPracticeLevel,.beginner)
+        XCTAssertNil(restored.error); XCTAssertEqual(restored.selectedPracticeLevel,.level2)
         XCTAssertEqual(restored.selectedQuestion?.id,summary.id)
     }
 }

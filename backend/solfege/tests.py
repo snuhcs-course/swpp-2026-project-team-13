@@ -17,6 +17,7 @@ from rest_framework.authtoken.models import Token
 from rest_framework.test import APIClient
 from .grading import claim_job, execute_job, validate_result
 from .models import Answer, Attempt, GradingJob, Question, QuestionVersion
+from .practice_bank import manifest as difficulty_manifest
 
 class FlowTests(TestCase):
     @classmethod
@@ -77,7 +78,7 @@ class FlowTests(TestCase):
     def test_classical_collection_is_separate_and_paginates_with_composer_and_key(self):
         from urllib.parse import urlsplit
         practice = self.client.get("/api/v1/questions/")
-        self.assertEqual(practice.data["count"],113)
+        self.assertEqual(practice.data["count"],len(difficulty_manifest()['records']))
         url = "/api/v1/questions/?collection=classical&page_size=3"
         results = []
         while url:
@@ -237,20 +238,27 @@ class FlowTests(TestCase):
     def test_full_catalog_pagination_and_owner_visibility(self):
         response = self.client.get("/api/v1/questions/")
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.data["count"], 113)
+        expected=difficulty_manifest()['records']
+        self.assertEqual(response.data["count"],len(expected))
         self.assertEqual([(q["time_signature"]["numerator"], q["time_signature"]["denominator"]) for q in response.data["results"][:3]], [(6,8),(4,4),(3,4)])
         results=list(response.data["results"])
         while response.data["next"]:
             response=self.client.get(response.data["next"])
             self.assertEqual(response.status_code,200)
             results.extend(response.data["results"])
-        self.assertEqual(len(results),113)
-        self.assertEqual(len({q["id"] for q in results}),113)
+        self.assertEqual(len(results),len(expected))
+        self.assertEqual({q['id'] for q in results},set(expected))
         self.assertTrue(all(q["title"].startswith("고난도 청음") for q in results[3:62]))
         from collections import Counter
-        self.assertEqual(Counter(q["difficulty"] for q in results),{"beginner":40,"intermediate":14,"advanced":59})
+        self.assertEqual(Counter(q['practice_level'] for q in results),Counter(r['level'] for r in expected.values()))
+        for q in results:
+            self.assertAlmostEqual(q['difficulty_score'],expected[q['id']]['score'])
+            self.assertEqual(q['difficulty_version'],difficulty_manifest()['version'])
         # Every new problem resolves its authenticated score and final answer image.
-        for summary in results[3:]:
+        # All on-disk assets are validated by test_practice_bank.py. Exercise
+        # HTTP routing for the legacy set and each new level/meter combination.
+        selected=results[3:62]+list({(q['practice_level'],q['time_signature']['numerator'],q['time_signature']['denominator']):q for q in results[62:]}.values())
+        for summary in selected:
             q=self.client.get(f'/api/v1/questions/{summary["id"]}/').data
             for asset in [q["score_assets"]["main"],q["score_assets"]["scale"],q["correct_score"]]:
                 binary=self.client.get(asset["url"])

@@ -6,7 +6,8 @@ import SwiftUI
     func testDemoClassicalAssetsAndReferencesUseTheExistingRoutes() async throws {
         let api = try DemoExamAPI(outcome:"completed")
         let practice = try await api.questions(page:1)
-        XCTAssertEqual(practice.results.count,113)
+        let bank: PracticeDifficultyManifest = try Bundled.decode("practice-difficulty")
+        XCTAssertEqual(practice.results.count,bank.records.count)
         let classical = try await api.classicalQuestions(page:1)
         XCTAssertEqual(classical.results.count,34)
         let order: [UUID] = try Bundled.decode("classical-question-order")
@@ -37,7 +38,8 @@ import SwiftUI
     func testClassicalExamPrepareSubmitRestoreAndComposerScreen() async throws {
         let model = AppModel(); model.demo = true; model.demoOutcome = "completed"
         await model.connect(); await model.loadClassical()
-        XCTAssertNil(model.error); XCTAssertEqual(model.questions.count,113); XCTAssertEqual(model.classicalQuestions.count,34)
+        let bank: PracticeDifficultyManifest = try Bundled.decode("practice-difficulty")
+        XCTAssertNil(model.error); XCTAssertEqual(model.questions.count,bank.records.count); XCTAssertEqual(model.classicalQuestions.count,34)
         let view = ImageRenderer(content:ClassicalExamLibraryView(model:model).frame(width:1024,height:768))
         view.scale = 2
         let screenshot = try XCTUnwrap(view.uiImage)

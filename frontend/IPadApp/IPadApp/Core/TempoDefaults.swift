@@ -2,6 +2,9 @@
 enum TempoDefaults {
     static func setting(for meter: TimeSignature) -> TempoSetting {
         switch (meter.numerator, meter.denominator) {
+        case (2,8), (4,8): return TempoSetting(policyId:"sori-tempo-1",beatUnit:"quarter",bpm:80,minimumBpm:72,maximumBpm:96)
+        case (4,2): return TempoSetting(policyId:"sori-tempo-1",beatUnit:"half",bpm:48,minimumBpm:40,maximumBpm:66)
+        case (5,8), (5,4): return TempoSetting(policyId:"sori-tempo-1",beatUnit:"quarter",bpm:80,minimumBpm:72,maximumBpm:96)
         case (3,2): return TempoSetting(policyId:"sori-tempo-1",beatUnit:"half",bpm:48,minimumBpm:40,maximumBpm:66)
         case (6,4): return TempoSetting(policyId:"sori-tempo-1",beatUnit:"quarter",bpm:96,minimumBpm:72,maximumBpm:120)
         case (2,2): return TempoSetting(policyId:"sori-tempo-1",beatUnit:"half",bpm:48,minimumBpm:40,maximumBpm:66)

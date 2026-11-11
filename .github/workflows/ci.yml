@@ -58,6 +58,8 @@ jobs:
       - run: python ../scripts/test_classical_questions.py
       - run: python ../scripts/test_classical_updates.py
       - run: python ../scripts/test_practice_import.py
+      - name: Verify nine-level practice bank, shared score and every new asset
+        run: python ../scripts/test_practice_bank.py
       - run: python ../scripts/test_sheet_revisions.py
       - name: Verify Feature v1 without the application runtime
         run: python ../scripts/test_features.py

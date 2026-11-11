@@ -62,7 +62,7 @@ final class StubProtocol:URLProtocol {
         _=try await api.result(attempt);_=try await api.retryGrading(attempt,key:key)
         let mxl=try await api.asset(question.scoreAssets.main.url,authenticated:true,limit:1_048_576)
         XCTAssertEqual(mxl.sha256,question.scoreAssets.main.sha256);XCTAssertEqual(calls.count,13)
-        XCTAssertTrue(calls.contains("GET questions/?page=1&page_size=20"));XCTAssertTrue(calls.contains("PATCH me/"))
+        XCTAssertTrue(calls.contains("GET questions/?page=1&page_size=50"));XCTAssertTrue(calls.contains("PATCH me/"))
     }
     func testClassicalFilterDoesNotChangePracticePagination() async throws {
         let config=URLSessionConfiguration.ephemeral;config.protocolClasses=[StubProtocol.self]
@@ -83,10 +83,10 @@ final class StubProtocol:URLProtocol {
         _=try await api.classicalQuestions(page:2)
         _=try await api.questions(page:2)
         XCTAssertEqual(paths,[
-            "questions/?page=1&page_size=20",
+            "questions/?page=1&page_size=50",
             "questions/?page=1&page_size=50&collection=classical",
             "questions/?page=2&page_size=50&collection=classical",
-            "questions/?page=2&page_size=20"
+            "questions/?page=2&page_size=50"
         ])
     }
     func testRecommendedQuestionUsesItsOwnRouteAndDecodesAsQuestionDetail() async throws {
