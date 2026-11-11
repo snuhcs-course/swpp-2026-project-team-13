@@ -27,7 +27,8 @@ final class StubProtocol:URLProtocol {
             ExamChoice(category:"easy",questionId:UUID(),questionVersion:1,difficultyScore:6,ratingDifference:-1,reason:nil)])
         let payload = try ContractJSON.encoder().encode(offer)
         StubProtocol.handler = { request in
-            XCTAssertEqual(request.url?.path,"/api/v1/exam/recommendations/")
+            // URL.path drops a trailing slash on macOS; the wire URL must keep it.
+            XCTAssertEqual(request.url?.absoluteString,"https://api.sori.example/api/v1/exam/recommendations/")
             XCTAssertEqual(request.httpMethod,"GET"); XCTAssertNil(request.httpBody)
             XCTAssertEqual(request.value(forHTTPHeaderField:"Authorization"),"Bearer test-token")
             return (200,"application/json",payload)
