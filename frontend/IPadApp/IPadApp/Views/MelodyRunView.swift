@@ -5,11 +5,13 @@ struct MiniGameHubView: View {
     var connection: RhythmConnection? = nil
     @State private var playing = false
     @State private var playingRhythm = false
+    @State private var playingEchoDragon = false
     var body: some View {
         ScrollView {
             VStack(alignment:.leading,spacing:26) {
                 SectionCaption(eyebrow:"PLAY WITH SOUND",title:"Drill",subtitle:"미니게임을 골라 듣고 기억하는 연습을 해보세요.")
                 LazyVGrid(columns:[GridItem(.flexible(),spacing:20),GridItem(.flexible(),spacing:20)],spacing:20) {
+                    gameCard("에코 드래곤",subtitle:"작은 간격부터 차근차근, 드래곤의 부름에 피아노로 답해요.",icon:"sparkles") { playingEchoDragon = true }
                     gameCard("Memory run",subtitle:"선율을 기억하고 건반으로 복원하세요.",icon:"pianokeys") { playing = true }
                     gameCard("Rhythm puzzle",subtitle:"두 마디를 듣고 리듬 조각을 완성하세요.",icon:"metronome") { playingRhythm = true }.disabled(connection == nil)
                 }
@@ -17,6 +19,7 @@ struct MiniGameHubView: View {
         }
         .fullScreenCover(isPresented:$playing) { MelodyRunView(connection:connection) }
         .fullScreenCover(isPresented:$playingRhythm) { RhythmPuzzleView(connection:connection) }
+        .fullScreenCover(isPresented:$playingEchoDragon) { EchoDragonView() }
     }
     private func gameCard(_ title: String, subtitle: String, icon: String, action: @escaping ()->Void) -> some View {
         Button(action:action) {
