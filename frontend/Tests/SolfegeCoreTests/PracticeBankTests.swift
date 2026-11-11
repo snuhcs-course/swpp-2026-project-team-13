@@ -13,21 +13,27 @@ final class PracticeBankTests: XCTestCase {
         XCTAssertGreaterThan(questions.count,1000)
         XCTAssertEqual(PracticeLevel.allCases.map(\.number),Array(1...9))
         for q in questions {
-            try q.validate()
-            let entry = try XCTUnwrap(manifest.records[q.id.uuidString.lowercased()])
-            let annotated = manifest.annotating(q)
-            XCTAssertEqual(annotated.practiceLevel.number,entry.level)
-            XCTAssertEqual(try XCTUnwrap(annotated.difficultyScore),entry.score,accuracy:0.00000001)
-            XCTAssertEqual(annotated.practiceLevel.number,1+manifest.cutoffs.filter { entry.score >= $0 }.count)
-            let prefix = "practice-\(q.id.uuidString.lowercased())"
-            let main = try MusicXMLParser.parseMXL(Data(contentsOf:resources.appendingPathComponent(prefix+"-main.mxl")),asset:q.scoreAssets.main)
-            let scale = try MusicXMLParser.parseMXL(Data(contentsOf:resources.appendingPathComponent(prefix+"-scale.mxl")),asset:q.scoreAssets.scale)
-            XCTAssertEqual(main.timeSignature,q.timeSignature);XCTAssertEqual(main.keySignature,q.keySignature)
-            XCTAssertEqual(scale.keySignature,q.keySignature)
-            XCTAssertEqual(main.totalTicks,8*q.timeSignature.ticksPerMeasure)
-            XCTAssertEqual(scale.events.compactMap(\.midi).count,15)
-            let plan = PlaybackPlan.exam(meter:q.timeSignature,setting:q.tempo,scaleMeasures:scale.measures)
-            try plan.validate()
+            do {
+                try q.validate()
+                let entry = try XCTUnwrap(manifest.records[q.id.uuidString.lowercased()])
+                let annotated = manifest.annotating(q)
+                XCTAssertEqual(annotated.practiceLevel.number,entry.level)
+                XCTAssertEqual(try XCTUnwrap(annotated.difficultyScore),entry.score,accuracy:0.00000001)
+                XCTAssertEqual(annotated.practiceLevel.number,1+manifest.cutoffs.filter { entry.score >= $0 }.count)
+                let prefix = "practice-\(q.id.uuidString.lowercased())"
+                let main = try MusicXMLParser.parseMXL(Data(contentsOf:resources.appendingPathComponent(prefix+"-main.mxl")),asset:q.scoreAssets.main)
+                let scale = try MusicXMLParser.parseMXL(Data(contentsOf:resources.appendingPathComponent(prefix+"-scale.mxl")),asset:q.scoreAssets.scale)
+                XCTAssertEqual(main.timeSignature,q.timeSignature);XCTAssertEqual(main.keySignature,q.keySignature)
+                XCTAssertEqual(scale.keySignature,q.keySignature)
+                XCTAssertEqual(main.totalTicks,8*q.timeSignature.ticksPerMeasure)
+                XCTAssertEqual(scale.events.compactMap(\.midi).count,15)
+                let plan = PlaybackPlan.exam(meter:q.timeSignature,setting:q.tempo,scaleMeasures:scale.measures)
+                try plan.validate()
+            } catch {
+                // Check the rest of the bank too, and identify every bad asset
+                // in a single CI run instead of stopping at the first question.
+                XCTFail("Question \(q.id.uuidString) (\(q.title)): \(error)")
+            }
         }
     }
     func testNumericClassificationOverridesLegacyLabelsAndNewFieldsRoundTrip() throws {

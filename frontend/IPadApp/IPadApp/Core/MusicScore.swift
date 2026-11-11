@@ -129,7 +129,7 @@ final class SafeXML: NSObject, XMLParserDelegate {
 }
 
 enum MusicXMLParser {
-    static let version = "sori-parser-6"
+    static let version = "sori-parser-7"
     static func parseMXL(_ data: Data, asset: ScoreAsset, tempo: Double? = nil) throws -> MusicScore {
         guard data.count == asset.sizeBytes, data.sha256 == asset.sha256 else { throw SolfegeError.invalidScore("SCORE_HASH_MISMATCH: 악보의 해시 또는 크기가 다릅니다.") }
         guard ["sori-monophonic-v1", "sori-monophonic-v2", "sori-monophonic-v3", "sori-monophonic-v4"].contains(asset.profile), asset.musicxmlVersion == "4.0", asset.partId == "P1", asset.contentType == "application/vnd.recordare.musicxml" else { throw SolfegeError.unsupported("UNSUPPORTED_SCORE_PROFILE: 악보 형식을 확인해 주세요.") }
@@ -176,6 +176,10 @@ enum MusicXMLParser {
                         group[0].text.trimmingCharacters(in: .whitespacesAndNewlines)
                     }
                 guard redundantRatio else { throw fail("중복 기호: " + group[0].name) }
+                // one()/value() deliberately require exactly one child. Keep
+                // one validated value so the subsequent rhythm reader can use it.
+                let first = group[0]
+                node.children.removeAll { $0.name == first.name && $0 !== first }
             }
             if node.name == "sound" { guard Set(node.attributes.keys) == ["tempo"] else { throw fail("고정 템포 외의 재생 지시") } }
             if node.name == "bar-style" { guard ["regular","light-heavy","light-light"].contains(node.text.trimmingCharacters(in: .whitespacesAndNewlines)) else { throw fail("반복 마디") } }
