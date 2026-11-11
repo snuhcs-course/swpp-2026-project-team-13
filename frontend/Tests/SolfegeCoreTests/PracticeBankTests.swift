@@ -17,6 +17,8 @@ final class PracticeBankTests: XCTestCase {
                 try q.validate()
                 let entry = try XCTUnwrap(manifest.records[q.id.uuidString.lowercased()])
                 let annotated = manifest.annotating(q)
+                let minimumLevel = q.keySignature.fifths == 0 ? 1 : abs(q.keySignature.fifths) == 1 ? 2 : 3
+                XCTAssertGreaterThanOrEqual(annotated.practiceLevel.number,minimumLevel)
                 XCTAssertEqual(annotated.practiceLevel.number,entry.level)
                 XCTAssertEqual(try XCTUnwrap(annotated.difficultyScore),entry.score,accuracy:0.00000001)
                 XCTAssertEqual(annotated.practiceLevel.number,1+manifest.cutoffs.filter { entry.score >= $0 }.count)
@@ -45,5 +47,27 @@ final class PracticeBankTests: XCTestCase {
         let data=try ContractJSON.encoder().encode(q)
         let object=try XCTUnwrap(JSONSerialization.jsonObject(with:data) as? [String:Any])
         XCTAssertEqual(object["practice_level"] as? Int,8)
+    }
+    func testKeyPrerequisitesApplyAfterSpeedAndDoNotForceHighLevels() throws {
+        var q: Question = try decode("question")
+        var tempo = TempoDefaults.setting(for:q.timeSignature)
+        tempo.bpm = tempo.minimumBpm; q.tempo = tempo
+        for (fifths,floor,expectedLevel) in [(0,0.0,1),(1,7.5,2),(2,9.5,3)] {
+            q.keySignature = KeySignature(tonic:["C","G","D"][fifths],mode:"major",fifths:fifths)
+            let entry=PracticeDifficultyManifest.Entry(mainSha256:q.scoreAssets.main.sha256,
+                contentScore:0.01,keyCorrection:0,scoreFloor:floor,referenceQuarterBpm:200,score:floor,level:expectedLevel)
+            let manifest=PracticeDifficultyManifest(version:"practice-difficulty-2",cutoffs:[7.5,9.5,13,30,55,62,68,74],
+                records:[q.id.uuidString.lowercased():entry])
+            try manifest.validate()
+            let result=manifest.annotating(q)
+            XCTAssertEqual(result.practiceLevel.number,expectedLevel)
+            XCTAssertGreaterThanOrEqual(try XCTUnwrap(result.difficultyScore),floor)
+            XCTAssertEqual(result.difficultyVersion,"practice-difficulty-2")
+        }
+        let manifest: PracticeDifficultyManifest = try decode("practice-difficulty")
+        let original: [Question] = try decode("practice-catalog")
+        for q in original.dropFirst(3) {
+            XCTAssertEqual(manifest.annotating(q).practiceLevel,.level9)
+        }
     }
 }

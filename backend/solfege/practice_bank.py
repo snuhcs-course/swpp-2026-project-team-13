@@ -3,7 +3,7 @@ import copy
 import json
 from functools import lru_cache
 from pathlib import Path
-from .difficulty import level_for_score, CUTOFFS, VERSION
+from .difficulty import level_for_score, task_score, CUTOFFS, VERSION
 
 PATH=Path(__file__).resolve().parents[1]/'content/practice-difficulty.json'
 
@@ -27,7 +27,7 @@ def annotate(metadata):
     result=copy.deepcopy(metadata)
     from .playback import quarter_bpm
     speed=quarter_bpm(result['tempo'])/entry['reference_quarter_bpm']
-    difficulty=(entry['content_score']+entry['key_correction'])*speed
+    difficulty=task_score(entry['content_score'],entry['key_correction'],speed,entry['score_floor'])
     result.update(practice_level=level_for_score(difficulty),difficulty_score=difficulty,difficulty_version=value['version'])
     return result
 

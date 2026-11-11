@@ -16,7 +16,7 @@ def main(output):
     for qid,r in data['records'].items():
         q=catalog[qid]
         records.append(dict(id=qid,title=q['title'],level=r['level'],score=r['score'],
-            content_score=r['content_score'],key_correction=r['key_correction'],
+            content_score=r['content_score'],key_correction=r['key_correction'],score_floor=r.get('score_floor',0),
             fifths=q['key_signature']['fifths'],mode=q['key_signature']['mode'],
             meter=f'{q["time_signature"]["numerator"]}/{q["time_signature"]["denominator"]}',
             quarter_bpm=r['quarter_bpm'],source=r['source'],source_id=r['source_id']))
@@ -28,11 +28,11 @@ def main(output):
     with (output/'duplicates.csv').open('w',encoding='utf-8-sig',newline='') as f:
         fields=['source','source_id','canonical_question_id','source_sha256'];w=csv.DictWriter(f,fields,extrasaction='ignore');w.writeheader();w.writerows(audit['duplicates'])
     with (output/'all-scored-inputs.csv').open('w',encoding='utf-8-sig',newline='') as f:
-        fields=['source','source_id','score','level','content_score','key_correction'];w=csv.DictWriter(f,fields);w.writeheader()
+        fields=['source','source_id','version','score','level','content_score','key_correction'];w=csv.DictWriter(f,fields);w.writeheader()
         for r in scores:w.writerow(dict(source=r['source'],source_id=r['source_id'],**{k:r['analysis'][k] for k in fields[2:]}))
     counts=collections.Counter(r['level'] for r in records)
     summary=dict(version=data['version'],input_count=audit['total'],scored=audit['scored'],
-        practice_questions=len(records),duplicates=len(audit['duplicates']),excluded=len(audit['excluded']),
+        practice_questions=len(records),input_analysis_version=audit['score_version'],duplicates=len(audit['duplicates']),excluded=len(audit['excluded']),
         level_counts=dict(sorted(counts.items())),cutoffs=data['cutoffs'],
         source_counts=dict(collections.Counter(r['source'] for r in records)),
         exclusion_reasons=dict(collections.Counter(r['reason'] for r in audit['excluded'])),
@@ -62,16 +62,14 @@ def main(output):
         '점수 재계산, 원본/번들 자산 해시, 전 문제 연결, 이조·템포·마디 경계·기존 기준 문제의 회귀 검사를 수행했다.',
         '신규 정답 이미지 1,827개의 오선 수를 검사해 4마디씩 두 줄로 배치했다.',
         '렌더링 49건은 최초 자동 줄바꿈 문제를 발견해 넓은 판형으로 재출력했다. 음정과 리듬은 변경하지 않았다.',
-        'Python 콘텐츠·난이도·오선·재생·Feature 테스트 67개가 통과했다.',
-        '이 환경에서는 Docker 엔진 접근이 거부되었고 Swift 도구가 없어 Django DB 통합 및 Swift/iPad 빌드는 실행하지 못했다.',
-        '해당 검사는 GitHub CI에 연결했다. 이번 변경을 GitHub에 push하거나 서버에 배포하지는 않았다.',
+        '검사 명령은 정책 문서에 명시한다. 최신 전체 검증 상태는 해당 커밋의 GitHub CI에서 확인한다.',
         '레벨의 교육적 적합성과 조표/속도 계수는 실제 학생 풀이 데이터로 추가 검증해야 한다.','',
         '파일',
         'practice-bank.csv: 실제 배치 문항 전체, 최종 점수와 레벨',
-        'all-scored-inputs.csv: 출제 보류 자료를 포함한 계산 결과; 8마디 전체 기준에 해당하지 않으면 level 비어 있음',
+        'all-scored-inputs.csv: 최초 수입 시점의 분석 기록(각 행의 version 확인); 현재 재분류표는 practice-bank.csv',
         'excluded.csv: 보류 문항과 사유',
         'duplicates.csv: 중복 문항과 대표 ID',
-        '정확한 계산식과 정책: sori-github/docs/PRACTICE-DIFFICULTY-V1.txt']
+        '정확한 계산식과 정책: sori-github/docs/PRACTICE-DIFFICULTY-V'+data['version'].rsplit('-',1)[-1]+'.txt']
     (output/'REVIEW.txt').write_text('\n'.join(lines)+'\n',encoding='utf-8-sig')
     print(json.dumps(summary,ensure_ascii=False,indent=2))
 

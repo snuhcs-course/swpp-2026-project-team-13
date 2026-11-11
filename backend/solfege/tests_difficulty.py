@@ -6,7 +6,7 @@ from pathlib import Path
 import unittest
 import xml.etree.ElementTree as ET
 
-from .difficulty import analyze, CUTOFFS, level_for_score
+from .difficulty import analyze, CUTOFFS, level_for_score, signature_burden, signature_score_floor
 from .features.musicxml import read_xml
 
 CONTENT=Path(__file__).resolve().parents[1]/'content'
@@ -53,7 +53,7 @@ class DifficultyTests(unittest.TestCase):
             p.find('step').text=step;p.find('alter').text=str(alter);p.find('octave').text=str(octave)
         b=self.result(ET.tostring(root))
         self.assertAlmostEqual(a['content_score'],b['content_score'],places=10)
-        self.assertAlmostEqual(b['score']-a['score'],2*2/6,places=10)
+        self.assertAlmostEqual(b['score']-a['score'],6.,places=10)
 
     def test_previous_measure_interval_is_not_a_local_feature(self):
         raw=melody();root=ET.fromstring(raw)
@@ -80,8 +80,30 @@ class DifficultyTests(unittest.TestCase):
 
     def test_signature_alone_does_not_turn_a_simple_melody_into_top_level(self):
         a=self.result(melody())
-        # The maximum correction is eight points, regardless of dataset size.
-        self.assertLessEqual(level_for_score(a['content_score']+8),4)
+        # Even seven used accidentals do not make this simple tune Level 9.
+        self.assertLess(level_for_score(a['content_score']+signature_burden(7,1)),9)
+
+    def test_entry_levels_respect_signatures_even_for_arbitrarily_easy_slow_tasks(self):
+        for fifths in range(-7,8):
+            with self.subTest(fifths=fifths):
+                result=analyze(melody([('C',0)]*8,fifths=fifths),quarter_bpm=.01,reference_quarter_bpm=80)
+                minimum_level=1 if fifths==0 else 2 if abs(fifths)==1 else 3
+                self.assertEqual(result['level'],minimum_level)
+                self.assertGreaterEqual(result['score'],signature_score_floor(fifths))
+
+    def test_key_correction_is_monotonic_and_does_not_depend_on_sharp_or_flat(self):
+        for use in (0.,.5,1.):
+            values=[signature_burden(k,use) for k in range(8)]
+            self.assertTrue(all(a<b for a,b in zip(values,values[1:])))
+            for k in range(8):self.assertEqual(values[k],signature_burden(-k,use))
+        self.assertAlmostEqual(signature_burden(3,0),8.4)
+        self.assertAlmostEqual(signature_burden(3,1),10.5)
+
+    def test_partial_measure_scores_do_not_receive_whole_question_entry_floors(self):
+        raw=melody(fifths=2)
+        result=analyze(raw,quarter_bpm=.1,reference_quarter_bpm=80,first=2,last=2)
+        self.assertIsNone(result['level']);self.assertEqual(result['score_floor'],0)
+        self.assertLess(result['score'],CUTOFFS[1])
 
     def test_invalid_tempo_and_scores_are_rejected(self):
         for v in (0.,-1.,float('inf'),float('nan')):

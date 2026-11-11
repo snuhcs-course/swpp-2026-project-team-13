@@ -5,6 +5,7 @@ struct PracticeDifficultyManifest: Codable {
         var mainSha256: String
         var contentScore: Double
         var keyCorrection: Double
+        var scoreFloor: Double
         var referenceQuarterBpm: Double
         var score: Double
         var level: Int
@@ -14,12 +15,13 @@ struct PracticeDifficultyManifest: Codable {
     var records: [String:Entry]
 
     func validate() throws {
-        guard version == "practice-difficulty-1", cutoffs.count == 8,
+        guard version == "practice-difficulty-2", cutoffs.count == 8,
               cutoffs.allSatisfy({ $0.isFinite && $0 >= 0 }),
               zip(cutoffs,cutoffs.dropFirst()).allSatisfy({ $0.0 < $0.1 }),
               records.values.allSatisfy({ $0.referenceQuarterBpm.isFinite && $0.referenceQuarterBpm > 0
                   && $0.contentScore.isFinite && $0.contentScore >= 0
                   && $0.keyCorrection.isFinite && $0.keyCorrection >= 0
+                  && $0.scoreFloor.isFinite && $0.scoreFloor >= 0
                   && $0.score.isFinite && $0.score >= 0 && (1...9).contains($0.level) })
         else { throw SolfegeError.configuration("문제 난이도 기준을 확인해 주세요.") }
     }
@@ -29,7 +31,7 @@ struct PracticeDifficultyManifest: Codable {
               entry.mainSha256 == source.scoreAssets.main.sha256 else { return source }
         var q = source
         let tempo = q.tempo ?? TempoDefaults.setting(for:q.timeSignature)
-        let score = (entry.contentScore + entry.keyCorrection) * tempo.quarterBpm / entry.referenceQuarterBpm
+        let score = max((entry.contentScore + entry.keyCorrection) * tempo.quarterBpm / entry.referenceQuarterBpm,entry.scoreFloor)
         q.practiceLevelNumber = 1 + cutoffs.filter { score >= $0 }.count
         q.difficultyScore = score; q.difficultyVersion = version
         return q

@@ -12,7 +12,7 @@ import math
 
 from .features.musicxml import decode, FeatureError
 
-VERSION = "practice-difficulty-1"
+VERSION = "practice-difficulty-2"
 CUTOFFS = (7.5, 9.5, 13., 30., 55., 62., 68., 74.)
 MAJOR_PROFILE = (6.35,2.23,3.48,2.33,4.38,4.09,2.52,5.19,2.39,3.66,2.29,2.88)
 MINOR_PROFILE = (6.33,2.68,3.52,5.38,2.60,3.53,2.54,4.75,3.98,2.69,3.34,3.17)
@@ -38,6 +38,19 @@ def level_for_score(value):
     # higher level; neither source labels nor live-pool quantiles affect it.
     return 1+sum(value>=edge for edge in CUTOFFS)
 
+def signature_burden(fifths, used_fraction):
+    """Signature-reading burden; most remains even when few letters occur."""
+    k=abs(fifths)
+    return (2*k+.5*k*k)*(.8+.2*used_fraction)
+
+def signature_score_floor(fifths):
+    """Entry policy for complete eight-bar tasks, independent of playback speed."""
+    k=abs(fifths)
+    return 0. if k==0 else CUTOFFS[0] if k==1 else CUTOFFS[1]
+
+def task_score(content, key, tempo_ratio, score_floor=0.):
+    return max((content+key)*tempo_ratio,score_floor)
+
 def groups_for(meter):
     n,d=map(int,meter.split('/'))
     if (n,d) in ((5,8),(7,8)):
@@ -57,7 +70,7 @@ def analyze(raw, *, quarter_bpm, reference_quarter_bpm, first=1, last=None):
     aa=[a for a in attacks if first<=event_index[a['id']]['measure']<=last]
     start=sum((F(m['actual_duration_qn']) for m in measures[:first-1]),F(0))
     end=sum((F(m['actual_duration_qn']) for m in measures[:last]),F(0))
-    pulses=0.;sync_count=0;signature_weight=0.;duration_total=F(0)
+    pulses=0.;sync_count=0;signature_weight=0.;duration_total=F(0);signature_floor=0.
     grouping_evidence=[]
     for m in selected:
         duration=F(m['actual_duration_qn']);expected=F(m['expected_duration_qn'])
@@ -81,7 +94,8 @@ def analyze(raw, *, quarter_bpm, reference_quarter_bpm, first=1, last=None):
         used={e['step'] for e in ee if e['measure']==m['number'] and e['kind']=='note' and not e['tie_stop']}
         use=len(used&set(letters))/k if k else 0.
         # Point correction, applied before fixed cutoffs, never a level override.
-        signature_weight+=float(duration)*min(8.,k*k/6)*(.5+.5*use)
+        signature_weight+=float(duration)*signature_burden(key['fifths'],use)
+        signature_floor=max(signature_floor,signature_score_floor(key['fifths']))
         duration_total+=duration
     intervals=[b['midi']-a['midi'] for a,b in zip(aa,aa[1:])]
     hist=[0.]*12
@@ -112,10 +126,13 @@ def analyze(raw, *, quarter_bpm, reference_quarter_bpm, first=1, last=None):
     tempo_ratio=quarter_bpm/reference_quarter_bpm
     # Score-level speed correction: 1.25x playback means 1.25x task index.
     # This is an initial monotonic operating assumption, not an empirical law.
-    final=(content+key_add)*tempo_ratio
     complete_eight=(first==1 and last==len(measures)==8 and
         all(m['actual_duration_qn']==m['expected_duration_qn'] for m in measures))
-    return dict(version=VERSION,content_score=content,key_correction=key_add,
+    # These floors express entry-level prerequisites for whole questions.
+    # Partial-bar indices retain their continuous musical score without them.
+    score_floor=signature_floor if complete_eight else 0.
+    final=task_score(content,key_add,tempo_ratio,score_floor)
+    return dict(version=VERSION,content_score=content,key_correction=key_add,score_floor=score_floor,
         tempo_ratio=tempo_ratio,quarter_bpm=quarter_bpm,reference_quarter_bpm=reference_quarter_bpm,
         score=final,level=level_for_score(final) if complete_eight else None,metrics=metrics,
         components=dict(A=A,B=B,R=R),scope=dict(first_measure=first,last_measure=last),

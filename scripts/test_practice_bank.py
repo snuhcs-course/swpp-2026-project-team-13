@@ -10,6 +10,7 @@ import zipfile
 ROOT=Path(__file__).resolve().parents[1];sys.path.insert(0,str(ROOT/'backend'))
 from solfege.difficulty import analyze, level_for_score, CUTOFFS, VERSION
 from solfege.features.musicxml import decode, read_xml
+from solfege.practice_bank import timed_practice_question
 
 CONTENT=ROOT/'backend/content';RESOURCES=ROOT/'frontend/IPadApp/IPadApp/Resources'
 
@@ -36,6 +37,7 @@ class PracticeBankTests(unittest.TestCase):
             raw=read_xml(CONTENT/item['main_path']);result=analyze(raw,quarter_bpm=record['quarter_bpm'],reference_quarter_bpm=record['reference_quarter_bpm'])
             self.assertAlmostEqual(result['score'],record['score'],places=9,msg=q['id'])
             self.assertEqual(result['level'],record['level'])
+            self.assertEqual(result['score_floor'],record['score_floor'])
             for kind in ('main','scale'):
                 b=(CONTENT/item[kind+'_path']).read_bytes();asset=q['score_assets'][kind]
                 self.assertEqual(hashlib.sha256(b).hexdigest(),asset['sha256'])
@@ -60,6 +62,27 @@ class PracticeBankTests(unittest.TestCase):
         self.assertEqual(tested,set(data['records']))
         self.assertEqual({r['level'] for r in data['records'].values()},set(range(1,10)))
         self.assertEqual(sum(r['source']=='generated-1000' for r in data['records'].values()),1000)
+
+    def test_entry_policy_at_all_supported_tempos_and_unaltered_signature_free_questions(self):
+        data=json.loads((CONTENT/'practice-difficulty.json').read_text(encoding='utf8'))
+        previous=json.loads((CONTENT/'difficulty-history/practice-difficulty-1.json').read_text(encoding='utf8'))
+        catalog={}
+        for name in ('catalog.json','additional-practice-catalog.json','sheet-revisions.json','practice-bank-catalog.json'):
+            for row in json.loads((CONTENT/name).read_text(encoding='utf8')):catalog[row['metadata']['id']]=row['metadata']
+        no_signature_top=[]
+        for qid,r in data['records'].items():
+            q=catalog[qid];k=abs(q['key_signature']['fifths']);original=json.dumps(q,sort_keys=True)
+            resolved=timed_practice_question(q)
+            self.assertAlmostEqual(resolved['difficulty_score'],r['score'],places=9)
+            for bpm in range(resolved['tempo']['minimum_bpm'],resolved['tempo']['maximum_bpm']+1):
+                varied=timed_practice_question(q,selected_bpm=bpm)
+                self.assertGreaterEqual(varied['practice_level'],1 if k==0 else 2 if k==1 else 3,qid)
+            self.assertEqual(json.dumps(q,sort_keys=True),original,'Stored question metadata must stay immutable')
+            if k==0:
+                self.assertAlmostEqual(r['score'],previous['records'][qid]['score'],places=9)
+                self.assertEqual(r['level'],previous['records'][qid]['level'])
+                if r['level']==9:no_signature_top.append(qid)
+        self.assertGreaterEqual(len(no_signature_top),148)
 
     def test_inventory_accounts_for_every_source_and_keeps_exclusions_visible(self):
         audit=json.loads((CONTENT/'source/practice-bank/import-audit.json').read_text(encoding='utf8'))

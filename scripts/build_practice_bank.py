@@ -3,6 +3,7 @@
 prepare: inventory workspace sources; preserve original bytes in a pinned archive.
 render: generate new reference PNGs only (resumable, bounded batches).
 publish: validate every asset and publish catalogs/difficulty manifest together.
+rescore: update only the shared difficulty manifest; preserve scores and catalog versions.
 """
 from __future__ import annotations
 import argparse, collections, copy, csv, hashlib, io, json, math, os, shutil, struct
@@ -27,6 +28,14 @@ def write_json(path,value):
     path.parent.mkdir(parents=True,exist_ok=True)
     path.write_text(json.dumps(value,ensure_ascii=False,indent=2,allow_nan=False)+'\n',encoding='utf8')
 def read_json(path):return json.loads(path.read_text(encoding='utf8'))
+
+def difficulty_manifest(records):
+    return dict(version=VERSION,cutoffs=list(CUTOFFS),records=records,
+        calibration={'level_1':'Hobbyist entry; no key signature','level_2':'At most one signature accidental',
+                     'level_5':'Reviewed intermediate exercises','level_9':'Reviewed advanced exercises'},
+        formula={'key':'(2*k + 0.5*k*k) * (0.8 + 0.2*u); k=abs(fifths)',
+                 'score_floor':'0 for k=0; 7.5 for k=1; 9.5 for k>=2; complete eight-bar questions only',
+                 'tempo':'max((content + key) * actual_quarter_bpm/reference_quarter_bpm, score_floor)'})
 
 def current_existing():
     result={}
@@ -125,6 +134,10 @@ def inventory_workspace():
 
 def prepare(from_workspace=False):
     SOURCE.mkdir(parents=True,exist_ok=True);WORK.mkdir(parents=True,exist_ok=True)
+    # Re-scoring must never rewrite metadata of an already shipped question
+    # version. Its current difficulty is supplied by the separate manifest.
+    bank_path=CONTENT/'practice-bank-catalog.json'
+    shipped={r['metadata']['id']:r for r in read_json(bank_path)} if bank_path.exists() else {}
     if from_workspace:
         records=inventory_workspace()
         with zipfile.ZipFile(SOURCE/'sources.zip','w',compression=zipfile.ZIP_DEFLATED) as z:
@@ -168,7 +181,6 @@ def prepare(from_workspace=False):
                 root.find('work/work-title').text=title
                 main=build.package(root);sc,count=scale(mt,fifths,mode);assets={}
                 for kind,data,bars in [('main',main,8),('scale',sc,count)]:
-                    (target/(kind+'.mxl')).write_bytes(data);(RESOURCES/f'practice-{qid}-{kind}.mxl').write_bytes(data)
                     assets[kind]=dict(url=f'https://api.sori.example/api/v1/questions/{qid}/versions/1/scores/{kind}/',
                         content_type='application/vnd.recordare.musicxml',sha256=sha(data),size_bytes=len(data),musicxml_version='4.0',
                         profile='sori-monophonic-v4',part_id='P1',measure_count=bars,source_tempo_bpm=96)
@@ -180,6 +192,13 @@ def prepare(from_workspace=False):
                     description='선율을 듣고 8마디를 적어보세요.',time_policy='advisory',clef='treble',sheet_layout={},
                     content_policy='client_readable_practice',score_visibility='after_submission',score_assets=assets)
                 item=dict(order=3000+new_count,metadata=q,main_path=folder+'/main.mxl',scale_path=folder+'/scale.mxl')
+                if qid in shipped:
+                    previous=shipped[qid]
+                    assert previous['metadata']['score_assets']==assets,'An existing bank score asset changed'
+                    item=copy.deepcopy(previous)
+                # Verify published hashes before writing either asset copy.
+                for kind,data in [('main',main),('scale',sc)]:
+                    (target/(kind+'.mxl')).write_bytes(data);(RESOURCES/f'practice-{qid}-{kind}.mxl').write_bytes(data)
                 asset_sha=assets['main']['sha256']
             display=prepare_display(copy.deepcopy(root));name='bank-'+qid
             path=WORK/(name+'.musicxml');path.write_bytes(ET.tostring(display,encoding='utf8',xml_declaration=True))
@@ -238,6 +257,7 @@ def publish(allow_unpublished_preview_fix=False):
     current=copy.deepcopy(manifest);catalog=[];score_map={}
     for r in rows:
         item=r['item'];q=item['metadata'];qid=r['question_id'];a=r['analysis']
+        if a['version']!=VERSION:raise ValueError('Run prepare again with the current difficulty version')
         if not r['existing']:
             n,d=r['meter'];layout_id=f'staff-8bars-{n}-{d}-key{r["fifths"]}-v4'
             layout=read_json(CONTENT/'sheets'/(layout_id+'.layout.json')) if (CONTENT/'sheets'/(layout_id+'.layout.json')).exists() else copy.deepcopy(read_json(CONTENT/'sheet-revisions.json')[0]['metadata']['sheet_layout'])
@@ -262,25 +282,48 @@ def publish(allow_unpublished_preview_fix=False):
             if wide:
                 manifest['scores'][r['main_sha256']].update(style='bank-four-bars-v1',style_sha256=sha((ROOT/'scripts/engraving/bank-four-bars-v1.mss').read_bytes()))
         score_map[qid]=dict(main_sha256=r['main_sha256'],score=a['score'],content_score=a['content_score'],
-            key_correction=a['key_correction'],quarter_bpm=a['quarter_bpm'],reference_quarter_bpm=a['reference_quarter_bpm'],
+            key_correction=a['key_correction'],score_floor=a['score_floor'],quarter_bpm=a['quarter_bpm'],reference_quarter_bpm=a['reference_quarter_bpm'],
             level=a['level'],source=r['source'],source_id=r['source_id'])
     assert all(manifest['scores'][k]==v for k,v in current['scores'].items()
                if not (allow_unpublished_preview_fix and v['resource'].startswith('bank-')))
-    scores=dict(version=VERSION,cutoffs=list(CUTOFFS),records=score_map,
-        calibration={'level_1':'Hobbyist entry','level_5':'Reviewed intermediate exercises','level_9':'Reviewed advanced exercises'},
-        formula={'key':'min(8, fifths^2/6) * (0.5 + 0.5 * used_signature_letters/fifths)',
-                 'tempo':'(content + key) * actual_quarter_bpm/reference_quarter_bpm'})
+    scores=difficulty_manifest(score_map)
     write_json(CONTENT/'practice-bank-catalog.json',catalog)
     write_json(RESOURCES/'practice-bank-catalog.json',[r['metadata'] for r in catalog])
     write_json(CONTENT/'practice-difficulty.json',scores);write_json(RESOURCES/'practice-difficulty.json',scores)
     write_json(CONTENT/'engraving/manifest.json',manifest);write_json(RESOURCES/'engraving-manifest.json',manifest)
     print('Published',len(score_map),'unique practice questions; new assets:',len(catalog),flush=True)
 
+def rescore():
+    """A new policy overlays existing immutable question versions and assets."""
+    path=CONTENT/'practice-difficulty.json';old_bytes=path.read_bytes();old=json.loads(old_bytes)
+    rows=current_existing()+read_json(CONTENT/'practice-bank-catalog.json')
+    by_id={r['metadata']['id']:r for r in rows};records={};moves=collections.Counter()
+    for number,(qid,entry) in enumerate(old['records'].items(),1):
+        item=by_id[qid];q=item['metadata'];asset=q['score_assets']['main']
+        if asset['sha256']!=entry['main_sha256'] or sha((CONTENT/item['main_path']).read_bytes())!=asset['sha256']:
+            raise ValueError('Score asset mismatch: '+qid)
+        tempo=quarter_bpm(timed_question(q)['tempo'])
+        a=analyze(read_xml(CONTENT/item['main_path']),quarter_bpm=tempo,reference_quarter_bpm=entry['reference_quarter_bpm'])
+        if a['level'] is None:raise ValueError('Practice requires eight full bars: '+qid)
+        records[qid]=dict(entry,**{k:a[k] for k in ('score','level','content_score','key_correction','score_floor','quarter_bpm','reference_quarter_bpm')})
+        moves[(entry['level'],a['level'])]+=1
+        if number%250==0:print('Re-scored',number,'/',len(old['records']),flush=True)
+    updated=difficulty_manifest(records)
+    if old['version']!=VERSION:
+        history=CONTENT/'difficulty-history'/(old['version']+'.json');history.parent.mkdir(parents=True,exist_ok=True)
+        if history.exists() and history.read_bytes()!=old_bytes:raise ValueError('Archived difficulty version is immutable')
+        if not history.exists():history.write_bytes(old_bytes)
+    write_json(path,updated);write_json(RESOURCES/'practice-difficulty.json',updated)
+    print(json.dumps(dict(version=VERSION,questions=len(records),
+        level_counts=dict(sorted(collections.Counter(r['level'] for r in records.values()).items())),
+        moves={f'{a}->{b}':n for (a,b),n in sorted(moves.items())}),ensure_ascii=False),flush=True)
+
 if __name__=='__main__':
-    ap=argparse.ArgumentParser(description=__doc__);ap.add_argument('stage',choices=['prepare','render','publish'])
+    ap=argparse.ArgumentParser(description=__doc__);ap.add_argument('stage',choices=['prepare','render','publish','rescore'])
     ap.add_argument('--from-workspace',action='store_true');ap.add_argument('--limit',type=int,default=0)
     ap.add_argument('--unpublished-preview-fix',action='store_true',help='One-time QA repair before publishing this new bank; never use on deployed assets')
     a=ap.parse_args()
     if a.stage=='prepare':prepare(a.from_workspace)
     elif a.stage=='render':render(a.limit)
+    elif a.stage=='rescore':rescore()
     else:publish(a.unpublished_preview_fix)
