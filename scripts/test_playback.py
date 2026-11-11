@@ -2,6 +2,7 @@
 import copy
 import importlib.util
 import json
+import math
 from pathlib import Path
 import unittest
 import wave
@@ -14,6 +15,22 @@ CATALOG=json.loads((ROOT/"backend/content/catalog.json").read_text(encoding="utf
 
 
 class PlaybackTests(unittest.TestCase):
+    def test_bank_meters_include_their_actual_scale_length(self):
+        # Fixed expectations also cover the shorter bars whose scales span
+        # more than two measures. Values include both count-ins and all waits.
+        for n,d,scale_bars,quarter_bpm,seconds in [
+            (2,8,8,80,361.5), (4,8,4,80,393),
+            (5,8,3,80,408.375), (5,4,2,80,489),
+            (4,2,1,96,539), (3,8,5,82.5,375.27272727272725),
+        ]:
+            with self.subTest(meter=f"{n}/{d}"):
+                meter={"numerator":n,"denominator":d}
+                metadata={"time_signature":meter,"score_assets":{"scale":{"measure_count":scale_bars}}}
+                plan=playback.make_playback_plan(metadata)
+                self.assertEqual(plan["tempo_bpm"],quarter_bpm)
+                self.assertAlmostEqual(playback.duration_seconds(plan,meter),seconds)
+                self.assertEqual(playback.timed_question(metadata)["recommended_duration_seconds"],math.ceil(seconds))
+
     def test_waits_countins_and_real_scale_length_for_all_meters(self):
         expected={(4,4):(80,456),(3,4):(80,425.25),(6,8):(82.5,422.1818181818182),(2,4):(80,393),(7,8):(80,442.125),(9,8):(82.5,468),(12,8):(82.5,516)}
         for item in CATALOG:

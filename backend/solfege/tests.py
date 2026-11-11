@@ -148,6 +148,7 @@ class FlowTests(TestCase):
 
     def test_exam_plan_countins_waits_and_timer_match_all_catalog_meters(self):
         from datetime import datetime
+        import math
         for version in self.current_questions():
             original = dict(version.metadata)
             q = self.client.get(f"/api/v1/questions/{version.question_id}/").data
@@ -161,13 +162,12 @@ class FlowTests(TestCase):
             self.assertEqual(plan["count_in"]["beat_unit"], q["time_signature"]["denominator"])
             self.assertEqual([s["pause_after_ms"] for s in plan["steps"]], [20000]*10+[120000])
             started = self.post(f'attempts/{a["id"]}/start/').data
-            expected = {(2,2):434,(3,2):489,(4,4):456,(3,4):426,(6,4):489,(6,8):423,(2,4):393,(7,8):443,(9,8):468,(12,8):516}[(q["time_signature"]["numerator"],q["time_signature"]["denominator"])]
-            if q["tempo"]["policy_id"] == "sori-score-tempo-1":
-                import math
-                tempo=q["tempo"];factor={"quarter":1,"half":2,"dotted_quarter":1.5,"dotted_half":3}[tempo["beat_unit"]]
-                self.assertEqual(plan["tempo_bpm"],tempo["bpm"]*factor)
-                quarters=q["time_signature"]["numerator"]*4/q["time_signature"]["denominator"]
-                expected=math.ceil(324+(42+q["score_assets"]["scale"]["measure_count"])*quarters*60/(tempo["bpm"]*factor))
+            tempo=q["tempo"];factor={"quarter":1,"half":2,"dotted_quarter":1.5,"dotted_half":3}[tempo["beat_unit"]]
+            self.assertEqual(plan["tempo_bpm"],tempo["bpm"]*factor)
+            quarters=q["time_signature"]["numerator"]*4/q["time_signature"]["denominator"]
+            # Eleven excerpts total 40 bars, plus two count-in bars and the
+            # actual scale length. Silence totals 324 seconds for every meter.
+            expected=math.ceil(324+(42+q["score_assets"]["scale"]["measure_count"])*quarters*60/(tempo["bpm"]*factor))
             self.assertEqual(q["recommended_duration_seconds"], expected)
             self.assertEqual(a["question"]["recommended_duration_seconds"], expected)
             self.assertEqual((datetime.fromisoformat(started["recommended_end_at"].replace("Z","+00:00")) -
