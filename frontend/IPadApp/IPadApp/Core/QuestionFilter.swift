@@ -77,9 +77,17 @@ struct QuestionFilter: Equatable {
         Set(questions.map(\.timeSignature)).sorted { $0.denominator == $1.denominator ? $0.numerator < $1.numerator : $0.denominator < $1.denominator }
     }
     static func keyGroups(in questions: [QuestionSummary]) -> [KeyGroup] {
-        let keys = keyOptions(in: questions)
-        return Set(keys.map(\.fifths)).sorted {
-            abs($0) == abs($1) ? $0 > $1 : abs($0) < abs($1)
-        }.map { fifths in KeyGroup(fifths: fifths, keys: keys.filter { $0.fifths == fifths }) }
+        let keys: [KeySignature] = keyOptions(in: questions)
+        let distinct: Set<Int> = Set(keys.map { $0.fifths })
+        let ordered: [Int] = distinct.sorted { (lhs: Int, rhs: Int) -> Bool in
+            if abs(lhs) == abs(rhs) { return lhs > rhs }
+            return abs(lhs) < abs(rhs)
+        }
+        var groups: [KeyGroup] = []
+        for fifths in ordered {
+            let matching: [KeySignature] = keys.filter { $0.fifths == fifths }
+            groups.append(KeyGroup(fifths: fifths, keys: matching))
+        }
+        return groups
     }
 }
