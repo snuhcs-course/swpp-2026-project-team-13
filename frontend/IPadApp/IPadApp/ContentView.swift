@@ -65,7 +65,7 @@ struct ContentView: View {
     }
     @ViewBuilder private var backButton: some View {
         if [.question,.exam,.result].contains(model.screen) {
-            let target = model.questionLibraryScreen
+            let target = model.selectedMode == .exam ? .main : model.questionLibraryScreen
             back(target == .classical ? "클래식" : target == .main ? "홈" : model.selectedMode.title, to: target)
         } else if model.needsAuthentication {
             back("돌아가기", to: .main).accessibilityIdentifier("back-to-auth")

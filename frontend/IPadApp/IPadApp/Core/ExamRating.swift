@@ -25,9 +25,17 @@ struct ExamOffer: Codable, Equatable {
     var poolVersion: String
     var rating: ExamRatingState
     var choices: [ExamChoice]
+    // An unresolved exam takes precedence over recommendations, including on another device.
+    var activeAttemptId: UUID? = nil
     func validate() throws {
-        guard rating.value.isFinite, rating.value >= 0, rating.completed >= 0,
-              choices.map(\.category) == ["challenge","matched","easy"],
+        guard rating.value.isFinite, rating.value >= 0, rating.completed >= 0 else {
+            throw SolfegeError.transport("시험 레이팅 정보를 확인하지 못했습니다.")
+        }
+        if activeAttemptId != nil {
+            guard choices.isEmpty else { throw SolfegeError.transport("진행 중인 시험 정보를 확인하지 못했습니다.") }
+            return
+        }
+        guard choices.map(\.category) == ["challenge","matched","easy"],
               Set(choices.compactMap(\.questionId)).count == choices.compactMap(\.questionId).count else {
             throw SolfegeError.transport("시험 추천 정보를 확인하지 못했습니다.")
         }

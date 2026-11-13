@@ -40,8 +40,10 @@ struct ExamSelectionView: View {
                             .buttonStyle(PrimaryButton()).frame(maxWidth:.infinity,maxHeight:.infinity)
                     }
                     Spacer(minLength:24)
-                    Text("어려운 문제일수록 유리한 레이팅 보정이 적용됩니다.")
-                        .font(.system(size:13)).foregroundStyle(SolfegeTheme.muted)
+                    VStack(alignment:.leading,spacing:6) {
+                        Text("어려운 문제일수록 유리한 레이팅 보정이 적용됩니다.")
+                        Text("선택한 문제는 변경할 수 없습니다.")
+                    }.font(.system(size:13)).foregroundStyle(SolfegeTheme.muted)
                 }.padding(.horizontal,40).padding(.top,40).padding(.bottom,42)
             }.background(.white).foregroundStyle(SolfegeTheme.ink)
         }

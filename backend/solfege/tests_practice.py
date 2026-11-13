@@ -15,7 +15,7 @@ from PIL import Image
 from rest_framework.authtoken.models import Token
 from rest_framework.test import APIClient
 from .models import Attempt, FeatureAnalysis, GradingJob, QuestionVersion, SelfAssessmentRevision
-from .grading import claim_job, execute_job
+from .grading import claim_job, execute_job, finish_job
 
 
 class PracticeFlowTests(TestCase):
@@ -154,6 +154,10 @@ class PracticeFlowTests(TestCase):
             self.assertEqual(response.status_code, 202, response.data)
             self.assertEqual(response.data["grading_mode"], "automatic")
             self.assertEqual(self.review(path).status_code, 409)
+            # Finish this exam before the next one; legacy requests obey the same lock.
+            job=GradingJob.objects.get(attempt_id=attempt['id'])
+            job.status='processing'; job.save(update_fields=['status'])
+            finish_job(job,{'status':'completed','score':80})
         self.assertEqual(GradingJob.objects.count(), 2)
         self.assertEqual(SelfAssessmentRevision.objects.count(), 0)
 

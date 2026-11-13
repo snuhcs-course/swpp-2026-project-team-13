@@ -63,7 +63,54 @@ class ExamRatingTests(TestCase):
         self.assertEqual(a.status_code,201,a.data); self.assertEqual(a.data,b.data)
         self.assertEqual(self.create(q).data['error']['code'],'EXAM_QUESTION_ALREADY_SEEN')
         self.assertEqual(self.client.get(f"/api/v1/attempts/{a.data['id']}/").status_code,200)
-        self.assertNotIn(str(q.question_id),{c['question_id'] for c in offer_for(self.user)['choices']})
+        offer=offer_for(self.user)
+        self.assertEqual(offer['active_attempt_id'],a.data['id'])
+        self.assertEqual(offer['choices'],[])
+
+    def test_selected_exam_is_fixed_before_start_and_blocks_other_questions(self):
+        first=self.create(); self.assertEqual(first.status_code,201,first.data)
+        a=Attempt.objects.get(id=first.data['id'])
+        self.assertEqual(a.status,'ready'); self.assertIsNone(a.started_at)
+        other=current_versions('exam').exclude(question_id=a.question_version.question_id).first()
+        rejected=self.create(other)
+        self.assertEqual(rejected.status_code,409)
+        self.assertEqual(rejected.data['error']['code'],'EXAM_ALREADY_ACTIVE')
+        # Another request/device gets the same selected exam, without new choices.
+        for _ in range(2):
+            offer=self.client.get('/api/v1/exam/recommendations/').data
+            self.assertEqual(offer['active_attempt_id'],str(a.id)); self.assertEqual(offer['choices'],[])
+        self.assertEqual(Attempt.objects.filter(user=self.user).count(),1)
+
+    def test_started_exam_does_not_reset_its_clock_when_restored(self):
+        response=self.create(); path=f"/api/v1/attempts/{response.data['id']}/"
+        started=self.client.post(path+'start/').data
+        self.client.get('/api/v1/exam/recommendations/')
+        repeated=self.client.post(path+'start/').data
+        self.assertEqual(started['started_at'],repeated['started_at'])
+        self.assertEqual(started['recommended_end_at'],repeated['recommended_end_at'])
+
+    def test_queued_processing_and_failed_grading_block_until_completed(self):
+        attempt,job=self.job()
+        other=current_versions('exam').exclude(question_id=attempt.question_version.question_id).first()
+        for status in ['queued','processing','failed']:
+            job.status=status; job.save(update_fields=['status'])
+            offer=offer_for(self.user)
+            self.assertEqual(offer['active_attempt_id'],str(attempt.id)); self.assertEqual(offer['choices'],[])
+            self.assertEqual(self.create(other).data['error']['code'],'EXAM_ALREADY_ACTIVE')
+        job.status='processing'; job.save(update_fields=['status'])
+        self.assertEqual(finish_job(job,{'status':'completed','score':0}),1)
+        offer=offer_for(self.user)
+        self.assertNotIn('active_attempt_id',offer)
+        self.assertEqual(offer['rating']['completed'],1)
+        self.assertEqual(offer['rating']['value'],change_json(attempt.id)['after'])
+        self.assertNotIn(str(attempt.question_version.question_id),{c['question_id'] for c in offer['choices']})
+        self.assertEqual(self.create(other).status_code,201)
+
+    def test_practice_and_other_users_are_not_blocked_by_an_active_exam(self):
+        response=self.create(); self.assertEqual(response.status_code,201,response.data)
+        self.assertEqual(self.create(current_versions('practice').first(),mode='practice').status_code,201)
+        other=get_user_model().objects.create_user(username='independent-exam')
+        self.assertNotIn('active_attempt_id',offer_for(other))
 
     def test_success_zero_and_duplicate_completion_count_once(self):
         attempt,job=self.job()

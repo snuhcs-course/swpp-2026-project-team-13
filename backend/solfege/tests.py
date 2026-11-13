@@ -155,6 +155,8 @@ class FlowTests(TestCase):
             if membership(version.question_id) is None and version.metadata.get("collection") != "classical":continue
             original = dict(version.metadata)
             q = self.client.get(f"/api/v1/questions/{version.question_id}/").data
+            # Each row is an independent playback fixture, not an abandoned-exam chain.
+            self.client.force_authenticate(get_user_model().objects.create_user(username=f"meter-{version.pk}"))
             a = self.post("attempts/", {"question_id":q["id"], "question_version":q["version"], "mode":membership(version.question_id) or "practice"}).data
             plan = a["playback_plan"]
             self.assertEqual(plan["version"], 4)

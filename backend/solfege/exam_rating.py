@@ -17,10 +17,22 @@ def state_json(state):
     return dict(value=state.rating, completed=state.completed, model_version=rating.VERSION)
 
 
+def active_exam(user):
+    # Old, unrated attempts remain readable without blocking the new Exam flow.
+    # Failed grading is still unresolved: retry the same answer before a new exam.
+    return (Attempt.objects.filter(user=user, mode="exam", exam_rating_snapshot__isnull=False)
+            .exclude(status="submitted", current_job__status="completed")
+            .order_by("created_at", "id").first())
+
+
 def offer_for(user):
     from .recommendation import current_versions
     with transaction.atomic():
         state = locked_state(user)
+        active = active_exam(user)
+        if active is not None:
+            return dict(id=str(active.id), pool_version=pool_manifest()["version"],
+                        rating=state_json(state), choices=[], active_attempt_id=str(active.id))
         seen = set(str(q) for q in Attempt.objects.filter(user=user).values_list("question_version__question_id", flat=True))
         versions = {str(v.question_id): v for v in current_versions("exam")}
         eligible_count = len(set(versions)-seen)
@@ -51,6 +63,8 @@ def reserve_exam(user, version, snapshot):
         raise ContractError("QUESTION_NOT_IN_EXAM_POOL", "Exam 전용 문제를 선택해 주세요.", 409)
     if Attempt.objects.filter(user=user, question_version__question_id=version.question_id).exists():
         raise ContractError("EXAM_QUESTION_ALREADY_SEEN", "이미 선택한 시험 문제입니다. 진행 중인 시험은 이어서 풀어 주세요.", 409)
+    if active_exam(user) is not None:
+        raise ContractError("EXAM_ALREADY_ACTIVE", "진행 중인 시험이나 채점 결과를 먼저 확인해 주세요.", 409)
     difficulty = snapshot.get("difficulty_score")
     if difficulty is None or snapshot.get("difficulty_version") is None:
         raise ContractError("QUESTION_DIFFICULTY_UNAVAILABLE", "시험 난이도 정보를 준비하지 못했습니다.", 503)

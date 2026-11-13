@@ -20,6 +20,10 @@ struct SessionRecord: Codable, Identifiable {
     var hasDrawing = false
     var parserVersion = MusicXMLParser.version
     var creationKey: UUID? = nil
+    var blocksNewExam: Bool {
+        attempt.studyMode == .exam && attempt.examRatingSnapshot != nil &&
+            (attempt.status != "submitted" || grading?.status != "completed")
+    }
 }
 struct PendingCreation: Codable {
     var question: Question; var key: UUID
@@ -58,6 +62,17 @@ final class LocalStore {
         let file = root.appendingPathComponent("pending-create.json")
         if let value { try ContractJSON.encoder().encode(value).write(to: file, options: .atomic) }
         else if FileManager.default.fileExists(atPath: file.path) { try FileManager.default.removeItem(at: file) }
+    }
+    func examOffer() throws -> ExamOffer? {
+        let file = root.appendingPathComponent("exam-offer.json")
+        guard FileManager.default.fileExists(atPath:file.path) else { return nil }
+        let offer = try ContractJSON.decoder().decode(ExamOffer.self,from:Data(contentsOf:file))
+        try offer.validate(); return offer.activeAttemptId == nil ? offer : nil
+    }
+    func saveExamOffer(_ offer: ExamOffer?) throws {
+        let file = root.appendingPathComponent("exam-offer.json")
+        if let offer { try ContractJSON.encoder().encode(offer).write(to:file,options:.atomic) }
+        else if FileManager.default.fileExists(atPath:file.path) { try FileManager.default.removeItem(at:file) }
     }
     func write(_ data: Data, name: String, id: UUID) throws { try data.write(to: folder(id).appendingPathComponent(name), options: [.atomic, .completeFileProtectionUntilFirstUserAuthentication]) }
     func read(_ name: String, id: UUID) throws -> Data { try Data(contentsOf: folder(id).appendingPathComponent(name)) }

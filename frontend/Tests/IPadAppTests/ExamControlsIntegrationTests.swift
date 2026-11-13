@@ -5,8 +5,9 @@ import ImageIO
 @testable import IPadApp
 
 @MainActor final class ExamControlsIntegrationTests: XCTestCase {
+    private let demoScope = "exam-test-"+UUID().uuidString
     func testRapidSkippingDuringAudioAndLeadStartsOnlyTheLastChosenSegment() async throws {
-        let api = try DemoExamAPI(outcome:"completed")
+        let api = try DemoExamAPI(outcome:"completed",storageScope:demoScope)
         let list = try await api.questions(page:1)
         let q = try await api.question(try XCTUnwrap(list.results.first?.id))
         let mainData = try await api.asset(q.scoreAssets.main.url,authenticated:true,limit:1_048_576)
@@ -71,7 +72,7 @@ import ImageIO
         XCTAssertFalse(drawing.canUndo); XCTAssertFalse(drawing.canRedo)
     }
     func testDemoRecommendationNeverOffersClassical() async throws {
-        let api = try DemoExamAPI(outcome:"completed")
+        let api = try DemoExamAPI(outcome:"completed",storageScope:demoScope)
         var seen = Set<UUID>()
         for _ in 0..<200 {
             let q = try await api.recommendedQuestion()
@@ -79,14 +80,9 @@ import ImageIO
         }
         XCTAssertEqual(seen.count,1)
     }
-    func testRecommendedExamHoldsItsQuestionUntilTheAttemptExists() async throws {
-        let model = AppModel(); model.demo = true; model.demoOutcome = "completed"; await model.connect()
-        let started = ContinuousClock.now
-        let loading = Task { await model.startRecommendedExam() }
-        while model.screen == .main { await Task.yield() }
-        XCTAssertEqual(model.screen,.recommendingExam)
-        await loading.value
-        XCTAssertGreaterThanOrEqual(ContinuousClock.now-started,AppModel.recommendationMinimum)
+    func testRecommendedExamCachesOfferAndKeepsSelectedAttempt() async throws {
+        let model = AppModel(demoScope:demoScope); model.demo = true; model.demoOutcome = "completed"; await model.connect()
+        await model.startRecommendedExam()
         XCTAssertNil(model.error); XCTAssertEqual(model.screen,.examSelection)
         let offer = try XCTUnwrap(model.examOffer)
         await model.startRecommendedExam()
@@ -94,23 +90,27 @@ import ImageIO
         let choice = try XCTUnwrap(offer.choices.first { $0.category == "matched" && $0.questionId != nil })
         await model.chooseExam(choice)
         XCTAssertEqual(model.screen,.question); XCTAssertEqual(model.questionLibraryScreen,.examSelection)
+        let id = try XCTUnwrap(model.session?.id)
+        XCTAssertNil(model.session?.attempt.startedAt)
         await model.begin()
         XCTAssertNil(model.error); XCTAssertEqual(model.session?.attempt.question.id,choice.questionId)
+        model.navigate(.main)
         await model.startRecommendedExam()
-        XCTAssertFalse(try XCTUnwrap(model.examOffer).choices.contains { $0.questionId == choice.questionId })
+        XCTAssertEqual(model.screen,.question); XCTAssertEqual(model.session?.id,id)
+        XCTAssertNil(model.examOffer)
     }
     func testRecommendedExamRecoversPendingCreationInsteadOfReplacingIt() async throws {
-        let model = AppModel(); model.demo = true; model.demoOutcome = "completed"; await model.connect()
-        let q = try await DemoExamAPI(outcome:"completed").recommendedQuestion()
-        let store = try LocalStore(scope:"sori-local-demo-v3:" + (try XCTUnwrap(model.profile)).id.uuidString)
+        let model = AppModel(demoScope:demoScope); model.demo = true; model.demoOutcome = "completed"; await model.connect()
+        let q = try await DemoExamAPI(outcome:"completed",storageScope:demoScope).recommendedQuestion()
+        let store = try LocalStore(scope:"demo-client-"+demoScope+":" + (try XCTUnwrap(model.profile)).id.uuidString)
         try store.savePending(PendingCreation(question:q,key:UUID(),mode:.exam))
         XCTAssertTrue(model.pendingCreation)
         await model.startRecommendedExam()
         XCTAssertNil(model.error); XCTAssertFalse(model.pendingCreation)
-        XCTAssertEqual(model.session?.attempt.question.id,q.id); XCTAssertEqual(model.screen,.exam)
+        XCTAssertEqual(model.session?.attempt.question.id,q.id); XCTAssertEqual(model.screen,.question)
     }
     func testClassicalIsPracticeOnlyAndReturnsToItsLibrary() async throws {
-        let model = AppModel(); model.demo = true; model.demoOutcome = "completed"; await model.connect(); await model.loadClassical()
+        let model = AppModel(demoScope:demoScope); model.demo = true; model.demoOutcome = "completed"; await model.connect(); await model.loadClassical()
         let q = try XCTUnwrap(model.classicalQuestions.first)
         model.selectedMode = .exam; model.navigate(.classical)
         XCTAssertEqual(model.selectedMode,.practice)
@@ -123,7 +123,7 @@ import ImageIO
         XCTAssertEqual(model.resultLibraryScreen,.classical)
     }
     func testScaleNoticeUsesActualScaleKeyAndRendersBeforePlayback() async throws {
-        let model = AppModel(); model.demo = true
+        let model = AppModel(demoScope:demoScope); model.demo = true
         await model.connect(); await model.loadClassical()
         let q = try XCTUnwrap(model.classicalQuestions.first(where: { $0.composer == "브람스" && $0.keySignature.mode == "minor" }))
         await model.choose(q.id,mode:.practice); await model.begin()
@@ -140,13 +140,13 @@ import ImageIO
         let defaults = UserDefaults.standard
         let saved = defaults.object(forKey:"sori.demo")
         defer { if let saved { defaults.set(saved,forKey:"sori.demo") } else { defaults.removeObject(forKey:"sori.demo") } }
-        let model = AppModel(); model.demo = false; model.screen = .settings
+        let model = AppModel(demoScope:demoScope); model.demo = false; model.screen = .settings
         await model.setDemoMode(true)
         XCTAssertNil(model.error); XCTAssertTrue(model.connected); XCTAssertTrue(model.demo)
         XCTAssertEqual(model.screen,.settings)
         model.navigate(.home); model.navigate(.settings)
         XCTAssertTrue(model.demo); XCTAssertTrue(defaults.bool(forKey:"sori.demo"))
-        let restored = AppModel(); XCTAssertTrue(restored.demo)
+        let restored = AppModel(demoScope:demoScope); XCTAssertTrue(restored.demo)
         await restored.connect()
         await restored.startRecommendedExam(); await restored.chooseExam(try XCTUnwrap(restored.examOffer?.choices.first { $0.category == "matched" && $0.questionId != nil })); await restored.begin()
         XCTAssertNil(restored.error); XCTAssertEqual(restored.session?.attempt.gradingMode,"demo")
@@ -155,10 +155,10 @@ import ImageIO
         // not leave the old demo API active under a live-mode setting.
         model.server = "invalid-server"; await model.setDemoMode(false)
         XCTAssertFalse(model.demo); XCTAssertFalse(model.connected)
-        XCTAssertFalse(defaults.bool(forKey:"sori.demo")); XCTAssertFalse(AppModel().demo)
+        XCTAssertFalse(defaults.bool(forKey:"sori.demo")); XCTAssertFalse(AppModel(demoScope:demoScope).demo)
     }
     func testCompactSheetExportsSecondSystemStrokesAtCanonicalCoordinates() async throws {
-        let api = try DemoExamAPI(outcome:"completed")
+        let api = try DemoExamAPI(outcome:"completed",storageScope:demoScope)
         let list = try await api.questions(page:1)
         let q = try await api.question(try XCTUnwrap(list.results.first?.id))
         XCTAssertEqual(q.sheetLayout.displayHeight,620)

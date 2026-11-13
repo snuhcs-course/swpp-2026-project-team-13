@@ -2,10 +2,13 @@ import Foundation
 
 // Durable mock backend. It never claims to recognize handwriting; every result is marked demo.
 @MainActor final class DemoExamAPI: ExamAPI {
-    let scope = "sori-local-demo-v3"
+    let scope: String
     let store: LocalStore
     let outcome: String
-    init(outcome: String) throws { store = try LocalStore(scope: "demo-backend-v3"); self.outcome = outcome }
+    init(outcome: String, storageScope: String? = nil) throws {
+        scope = storageScope.map { "demo-client-"+$0 } ?? "sori-local-demo-v3"
+        store = try LocalStore(scope:storageScope ?? "demo-backend-v3"); self.outcome = outcome
+    }
     func profile() async throws -> UserProfile {
         let url = store.root.appendingPathComponent("profile.json")
         if FileManager.default.fileExists(atPath: url.path) { return try ContractJSON.decoder().decode(UserProfile.self, from: Data(contentsOf: url)) }
@@ -34,8 +37,14 @@ import Foundation
         try ContractJSON.encoder().encode(ledger).write(to:store.root.appendingPathComponent("exam-rating-v1.json"),options:.atomic)
     }
     private func pools() throws -> QuestionPoolManifest { try Bundled.decode("question-pools") }
+    private func activeExam() throws -> SessionRecord? {
+        try store.all().last(where: { $0.blocksNewExam })
+    }
     func examRecommendations() async throws -> ExamOffer {
         var ledger = try ratingLedger()
+        if let active = try activeExam() {
+            return ExamOffer(id:active.id,poolVersion:try pools().version,rating:ledger.state,choices:[],activeAttemptId:active.id)
+        }
         let taken = Set(try store.all().map { $0.attempt.question.id })
         let pool = try pools()
         let candidates = try catalog().filter { pool.contains($0.id,in:"exam") && !taken.contains($0.id) }
@@ -132,7 +141,12 @@ import Foundation
         }
         if mode == .exam {
             guard !(try store.all()).contains(where: { $0.attempt.question.id == question.id }) else {
-                throw SolfegeError.configuration("이미 선택한 시험 문제입니다. 진행 중인 시험은 이어서 풀어 주세요.")
+                let detail = ErrorDetail(code:"EXAM_QUESTION_ALREADY_SEEN",message:"이미 선택한 시험 문제입니다. 진행 중인 시험은 이어서 풀어 주세요.",fields:[],retryAfterMs:nil)
+                throw SolfegeError.server(409,ErrorEnvelope(error:detail,requestId:UUID().uuidString),retryAfter:nil)
+            }
+            guard try activeExam() == nil else {
+                let detail = ErrorDetail(code:"EXAM_ALREADY_ACTIVE",message:"진행 중인 시험이나 채점 결과를 먼저 확인해 주세요.",fields:[],retryAfterMs:nil)
+                throw SolfegeError.server(409,ErrorEnvelope(error:detail,requestId:UUID().uuidString),retryAfter:nil)
             }
             guard let difficulty = question.difficultyScore, let version = question.difficultyVersion else {
                 throw SolfegeError.configuration("시험 난이도 정보를 확인해 주세요.")

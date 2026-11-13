@@ -55,4 +55,13 @@ final class ExamRatingTests: XCTestCase {
         let roundtrip = try ContractJSON.decoder().decode(ExamOffer.self,from:ContractJSON.encoder().encode(offer))
         XCTAssertEqual(roundtrip,offer)
     }
+    func testActiveExamResponseCannotContainAnotherChoice() throws {
+        let id = UUID()
+        var offer = ExamOffer(id:id,poolVersion:"question-pools-1",rating:ExamRatingState(),choices:[],activeAttemptId:id)
+        try offer.validate()
+        let decoded = try ContractJSON.decoder().decode(ExamOffer.self,from:ContractJSON.encoder().encode(offer))
+        XCTAssertEqual(decoded.activeAttemptId,id)
+        offer.choices = [ExamChoice(category:"matched",questionId:UUID(),questionVersion:1,difficultyScore:7,ratingDifference:0,reason:nil)]
+        XCTAssertThrowsError(try offer.validate())
+    }
 }
