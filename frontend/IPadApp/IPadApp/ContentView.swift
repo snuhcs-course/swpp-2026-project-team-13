@@ -48,7 +48,7 @@ struct ContentView: View {
                 case .practiceQuestions: HomeView(model:model)
                 case .recommendingExam: ExamRecommendationView()
                 case .examSelection: ExamSelectionView(model:model)
-                case .question: QuestionView(model: model)
+                case .question: QuestionIntroView(model: model)
                 case .exam: ExamView(model: model, drawing: model.drawing, player: model.player)
                 case .result: ResultView(model: model)
                 case .history: HistoryView(model: model)
@@ -59,8 +59,15 @@ struct ContentView: View {
             }
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) { backButton }
+                ToolbarItem(placement: .principal) {
+                    // S9 shows the question's title; S16 never reveals which question was recommended.
+                    if model.screen == .question, let question = model.selectedQuestion {
+                        Text(model.selectedMode == .exam ? StudyMode.exam.title : question.title)
+                            .font(.system(size: 22, weight: .bold)).foregroundStyle(SolfegeTheme.ink).accessibilityAddTraits(.isHeader)
+                    }
+                }
             }
-            .toolbar([.main,.home,.practiceLevels,.recommendingExam,.examSelection].contains(model.screen) ? .hidden : .automatic, for: .navigationBar)
+            .toolbar([.main,.home,.practiceLevels,.practiceQuestions,.recommendingExam,.examSelection].contains(model.screen) ? .hidden : .automatic, for: .navigationBar)
             .toolbarBackground(SolfegeTheme.background, for: .navigationBar)
             .overlay { if model.screen != .recommendingExam { busyOverlay } }
         }

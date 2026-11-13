@@ -2,153 +2,330 @@ import SwiftUI
 
 struct HomeView: View {
     @ObservedObject var model: AppModel
-    private let mode = StudyMode.practice
+    @State private var showKeys = false
+    private var levelQuestions: [QuestionSummary] {
+        guard let level = model.selectedPracticeLevel else { return [] }
+        return model.questions.filter { $0.practiceLevel == level }
+    }
+    private var visibleQuestions: [QuestionSummary] {
+        model.practiceFilter.apply(to: levelQuestions, completedQuestionIDs: model.completedPracticeQuestionIDs)
+    }
     var body: some View {
-        ScrollView {
-            LazyVStack(alignment: .leading, spacing: 28) {
-                VStack(alignment:.leading,spacing:6) {
-                    Text(model.selectedPracticeLevel.map { "\(mode.title) · \($0.title)" } ?? mode.title).font(.system(size:34,weight:.bold)).foregroundStyle(SolfegeTheme.ink).accessibilityAddTraits(.isHeader)
-                    Text(mode.detail).font(.system(size:16)).foregroundStyle(SolfegeTheme.muted)
-                }
-                if !model.connected {
-                    Card { VStack(alignment: .leading, spacing: 16) {
-                        Label("학습 공간에 연결해 주세요", systemImage: "network")
-                        Text("설정에서 로컬 데모를 시작하거나 개발 서버와 토큰을 연결할 수 있어요.").font(.subheadline).foregroundStyle(.secondary)
-                        Button("연결 설정 열기") { model.navigate(.settings) }.buttonStyle(PrimaryButton())
-                    } }
-                } else {
-                    if model.pendingPracticeCreation { Button { Task { await model.recoverPending() } } label: { Label("응답을 받지 못한 연습 생성 요청 복구", systemImage: "arrow.clockwise") }.buttonStyle(.bordered) }
-                    HStack {
-                        if let level = model.selectedPracticeLevel { Text("\(level.title) 청음 연습").font(.title2.bold()) }
-                        else { Text("난이도를 골라보세요").font(.system(size:14,weight:.medium)).foregroundStyle(SolfegeTheme.muted) }
-                        Spacer(); Text("\(visibleQuestions.count)개 문제").font(.subheadline).foregroundStyle(.secondary)
+        GeometryReader { geometry in
+            let margin: CGFloat = geometry.size.width >= 1000 ? 48 : 24
+            let width = min(1180, geometry.size.width) - 2 * margin
+            let compact = width < 700
+            VStack(spacing: 0) {
+                navigation
+                VStack(spacing: 24) {
+                    filterBar(width: width, popoverHeight: min(600, max(320, geometry.size.height - 100)))
+                    if model.pendingPracticeCreation {
+                        Button("준비하던 문제 다시 열기") { Task { await model.recoverPending() } }.font(.subheadline)
                     }
-                    if model.questions.isEmpty { ContentUnavailableView("아직 등록된 문제가 없어요", systemImage: "music.note", description: Text("문제가 게시되면 이곳에서 연습을 시작할 수 있어요.")) }
-                    if model.selectedPracticeLevel == nil {
+                    if !model.connected {
+                        ContentUnavailableView("학습 공간에 연결해 주세요", systemImage: "network")
+                        Button("연결 설정") { model.navigate(.settings) }.buttonStyle(PrimaryButton())
+                    } else if model.selectedPracticeLevel == nil {
+                        ContentUnavailableView("난이도를 선택해 주세요", systemImage: "square.grid.3x3")
                         Button("난이도 선택") { model.navigate(.practiceLevels) }.buttonStyle(PrimaryButton())
                     } else {
-                    filterBar
-                    if let q = suggestedQuestion {
-                        Card { VStack(alignment:.leading,spacing:12) {
-                            Label("다음 연습 추천",systemImage:"sparkles").font(.headline)
-                            Text(q.title).font(.subheadline)
-                            Text("선택한 난이도에서 자기채점을 완료한 횟수가 적은 문제를 먼저 제안해요.").font(.caption).foregroundStyle(.secondary)
-                            Button("이 문제 연습하기") { Task { await model.choose(q.id,mode:mode) } }.buttonStyle(PrimaryButton(compact:true))
-                                .accessibilityIdentifier("practice-suggested-question")
-                        } }
-                    }
-                    ForEach(Array(visibleQuestions.enumerated()), id: \.element.id) { index, q in
-                        Button { Task { await model.choose(q.id,mode:mode) } } label: {
-                            Card { HStack(spacing: 20) {
-                                Text(String(format: "%02d", index+1)).font(.system(size: 29, weight: .light, design: .rounded)).foregroundStyle(SolfegeTheme.violet).frame(width: 48)
-                                VStack(alignment: .leading, spacing: 10) { Text(q.title).font(.headline).foregroundStyle(SolfegeTheme.ink)
-                                    HStack { Text(q.keySignature.label); Text("·"); Text("\(q.timeSignature.numerator)/\(q.timeSignature.denominator)"); Text("·"); Text("\(q.measureCount)마디"); Text("·"); Text("\(q.recommendedDurationSeconds / 60)분 \(q.recommendedDurationSeconds % 60)초") }.font(.caption).foregroundStyle(.secondary)
-                                    if let score = q.difficultyScore { Text(String(format:"난이도 %.1f",score)).font(.caption).foregroundStyle(.secondary) }
+                        VStack(spacing: 0) {
+                            columnHeadings(width: width, compact: compact)
+                            ScrollView {
+                                LazyVStack(spacing: 0) {
+                                    ForEach(visibleQuestions) { question in
+                                        Button { Task { await model.choose(question.id, mode: .practice) } } label: {
+                                            PracticeBankRow(question: question,
+                                                completed: model.completedPracticeQuestionIDs.contains(question.id),
+                                                width: width, compact: compact)
+                                        }.buttonStyle(.plain)
+                                            .accessibilityIdentifier("practice-question-\(question.id.uuidString.lowercased())")
+                                    }
+                                    if visibleQuestions.isEmpty { emptyState.padding(.vertical, 48) }
                                 }
-                                Spacer(); Image(systemName: "arrow.up.right").font(.title3).foregroundStyle(SolfegeTheme.violet).padding(14).background(SolfegeTheme.soft, in: Circle())
-                            } }
-                        }.buttonStyle(.plain).accessibilityIdentifier("practice-question-\(q.id.uuidString.lowercased())")
+                            }.refreshable { await model.refreshLibrary(destination: .practiceQuestions) }
+                        }
                     }
-                    if visibleQuestions.isEmpty {
-                        if model.practiceFilter.isActive {
-                            ContentUnavailableView("조건에 맞는 문제가 없어요",systemImage:"line.3.horizontal.decrease.circle",description:Text("조성이나 박자를 바꿔 보세요."))
-                        } else { ContentUnavailableView("등록된 문제가 없어요",systemImage:"music.note") }
-                    }
-                    }
-                    if model.hasNextPage { Button("문제 더 보기") { Task { await model.loadMore() } }.frame(maxWidth: .infinity) }
-                    if model.demo { DemoBadge() }
-                }
-            }.padding(32).frame(maxWidth: 924, alignment: .leading).frame(maxWidth: .infinity)
-        }.refreshable { let level = model.selectedPracticeLevel; await model.refreshLibrary(destination:.practiceQuestions); model.selectedPracticeLevel = level }
+                }.padding(.horizontal, margin).padding(.top, 24).padding(.bottom, 20).frame(maxHeight: .infinity, alignment: .top)
+            }.frame(maxWidth: 1180).frame(maxWidth: .infinity).background(.white)
+        }.foregroundStyle(SolfegeTheme.ink).accessibilityIdentifier("practice-question-bank")
     }
-    private var levelQuestions: [QuestionSummary] {
-        guard let level = model.selectedPracticeLevel else { return model.questions }
-        return model.questions.filter { $0.practiceLevel == level }.sorted {
-            let a=$0.difficultyScore ?? Double.greatestFiniteMagnitude
-            let b=$1.difficultyScore ?? Double.greatestFiniteMagnitude
-            return a == b ? $0.id.uuidString < $1.id.uuidString : a < b
-        }
+    private var navigation: some View {
+        ZStack {
+            Text(model.selectedPracticeLevel.map { "Practice · \($0.title)" } ?? "Practice")
+                .font(.system(size: 22, weight: .bold)).accessibilityAddTraits(.isHeader)
+            HStack {
+                Button { model.navigate(.practiceLevels) } label: {
+                    HStack(spacing: 6) { Image(systemName: "chevron.left"); Text("난이도 선택") }.frame(minHeight: 44)
+                }.accessibilityIdentifier("practice-bank-back")
+                Spacer()
+                Button { } label: {
+                    Text("?").font(.system(size: 19, weight: .medium)).frame(width: 38, height: 38)
+                        .overlay(Circle().stroke(SolfegeTheme.keyEdge.opacity(0.65), lineWidth: 1))
+                        .frame(width: 44, height: 44)
+                }.accessibilityLabel("튜토리얼 준비 중").accessibilityIdentifier("practice-bank-help")
+            }.font(.system(size: 16)).foregroundStyle(SolfegeTheme.violet)
+        }.padding(.horizontal, 28).frame(height: 72)
     }
-    private var visibleQuestions: [QuestionSummary] { model.practiceFilter.apply(to:levelQuestions) }
-    // A menu with one option cannot narrow anything, as with the keys of 중급 and 고급.
-    private var filterBar: some View {
-        let keys = QuestionFilter.keyOptions(in:levelQuestions), meters = QuestionFilter.meterOptions(in:levelQuestions)
-        return HStack(spacing:12) {
-            if keys.count > 1 {
-                filterMenu("조성",current:model.practiceFilter.key?.label,id:"practice-filter-key") {
-                    Picker("조성",selection:$model.practiceFilter.key) {
-                        Text("전체").tag(KeySignature?.none)
-                        ForEach(keys,id:\.self) { Text($0.label).tag(KeySignature?.some($0)) }
-                    }
-                }
-            }
-            if meters.count > 1 {
-                filterMenu("박자",current:model.practiceFilter.meter?.label,id:"practice-filter-meter") {
-                    Picker("박자",selection:$model.practiceFilter.meter) {
-                        Text("전체").tag(TimeSignature?.none)
-                        ForEach(meters,id:\.self) { Text($0.label).tag(TimeSignature?.some($0)) }
-                    }
-                }
-            }
-            if model.practiceFilter.isActive {
-                Button("필터 초기화") { model.practiceFilter = QuestionFilter() }.font(.system(size:15,weight:.medium)).frame(minHeight:44).accessibilityIdentifier("practice-filter-reset")
+    private func filterBar(width: CGFloat, popoverHeight: CGFloat) -> some View {
+        ViewThatFits(in: .horizontal) {
+            HStack(spacing: 12) { filters(width: width, height: popoverHeight); Spacer(minLength: 24); completedToggle }
+            VStack(alignment: .leading, spacing: 12) {
+                ScrollView(.horizontal, showsIndicators: false) { filters(width: width, height: popoverHeight) }
+                HStack { Spacer(); completedToggle }
             }
         }
     }
-    private func filterMenu<Options: View>(_ title: String, current: String?, id: String, @ViewBuilder options: () -> Options) -> some View {
-        Menu { options() } label: {
-            HStack(spacing:8) {
-                Text("\(title) · \(current ?? "전체")").font(.system(size:15,weight:.semibold)).foregroundStyle(current == nil ? SolfegeTheme.ink : SolfegeTheme.deepViolet)
-                Image(systemName:"chevron.down").font(.system(size:12,weight:.semibold)).foregroundStyle(SolfegeTheme.violet)
-            }.padding(.horizontal,16).frame(minHeight:44).background(.white,in:RoundedRectangle(cornerRadius:12))
-        }.accessibilityIdentifier(id)
+    private func filters(width: CGFloat, height: CGFloat) -> some View {
+        HStack(spacing: 12) {
+            Menu {
+                Picker("박자", selection: $model.practiceFilter.meter) {
+                    Text("전체").tag(TimeSignature?.none)
+                    ForEach(QuestionFilter.meterOptions(in: levelQuestions), id: \.self) { meter in
+                        Text(meter.label).tag(TimeSignature?.some(meter))
+                    }
+                }
+            } label: { PracticeFilterLabel(title: "박자", value: model.practiceFilter.meter?.label ?? "전체", active: model.practiceFilter.meter != nil) }
+                .accessibilityIdentifier("practice-filter-meter")
+            Button { showKeys = true } label: {
+                PracticeFilterLabel(title: "조성", value: model.practiceFilter.keySelection.label, active: model.practiceFilter.keySelection != .all)
+            }.buttonStyle(.plain).accessibilityIdentifier("practice-filter-key")
+                .popover(isPresented: $showKeys, arrowEdge: .top) {
+                    PracticeKeyFilterView(selection: $model.practiceFilter.keySelection, questions: levelQuestions,
+                        width: min(472, max(280, width)), height: height) { showKeys = false }
+                        .presentationCompactAdaptation(.popover)
+                }
+            Menu {
+                Picker("난이도 정렬", selection: $model.practiceFilter.sortOrder) {
+                    ForEach(QuestionFilter.SortOrder.allCases) { order in
+                        Text(order == .ascending ? "난이도 낮은순" : "난이도 높은순").tag(order)
+                    }
+                }
+            } label: { PracticeFilterLabel(title: "난이도", value: model.practiceFilter.sortOrder.label, active: false) }
+                .accessibilityIdentifier("practice-filter-sort")
+        }.fixedSize(horizontal: true, vertical: false)
     }
-    private var suggestedQuestion: QuestionSummary? {
-        var completed: [UUID:Int] = [:]
-        for record in model.history where record.attempt.studyMode == .practice && record.selfAssessment?.isCompleted == true {
-            completed[record.attempt.question.id,default:0] += 1
+    private var completedToggle: some View {
+        Toggle(isOn: $model.practiceFilter.showCompleted) { Text("완료된 문제 표시하기").font(.system(size: 14)) }
+            .toggleStyle(PracticeCheckboxStyle()).fixedSize()
+            .accessibilityIdentifier("practice-show-completed")
+    }
+    private func columnHeadings(width: CGFloat, compact: Bool) -> some View {
+        HStack(spacing: 12) {
+            if compact { Text("문제"); Spacer(); Text("난이도") }
+            else {
+                let columns = PracticeBankColumns(width: width)
+                Text("문제").frame(width: columns.title, alignment: .leading)
+                Text("조성").frame(width: columns.key, alignment: .leading)
+                Text("박자").frame(width: columns.meter, alignment: .leading)
+                Text("템포").frame(width: columns.tempo, alignment: .leading)
+                Text("난이도").frame(width: columns.score, alignment: .trailing)
+                Color.clear.frame(width: 20, height: 1)
+            }
+        }.font(.system(size: 13)).foregroundStyle(SolfegeTheme.muted)
+            .padding(.horizontal, 24).frame(height: 36)
+            .overlay(alignment: .bottom) { Rectangle().fill(SolfegeTheme.keyEdge.opacity(0.65)).frame(height: 1) }
+    }
+    @ViewBuilder private var emptyState: some View {
+        if levelQuestions.isEmpty {
+            ContentUnavailableView("등록된 문제가 없어요", systemImage: "music.note")
+        } else if !model.practiceFilter.showCompleted && levelQuestions.allSatisfy({ model.completedPracticeQuestionIDs.contains($0.id) }) {
+            ContentUnavailableView("이 레벨의 문제를 모두 풀었어요", systemImage: "checkmark.circle")
+            Button("완료된 문제 보기") { model.practiceFilter.showCompleted = true }.buttonStyle(.bordered)
+        } else {
+            ContentUnavailableView("조건에 맞는 문제가 없어요", systemImage: "line.3.horizontal.decrease.circle")
+            Button("필터 초기화") { model.practiceFilter.keySelection = .all; model.practiceFilter.meter = nil }
+                .buttonStyle(.bordered).accessibilityIdentifier("practice-filter-reset")
         }
-        // Stable catalog order breaks ties; recommendations stay within the chosen level.
-        return visibleQuestions.enumerated().min { lhs, rhs in
-            let a = completed[lhs.element.id,default:0], b = completed[rhs.element.id,default:0]
-            return a == b ? lhs.offset < rhs.offset : a < b
-        }?.element
     }
 }
-struct QuestionView: View {
-    @ObservedObject var model: AppModel
+
+private struct PracticeFilterLabel: View {
+    let title: String; let value: String; let active: Bool
     var body: some View {
-        ScrollView { if let q = model.selectedQuestion {
-            VStack(alignment: .leading, spacing: 28) {
-                SectionCaption(eyebrow:model.selectedMode == .exam ? "RECOMMENDED EXAM" : "READY TO LISTEN",title:q.title,subtitle:model.selectedMode == .practice ? "멜로디를 듣고 빈 오선에 적은 뒤 정답과 직접 비교해요." : q.description)
-                Text(model.selectedMode.title + " · " + model.selectedMode.detail).font(.subheadline).foregroundStyle(SolfegeTheme.violet)
-                HStack {
-                    if model.selectedMode == .exam { Pill(text:"추천 문제",icon:"sparkles") }
-                    Pill(text:q.keySignature.label,icon:"music.note")
-                    Pill(text:"\(q.timeSignature.numerator)/\(q.timeSignature.denominator) · 8마디")
-                    if let tempo = q.tempo { Pill(text:tempo.label,icon:"metronome") }
-                    Pill(text:"권장 \(q.recommendedDurationSeconds/60)분 \(q.recommendedDurationSeconds%60)초",icon:"clock")
-                }
-                Card { VStack(alignment: .leading, spacing: 24) {
-                    Text(model.selectedMode == .practice ? "연습은 이렇게 진행돼요" : "시험은 이렇게 진행돼요").font(.title2.bold())
-                    instruction("01", "스케일과 멜로디 듣기", "시작 2초 후 스케일을 듣고, 2초 뒤 예비박과 첫 전체 재생이 이어져요. 마지막 전체 재생 앞에도 예비박이 나와요.")
-                    instruction("02", "Pencil로 오선에 기록하기", "검정 펜으로 자유롭게 적어 주세요. 필기는 이 iPad에 자동 저장돼요.")
-                    instruction("03", "답안을 제출하고 확인하기", model.selectedMode == .practice ? "정답과 내 악보를 나란히 보고 틀린 마디의 음정·리듬·기타를 직접 표시해요. 여러 항목을 함께 선택할 수 있어요." : "AI가 채점한 점수와 피드백을 정답 악보·내 답안과 함께 확인해요.")
-                } }
-                Label("이어폰과 음량을 확인해 주세요", systemImage: "headphones").font(.headline)
-                Text("악보와 피아노를 모두 준비한 뒤 시작 버튼이 나타나요. 권장 시간이 지나도 필기와 수동 제출을 계속할 수 있어요. 재생을 멈춘 시간에도 타이머는 흐릅니다.").font(.subheadline).foregroundStyle(.secondary).lineSpacing(6)
-                if model.demo { DemoBadge() }
-                Button { Task { await model.begin() } } label: { Label(model.selectedMode == .practice ? "연습 준비하기" : "시험 준비하기", systemImage:"arrow.right") }.buttonStyle(PrimaryButton())
-            }.padding(36).frame(maxWidth: 960, alignment: .leading).frame(maxWidth: .infinity)
-        } }
+        HStack(spacing: 16) {
+            Text("\(title) · \(value)").font(.system(size: 15, weight: .medium))
+            Image(systemName: "chevron.down").font(.system(size: 12, weight: .semibold)).foregroundStyle(SolfegeTheme.muted)
+        }.foregroundStyle(active ? SolfegeTheme.violet : SolfegeTheme.ink)
+            .padding(.horizontal, 18).frame(height: 46)
+            .background(active ? SolfegeTheme.soft : SolfegeTheme.field, in: RoundedRectangle(cornerRadius: 12))
     }
-    func instruction(_ index: String, _ title: String, _ detail: String) -> some View {
-        HStack(alignment: .top, spacing: 18) {
-            Text(index).font(.caption.bold()).foregroundStyle(SolfegeTheme.violet).padding(12).background(SolfegeTheme.soft, in: Circle())
-            VStack(alignment: .leading, spacing: 6) { Text(title).font(.headline); Text(detail).font(.subheadline).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true) }
+}
+private struct PracticeCheckboxStyle: ToggleStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        Button { configuration.isOn.toggle() } label: {
+            HStack(spacing: 10) {
+                Image(systemName: configuration.isOn ? "checkmark.square.fill" : "square")
+                    .font(.system(size: 18, weight: .regular)).foregroundStyle(configuration.isOn ? SolfegeTheme.violet : SolfegeTheme.muted)
+                configuration.label.foregroundStyle(SolfegeTheme.ink)
+            }.frame(minHeight: 44).contentShape(Rectangle())
+        }.buttonStyle(.plain).accessibilityValue(configuration.isOn ? "선택됨" : "선택 안 됨")
+    }
+}
+private struct PracticeBankColumns {
+    let title: CGFloat; let key: CGFloat; let meter: CGFloat; let tempo: CGFloat; let score: CGFloat
+    init(width: CGFloat) {
+        let scale = max(0, width - 48 - 60 - 20) / 956
+        title = 330 * scale; key = 220 * scale; meter = 116 * scale; tempo = 144 * scale; score = 146 * scale
+    }
+}
+private struct PracticeBankRow: View {
+    let question: QuestionSummary; let completed: Bool; let width: CGFloat; let compact: Bool
+    var body: some View {
+        Group {
+            if compact {
+                VStack(alignment: .leading, spacing: 12) {
+                    HStack { title; Spacer(minLength: 12); score; chevron }
+                    HStack(spacing: 24) { key; meter; tempo }
+                }
+            } else {
+                let columns = PracticeBankColumns(width: width)
+                HStack(spacing: 12) {
+                    title.frame(width: columns.title, alignment: .leading)
+                    key.frame(width: columns.key, alignment: .leading)
+                    meter.frame(width: columns.meter, alignment: .leading)
+                    tempo.frame(width: columns.tempo, alignment: .leading)
+                    score.frame(width: columns.score, alignment: .trailing)
+                    chevron.frame(width: 20)
+                }
+            }
+        }.padding(.horizontal, 24).padding(.vertical, compact ? 20 : 0)
+            .frame(minHeight: 84).frame(maxWidth: .infinity, alignment: .leading).contentShape(Rectangle())
+            .overlay(alignment: .bottom) { Rectangle().fill(SolfegeTheme.keyEdge.opacity(0.65)).frame(height: 1) }
+            .accessibilityElement(children: .ignore)
+            .accessibilityLabel(accessibilityDescription)
+    }
+    private var accessibilityDescription: String {
+        let tempo = question.tempo ?? TempoDefaults.setting(for: question.timeSignature)
+        let difficulty = question.difficultyScore.map { String(format: "%.1f", $0) } ?? "미정"
+        let parts = [question.title, completed ? "완료" : "", question.keySignature.label,
+                     question.timeSignature.label, tempo.label, "난이도 " + difficulty]
+        return parts.filter { !$0.isEmpty }.joined(separator: ", ")
+    }
+    private var title: some View {
+        HStack(spacing: 12) {
+            Text(question.title).font(.system(size: 18, weight: .medium)).foregroundStyle(SolfegeTheme.ink).lineLimit(1).minimumScaleFactor(0.8)
+            if completed {
+                Label("완료", systemImage: "checkmark").font(.system(size: 12, weight: .medium)).foregroundStyle(SolfegeTheme.green)
+                    .padding(.horizontal, 8).padding(.vertical, 5).background(SolfegeTheme.soft, in: RoundedRectangle(cornerRadius: 7)).fixedSize()
+            }
+        }
+    }
+    private var key: some View { Text(question.keySignature.label).font(.system(size: 19, weight: .medium)).foregroundStyle(SolfegeTheme.ink).lineLimit(1).minimumScaleFactor(0.75) }
+    private var meter: some View { Text(question.timeSignature.label).font(.system(size: 21, weight: .medium)).foregroundStyle(SolfegeTheme.ink) }
+    private var tempo: some View { PracticeTempoMark(setting: question.tempo ?? TempoDefaults.setting(for: question.timeSignature)) }
+    private var score: some View { Text(question.difficultyScore.map { String(format: "%.1f", $0) } ?? "—").font(.system(size: 25, weight: .medium)).monospacedDigit().foregroundStyle(SolfegeTheme.violet) }
+    private var chevron: some View { Image(systemName: "chevron.right").font(.system(size: 17)).foregroundStyle(SolfegeTheme.violet) }
+}
+
+// Render the beat symbol as a vector so missing musical Unicode glyphs cannot
+// turn the tempo into a square. Dotted compound-meter beats retain their dot.
+private struct PracticeTempoMark: View {
+    let setting: TempoSetting
+    private var half: Bool { setting.beatUnit == "half" || setting.beatUnit == "dotted_half" }
+    var body: some View {
+        HStack(alignment: .firstTextBaseline, spacing: 6) {
+            Group {
+                if half { HalfNoteShape().fill(SolfegeTheme.ink, style: FillStyle(eoFill: true)) }
+                else { StaffGlyphShape(glyph: .quarterNote).fill(SolfegeTheme.ink) }
+            }.frame(width: 8.5, height: 25).alignmentGuide(.firstTextBaseline) { $0.height - 3 }
+            if setting.beatUnit.hasPrefix("dotted_") { Text("·").font(.system(size: 21, weight: .bold)) }
+            Text("= \(setting.bpm)").font(.system(size: 20, weight: .medium)).monospacedDigit()
+        }.foregroundStyle(SolfegeTheme.ink).lineLimit(1).minimumScaleFactor(0.75)
+    }
+    private struct HalfNoteShape: Shape {
+        func path(in rect: CGRect) -> Path {
+            var path = Path()
+            path.addEllipse(in: CGRect(x: 0, y: rect.height * 0.72, width: rect.width, height: rect.height * 0.28))
+            path.addEllipse(in: CGRect(x: rect.width * 0.17, y: rect.height * 0.79, width: rect.width * 0.66, height: rect.height * 0.14))
+            path.addRect(CGRect(x: rect.width * 0.85, y: 0, width: rect.width * 0.15, height: rect.height * 0.86))
+            return path
         }
     }
 }
+
+private struct PracticeKeyFilterView: View {
+    @Binding var selection: QuestionFilter.KeySelection
+    let questions: [QuestionSummary]; let width: CGFloat; let height: CGFloat; let done: () -> Void
+    @State private var mode: Int
+    @State private var draft: QuestionFilter.KeySelection
+    init(selection: Binding<QuestionFilter.KeySelection>, questions: [QuestionSummary], width: CGFloat, height: CGFloat, done: @escaping () -> Void) {
+        _selection = selection; self.questions = questions; self.width = width; self.height = height; self.done = done
+        _draft = State(initialValue: selection.wrappedValue)
+        if case .individual = selection.wrappedValue { _mode = State(initialValue: 1) }
+        else { _mode = State(initialValue: 0) }
+    }
+    private var selectedKeys: Set<KeySignature> { if case .individual(let keys) = draft { return keys }; return [] }
+    var body: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            HStack { Text("조성").font(.system(size: 18, weight: .bold)); Spacer(); Button("닫기", action: done).font(.subheadline) }
+            Picker("조성 선택 방법", selection: $mode) {
+                Text("조표 개수로 선택").tag(0); Text("조성 직접 선택").tag(1)
+            }.pickerStyle(.segmented)
+                .onChange(of: mode) { _, value in
+                    if value == 1 { if case .individual = draft { } else { draft = .individual([]) } }
+                    else { if case .individual = draft { draft = .all } }
+                }
+            ScrollView {
+                VStack(spacing: mode == 0 ? 2 : 8) {
+                    if mode == 0 { signatureOptions }
+                    else { individualOptions }
+                }
+            }
+            if mode == 0 {
+                Text("샵·플랫 개수를 기준으로 장·단조를 함께 포함해요.").font(.caption).foregroundStyle(SolfegeTheme.muted)
+            } else {
+                Text("같은 줄은 같은 조표예요. 여러 조성을 선택할 수 있어요.").font(.caption).foregroundStyle(SolfegeTheme.muted)
+                Button("적용") { selection = draft; done() }.buttonStyle(PrimaryButton(compact: true))
+                    .frame(maxWidth: .infinity, alignment: .trailing).disabled(selectedKeys.isEmpty)
+                    .accessibilityIdentifier("practice-key-apply")
+            }
+        }.padding(20).frame(width: width, height: height).background(.white).foregroundStyle(SolfegeTheme.ink)
+    }
+    private var signatureOptions: some View {
+        VStack(spacing: 2) {
+            signatureOption("전체", value: .all)
+            let maximum = min(7, questions.map { abs($0.keySignature.fifths) }.max() ?? 0)
+            ForEach(0...maximum, id: \.self) { count in
+                signatureOption(count == 0 ? "다장조 · 가단조만" : "조표 \(count)개까지", value: .maximumAccidentals(count))
+                    .disabled(!questions.contains { QuestionFilter.KeySelection.maximumAccidentals(count).includes($0.keySignature) })
+            }
+        }
+    }
+    private func signatureOption(_ label: String, value: QuestionFilter.KeySelection) -> some View {
+        Button { selection = value; done() } label: {
+            HStack {
+                Text(label); Spacer(); if selection == value { Image(systemName: "checkmark") }
+            }.font(.system(size: 15, weight: selection == value ? .medium : .regular))
+                .foregroundStyle(selection == value ? SolfegeTheme.violet : SolfegeTheme.ink)
+                .padding(.horizontal, 12).frame(minHeight: 42)
+                .background(selection == value ? SolfegeTheme.soft : .clear, in: RoundedRectangle(cornerRadius: 9))
+                .contentShape(Rectangle())
+        }.buttonStyle(.plain)
+    }
+    private var individualOptions: some View {
+        VStack(spacing: 8) {
+            ForEach(QuestionFilter.keyGroups(in: questions)) { group in
+                HStack(spacing: 10) {
+                    Text(group.label).font(.caption).foregroundStyle(SolfegeTheme.muted).frame(width: width < 360 ? 60 : 82, alignment: .leading)
+                    ForEach(group.keys, id: \.self) { key in
+                        Button {
+                            var keys = selectedKeys
+                            if keys.contains(key) { keys.remove(key) } else { keys.insert(key) }
+                            draft = .individual(keys)
+                        } label: {
+                            Text(key.label).font(.system(size: 15, weight: .medium)).lineLimit(1).minimumScaleFactor(0.7)
+                                .foregroundStyle(selectedKeys.contains(key) ? SolfegeTheme.violet : SolfegeTheme.ink)
+                                .frame(maxWidth: .infinity, minHeight: 40)
+                                .background(selectedKeys.contains(key) ? SolfegeTheme.soft : SolfegeTheme.field, in: RoundedRectangle(cornerRadius: 8))
+                        }.buttonStyle(.plain).accessibilityAddTraits(selectedKeys.contains(key) ? .isSelected : [])
+                    }
+                }
+            }
+        }
+    }
+}
+
 struct HistoryView: View {
     @ObservedObject var model: AppModel
     var body: some View {

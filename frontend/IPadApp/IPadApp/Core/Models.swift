@@ -83,9 +83,10 @@ struct QuestionSummary: Codable, Identifiable, Equatable {
     var practiceLevelNumber: Int? = nil
     var difficultyScore: Double? = nil
     var difficultyVersion: String? = nil
+    var practiceCompleted: Bool? = nil
     enum CodingKeys: String, CodingKey {
         case id, version, title, source, keySignature, timeSignature, measureCount, recommendedDurationSeconds
-        case tempo, collection, composer, difficulty, difficultyScore, difficultyVersion
+        case tempo, collection, composer, difficulty, difficultyScore, difficultyVersion, practiceCompleted
         case practiceLevelNumber = "practiceLevel"
     }
 }
@@ -162,9 +163,12 @@ struct PlaybackPlan: Codable, Equatable {
     var countIn: CountInPlayback? = nil
     var tempo: TempoSetting? = nil
 
+    // The 11 fixed listening segments, shown on the intro screen and enforced by validate().
+    static let examMeasureRanges: [(from: Int, to: Int)] = [(1,8),(1,2),(1,2),(1,4),(3,4),(3,6),(5,6),(5,8),(7,8),(7,8),(1,8)]
+
     static func exam(meter: TimeSignature, setting: TempoSetting? = nil, scaleMeasures: Int? = nil) -> PlaybackPlan {
         let selected = setting ?? TempoDefaults.setting(for:meter)
-        let ranges = [(1,8),(1,2),(1,2),(1,4),(3,4),(3,6),(5,6),(5,8),(7,8),(7,8),(1,8)]
+        let ranges = Self.examMeasureRanges
         return PlaybackPlan(version:4,engine:"local_midi",tempoBpm:selected.quarterBpm,instrumentProfileId:"sori-piano-v2",
             tuningHz:440,transposeSemitones:0,velocity:80,gateRatio:1,releaseTailMs:300,
             scale:ScalePlayback(scoreKind:"scale",fromMeasure:1,toMeasure:scaleMeasures ?? ((15*240+meter.ticksPerMeasure-1)/meter.ticksPerMeasure)),pauseAfterScaleMs:2000,
@@ -183,7 +187,7 @@ struct PlaybackPlan: Codable, Equatable {
         return audio+Double(pauses)/1000
     }
     func validate() throws {
-        let ranges = [(1,8),(1,2),(1,2),(1,4),(3,4),(3,6),(5,6),(5,8),(7,8),(7,8),(1,8)]
+        let ranges = Self.examMeasureRanges
         guard [2,3,4].contains(version), engine == "local_midi",
               instrumentProfileId == (version == 4 ? "sori-piano-v2" : "sori-piano-v1"), tuningHz == 440,
               transposeSemitones == 0, velocity == 80, gateRatio == 1, releaseTailMs == 300,

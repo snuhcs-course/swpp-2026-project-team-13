@@ -9,6 +9,11 @@ import PencilKit
     // Each level has its own keys and meters, so a filter never carries over to another level.
     @Published var selectedPracticeLevel: PracticeLevel? { didSet { if oldValue != selectedPracticeLevel { practiceFilter = QuestionFilter() } } }
     @Published var practiceFilter = QuestionFilter()
+    var completedPracticeQuestionIDs: Set<UUID> {
+        Set(questions.filter { $0.practiceCompleted == true }.map(\.id)).union(history.filter {
+            $0.attempt.studyMode == .practice && $0.attempt.status == "submitted" && $0.selfAssessment?.isCompleted == true
+        }.map { $0.attempt.question.id })
+    }
     // Held until the attempt exists, so backing out cannot re-roll the question.
     private var recommendedExam: Question?
     @Published var examOffer: ExamOffer?
@@ -873,6 +878,9 @@ import PencilKit
                 record.selfAssessment = saved; record.selfAssessmentSave = nil
                 record.practiceEdits = nil; record.practiceBaseRevision = nil
                 try self.persist(record)
+                if saved.isCompleted, let index = self.questions.firstIndex(where: { $0.id == record.attempt.question.id }) {
+                    self.questions[index].practiceCompleted = true
+                }
             } catch let error as SolfegeError where error.code == "SELF_ASSESSMENT_REVISION_CONFLICT" {
                 let latest = try await api.practiceAssessment(record.id)
                 try latest.validate(attemptId:record.id,answerId:answerId,measureCount:record.attempt.question.measureCount)

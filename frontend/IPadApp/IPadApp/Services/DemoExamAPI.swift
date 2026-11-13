@@ -97,8 +97,9 @@ import Foundation
     }
     func questions(page: Int) async throws -> QuestionPage {
         let pool = try pools()
+        let completed = Set(try store.all().filter { $0.attempt.studyMode == .practice && $0.selfAssessment?.isCompleted == true }.map { $0.attempt.question.id })
         let values = try catalog().filter { $0.collection != "classical" && pool.contains($0.id,in:"practice") && difficultyManifest?.records[$0.id.uuidString.lowercased()] != nil }
-        return QuestionPage(count: values.count, next: nil, previous: nil, results: values.map { q in QuestionSummary(id:q.id,version:q.version,title:q.title,source:q.source,keySignature:q.keySignature,timeSignature:q.timeSignature,measureCount:q.measureCount,recommendedDurationSeconds:q.recommendedDurationSeconds,tempo:q.tempo,difficulty:q.difficulty,practiceLevelNumber:q.practiceLevelNumber,difficultyScore:q.difficultyScore,difficultyVersion:q.difficultyVersion) })
+        return QuestionPage(count: values.count, next: nil, previous: nil, results: values.map { q in QuestionSummary(id:q.id,version:q.version,title:q.title,source:q.source,keySignature:q.keySignature,timeSignature:q.timeSignature,measureCount:q.measureCount,recommendedDurationSeconds:q.recommendedDurationSeconds,tempo:q.tempo,difficulty:q.difficulty,practiceLevelNumber:q.practiceLevelNumber,difficultyScore:q.difficultyScore,difficultyVersion:q.difficultyVersion,practiceCompleted:completed.contains(q.id)) })
     }
     func classicalQuestions(page: Int) async throws -> QuestionPage {
         let order: [UUID] = try Bundled.decode("classical-question-order")

@@ -90,13 +90,21 @@ def questions(request):
         raise ContractError("INVALID_PAGE", "없는 페이지입니다.")
     # Select exactly the advertised current version, even when old versions remain for existing attempts.
     result = []
-    for version in items[(page - 1) * size:page * size]:
+    versions = list(items[(page - 1) * size:page * size])
+    # Completion belongs to the learner, not the device or the catalog version.
+    # A later review edit does not turn a previously solved question into a new one.
+    completed = set(SelfAssessmentRevision.objects.filter(
+        attempt__user=request.user, attempt__mode="practice", attempt__status="submitted",
+        attempt__question_version__question_id__in=[v.question_id for v in versions], completed=True,
+    ).values_list("attempt__question_version__question_id", flat=True))
+    for version in versions:
         metadata = timed_question(version.metadata)
         summary = {k: metadata[k] for k in ("id", "version", "title", "source", "key_signature", "time_signature", "measure_count", "recommended_duration_seconds", "tempo")}
         summary.update({k: metadata[k] for k in ("collection", "composer", "practice_level", "difficulty_score", "difficulty_version") if k in metadata})
         difficulty = practice_difficulty(metadata)
         if difficulty is not None:
             summary["difficulty"] = difficulty
+        summary["practice_completed"] = version.question_id in completed
         result.append(summary)
     def url(p):
         return absolute(request, f"/api/v1/questions/?page={p}&page_size={size}&collection={collection}")

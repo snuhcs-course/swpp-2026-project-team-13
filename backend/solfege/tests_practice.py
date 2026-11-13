@@ -103,6 +103,24 @@ class PracticeFlowTests(TestCase):
         self.assertNotIn("score", saved.data)
         self.assertEqual(SelfAssessmentRevision.objects.count(), 2)
 
+    def test_question_bank_completion_is_user_scoped_and_requires_completed_practice(self):
+        def summary(client):
+            response = client.get("/api/v1/questions/?page_size=200")
+            self.assertEqual(response.status_code, 200, response.data)
+            return next(q for q in response.data["results"] if q["id"] == str(self.q.question_id))
+        self.assertFalse(summary(self.client)["practice_completed"])
+        _, path, _, _ = self.submit()
+        self.assertFalse(summary(self.client)["practice_completed"])
+        self.assertEqual(self.review(path, completed=False).status_code, 200)
+        self.assertFalse(summary(self.client)["practice_completed"])
+        self.assertEqual(self.review(path, revision=1).status_code, 200)
+        self.assertTrue(summary(self.client)["practice_completed"])
+        self.assertEqual(self.review(path, completed=False, revision=2).status_code, 200)
+        self.assertTrue(summary(self.client)["practice_completed"])
+        other = get_user_model().objects.create_user(username="other-bank-learner")
+        client = APIClient(); client.force_authenticate(other)
+        self.assertFalse(summary(client)["practice_completed"])
+
     def test_multi_category_draft_completion_and_correction_preserve_history(self):
         attempt, path, _, _ = self.submit()
         errors = [{"measure": 3, "types": ["rhythm", "pitch"]}, {"measure": 1, "types": ["other"]}]

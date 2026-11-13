@@ -40,7 +40,10 @@ import SwiftUI
         model.selectedPracticeLevel = .level2
         let key = try XCTUnwrap(QuestionFilter.keyOptions(in:level(.level2)).first)
         model.practiceFilter.key = key
-        XCTAssertEqual(model.practiceFilter.apply(to:level(.level2)).map(\.id),level(.level2).filter { $0.keySignature == key }.map(\.id))
+        let filtered = model.practiceFilter.apply(to:level(.level2))
+        XCTAssertEqual(filtered.count,level(.level2).filter { $0.keySignature == key }.count)
+        XCTAssertTrue(filtered.allSatisfy { $0.keySignature == key })
+        XCTAssertEqual(filtered.compactMap(\.difficultyScore),filtered.compactMap(\.difficultyScore).sorted())
         let renderer = ImageRenderer(content:HomeView(model:model).frame(width:1180,height:1024)); renderer.scale = 2
         let attachment = XCTAttachment(image:try XCTUnwrap(renderer.uiImage)); attachment.name = "practice-filter"; attachment.lifetime = .keepAlways; add(attachment)
         model.navigate(.question); model.navigate(.home); model.selectedPracticeLevel = .level2
@@ -50,6 +53,31 @@ import SwiftUI
         model.practiceFilter.meter = TimeSignature(numerator:12,denominator:8)
         model.selectedPracticeLevel = nil
         XCTAssertFalse(model.practiceFilter.isActive)
+    }
+    func testCompletedPracticeIsHiddenUntilEnabledAndSurvivesCatalogReload() async throws {
+        let scope = "practice-bank-ui-" + UUID().uuidString
+        let model = AppModel(demoScope:scope); model.demo = true
+        await model.connect(); XCTAssertNil(model.error)
+        let q = try XCTUnwrap(model.questions.first { $0.practiceLevel == .level4 })
+        model.selectPracticeLevel(.level4)
+        await model.choose(q.id,mode:.practice); await model.begin(); await model.start(); model.player.pause()
+        await model.submit(); await model.savePracticeAssessment(completed:true)
+        XCTAssertNil(model.error); XCTAssertTrue(model.completedPracticeQuestionIDs.contains(q.id))
+        model.navigate(.practiceQuestions)
+        let level = model.questions.filter { $0.practiceLevel == .level4 }
+        XCTAssertFalse(model.practiceFilter.apply(to:level,completedQuestionIDs:model.completedPracticeQuestionIDs).contains { $0.id == q.id })
+        model.practiceFilter.showCompleted = true
+        XCTAssertTrue(model.practiceFilter.apply(to:level,completedQuestionIDs:model.completedPracticeQuestionIDs).contains { $0.id == q.id })
+        await model.refreshLibrary(destination:.practiceQuestions)
+        XCTAssertEqual(model.questions.first { $0.id == q.id }?.practiceCompleted,true)
+        for size in [CGSize(width:1180,height:792),CGSize(width:744,height:1000)] {
+            let renderer = ImageRenderer(content:HomeView(model:model).frame(width:size.width,height:size.height)); renderer.scale = 1
+            let attachment = XCTAttachment(image:try XCTUnwrap(renderer.uiImage))
+            attachment.name = "practice-bank-\(Int(size.width))"; attachment.lifetime = .keepAlways; add(attachment)
+        }
+        model.navigate(.practiceLevels); model.selectPracticeLevel(.level2)
+        XCTAssertFalse(model.practiceFilter.showCompleted)
+        XCTAssertEqual(model.practiceFilter.sortOrder,.ascending)
     }
     func testPracticeLevelsScreenAndImportedExamRestore() async throws {
         let model = AppModel(); model.demo = true; model.demoOutcome = "completed"; await model.connect()
