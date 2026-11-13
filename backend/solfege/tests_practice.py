@@ -15,7 +15,7 @@ from PIL import Image
 from rest_framework.authtoken.models import Token
 from rest_framework.test import APIClient
 from .models import Attempt, FeatureAnalysis, GradingJob, QuestionVersion, SelfAssessmentRevision
-from .grading import claim_job, execute_job
+from .grading import claim_job, execute_job, finish_job
 
 
 class PracticeFlowTests(TestCase):
@@ -48,7 +48,13 @@ class PracticeFlowTests(TestCase):
         self.client.credentials(HTTP_AUTHORIZATION="Bearer " + self.token.key)
 
     def create(self, mode="practice"):
-        body = {"question_id": str(self.q.question_id), "question_version": self.q.version}
+        from .recommendation import current_versions
+        if mode == "practice":
+            q = self.q
+        else:
+            seen = Attempt.objects.filter(user=self.user).values("question_version__question_id")
+            q = current_versions("exam").exclude(question_id__in=seen).first()
+        body = {"question_id": str(q.question_id), "question_version": q.version}
         if mode is not None:
             body["mode"] = mode
         response = self.client.post("/api/v1/attempts/", body, format="json", HTTP_IDEMPOTENCY_KEY=str(uuid.uuid4()))
@@ -96,6 +102,24 @@ class PracticeFlowTests(TestCase):
         self.assertIsNotNone(saved.data["completed_at"])
         self.assertNotIn("score", saved.data)
         self.assertEqual(SelfAssessmentRevision.objects.count(), 2)
+
+    def test_question_bank_completion_is_user_scoped_and_requires_completed_practice(self):
+        def summary(client):
+            response = client.get("/api/v1/questions/?page_size=200")
+            self.assertEqual(response.status_code, 200, response.data)
+            return next(q for q in response.data["results"] if q["id"] == str(self.q.question_id))
+        self.assertFalse(summary(self.client)["practice_completed"])
+        _, path, _, _ = self.submit()
+        self.assertFalse(summary(self.client)["practice_completed"])
+        self.assertEqual(self.review(path, completed=False).status_code, 200)
+        self.assertFalse(summary(self.client)["practice_completed"])
+        self.assertEqual(self.review(path, revision=1).status_code, 200)
+        self.assertTrue(summary(self.client)["practice_completed"])
+        self.assertEqual(self.review(path, completed=False, revision=2).status_code, 200)
+        self.assertTrue(summary(self.client)["practice_completed"])
+        other = get_user_model().objects.create_user(username="other-bank-learner")
+        client = APIClient(); client.force_authenticate(other)
+        self.assertFalse(summary(client)["practice_completed"])
 
     def test_multi_category_draft_completion_and_correction_preserve_history(self):
         attempt, path, _, _ = self.submit()
@@ -148,6 +172,10 @@ class PracticeFlowTests(TestCase):
             self.assertEqual(response.status_code, 202, response.data)
             self.assertEqual(response.data["grading_mode"], "automatic")
             self.assertEqual(self.review(path).status_code, 409)
+            # Finish this exam before the next one; legacy requests obey the same lock.
+            job=GradingJob.objects.get(attempt_id=attempt['id'])
+            job.status='processing'; job.save(update_fields=['status'])
+            finish_job(job,{'status':'completed','score':80})
         self.assertEqual(GradingJob.objects.count(), 2)
         self.assertEqual(SelfAssessmentRevision.objects.count(), 0)
 

@@ -18,6 +18,25 @@ final class StubProtocol:URLProtocol {
     override func stopLoading() { }
 }
 @MainActor final class HTTPContractTests:XCTestCase {
+    func testExamOfferUsesAuthenticatedReadAndDecodesContinuousScores() async throws {
+        let config = URLSessionConfiguration.ephemeral; config.protocolClasses = [StubProtocol.self]
+        let api = try HTTPExamAPI(base:URL(string:"https://api.sori.example/api/v1/")!,token:"test-token",session:URLSession(configuration:config))
+        let offer = ExamOffer(id:UUID(),poolVersion:"question-pools-1",rating:ExamRatingState(),choices:[
+            ExamChoice(category:"challenge",questionId:UUID(),questionVersion:1,difficultyScore:8,ratingDifference:1,reason:nil),
+            ExamChoice(category:"matched",questionId:UUID(),questionVersion:1,difficultyScore:7,ratingDifference:0,reason:nil),
+            ExamChoice(category:"easy",questionId:UUID(),questionVersion:1,difficultyScore:6,ratingDifference:-1,reason:nil)])
+        let payload = try ContractJSON.encoder().encode(offer)
+        StubProtocol.handler = { request in
+            // URL.path drops a trailing slash on macOS; the wire URL must keep it.
+            XCTAssertEqual(request.url?.absoluteString,"https://api.sori.example/api/v1/exam/recommendations/")
+            XCTAssertEqual(request.httpMethod,"GET"); XCTAssertNil(request.httpBody)
+            XCTAssertEqual(request.value(forHTTPHeaderField:"Authorization"),"Bearer test-token")
+            return (200,"application/json",payload)
+        }
+        defer { StubProtocol.handler = nil }
+        let result = try await api.examRecommendations(); try result.validate()
+        XCTAssertEqual(result,offer)
+    }
     var root:URL { URL(fileURLWithPath:#filePath).deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent().appendingPathComponent("docs/solfege-api") }
     func testAllThirteenOperationsUseCorrectMethodsPathsHeadersAndPayloads() async throws {
         let config=URLSessionConfiguration.ephemeral;config.protocolClasses=[StubProtocol.self]
@@ -62,7 +81,7 @@ final class StubProtocol:URLProtocol {
         _=try await api.result(attempt);_=try await api.retryGrading(attempt,key:key)
         let mxl=try await api.asset(question.scoreAssets.main.url,authenticated:true,limit:1_048_576)
         XCTAssertEqual(mxl.sha256,question.scoreAssets.main.sha256);XCTAssertEqual(calls.count,13)
-        XCTAssertTrue(calls.contains("GET questions/?page=1&page_size=20"));XCTAssertTrue(calls.contains("PATCH me/"))
+        XCTAssertTrue(calls.contains("GET questions/?page=1&page_size=50"));XCTAssertTrue(calls.contains("PATCH me/"))
     }
     func testClassicalFilterDoesNotChangePracticePagination() async throws {
         let config=URLSessionConfiguration.ephemeral;config.protocolClasses=[StubProtocol.self]
@@ -83,10 +102,10 @@ final class StubProtocol:URLProtocol {
         _=try await api.classicalQuestions(page:2)
         _=try await api.questions(page:2)
         XCTAssertEqual(paths,[
-            "questions/?page=1&page_size=20",
+            "questions/?page=1&page_size=50",
             "questions/?page=1&page_size=50&collection=classical",
             "questions/?page=2&page_size=50&collection=classical",
-            "questions/?page=2&page_size=20"
+            "questions/?page=2&page_size=50"
         ])
     }
     func testRecommendedQuestionUsesItsOwnRouteAndDecodesAsQuestionDetail() async throws {

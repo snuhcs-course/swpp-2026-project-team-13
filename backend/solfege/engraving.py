@@ -10,4 +10,5 @@ def manifest():
 
 def reference_asset(metadata):
     item = manifest()["scores"].get(metadata["score_assets"]["main"]["sha256"])
-    return copy.deepcopy(item) if item else None
+    # Style fingerprints are build evidence, not fields in the image contract.
+    return {k:copy.deepcopy(v) for k,v in item.items() if k not in ('style','style_sha256')} if item else None

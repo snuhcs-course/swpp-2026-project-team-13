@@ -39,6 +39,23 @@ final class ThreeQuestionTests: XCTestCase {
             XCTAssertThrowsError(try MusicXMLParser.parseXML(Data(broken.utf8),measures:8,tempo:96),"문제 \(index+1)의 잘못된 셋잇단음표 길이를 거부해야 합니다.")
         }
     }
+    func testIdenticalRepeatedTupletRatiosPreserveTheScoreButConflictsAreRejected() throws {
+        let q = try catalog()[0]
+        let data = try Data(contentsOf:resources.appendingPathComponent("excerpt-1-v2-main.mxl"))
+        let original = try MusicXMLParser.parseMXL(data,asset:q.scoreAssets.main)
+        let xml = String(decoding:try XCTUnwrap(MXLContainer.entries(data)["score.xml"]),as:UTF8.self)
+        let repeated = xml.replacingOccurrences(of:"<actual-notes>3</actual-notes>",with:"<actual-notes>3</actual-notes><actual-notes>3</actual-notes>")
+            .replacingOccurrences(of:"<normal-notes>2</normal-notes>",with:"<normal-notes>2</normal-notes><normal-notes>2</normal-notes>")
+        XCTAssertNotEqual(repeated,xml)
+        XCTAssertEqual(try MusicXMLParser.parseXML(Data(repeated.utf8),measures:8,tempo:96),original)
+        for (tag,value,conflict) in [("actual-notes","3","2"),("normal-notes","2","3")] {
+            let broken = xml.replacingOccurrences(of:"<\(tag)>\(value)</\(tag)>",with:"<\(tag)>\(value)</\(tag)><\(tag)>\(conflict)</\(tag)>")
+            XCTAssertThrowsError(try MusicXMLParser.parseXML(Data(broken.utf8),measures:8,tempo:96))
+        }
+        let duplicatedDuration = xml.replacingOccurrences(of:"<duration>480</duration>",with:"<duration>480</duration><duration>480</duration>")
+        XCTAssertNotEqual(duplicatedDuration,xml)
+        XCTAssertThrowsError(try MusicXMLParser.parseXML(Data(duplicatedDuration.utf8),measures:8,tempo:96))
+    }
     func testEntireCatalogParsesAndPreparesEveryExamSegment() throws {
         let questions = try catalog()
         XCTAssertEqual(questions.count,62)

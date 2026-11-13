@@ -15,6 +15,14 @@ foreach ($item in $source.accepted) {
 # Exercise the new meter templates even when a candidate in that meter is excluded.
 $combinations['2-2-0'] = @(2,2,0)
 $combinations['3-8-0'] = @(3,8,0)
+$bankSheets = Join-Path $Repository 'backend/content/source/practice-bank/sheets.json'
+if (Test-Path -LiteralPath $bankSheets) {
+    $bankCombinations = Get-Content -Raw -LiteralPath $bankSheets | ConvertFrom-Json
+    foreach ($entry in $bankCombinations) {
+        $n,$d,$fifths = $entry
+        $combinations["$n-$d-$fifths"] = @([int]$n,[int]$d,[int]$fifths)
+    }
+}
 $practiceSource = Join-Path $Repository 'backend/content/source/practice-import/provenance.json'
 if (Test-Path -LiteralPath $practiceSource) {
     $practice = Get-Content -Raw -LiteralPath $practiceSource | ConvertFrom-Json

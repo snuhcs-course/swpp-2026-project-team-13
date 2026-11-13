@@ -2,7 +2,7 @@
 
 Drill의 **리듬 퍼즐**은 중·고급 선율의 두 마디를 듣고 12개 보기에서 리듬을 조합하는 게임입니다. 259개 구간, 긴 음·잇단음 조각, 타이·되돌리기, 소리 기준 기계채점과 단계별 힌트를 제공합니다. 재청취·제출·노출 조건을 기록하고 로그인한 계정으로 저장합니다. [사용법·기록·보류 사례](docs/RHYTHM-PUZZLE.md)를 확인하세요.
 
-초급 40개·중급 14개·고급 59개, 총 113문제를 듣고 Apple Pencil로 작성하는 개인 연습용 앱입니다. **Practice**에서는 난이도를 고르고 조성·박자로 걸러 풀며 정답과 직접 비교해 마디별 자기채점을, **Exam**에서는 서버가 추천한 문제로 시험을 보고 Django 서버를 통한 AI 평가와 한국어 피드백을 받습니다. 추천 알고리즘을 구현하기 전까지 추천 문제는 클래식을 뺀 문제 중 랜덤입니다. 로컬 데모에서도 재생·필기·자기채점을 확인할 수 있으며 Exam 결과는 예시임을 표시합니다. [모드 분리와 확인 절차](docs/PRACTICE-EXAM.md), [새 문제·난이도·토큰 저장·서버 반영 안내](docs/PRACTICE-LEVELS.md)를 확인하세요.
+클래식을 제외한 **1,937문제를 Level 1~9**로 제공하고 Apple Pencil로 작성하는 개인 연습용 앱입니다. **Practice**에서는 난이도를 고르고 조성·박자로 걸러 풀며 정답과 직접 비교해 마디별 자기채점을, **Exam**에서는 서버가 추천한 문제로 시험을 보고 Django 서버를 통한 AI 평가와 한국어 피드백을 받습니다. Level 1은 조표가 없고 Level 2는 최대 1개이며, 상위 레벨은 음정·리듬·조성감과 조표 부담을 함께 평가합니다. [현재 난이도 계산식·커트라인·문제 분포 v2](docs/PRACTICE-DIFFICULTY-V2.txt)를 확인하세요. 추천 알고리즘을 구현하기 전까지 추천 문제는 클래식을 뺀 문제 중 랜덤입니다. 로컬 데모에서도 재생·필기·자기채점을 확인할 수 있으며 Exam 결과는 예시임을 표시합니다. [모드 분리와 확인 절차](docs/PRACTICE-EXAM.md), [초기 문제 수입·토큰 저장·서버 반영 안내](docs/PRACTICE-LEVELS.md)를 확인하세요.
 
 Practice 안의 **클래식 선율 문제**에서 작곡가를 고르고 같은 형식으로 문제를 풀 수 있습니다. 원본부터 완전한 8마디인 7명·11개 선율만 수록하며, 조성별 빈 오선·음계와 MuseScore 정답 악보를 제공합니다. 기본 그랜드 피아노는 일반 청음·클래식·미니게임에서 같은 YDP Grand Piano를 사용합니다. [클래식 수록·서버 반영·검증 안내](docs/CLASSICAL-EXAMS.md), [HTML 미리듣기](classical-library/CLASSICAL.html)를 확인하세요.
 
@@ -28,6 +28,7 @@ Practice 안의 **클래식 선율 문제**에서 작곡가를 고르고 같은 
 - Windows 서버 실행과 연결: [docs/IPAD-SETUP.md](docs/IPAD-SETUP.md)
 - 친구의 Mac에서 빌드 확인: [docs/MAC-HANDOFF.md](docs/MAC-HANDOFF.md)
 - API 계약: [docs/solfege-api/API-CONTRACT.md](docs/solfege-api/API-CONTRACT.md)
+- Practice 난이도·레벨·조표 정책: [docs/PRACTICE-DIFFICULTY-V2.txt](docs/PRACTICE-DIFFICULTY-V2.txt)
 - 악보 Feature v1 명세와 활용 원칙: [docs/FEATURE-V1.md](docs/FEATURE-V1.md)
 - 실제 검증 상태: [docs/VALIDATION.md](docs/VALIDATION.md)
 - MuseScore 악보와 외부 음원 준비: [docs/ASSETS.md](docs/ASSETS.md)

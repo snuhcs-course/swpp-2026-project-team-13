@@ -33,4 +33,7 @@ class Command(BaseCommand):
             if question.current_version < metadata["version"]:
                 question.current_version = metadata["version"]
                 question.save(update_fields=["current_version"])
-            self.stdout.write(f"Question {item['order']}: {metadata['title']}")
+            if options['verbosity'] >= 2:
+                self.stdout.write(f"Question {item['order']}: {metadata['title']}")
+        if options['verbosity']:
+            self.stdout.write(f"Registered {len(catalog)} immutable question versions.")
