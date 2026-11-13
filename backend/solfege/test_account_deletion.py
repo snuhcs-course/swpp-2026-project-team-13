@@ -66,9 +66,11 @@ class AccountFlow:
     def post(self, client, path, data=None):
         return client.post("/api/v1/" + path, data, format="json", HTTP_IDEMPOTENCY_KEY=str(uuid.uuid4()))
 
-    def started_attempt(self, client):
-        question = client.get("/api/v1/questions/recommended/").data
-        attempt = self.post(client, "attempts/", {"question_id": question["id"], "question_version": question["version"]})
+    def started_attempt(self, client, mode="exam"):
+        response = client.get("/api/v1/questions/" if mode == "practice" else "/api/v1/questions/recommended/")
+        self.assertEqual(response.status_code, 200, response.data)
+        question = response.data["results"][0] if mode == "practice" else response.data
+        attempt = self.post(client, "attempts/", {"question_id": question["id"], "question_version": question["version"], "mode": mode})
         self.assertEqual(attempt.status_code, 201, attempt.data)
         self.assertEqual(self.post(client, f'attempts/{attempt.data["id"]}/start/').status_code, 200)
         return attempt.data
@@ -130,8 +132,11 @@ class AccountDeletionTests(AccountFlow, TemporaryMedia, TestCase):
     def test_204_removes_the_account_records_and_image_files(self):
         user, client = self.account()
         attempt, answer = self.submitted(client)
-        draft = self.started_attempt(client)
+        # Pending AI grading and a Practice draft may coexist; a second Exam may not.
+        draft = self.started_attempt(client, mode="practice")
         self.uploaded(client, draft)
+        self.assertEqual(draft["mode"], "practice")
+        self.assertEqual(GradingJob.objects.get(attempt_id=attempt["id"]).status, "queued")
         names = list(Answer.objects.values_list("image", flat=True))
         self.assertEqual(len(names), 2)
         self.assertTrue(all(default_storage.exists(name) for name in names))
