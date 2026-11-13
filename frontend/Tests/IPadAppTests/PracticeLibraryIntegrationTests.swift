@@ -55,8 +55,10 @@ import SwiftUI
         let model = AppModel(); model.demo = true; model.demoOutcome = "completed"; await model.connect()
         let manifest: PracticeDifficultyManifest = try Bundled.decode("practice-difficulty")
         XCTAssertNil(model.error); XCTAssertEqual(model.questions.count,1550)
-        let renderer = ImageRenderer(content:HomeView(model:model).frame(width:1180,height:1024)); renderer.scale = 2
+        let renderer = ImageRenderer(content:PracticeLevelSelectionView(model:model).frame(width:1180,height:792)); renderer.scale = 2
         let attachment = XCTAttachment(image:try XCTUnwrap(renderer.uiImage)); attachment.name = "practice-level-selection"; attachment.lifetime = .keepAlways; add(attachment)
+        let entry = ImageRenderer(content:PracticeEntryView(model:model).frame(width:1180,height:792)); entry.scale = 2
+        let entryAttachment = XCTAttachment(image:try XCTUnwrap(entry.uiImage)); entryAttachment.name = "practice-entry-empty"; entryAttachment.lifetime = .keepAlways; add(entryAttachment)
         let summary = try XCTUnwrap(model.questions.first { $0.practiceLevel == .level2 && $0.keySignature.fifths != 0 })
         model.selectedPracticeLevel = .level2
         await model.choose(summary.id,mode:.practice); await model.begin()

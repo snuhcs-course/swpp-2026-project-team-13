@@ -17,16 +17,7 @@ struct HomeView: View {
                         Button("연결 설정 열기") { model.navigate(.settings) }.buttonStyle(PrimaryButton())
                     } }
                 } else {
-                    if model.pendingCreation { Button { Task { await model.recoverPending() } } label: { Label("응답을 받지 못한 연습 생성 요청 복구", systemImage: "arrow.clockwise") }.buttonStyle(.bordered) }
-                    if let unfinished = model.history.first(where: { $0.attempt.studyMode == mode && model.isUnfinished($0) }) {
-                        Card { HStack {
-                            VStack(alignment: .leading, spacing: 6) { Text(mode.title + " 이어서 하기").font(.headline); Text(unfinished.attempt.question.title).font(.subheadline).foregroundStyle(.secondary) }
-                            Spacer(); Button("계속하기") { Task { await model.open(unfinished) } }.buttonStyle(PrimaryButton(compact: true))
-                        } }
-                    }
-                    if model.selectedPracticeLevel != nil {
-                        Button { withAnimation { model.selectedPracticeLevel = nil } } label: { Label("난이도 선택",systemImage:"chevron.left") }.buttonStyle(.bordered)
-                    }
+                    if model.pendingPracticeCreation { Button { Task { await model.recoverPending() } } label: { Label("응답을 받지 못한 연습 생성 요청 복구", systemImage: "arrow.clockwise") }.buttonStyle(.bordered) }
                     HStack {
                         if let level = model.selectedPracticeLevel { Text("\(level.title) 청음 연습").font(.title2.bold()) }
                         else { Text("난이도를 골라보세요").font(.system(size:14,weight:.medium)).foregroundStyle(SolfegeTheme.muted) }
@@ -34,13 +25,7 @@ struct HomeView: View {
                     }
                     if model.questions.isEmpty { ContentUnavailableView("아직 등록된 문제가 없어요", systemImage: "music.note", description: Text("문제가 게시되면 이곳에서 연습을 시작할 수 있어요.")) }
                     if model.selectedPracticeLevel == nil {
-                        LazyVGrid(columns:[GridItem(.adaptive(minimum:216),spacing:12)],spacing:12) {
-                            ForEach(PracticeLevel.allCases) { level in
-                                Button { withAnimation { model.selectedPracticeLevel = level } } label: {
-                                    levelCard(level,count:model.questions.filter { $0.practiceLevel == level }.count)
-                                }.buttonStyle(.plain).accessibilityIdentifier("practice-level-\(level.rawValue)")
-                            }
-                        }
+                        Button("난이도 선택") { model.navigate(.practiceLevels) }.buttonStyle(PrimaryButton())
                     } else {
                     filterBar
                     if let q = suggestedQuestion {
@@ -71,16 +56,10 @@ struct HomeView: View {
                     }
                     }
                     if model.hasNextPage { Button("문제 더 보기") { Task { await model.loadMore() } }.frame(maxWidth: .infinity) }
-                    Button { model.navigate(.classical) } label: {
-                        HStack {
-                            Text("클래식 선율 문제").font(.system(size:20,weight:.bold)).foregroundStyle(SolfegeTheme.ink)
-                            Spacer(); Image(systemName:"arrow.up.right").font(.system(size:20)).foregroundStyle(SolfegeTheme.violet)
-                        }.padding(.horizontal,20).frame(maxWidth:.infinity,minHeight:76).background(.white,in:RoundedRectangle(cornerRadius:16))
-                    }.buttonStyle(.plain)
                     if model.demo { DemoBadge() }
                 }
             }.padding(32).frame(maxWidth: 924, alignment: .leading).frame(maxWidth: .infinity)
-        }.refreshable { let level = model.selectedPracticeLevel; await model.refreshLibrary(destination:.home); model.selectedPracticeLevel = level }
+        }.refreshable { let level = model.selectedPracticeLevel; await model.refreshLibrary(destination:.practiceQuestions); model.selectedPracticeLevel = level }
     }
     private var levelQuestions: [QuestionSummary] {
         guard let level = model.selectedPracticeLevel else { return model.questions }
@@ -135,17 +114,6 @@ struct HomeView: View {
             return a == b ? lhs.offset < rhs.offset : a < b
         }?.element
     }
-    private func levelCard(_ level: PracticeLevel, count: Int) -> some View {
-        VStack(alignment:.leading,spacing:6) {
-            HStack(alignment:.top) {
-                Text(level.title).font(.system(size:28,weight:.bold)).foregroundStyle(SolfegeTheme.ink)
-                Spacer(); Image(systemName:"arrow.up.right").font(.system(size:20)).foregroundStyle(SolfegeTheme.violet)
-            }
-            Spacer(minLength:16)
-            Text(level.subtitle).font(.system(size:14)).foregroundStyle(SolfegeTheme.muted).multilineTextAlignment(.leading).fixedSize(horizontal:false,vertical:true)
-            Text("\(count)개 문제 · 8마디").font(.system(size:14,weight:.semibold)).foregroundStyle(SolfegeTheme.deepViolet)
-        }.padding(20).frame(maxWidth:.infinity,minHeight:150,alignment:.topLeading).background(.white,in:RoundedRectangle(cornerRadius:16))
-    }
 }
 struct QuestionView: View {
     @ObservedObject var model: AppModel
@@ -194,12 +162,13 @@ struct HistoryView: View {
                             Text(r.attempt.studyMode.title).font(.caption.weight(.semibold)).foregroundStyle(SolfegeTheme.violet)
                             if r.attempt.gradingMode == "demo" { Text("데모 연습").font(.caption).foregroundStyle(SolfegeTheme.violet) }
                         }; Spacer()
-                        if r.attempt.studyMode == .practice, r.attempt.status == "submitted" { Pill(text:r.selfAssessment?.isCompleted == true && r.practiceEdits == nil && r.selfAssessmentSave == nil ? "자기채점 완료" : "자기채점 중") }
+                        if !model.canOpenHistoryRecord(r) { Pill(text: "교체된 연습") }
+                        else if r.attempt.studyMode == .practice, r.attempt.status == "submitted" { Pill(text:r.selfAssessment?.isCompleted == true && r.practiceEdits == nil && r.selfAssessmentSave == nil ? "자기채점 완료" : "자기채점 중") }
                         else if r.grading?.status == "completed", let score = r.grading?.score { Text("\(score)점").font(.title2.bold()).foregroundStyle(SolfegeTheme.violet) }
                         else { Pill(text: r.attempt.status == "submitted" ? "결과 확인" : "이어서 연습") }
                         Image(systemName: "chevron.right")
                     } }
-                }.buttonStyle(.plain)
+                }.buttonStyle(.plain).disabled(!model.canOpenHistoryRecord(r))
             }
         }.padding(32).frame(maxWidth: 1100).frame(maxWidth: .infinity) }
     }

@@ -43,7 +43,9 @@ struct ContentView: View {
                 SolfegeTheme.background.ignoresSafeArea()
                 switch model.screen {
                 case .main: MainHomeView(model:model)
-                case .home: HomeView(model:model)
+                case .home: PracticeEntryView(model:model)
+                case .practiceLevels: PracticeLevelSelectionView(model:model)
+                case .practiceQuestions: HomeView(model:model)
                 case .recommendingExam: ExamRecommendationView()
                 case .examSelection: ExamSelectionView(model:model)
                 case .question: QuestionView(model: model)
@@ -58,17 +60,19 @@ struct ContentView: View {
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) { backButton }
             }
-            .toolbar([.main,.recommendingExam,.examSelection].contains(model.screen) ? .hidden : .automatic, for: .navigationBar)
+            .toolbar([.main,.home,.practiceLevels,.recommendingExam,.examSelection].contains(model.screen) ? .hidden : .automatic, for: .navigationBar)
             .toolbarBackground(SolfegeTheme.background, for: .navigationBar)
             .overlay { if model.screen != .recommendingExam { busyOverlay } }
         }
     }
     @ViewBuilder private var backButton: some View {
         if [.question,.exam,.result].contains(model.screen) {
-            let target = model.selectedMode == .exam ? .main : model.questionLibraryScreen
+            let target = model.screen == .result ? model.resultLibraryScreen : model.selectedMode == .exam ? .main : model.questionLibraryScreen
             back(target == .classical ? "클래식" : target == .main ? "홈" : model.selectedMode.title, to: target)
         } else if model.needsAuthentication {
             back("돌아가기", to: .main).accessibilityIdentifier("back-to-auth")
+        } else if model.screen == .practiceQuestions {
+            back("난이도 선택", to: .practiceLevels)
         } else if model.screen == .classical {
             back(model.selectedMode.title, to: model.libraryScreen)
         } else if model.screen != .main {

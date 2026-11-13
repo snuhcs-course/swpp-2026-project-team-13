@@ -20,6 +20,10 @@ struct SessionRecord: Codable, Identifiable {
     var hasDrawing = false
     var parserVersion = MusicXMLParser.version
     var creationKey: UUID? = nil
+    var canResumePractice: Bool {
+        attempt.studyMode == .practice && (attempt.status != "submitted" ||
+            selfAssessment?.isCompleted != true || practiceEdits != nil || selfAssessmentSave != nil)
+    }
     var blocksNewExam: Bool {
         attempt.studyMode == .exam && attempt.examRatingSnapshot != nil &&
             (attempt.status != "submitted" || grading?.status != "completed")
@@ -29,6 +33,10 @@ struct PendingCreation: Codable {
     var question: Question; var key: UUID
     var mode: StudyMode? = nil
     var studyMode: StudyMode { mode ?? .exam }
+}
+
+private struct PracticeResumeSlot: Codable {
+    var attemptId: UUID?
 }
 
 final class LocalStore {
@@ -73,6 +81,28 @@ final class LocalStore {
         let file = root.appendingPathComponent("exam-offer.json")
         if let offer { try ContractJSON.encoder().encode(offer).write(to:file,options:.atomic) }
         else if FileManager.default.fileExists(atPath:file.path) { try FileManager.default.removeItem(at:file) }
+    }
+    func practiceResume(records: [SessionRecord]) throws -> UUID? {
+        let file = root.appendingPathComponent("practice-resume.json")
+        if FileManager.default.fileExists(atPath: file.path) {
+            let slot = try ContractJSON.decoder().decode(PracticeResumeSlot.self, from: Data(contentsOf: file))
+            guard let id = slot.attemptId else { return nil }
+            if records.contains(where: { $0.id == id && $0.canResumePractice }) { return id }
+            try savePracticeResume(nil)
+            return nil
+        }
+        // Migrate only the latest Practice. An older unfinished attempt must never
+        // reappear after the latest Practice has been completed.
+        let latest = records.filter { $0.attempt.studyMode == .practice }.max { $0.attempt.createdAt < $1.attempt.createdAt }
+        let id = latest.flatMap { $0.canResumePractice ? $0.id : nil }
+        try savePracticeResume(id)
+        return id
+    }
+    func savePracticeResume(_ id: UUID?) throws {
+        // Persist an empty slot too: deleting it would run legacy migration again.
+        try ContractJSON.encoder().encode(PracticeResumeSlot(attemptId: id)).write(
+            to: root.appendingPathComponent("practice-resume.json"),
+            options: [.atomic, .completeFileProtectionUntilFirstUserAuthentication])
     }
     func write(_ data: Data, name: String, id: UUID) throws { try data.write(to: folder(id).appendingPathComponent(name), options: [.atomic, .completeFileProtectionUntilFirstUserAuthentication]) }
     func read(_ name: String, id: UUID) throws -> Data { try Data(contentsOf: folder(id).appendingPathComponent(name)) }

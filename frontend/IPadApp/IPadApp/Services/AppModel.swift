@@ -2,7 +2,7 @@ import SwiftUI
 import PencilKit
 
 @MainActor final class AppModel: ObservableObject {
-    enum Screen: String { case main, home, recommendingExam, examSelection, question, exam, result, history, settings, minigames, classical }
+    enum Screen: String { case main, home, practiceLevels, practiceQuestions, recommendingExam, examSelection, question, exam, result, history, settings, minigames, classical }
     @Published var screen: Screen = .main
     @Published var profile: UserProfile?
     @Published var questions: [QuestionSummary] = []
@@ -21,6 +21,7 @@ import PencilKit
     @Published var selectedMode: StudyMode = .practice
     @Published var session: SessionRecord?
     @Published var history: [SessionRecord] = []
+    @Published private(set) var practiceResumeId: UUID?
     @Published var busy = false
     @Published var busyText = "준비 중"
     @Published var error: String?
@@ -79,18 +80,32 @@ import PencilKit
     var isLocked: Bool { !connected || authenticating || session?.frozen == true || session?.attempt.status != "in_progress" || drawingMissing || saveFailed }
     var remaining: Int { clock.remaining() }
     var pendingCreation: Bool { (try? store?.pending()) != nil }
+    var pendingPracticeCreation: Bool { (try? store?.pending())?.studyMode == .practice }
     var needsAuthentication: Bool { !demo && !connected }
     var needsGoalSelection: Bool { connected && profile != nil && profile?.learningGoal == nil }
     // Exam uses a dedicated pool and a three-choice screen instead of a library.
     var libraryScreen: Screen { selectedMode == .practice ? .home : .examSelection }
     // Classical stays Practice-only; legacy exam attempts remain resumable.
-    var questionLibraryScreen: Screen { selectedMode == .practice && selectedQuestion?.collection == "classical" ? .classical : libraryScreen }
+    var questionLibraryScreen: Screen {
+        guard selectedMode == .practice else { return libraryScreen }
+        return selectedQuestion?.collection == "classical" ? .classical : .practiceQuestions
+    }
     var resultLibraryScreen: Screen { session?.attempt.studyMode != .practice ? .main : session?.attempt.question.collection == "classical" ? .classical : .home }
     var canChooseNextExam: Bool {
         session?.attempt.studyMode == .exam && session?.attempt.status == "submitted" && session?.grading?.status == "completed"
     }
     func isUnfinished(_ record: SessionRecord) -> Bool {
-        record.attempt.status != "submitted" || (record.attempt.studyMode == .practice && (record.selfAssessment?.isCompleted != true || record.practiceEdits != nil || record.selfAssessmentSave != nil))
+        record.attempt.studyMode == .practice ? record.canResumePractice : record.attempt.status != "submitted"
+    }
+    var resumablePractice: SessionRecord? {
+        history.first { $0.id == practiceResumeId && $0.canResumePractice }
+    }
+    func canOpenHistoryRecord(_ record: SessionRecord) -> Bool {
+        !record.canResumePractice || record.id == practiceResumeId
+    }
+    func selectPracticeLevel(_ level: PracticeLevel) {
+        selectedPracticeLevel = level
+        navigate(.practiceQuestions)
     }
     var practiceErrors: [MeasureError] { session?.practiceEdits ?? session?.selfAssessment?.errors ?? [] }
     var practiceHasConflict: Bool {
@@ -145,7 +160,7 @@ import PencilKit
         if !isLocked { saveDrawing(drawing.canvas.drawing) }
         player.stopForPreparation(); drawing.freeze(true)
         operationGeneration = UUID(); busy = false; pollGeneration = UUID()
-        api = nil; store = nil; profile = nil; questions = []; history = []; session = nil
+        api = nil; store = nil; profile = nil; questions = []; history = []; session = nil; practiceResumeId = nil
         classicalQuestions = []; classicalLoaded = false; classicalPage = 0; classicalHasNextPage = false; selectedComposer = nil; selectedPracticeLevel = nil; recommendedExam = nil
         examOffer = nil; selectedQuestion = nil; template = nil; submittedImage = nil; mainScore = nil
         correctScoreImage = nil; correctScoreError = nil; prepared = false; connected = false
@@ -173,9 +188,10 @@ import PencilKit
     private func activateUser(_ user: UserProfile, candidate: any ExamAPI, destination: Screen = .main, current: () -> Bool) async throws {
         let local = try LocalStore(scope: candidate.scope + ":" + user.id.uuidString)
         let records = try local.all()
+        let resumeId = try local.practiceResume(records: records)
         // Keep valid credentials after network/5xx failures so recovery is explicit.
         guard current() else { throw CancellationError() }
-        api = candidate; store = local; profile = user; history = records; connected = true
+        api = candidate; store = local; profile = user; history = records; practiceResumeId = resumeId; connected = true
         examOffer = try? local.examOffer()
         if !demo { UserDefaults.standard.set(true, forKey: Self.accountUsedKey); showingSignup = false }
         let list = try await PracticeQuestionList.load { try await candidate.questions(page:$0) }
@@ -552,6 +568,9 @@ import PencilKit
     private func persist(_ record: SessionRecord) throws {
         guard let store else { throw SolfegeError.storage("로컬 저장소가 준비되지 않았습니다.") }
         try store.save(record); self.session = record; history = try store.all()
+        if record.id == practiceResumeId, !record.canResumePractice {
+            try store.savePracticeResume(nil); practiceResumeId = nil
+        }
     }
     func begin() async {
         await run("새 연습을 준비하는 중") {
@@ -608,7 +627,12 @@ import PencilKit
     func open(_ record: SessionRecord) async {
         await run("저장한 연습을 복구하는 중") {
             guard let api = self.api, let store = self.store else { return }
-            var current = try store.load(record.id); current.attempt = try await api.attempt(record.id)
+            var current = try store.load(record.id)
+            guard self.canOpenHistoryRecord(current) ||
+                    (self.session?.id == current.id && (self.screen == .exam || self.screen == .result)) else {
+                throw SolfegeError.configuration("새 연습으로 교체된 문제예요. Practice에서 풀던 문제를 이어서 할 수 있어요.")
+            }
+            current.attempt = try await api.attempt(record.id)
             guard self.store === store else { throw CancellationError() }
             try self.persist(current); try await self.presentExam(current)
         }
@@ -660,8 +684,15 @@ import PencilKit
     func retryPrepare() async { await run("악보와 피아노를 준비하는 중") { try await self.prepareAssets() } }
     func start() async {
         await run("연습을 시작하는 중") {
-            guard self.prepared, let api = self.api, var record = self.session else { return }
-            record.attempt = try await api.start(record.id); self.clock.sync(record.attempt); try self.persist(record)
+            guard self.prepared, let api = self.api, let store = self.store, var record = self.session else { return }
+            record.attempt = try await api.start(record.id)
+            guard self.store === store else { throw CancellationError() }
+            if record.attempt.studyMode == .practice {
+                // Browsing and preparation leave the previous slot intact. Replace
+                // it only after the server acknowledges that the new practice began.
+                try store.savePracticeResume(record.id); self.practiceResumeId = record.id
+            }
+            self.clock.sync(record.attempt); try self.persist(record)
             self.drawing.freeze(self.isLocked); self.player.resume()
         }
     }
@@ -873,7 +904,7 @@ import PencilKit
         if target == .examSelection {
             Task { await self.startRecommendedExam() }; return
         }
-        if target == .home || target == .classical { selectedMode = .practice }
+        if [.home, .practiceLevels, .practiceQuestions, .classical].contains(target) { selectedMode = .practice }
         screen = target
     }
 }

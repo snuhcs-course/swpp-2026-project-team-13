@@ -3,6 +3,73 @@ import SwiftUI
 @testable import IPadApp
 
 @MainActor final class PracticeIntegrationTests: XCTestCase {
+    func testOnlyStartedPracticeReplacesTheSlotAndCompletionDoesNotRestoreAnOlderOne() async throws {
+        let scope = "practice-slot-" + UUID().uuidString
+        let model = AppModel(demoScope: scope); model.demo = true
+        await model.connect(); XCTAssertNil(model.error)
+        XCTAssertNil(model.resumablePractice)
+        let question = try XCTUnwrap(model.questions.first)
+        await model.choose(question.id, mode: .practice); await model.begin()
+        XCTAssertNil(model.resumablePractice, "Preparing a problem must not claim the slot")
+        await model.start(); model.player.pause(); XCTAssertNil(model.error)
+        let first = try XCTUnwrap(model.resumablePractice)
+
+        model.navigate(.home); model.navigate(.practiceLevels)
+        model.selectPracticeLevel(.level2)
+        XCTAssertEqual(model.screen, .practiceQuestions)
+        model.navigate(.classical)
+        await model.choose(question.id, mode: .practice); await model.begin()
+        XCTAssertEqual(model.resumablePractice?.id, first.id, "Browsing and preparing must preserve handwriting")
+        // Foregrounding a newly prepared problem must also preserve the old slot.
+        await model.foregroundAgain(); XCTAssertNil(model.error)
+        await model.start(); model.player.pause(); XCTAssertNil(model.error)
+        let second = try XCTUnwrap(model.resumablePractice)
+        XCTAssertNotEqual(first.id, second.id)
+        XCTAssertFalse(model.canOpenHistoryRecord(first))
+        model.navigate(.history)
+        await model.open(first)
+        XCTAssertNotNil(model.error, "History must not bypass the single-slot rule")
+        XCTAssertEqual(model.session?.id, second.id); model.error = nil
+
+        let restored = AppModel(demoScope: scope); restored.demo = true
+        await restored.connect(); XCTAssertEqual(restored.resumablePractice?.id, second.id)
+        await restored.open(try XCTUnwrap(restored.resumablePractice))
+        XCTAssertNil(restored.error); XCTAssertEqual(restored.screen, .exam)
+        await restored.submit(); XCTAssertNil(restored.error)
+        XCTAssertEqual(restored.resumablePractice?.id, second.id, "Submission still needs self-assessment")
+        await restored.savePracticeAssessment(completed: false); XCTAssertNil(restored.error)
+        XCTAssertEqual(restored.resumablePractice?.id, second.id)
+        await restored.savePracticeAssessment(completed: true); XCTAssertNil(restored.error)
+        XCTAssertNil(restored.resumablePractice)
+        let completed = AppModel(demoScope: scope); completed.demo = true
+        await completed.connect(); XCTAssertNil(completed.error)
+        XCTAssertNil(completed.resumablePractice, "Completing the current slot must not resurrect the older one")
+        XCTAssertTrue(completed.history.contains { $0.id == first.id }, "Learning history stays available")
+        completed.switchAccount(); XCTAssertNil(completed.practiceResumeId)
+    }
+
+    func testPracticeSlotMigrationEmptyMarkerAndAccountIsolation() throws {
+        let store = try LocalStore(scope: "practice-slot-store-" + UUID().uuidString)
+        let other = try LocalStore(scope: "practice-slot-other-" + UUID().uuidString)
+        defer { try? store.removeAll(); try? other.removeAll() }
+        var old = SessionRecord(attempt: try Bundled.decode("attempt-started"))
+        old.attempt.mode = "practice"; old.attempt.gradingMode = "self"
+        old.attempt.createdAt = Date(timeIntervalSince1970: 100)
+        var latest = old; latest.attempt.id = UUID(); latest.attempt.createdAt = Date(timeIntervalSince1970: 200)
+        latest.attempt.status = "submitted"
+        latest.selfAssessment = PracticeAssessment(attemptId: latest.id, answerId: UUID(), mode: "practice",
+            gradingMode: "self", source: "self", featureAnalysisId: nil, status: "completed", revision: 1,
+            errors: [], completedAt: Date(), updatedAt: Date(), serverTime: Date())
+        XCTAssertNil(try store.practiceResume(records: [old, latest]), "Migrate the latest Practice, not the latest unfinished one")
+        XCTAssertNil(try store.practiceResume(records: [old]), "An explicit empty slot survives later launches")
+        try store.savePracticeResume(old.id)
+        XCTAssertEqual(try store.practiceResume(records: [old, latest]), old.id)
+        XCTAssertNil(try other.practiceResume(records: []))
+        var exam = old; exam.attempt.mode = "exam"; exam.attempt.gradingMode = "demo"
+        XCTAssertNil(try store.practiceResume(records: [exam]), "Exam is never a Practice resume target")
+        XCTAssertNil(try store.practiceResume(records: [old]), "An invalid pointer must be cleared durably")
+    }
+
     func testPracticeSubmitSelfAssessRestoreAndCompleteWithoutAI() async throws {
         let model = AppModel(); model.demo = true
         await model.connect(); XCTAssertNil(model.error)

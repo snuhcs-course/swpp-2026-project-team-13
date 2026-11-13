@@ -20,6 +20,7 @@ import XCTest
         await model.chooseExam(try XCTUnwrap(model.examOffer?.choices.first { $0.category == "matched" && $0.questionId != nil })); await model.begin(); await model.start(); model.player.pause()
         XCTAssertNil(model.error)
         let id = try XCTUnwrap(model.session?.id)
+        XCTAssertNil(model.resumablePractice, "Exam uses its dedicated restore flow")
         XCTAssertTrue(model.isUnfinished(try XCTUnwrap(model.history.first { $0.id == id })))
         await model.submit()
         XCTAssertNil(model.error)
@@ -33,6 +34,7 @@ import XCTest
         await model.submit()
         XCTAssertNil(model.error); XCTAssertEqual(model.session?.attempt.status, "submitted")
         XCTAssertTrue(model.isUnfinished(try XCTUnwrap(model.history.first { $0.id == model.session?.id })))
+        XCTAssertEqual(model.resumablePractice?.id, model.session?.id)
     }
 
     func testLogoutReturnsToHomeForTheNextAccount() async {
