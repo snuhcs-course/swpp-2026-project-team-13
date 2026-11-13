@@ -142,40 +142,6 @@ struct HomeView: View {
         }.padding(20).frame(maxWidth:.infinity,minHeight:200,alignment:.topLeading).background(.white,in:RoundedRectangle(cornerRadius:16))
     }
 }
-struct QuestionView: View {
-    @ObservedObject var model: AppModel
-    var body: some View {
-        ScrollView { if let q = model.selectedQuestion {
-            VStack(alignment: .leading, spacing: 28) {
-                SectionCaption(eyebrow:model.selectedMode == .exam ? "RECOMMENDED EXAM" : "READY TO LISTEN",title:q.title,subtitle:model.selectedMode == .practice ? "멜로디를 듣고 빈 오선에 적은 뒤 정답과 직접 비교해요." : q.description)
-                Text(model.selectedMode.title + " · " + model.selectedMode.detail).font(.subheadline).foregroundStyle(SolfegeTheme.violet)
-                HStack {
-                    if model.selectedMode == .exam { Pill(text:"추천 문제",icon:"sparkles") }
-                    Pill(text:q.keySignature.label,icon:"music.note")
-                    Pill(text:"\(q.timeSignature.numerator)/\(q.timeSignature.denominator) · 8마디")
-                    if let tempo = q.tempo { Pill(text:tempo.label,icon:"metronome") }
-                    Pill(text:"권장 \(q.recommendedDurationSeconds/60)분 \(q.recommendedDurationSeconds%60)초",icon:"clock")
-                }
-                Card { VStack(alignment: .leading, spacing: 24) {
-                    Text(model.selectedMode == .practice ? "연습은 이렇게 진행돼요" : "시험은 이렇게 진행돼요").font(.title2.bold())
-                    instruction("01", "스케일과 멜로디 듣기", "시작 2초 후 스케일을 듣고, 2초 뒤 예비박과 첫 전체 재생이 이어져요. 마지막 전체 재생 앞에도 예비박이 나와요.")
-                    instruction("02", "Pencil로 오선에 기록하기", "검정 펜으로 자유롭게 적어 주세요. 필기는 이 iPad에 자동 저장돼요.")
-                    instruction("03", "답안을 제출하고 확인하기", model.selectedMode == .practice ? "정답과 내 악보를 나란히 보고 틀린 마디의 음정·리듬·기타를 직접 표시해요. 여러 항목을 함께 선택할 수 있어요." : "AI가 채점한 점수와 피드백을 정답 악보·내 답안과 함께 확인해요.")
-                } }
-                Label("이어폰과 음량을 확인해 주세요", systemImage: "headphones").font(.headline)
-                Text("악보와 피아노를 모두 준비한 뒤 시작 버튼이 나타나요. 권장 시간이 지나도 필기와 수동 제출을 계속할 수 있어요. 재생을 멈춘 시간에도 타이머는 흐릅니다.").font(.subheadline).foregroundStyle(.secondary).lineSpacing(6)
-                if model.demo { DemoBadge() }
-                Button { Task { await model.begin() } } label: { Label(model.selectedMode == .practice ? "연습 준비하기" : "시험 준비하기", systemImage:"arrow.right") }.buttonStyle(PrimaryButton())
-            }.padding(36).frame(maxWidth: 960, alignment: .leading).frame(maxWidth: .infinity)
-        } }
-    }
-    func instruction(_ index: String, _ title: String, _ detail: String) -> some View {
-        HStack(alignment: .top, spacing: 18) {
-            Text(index).font(.caption.bold()).foregroundStyle(SolfegeTheme.violet).padding(12).background(SolfegeTheme.soft, in: Circle())
-            VStack(alignment: .leading, spacing: 6) { Text(title).font(.headline); Text(detail).font(.subheadline).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true) }
-        }
-    }
-}
 struct HistoryView: View {
     @ObservedObject var model: AppModel
     var body: some View {
