@@ -92,7 +92,12 @@ import SwiftUI
         } catch { storageFailed = true; self.error = "기기에 기록을 저장하지 못했어요. \(error.localizedDescription)" }
     }
     func retryStorage() { save() }
-    func newSet() {
+    // Daily Training plays the first round of a regular set.
+    func newDailyRound(difficulty: MemoryDifficulty) {
+        level = difficulty.rawValue
+        newSet(limit:1)
+    }
+    func newSet(limit: Int? = nil) {
         guard let catalog, connection != nil, !storageFailed else { return }
         if draft != nil && draft?.finished == false { abandon() }
         var bank = catalog; bank.rounds = bank.rounds.filter { currentRoundIds.contains($0.id) }
@@ -104,7 +109,8 @@ import SwiftUI
         let selected = bank.set(recentSourceIds:heard.suffix(20).compactMap { byId[$0.roundId]?.questionId },
             recentRhythmKeys:Set(heard.suffix(40).compactMap { byId[$0.roundId]?.rhythmKey }))
         guard !selected.isEmpty else { error = "이 난이도의 문제가 없어요."; return }
-        begin(set:selected.map(\.id),index:0)
+        let ids = selected.map(\.id)
+        begin(set:limit.map { Array(ids.prefix($0)) } ?? ids,index:0)
     }
     private func begin(set: [String], index: Int, hash: String? = nil) {
         guard let r = catalog?.rounds.first(where: { $0.id == set[index] }) else { return }

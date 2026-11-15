@@ -162,6 +162,13 @@ import SwiftUI
             queueStart()
         } catch { self.error = error.localizedDescription }
     }
+    // Daily Training plays one question of a regular set.
+    func newDailyRound(difficulty: MemoryDifficulty) {
+        settings.mode = .memory; self.difficulty = difficulty
+        newSet()
+        guard setExcerpts.count > 1 else { return }
+        setExcerpts = [setExcerpts[0]]; setScores = [nil]
+    }
     private func queueStart() {
         transition?.cancel()
         stopReplay()
