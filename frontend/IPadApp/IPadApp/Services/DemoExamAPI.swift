@@ -82,7 +82,9 @@ import Foundation
         try difficulty.validate(); difficultyManifest = difficulty
         let revisions: [Question] = try Bundled.decode("sheet-revisions")
         let tempoRevisions: [Question] = try Bundled.decode("classical-tempo-revisions")
-        let current = Dictionary(uniqueKeysWithValues:(revisions + tempoRevisions).map { ($0.id,$0) })
+        let alignedSheets: [Question] = try Bundled.decode("sheet-revisions-v5")
+        // The highest published version wins, as on the server.
+        let current = Dictionary((revisions + tempoRevisions + alignedSheets).map { ($0.id,$0) }) { $0.version >= $1.version ? $0 : $1 }
         let values = (practice + classical + brahms + mahler + additional + bank).map { current[$0.id] ?? $0 }
         let engraving: EngravingManifest = try Bundled.decode("engraving-manifest")
         cachedEngraving = engraving

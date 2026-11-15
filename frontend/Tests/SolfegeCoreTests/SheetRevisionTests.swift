@@ -25,4 +25,22 @@ final class SheetRevisionTests: XCTestCase {
             try old.validate()
         }
     }
+    func testV5RevisionsShareBarlinesAcrossBothStavesAndRejectMisalignment() throws {
+        let revisions = try ContractJSON.decoder().decode([Question].self,from:Data(contentsOf:resources.appendingPathComponent("sheet-revisions-v5.json")))
+        XCTAssertFalse(revisions.isEmpty)
+        for q in revisions {
+            try q.validate()
+            let layout = q.sheetLayout
+            XCTAssertTrue(layout.id.hasSuffix("-v5"))
+            XCTAssertEqual(layout.displayHeight,574)
+            XCTAssertEqual(layout.systems[1].staffLineY,[340,352,364,376,388])
+            XCTAssertEqual(layout.systems[0].barlineX,layout.systems[1].barlineX)
+            var shifted = q; shifted.sheetLayout.systems[1].barlineX[2] += 20
+            XCTAssertThrowsError(try shifted.validate())
+        }
+        let layouts = Dictionary(revisions.map { ($0.sheetLayout.id,$0.sheetLayout) }) { a,_ in a }
+        for layout in layouts.values {
+            XCTAssertEqual(try Data(contentsOf:resources.appendingPathComponent(layout.id+".pngdata")).sha256,layout.templateSha256)
+        }
+    }
 }

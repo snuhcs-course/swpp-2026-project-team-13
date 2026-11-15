@@ -43,7 +43,7 @@ struct SheetLayout: Codable, Equatable {
         if ["staff-8bars-v1", "staff-8bars-4-4-v2", "staff-8bars-3-4-v2", "staff-8bars-6-8-v2", "staff-8bars-2-4-v2", "staff-8bars-7-8-v2", "staff-8bars-9-8-v2", "staff-8bars-12-8-v2"].contains(id) { return true }
         for meter in [(2,2),(3,2),(4,2),(2,4),(3,4),(4,4),(5,4),(6,4),(2,8),(3,8),(4,8),(5,8),(6,8),(7,8),(9,8),(12,8)] {
             for fifths in -7...7 {
-                if [3,4].contains(where: { id == "staff-8bars-\(meter.0)-\(meter.1)-key\(fifths)-v\($0)" }) { return true }
+                if [3,4,5].contains(where: { id == "staff-8bars-\(meter.0)-\(meter.1)-key\(fifths)-v\($0)" }) { return true }
             }
         }
         return false
@@ -54,7 +54,15 @@ struct SheetLayout: Codable, Equatable {
               systems.count == 2, systems.allSatisfy({ $0.staffLineY.count == 5 && $0.barlineX.count == 5 }) else {
             throw SolfegeError.unsupported("지원하지 않는 오선 템플릿입니다.")
         }
-        if id.hasSuffix("-v4") {
+        if id.hasSuffix("-v5") {
+            // Second staff moved up and barlines shared by both staves (S11 v5 sheet).
+            guard displayHeight == 574, systems[0].staffLineY == [164,176,188,200,212],
+                  systems[1].staffLineY == [340,352,364,376,388], systems[0].barlineX == systems[1].barlineX,
+                  systems[0].barlineX.first == 54, systems[0].barlineX.last == 1276,
+                  zip(systems[0].barlineX, systems[0].barlineX.dropFirst()).allSatisfy({ $0 < $1 }) else {
+                throw SolfegeError.unsupported("새 오선의 필기 좌표가 일치하지 않습니다.")
+            }
+        } else if id.hasSuffix("-v4") {
             guard displayHeight == 620, systems[0].staffLineY == [164,176,188,200,212],
                   systems[1].staffLineY == [386,398,410,422,434] else { throw SolfegeError.unsupported("새 오선의 필기 좌표가 일치하지 않습니다.") }
         } else if displayHeight != nil && displayHeight != logicalHeight {
@@ -116,8 +124,8 @@ struct Question: Codable, Identifiable, Equatable {
               timeSignature.supported, measureCount == 8,
               timePolicy == "advisory", clef == "treble", contentPolicy == "client_readable_practice",
               scoreVisibility == "after_submission" else { throw SolfegeError.unsupported("지원하지 않는 문제 형식입니다.") }
-        if collection == "classical" || keySignature.fifths != 0 || keySignature.mode == "minor" || sheetLayout.id.hasSuffix("-v4") {
-            guard [3,4].contains(where: { sheetLayout.id == "staff-8bars-\(timeSignature.numerator)-\(timeSignature.denominator)-key\(keySignature.fifths)-v\($0)" })
+        if collection == "classical" || keySignature.fifths != 0 || keySignature.mode == "minor" || sheetLayout.id.hasSuffix("-v4") || sheetLayout.id.hasSuffix("-v5") {
+            guard [3,4,5].contains(where: { sheetLayout.id == "staff-8bars-\(timeSignature.numerator)-\(timeSignature.denominator)-key\(keySignature.fifths)-v\($0)" })
             else { throw SolfegeError.unsupported("문제의 조표·오선이 일치하지 않습니다.") }
         }
         if collection == "classical" {
