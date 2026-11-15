@@ -64,6 +64,10 @@ struct ContentView: View {
                     if model.screen == .question, let question = model.selectedQuestion {
                         Text(model.selectedMode == .exam ? StudyMode.exam.title : question.title)
                             .font(.system(size: 22, weight: .bold)).foregroundStyle(SolfegeTheme.ink).accessibilityAddTraits(.isHeader)
+                    } else if model.screen == .exam, let attempt = model.session?.attempt {
+                        // S11: only Practice names the question; Exam stays anonymous.
+                        Text(attempt.studyMode == .exam ? StudyMode.exam.title : attempt.question.title)
+                            .font(.system(size: 20, weight: .bold)).foregroundStyle(SolfegeTheme.ink).accessibilityAddTraits(.isHeader)
                     }
                 }
             }

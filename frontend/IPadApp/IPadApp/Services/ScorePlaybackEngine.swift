@@ -31,6 +31,8 @@ import AudioToolbox
     private var prepared = false
     private var waitAnchor: TimeInterval?
     private var waitInitialMs = 0
+    // Start of the sounding segment (system uptime) and the offset it resumed from.
+    private var segmentAnchor: (uptime: TimeInterval, offset: TimeInterval)?
     private var graphNeedsRebuild = true
     private var playbackGeneration = UUID()
     private var instrumentURL: URL?
@@ -50,10 +52,20 @@ import AudioToolbox
         // Stop the active sequencer and cancel its runner before scheduling a
         // single replacement. Repeated taps update that pending target safely.
         playbackGeneration = UUID(); runner?.cancel(); runner = nil
-        waitAnchor = nil; silence(); isPlaying = false; cursor = next
+        waitAnchor = nil; segmentAnchor = nil; silence(); isPlaying = false; cursor = next
         // Keep the live audio graph warm. Loading the piano bank again on
         // every tap would make the requested short lead feel much longer.
         message = "\(next.index + 1) / 11 재생 준비 · 1.5초"
+        do { try onCursor?(cursor); resume() }
+        catch { pause(); onError?(error) }
+    }
+
+    // Practice only: replay one of the 11 segments from its beginning, then continue in order.
+    func jump(to index: Int) {
+        guard prepared, (1...11).contains(index) else { return }
+        playbackGeneration = UUID(); runner?.cancel(); runner = nil
+        waitAnchor = nil; segmentAnchor = nil; silence(); isPlaying = false; scaleStartedAt = nil
+        cursor = PlaybackCursor(index: index, phase: "segment")
         do { try onCursor?(cursor); resume() }
         catch { pause(); onError?(error) }
     }
@@ -115,7 +127,7 @@ import AudioToolbox
     func stopForPreparation() { prepared = false; pause() }
     func restore(_ cursor: PlaybackCursor) {
         self.cursor = cursor
-        message = cursor.index > 11 ? "필기 시간 종료 · 답안을 제출해 주세요" : "재생 계속을 누르면 저장된 단계부터 이어져요"
+        message = cursor.index > 11 ? "필기 시간 종료 · 답안을 제출해 주세요" : "재생을 누르면 멈춘 곳부터 이어져요"
     }
     private func countIn(index:Int) -> CountInPlayback? {
         guard let count = plan?.countIn, count.beforeStepOrders.contains(index) else { return nil }
@@ -135,6 +147,10 @@ import AudioToolbox
         for (trackIndex,track) in seq.tracks.enumerated() {
             track.destinationAudioUnit = trackIndex == 1 && countIn(index:index) != nil ? metronome : sampler
         }
+    }
+    private func checkpointSegment() {
+        guard let anchor = segmentAnchor, cursor.phase == "segment" else { return }
+        cursor.segmentOffsetMs = max(0, Int((anchor.offset + ProcessInfo.processInfo.systemUptime - anchor.uptime) * 1000))
     }
     private func checkpointWait() {
         if let anchor = waitAnchor {
@@ -190,21 +206,26 @@ import AudioToolbox
                         route(seq,index:index)
                         seq.currentPositionInBeats = 0; seq.prepareToPlay()
                         let count = countIn(index:index)
-                        message = count.map { "예비박 · \($0.beatsPerMeasure)/\($0.beatUnit) · \($0.beatsPerMeasure)박" }
-                            ?? (index == 0 ? "스케일 제시" : "\(index) / 11 · \(plan.steps[index-1].fromMeasure)–\(plan.steps[index-1].toMeasure)마디")
-                        try seq.start()
-                        if index == 0 { scaleStartedAt = Date() }
-                        let began = ProcessInfo.processInfo.systemUptime
                         let bars = index == 0 ? plan.scale.toMeasure-plan.scale.fromMeasure+1 : plan.steps[index-1].toMeasure-plan.steps[index-1].fromMeasure+1
                         let countTicks = count?.totalTicks ?? 0
                         let seconds = Double(bars*score.ticksPerMeasure+countTicks) / 480 * 60 / Double(plan.tempoBpm)
-                        if countTicks > 0 {
-                            try await Task.sleep(for:.seconds(Double(countTicks) / 480 * 60 / Double(plan.tempoBpm)))
-                            message = "\(index) / 11 · 1–8마디"
+                        let countSeconds = Double(countTicks) / 480 * 60 / Double(plan.tempoBpm)
+                        // A segment paused part-way continues from where it stopped.
+                        let offset = min(seconds, Double(cursor.segmentOffsetMs ?? 0) / 1000)
+                        if offset > 0 { seq.currentPositionInSeconds = offset }
+                        let section = index == 0 ? "스케일 제시" : "\(index) / 11 · \(plan.steps[index-1].fromMeasure)–\(plan.steps[index-1].toMeasure)마디"
+                        message = offset < countSeconds ? count.map { "예비박 · \($0.beatsPerMeasure)/\($0.beatUnit) · \($0.beatsPerMeasure)박" } ?? section : section
+                        try seq.start()
+                        let began = ProcessInfo.processInfo.systemUptime
+                        segmentAnchor = (began, offset)
+                        if index == 0 { scaleStartedAt = Date().addingTimeInterval(-offset) }
+                        if countTicks > 0, offset < countSeconds {
+                            try await Task.sleep(for:.seconds(countSeconds - offset))
+                            message = section
                         }
-                        let remaining = max(0,seconds-(ProcessInfo.processInfo.systemUptime-began))
+                        let remaining = max(0,seconds-offset-(ProcessInfo.processInfo.systemUptime-began))
                         if remaining > 0 { try await Task.sleep(for:.seconds(remaining)) }
-                        seq.stop()
+                        seq.stop(); segmentAnchor = nil; cursor.segmentOffsetMs = nil
                         if index == 0 { scaleStartedAt = nil }
                         sampler.sendController(123,withValue:0,onChannel:0)
                         metronome.sendController(123,withValue:0,onChannel:0)
@@ -233,10 +254,11 @@ import AudioToolbox
         playbackGeneration = UUID(); graphNeedsRebuild = true
         runner?.cancel(); runner = nil
         checkpointWait(); waitAnchor = nil
+        checkpointSegment(); segmentAnchor = nil
         silence(); engine.pause(); isPlaying = false; scaleStartedAt = nil
         if prepared, cursor.index <= 11 {
             if wasPlaying { do { try onCursor?(cursor) } catch { onError?(error) } }
-            message = "일시 정지 · 재생 구간은 처음부터, 필기 시간은 남은 시간부터 이어져요"
+            message = "일시 정지 · 재생하면 멈춘 곳부터 이어져요"
         }
     }
 }

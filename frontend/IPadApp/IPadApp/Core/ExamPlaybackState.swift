@@ -5,6 +5,8 @@ struct PlaybackCursor: Codable, Equatable {
     var phase = "initial" // initial, segment, gap; legacy phases still decode
     var remainingWaitMs: Int? = nil
     var shortenedGap: Bool? = nil
+    // Where a paused segment stopped, so resuming continues from that point.
+    var segmentOffsetMs: Int? = nil
 
     static let nextSegmentLeadMs = 1500
     var canSkipForward: Bool {
@@ -18,7 +20,7 @@ struct PlaybackCursor: Codable, Equatable {
         // queued target forward, including while the 1.5-second lead is running.
         if shortenedGap == true { index += 1 }
         let remaining = phase == "gap" && shortenedGap != true ? remainingWaitMs : nil
-        phase = "gap"; shortenedGap = true
+        phase = "gap"; shortenedGap = true; segmentOffsetMs = nil
         remainingWaitMs = min(remaining ?? Self.nextSegmentLeadMs,Self.nextSegmentLeadMs)
         return true
     }
