@@ -22,7 +22,8 @@ from rest_framework.renderers import JSONRenderer
 from .accounts import delete_account, profile_body
 from .renderers import MXLRenderer, PNGRenderer
 from .engraving import reference_asset
-from .playback import make_playback_plan, timed_question
+from .playback import make_playback_plan
+from .practice_bank import timed_practice_question as timed_question
 from .errors import ContractError
 from .idempotency import run_idempotent, uuid_value
 from .models import Answer, Attempt, GradingJob, Question, QuestionVersion, SelfAssessmentRevision, UserProfile
@@ -49,7 +50,7 @@ def result_location(request, attempt):
 def new_job(attempt, answer):
     if attempt.mode != "exam":
         raise ContractError("AI_GRADING_NOT_AVAILABLE", "Practice는 자기채점으로 진행합니다.", 409)
-    job = GradingJob.objects.create(attempt=attempt, answer=answer, grading_version=attempt.grading_version, model=settings.OPENROUTER_MODEL, reasoning_effort=settings.OPENROUTER_REASONING_EFFORT, prompt_version=settings.AI_PROMPT_VERSION, timeout_seconds=settings.AI_TIMEOUT_SECONDS, max_output_tokens=settings.AI_MAX_OUTPUT_TOKENS, prompt_text=(settings.BASE_DIR / "solfege" / "grading-prompt-v2.txt").read_text(encoding="utf-8") + "\n" + (settings.BASE_DIR / "solfege" / "notation-rules-v1.txt").read_text(encoding="utf-8"))
+    job = GradingJob.objects.create(attempt=attempt, answer=answer, grading_version=attempt.grading_version, model=settings.OPENROUTER_MODEL, reasoning_effort=settings.OPENROUTER_REASONING_EFFORT, prompt_version=settings.AI_PROMPT_VERSION, timeout_seconds=settings.AI_TIMEOUT_SECONDS, max_output_tokens=settings.AI_MAX_OUTPUT_TOKENS, prompt_text=(settings.BASE_DIR / "solfege" / "grading-prompt-v3.txt").read_text(encoding="utf-8") + "\n" + (settings.BASE_DIR / "solfege" / "notation-rules-v2.txt").read_text(encoding="utf-8"))
     attempt.current_job = job
     return job
 
@@ -76,7 +77,7 @@ def questions(request):
     try:
         page = int(request.query_params.get("page", "1"))
         size = int(request.query_params.get("page_size", "20"))
-        if str(page) != request.query_params.get("page", "1") or page < 1 or not 1 <= size <= 50:
+        if str(page) != request.query_params.get("page", "1") or page < 1 or not 1 <= size <= 200:
             raise ValueError
     except ValueError:
         raise ContractError("INVALID_PAGE", "페이지 범위를 확인해 주세요.") from None
@@ -89,13 +90,21 @@ def questions(request):
         raise ContractError("INVALID_PAGE", "없는 페이지입니다.")
     # Select exactly the advertised current version, even when old versions remain for existing attempts.
     result = []
-    for version in items[(page - 1) * size:page * size]:
+    versions = list(items[(page - 1) * size:page * size])
+    # Completion belongs to the learner, not the device or the catalog version.
+    # A later review edit does not turn a previously solved question into a new one.
+    completed = set(SelfAssessmentRevision.objects.filter(
+        attempt__user=request.user, attempt__mode="practice", attempt__status="submitted",
+        attempt__question_version__question_id__in=[v.question_id for v in versions], completed=True,
+    ).values_list("attempt__question_version__question_id", flat=True))
+    for version in versions:
         metadata = timed_question(version.metadata)
         summary = {k: metadata[k] for k in ("id", "version", "title", "source", "key_signature", "time_signature", "measure_count", "recommended_duration_seconds", "tempo")}
-        summary.update({k: metadata[k] for k in ("collection", "composer") if k in metadata})
+        summary.update({k: metadata[k] for k in ("collection", "composer", "practice_level", "difficulty_score", "difficulty_version") if k in metadata})
         difficulty = practice_difficulty(metadata)
         if difficulty is not None:
             summary["difficulty"] = difficulty
+        summary["practice_completed"] = version.question_id in completed
         result.append(summary)
     def url(p):
         return absolute(request, f"/api/v1/questions/?page={p}&page_size={size}&collection={collection}")
@@ -103,7 +112,7 @@ def questions(request):
 
 @api_view(["GET"])
 def recommended_question(request):
-    version = recommended_version()
+    version = recommended_version(request.user)
     if version is None:
         raise ContractError("RECOMMENDATION_UNAVAILABLE", "추천할 문제가 없습니다.", 404)
     return Response(question_json(request, timed_question(version.metadata)))
@@ -113,6 +122,12 @@ def question_detail(request, question_id):
     question = get_object_or_404(Question, id=question_id, published=True)
     version = get_object_or_404(QuestionVersion, question=question, version=question.current_version)
     return Response(question_json(request, timed_question(version.metadata)))
+
+
+@api_view(["GET"])
+def exam_recommendations(request):
+    from .exam_rating import offer_for
+    return Response(offer_for(request.user))
 
 @api_view(["POST"])
 @parser_classes([JSONParser])
@@ -131,6 +146,14 @@ def create_attempt(request):
             raise ContractError("QUESTION_VERSION_MISMATCH", "문제 버전이 변경되었습니다.", 409)
         version = get_object_or_404(QuestionVersion, question=question, version=version_number)
         snapshot = timed_question(version.metadata)
+        rating_snapshot = None
+        if mode == "exam":
+            from .exam_rating import reserve_exam
+            rating_snapshot = reserve_exam(request.user, version, snapshot)
+        elif snapshot.get("collection") != "classical":
+            from .question_pools import membership
+            if membership(question_id) != "practice":
+                raise ContractError("QUESTION_NOT_IN_PRACTICE_POOL", "Practice 전용 문제를 선택해 주세요.", 409)
         plan = make_playback_plan(snapshot)
         try:
             analysis = ensure_question_analysis(version)
@@ -139,7 +162,8 @@ def create_attempt(request):
         attempt = Attempt.objects.create(user=request.user, question_version=version, question_snapshot=snapshot, playback_plan=plan,
                                          mode=mode, feature_analysis=analysis,
                                          grading_mode="self" if mode == "practice" else "automatic",
-                                         grading_version="self-measure-v1" if mode == "practice" else "ai-melodic-v1")
+                                         grading_version="self-measure-v1" if mode == "practice" else "ai-melodic-v2",
+                                         exam_rating_snapshot=rating_snapshot)
         return attempt_json(request, attempt), 201, absolute(request, f"/api/v1/attempts/{attempt.id}/")
     return run_idempotent(request, dict(request.data), operation)
 

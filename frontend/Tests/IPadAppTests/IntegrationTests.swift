@@ -5,8 +5,9 @@ import ImageIO
 @testable import IPadApp
 
 @MainActor final class IntegrationTests:XCTestCase {
+    private let demoScope = "exam-test-"+UUID().uuidString
     func testDemoReferenceAssetRoutesReturnPinnedPNGWithOrWithoutSlash() async throws {
-        let api = try DemoExamAPI(outcome:"completed")
+        let api = try DemoExamAPI(outcome:"completed",storageScope:demoScope)
         let page = try await api.questions(page:1)
         for summary in page.results {
             let q = try await api.question(summary.id)
@@ -28,7 +29,7 @@ import ImageIO
         }
     }
     func testReferenceImagesAndCompactAnswerRenderTogether() async throws {
-        let api = try DemoExamAPI(outcome:"completed")
+        let api = try DemoExamAPI(outcome:"completed",storageScope:demoScope)
         let questions = try await api.questions(page:1)
         for summary in questions.results {
             let q = try await api.question(summary.id)
@@ -54,14 +55,14 @@ import ImageIO
     func testVoiceSelectionPersistsAndCanPrepareNextProblem() async throws {
         let saved = UserDefaults.standard.string(forKey:"sori.voice")
         defer { UserDefaults.standard.set(saved,forKey:"sori.voice") }
-        let model = AppModel(); model.demo = true
+        let model = AppModel(demoScope:demoScope); model.demo = true
         await model.connect(); XCTAssertNil(model.error)
         for voice in model.instrumentVoices {
             model.selectVoice(voice.id)
-            await model.choose(try XCTUnwrap(model.questions.first?.id)); await model.begin()
+            await model.choose(try XCTUnwrap(model.questions.first?.id),mode:.practice); await model.begin()
             XCTAssertNil(model.error); XCTAssertTrue(model.prepared)
             XCTAssertEqual(model.player.voiceId,voice.id)
-            let restored = AppModel()
+            let restored = AppModel(demoScope:demoScope)
             XCTAssertEqual(restored.selectedVoice,voice.id)
             model.player.pause()
         }
@@ -96,9 +97,9 @@ import ImageIO
         XCTAssertEqual(try store.read("submission.png",id:r.id),png);XCTAssertEqual(try store.read("drawing.pkdrawing",id:r.id),drawing)
     }
     func testRealAppFlowPrepareStartSubmitAndRestoreResult() async throws {
-        let model=AppModel();model.demo=true;model.demoOutcome="completed";await model.connect()
+        let model=AppModel(demoScope:demoScope);model.demo=true;model.demoOutcome="completed";await model.connect()
         XCTAssertNil(model.error);XCTAssertTrue(model.connected)
-        await model.choose(try XCTUnwrap(model.questions.first?.id));await model.begin()
+        await model.startRecommendedExam(); await model.chooseExam(try XCTUnwrap(model.examOffer?.choices.first { $0.category == "matched" && $0.questionId != nil })); await model.begin()
         XCTAssertNil(model.error);XCTAssertTrue(model.prepared);XCTAssertEqual(model.session?.attempt.status,"ready")
         let id=try XCTUnwrap(model.session?.id)
         await model.start();model.player.pause();XCTAssertNil(model.error);XCTAssertEqual(model.session?.attempt.status,"in_progress")
@@ -106,12 +107,13 @@ import ImageIO
         let submitted=try XCTUnwrap(model.session?.attempt.submittedAnswerId)
         try await Task.sleep(for:.seconds(5));await model.refreshResult()
         XCTAssertNil(model.error);XCTAssertEqual(model.session?.grading?.status,"completed");XCTAssertEqual(model.session?.grading?.answerId,submitted);XCTAssertNotNil(model.submittedImage);XCTAssertNotNil(model.correctScoreImage)
-        let restored=AppModel();restored.demo=true;await restored.connect();await restored.open(try XCTUnwrap(restored.history.first(where:{$0.id==id})))
+        let restored=AppModel(demoScope:demoScope);restored.demo=true;await restored.connect();await restored.open(try XCTUnwrap(restored.history.first(where:{$0.id==id})))
         XCTAssertNil(restored.error);XCTAssertEqual(restored.session?.attempt.submittedAnswerId,submitted);XCTAssertEqual(restored.session?.grading?.status,"completed")
     }
     func testDemoBackendIdempotencyAndOtherTerminalOutcomes() async throws {
         for outcome in ["needs-review","failed"] {
-            let api=try DemoExamAPI(outcome:outcome),q:Question=try Bundled.decode("question"),key=UUID()
+            let api=try DemoExamAPI(outcome:outcome,storageScope:demoScope+outcome), key=UUID()
+            let q = try await api.recommendedQuestion()
             let a=try await api.createAttempt(question:q,key:key),same=try await api.createAttempt(question:q,key:key);XCTAssertEqual(a.id,same.id)
             let started=try await api.start(a.id),twice=try await api.start(a.id);XCTAssertEqual(started.startedAt,twice.startedAt)
             let png=try Bundled.data("staff-8bars-v1",ext:"png"),client=UUID(),up=UUID()

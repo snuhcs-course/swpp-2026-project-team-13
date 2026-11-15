@@ -611,7 +611,7 @@
             "schema": {
               "type": "integer",
               "minimum": 1,
-              "maximum": 50,
+              "maximum": 200,
               "default": 20
             }
           }
@@ -3173,6 +3173,30 @@
           },
           "tempo": {
             "$ref": "#/components/schemas/TempoSetting"
+          },
+          "practice_level": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 9,
+            "description": "Fixed score-cutoff level; absent on historical snapshots and classical questions."
+          },
+          "difficulty_score": {
+            "type": "number",
+            "minimum": 0,
+            "description": "Continuous musical difficulty at the resolved playback tempo; no upper cap."
+          },
+          "difficulty_version": {
+            "type": "string"
+          },
+          "difficulty": {
+            "type": "string",
+            "description": "Legacy three-tier label; use practice_level for current practice bank."
+          },
+          "collection": {
+            "type": "string"
+          },
+          "composer": {
+            "type": "string"
           }
         },
         "required": [
@@ -3342,6 +3366,30 @@
           },
           "correct_score": {
             "$ref": "#/components/schemas/ReferenceImage"
+          },
+          "practice_level": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 9,
+            "description": "Fixed score-cutoff level; absent on historical snapshots and classical questions."
+          },
+          "difficulty_score": {
+            "type": "number",
+            "minimum": 0,
+            "description": "Continuous musical difficulty at the resolved playback tempo; no upper cap."
+          },
+          "difficulty_version": {
+            "type": "string"
+          },
+          "difficulty": {
+            "type": "string",
+            "description": "Legacy three-tier label; use practice_level for current practice bank."
+          },
+          "collection": {
+            "type": "string"
+          },
+          "composer": {
+            "type": "string"
           }
         },
         "required": [

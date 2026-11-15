@@ -19,18 +19,20 @@ class EngravingTests(unittest.TestCase):
         manifest = json.loads((CONTENT / "engraving/manifest.json").read_text(encoding="utf-8"))
         self.assertEqual(manifest, json.loads((RESOURCES / "engraving-manifest.json").read_text(encoding="utf-8")))
         self.assertEqual(manifest["style_sha256"],hashlib.sha256((ROOT / "scripts/engraving/compact-v1.mss").read_bytes()).hexdigest())
-        expected = {i["metadata"]["score_assets"]["main"]["sha256"] for filename in ("catalog.json","catalog-v1.json","classical-catalog.json","additional-practice-catalog.json","brahms-catalog.json","mahler-catalog.json") for i in json.loads((CONTENT / filename).read_text(encoding="utf-8"))}
+        catalogs=("catalog.json","catalog-v1.json","classical-catalog.json","additional-practice-catalog.json","brahms-catalog.json","mahler-catalog.json","practice-bank-catalog.json")
+        expected = {i["metadata"]["score_assets"]["main"]["sha256"] for filename in catalogs for i in json.loads((CONTENT / filename).read_text(encoding="utf-8"))}
         self.assertEqual(set(manifest["scores"]),expected)
         style = ET.parse(ROOT / "scripts/engraving/compact-v1.mss")
         self.assertEqual(style.findtext("Style/showMeasureNumber"),"0")
-        for version in ("catalog.json","catalog-v1.json","classical-catalog.json","additional-practice-catalog.json","brahms-catalog.json","mahler-catalog.json"):
+        for version in catalogs:
             for item in json.loads((CONTENT / version).read_text(encoding="utf-8")):
                 asset = manifest["scores"][item["metadata"]["score_assets"]["main"]["sha256"]]
                 data = (CONTENT / "engraving" / (asset["resource"]+".png")).read_bytes()
                 self.assertEqual(hashlib.sha256(data).hexdigest(),asset["sha256"])
                 self.assertEqual(len(data),asset["size_bytes"])
                 self.assertEqual(struct.unpack(">II",data[16:24]),(asset["pixel_width"],asset["pixel_height"]))
-                self.assertLess(asset["pixel_height"]/asset["pixel_width"],0.28 if item["metadata"]["score_assets"]["main"]["profile"]=="sori-monophonic-v3" else 0.25)
+                limit=.41 if item['metadata'].get('collection')=='practice_bank' else .28 if item["metadata"]["score_assets"]["main"]["profile"]=="sori-monophonic-v3" else .25
+                self.assertLess(asset["pixel_height"]/asset["pixel_width"],limit)
                 self.assertEqual(data,(RESOURCES / (asset["resource"]+".pngdata")).read_bytes())
     def test_hash_pinned_style_has_the_same_bytes_in_a_linux_checkout(self):
         data = (ROOT / "scripts/engraving/compact-v1.mss").read_bytes()

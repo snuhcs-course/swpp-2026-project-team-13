@@ -23,7 +23,7 @@ struct MainHomeView: View {
     // Startup also has no connection yet, so only a finished attempt counts as offline.
     private var offline: Bool { !model.connected && !model.authenticating }
     private var locked: Bool { model.busy || model.authenticating }
-    private var resumable: SessionRecord? { model.connected ? model.history.first(where: model.isUnfinished) : nil }
+    private var resumable: SessionRecord? { model.connected ? model.resumablePractice : nil }
 
     var body: some View {
         GeometryReader { proxy in
@@ -112,7 +112,7 @@ struct MainHomeView: View {
         if offline {
             noticeCard(title: "학습 공간에 연결해 주세요", detail: "설정에서 로컬 데모를 시작하거나 서버를 연결할 수 있어요.", action: "연결 설정 열기", id: "home-open-settings") { model.navigate(.settings) }
         } else if let record = resumable {
-            noticeCard(title: "\(record.attempt.studyMode.title) 이어서 하기", detail: record.attempt.question.title, action: "계속하기", id: "home-resume") { Task { await model.open(record) } }
+            noticeCard(title: "풀던 문제 이어서 하기", detail: record.attempt.question.title, action: "계속하기", id: "home-resume") { Task { await model.open(record) } }
         }
     }
     private func noticeCard(title: String, detail: String, action: String, id: String, perform: @escaping () -> Void) -> some View {

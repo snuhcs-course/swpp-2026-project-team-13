@@ -58,6 +58,17 @@ class QuestionVersion(models.Model):
     class Meta:
         constraints = [models.UniqueConstraint(fields=["question", "version"], name="question_version_unique")]
 
+
+class ExamRatingState(models.Model):
+    user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="exam_rating")
+    rating = models.FloatField(default=7.0)
+    completed = models.PositiveIntegerField(default=0)
+    offer = models.JSONField(default=dict)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        constraints = [models.CheckConstraint(condition=models.Q(rating__gte=0), name="exam_rating_nonnegative")]
+
 class FeatureAnalysis(models.Model):
     """Append-only musical analysis; selecting a newer analysis is explicit."""
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
@@ -99,6 +110,24 @@ class Attempt(models.Model):
     submitted_at = models.DateTimeField(null=True)
     submitted_answer = models.ForeignKey("Answer", null=True, on_delete=models.PROTECT, related_name="submitted_for")
     current_job = models.ForeignKey("GradingJob", null=True, on_delete=models.PROTECT, related_name="current_for")
+    # Old attempts stay unrated. Freeze the score and policy for each new exam.
+    exam_rating_snapshot = models.JSONField(null=True, blank=True)
+
+
+class ExamRatingChange(models.Model):
+    attempt = models.OneToOneField(Attempt, on_delete=models.CASCADE, related_name="rating_change")
+    before = models.FloatField()
+    after = models.FloatField()
+    delta = models.FloatField()
+    difficulty = models.FloatField()
+    grade = models.PositiveSmallIntegerField()
+    expected_score = models.FloatField()
+    completed_before = models.PositiveIntegerField()
+    k = models.FloatField()
+    model_version = models.CharField(max_length=60)
+    difficulty_version = models.CharField(max_length=60)
+    pool_version = models.CharField(max_length=60)
+    created_at = models.DateTimeField(auto_now_add=True)
 
 class Answer(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)

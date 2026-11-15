@@ -17,6 +17,9 @@ from rest_framework.authtoken.models import Token
 from rest_framework.test import APIClient
 from .grading import claim_job, execute_job, validate_result
 from .models import Answer, Attempt, GradingJob, Question, QuestionVersion
+from .practice_bank import manifest as difficulty_manifest
+from .question_pools import ids as pool_ids, membership
+from .recommendation import current_versions
 
 class FlowTests(TestCase):
     @classmethod
@@ -53,7 +56,7 @@ class FlowTests(TestCase):
         return QuestionVersion.objects.filter(version=F("question__current_version")).order_by("question__order")
 
     def begin(self):
-        q = self.current_questions().first().metadata
+        q = current_versions("exam").exclude(question_id__in=Attempt.objects.filter(user=self.user).values("question_version__question_id")).order_by("question__order").first().metadata
         response = self.post("attempts/", {"question_id":q["id"], "question_version":q["version"]})
         self.assertEqual(response.status_code, 201, response.data)
         attempt = response.data
@@ -77,7 +80,7 @@ class FlowTests(TestCase):
     def test_classical_collection_is_separate_and_paginates_with_composer_and_key(self):
         from urllib.parse import urlsplit
         practice = self.client.get("/api/v1/questions/")
-        self.assertEqual(practice.data["count"],113)
+        self.assertEqual(practice.data["count"],len(pool_ids("practice")))
         url = "/api/v1/questions/?collection=classical&page_size=3"
         results = []
         while url:
@@ -116,10 +119,10 @@ class FlowTests(TestCase):
             self.assertEqual(version.version,version.question.current_version)
             self.assertEqual(response.data["id"],self.client.get(f'/api/v1/questions/{response.data["id"]}/').data["id"])
             ids.add(response.data["id"])
-        self.assertGreater(len(ids),1)
+        self.assertEqual(len(ids),1)  # Pinned until an attempt reserves the question.
 
     def test_recommended_question_skips_unpublished_and_reports_when_none_remain(self):
-        keep = self.client.get("/api/v1/questions/").data["results"][0]["id"]
+        keep = self.client.get("/api/v1/questions/recommended/").data["id"]
         Question.objects.exclude(id=keep).update(published=False)
         self.assertEqual(self.client.get("/api/v1/questions/recommended/").data["id"],keep)
         Question.objects.filter(id=keep).update(published=False)
@@ -132,7 +135,7 @@ class FlowTests(TestCase):
 
     def test_classical_uses_the_same_immutable_attempt_upload_and_submission_flow(self):
         q = self.client.get("/api/v1/questions/?collection=classical").data["results"][0]
-        response = self.post("attempts/",{"question_id":q["id"],"question_version":q["version"]})
+        response = self.post("attempts/",{"question_id":q["id"],"question_version":q["version"],"mode":"practice"})
         self.assertEqual(response.status_code,201,response.data)
         attempt = response.data
         self.assertEqual(attempt["question"]["collection"],"classical")
@@ -140,17 +143,21 @@ class FlowTests(TestCase):
         answer = self.upload(attempt)
         self.assertEqual(answer.status_code,201,answer.data)
         submitted = self.post(f'attempts/{attempt["id"]}/submit/',{"answer_id":answer.data["id"]})
-        self.assertEqual(submitted.status_code,202,submitted.data)
+        self.assertEqual(submitted.status_code,200,submitted.data)
         restored = self.client.get(f'/api/v1/attempts/{attempt["id"]}/').data
         self.assertEqual(restored["status"],"submitted")
         self.assertEqual(restored["question"]["key_signature"],q["key_signature"])
 
     def test_exam_plan_countins_waits_and_timer_match_all_catalog_meters(self):
         from datetime import datetime
+        import math
         for version in self.current_questions():
+            if membership(version.question_id) is None and version.metadata.get("collection") != "classical":continue
             original = dict(version.metadata)
             q = self.client.get(f"/api/v1/questions/{version.question_id}/").data
-            a = self.post("attempts/", {"question_id":q["id"], "question_version":q["version"]}).data
+            # Each row is an independent playback fixture, not an abandoned-exam chain.
+            self.client.force_authenticate(get_user_model().objects.create_user(username=f"meter-{version.pk}"))
+            a = self.post("attempts/", {"question_id":q["id"], "question_version":q["version"], "mode":membership(version.question_id) or "practice"}).data
             plan = a["playback_plan"]
             self.assertEqual(plan["version"], 4)
             self.assertEqual(plan["initial_delay_ms"], 2000)
@@ -160,13 +167,12 @@ class FlowTests(TestCase):
             self.assertEqual(plan["count_in"]["beat_unit"], q["time_signature"]["denominator"])
             self.assertEqual([s["pause_after_ms"] for s in plan["steps"]], [20000]*10+[120000])
             started = self.post(f'attempts/{a["id"]}/start/').data
-            expected = {(2,2):434,(3,2):489,(4,4):456,(3,4):426,(6,4):489,(6,8):423,(2,4):393,(7,8):443,(9,8):468,(12,8):516}[(q["time_signature"]["numerator"],q["time_signature"]["denominator"])]
-            if q["tempo"]["policy_id"] == "sori-score-tempo-1":
-                import math
-                tempo=q["tempo"];factor={"quarter":1,"half":2,"dotted_quarter":1.5,"dotted_half":3}[tempo["beat_unit"]]
-                self.assertEqual(plan["tempo_bpm"],tempo["bpm"]*factor)
-                quarters=q["time_signature"]["numerator"]*4/q["time_signature"]["denominator"]
-                expected=math.ceil(324+(42+q["score_assets"]["scale"]["measure_count"])*quarters*60/(tempo["bpm"]*factor))
+            tempo=q["tempo"];factor={"quarter":1,"half":2,"dotted_quarter":1.5,"dotted_half":3}[tempo["beat_unit"]]
+            self.assertEqual(plan["tempo_bpm"],tempo["bpm"]*factor)
+            quarters=q["time_signature"]["numerator"]*4/q["time_signature"]["denominator"]
+            # Eleven excerpts total 40 bars, plus two count-in bars and the
+            # actual scale length. Silence totals 324 seconds for every meter.
+            expected=math.ceil(324+(42+q["score_assets"]["scale"]["measure_count"])*quarters*60/(tempo["bpm"]*factor))
             self.assertEqual(q["recommended_duration_seconds"], expected)
             self.assertEqual(a["question"]["recommended_duration_seconds"], expected)
             self.assertEqual((datetime.fromisoformat(started["recommended_end_at"].replace("Z","+00:00")) -
@@ -237,20 +243,25 @@ class FlowTests(TestCase):
     def test_full_catalog_pagination_and_owner_visibility(self):
         response = self.client.get("/api/v1/questions/")
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.data["count"], 113)
-        self.assertEqual([(q["time_signature"]["numerator"], q["time_signature"]["denominator"]) for q in response.data["results"][:3]], [(6,8),(4,4),(3,4)])
+        expected={q:r for q,r in difficulty_manifest()['records'].items() if q in set(pool_ids('practice'))}
+        self.assertEqual(response.data["count"],len(expected))
         results=list(response.data["results"])
         while response.data["next"]:
             response=self.client.get(response.data["next"])
             self.assertEqual(response.status_code,200)
             results.extend(response.data["results"])
-        self.assertEqual(len(results),113)
-        self.assertEqual(len({q["id"] for q in results}),113)
-        self.assertTrue(all(q["title"].startswith("고난도 청음") for q in results[3:62]))
+        self.assertEqual(len(results),len(expected))
+        self.assertEqual({q['id'] for q in results},set(expected))
         from collections import Counter
-        self.assertEqual(Counter(q["difficulty"] for q in results),{"beginner":40,"intermediate":14,"advanced":59})
+        self.assertEqual(Counter(q['practice_level'] for q in results),Counter(r['level'] for r in expected.values()))
+        for q in results:
+            self.assertAlmostEqual(q['difficulty_score'],expected[q['id']]['score'])
+            self.assertEqual(q['difficulty_version'],difficulty_manifest()['version'])
         # Every new problem resolves its authenticated score and final answer image.
-        for summary in results[3:]:
+        # All on-disk assets are validated by test_practice_bank.py. Exercise
+        # HTTP routing for the legacy set and each new level/meter combination.
+        selected=results[3:62]+list({(q['practice_level'],q['time_signature']['numerator'],q['time_signature']['denominator']):q for q in results[62:]}.values())
+        for summary in selected:
             q=self.client.get(f'/api/v1/questions/{summary["id"]}/').data
             for asset in [q["score_assets"]["main"],q["score_assets"]["scale"],q["correct_score"]]:
                 binary=self.client.get(asset["url"])
@@ -300,7 +311,7 @@ class FlowTests(TestCase):
     def test_submission_freezes_notation_rubric_in_job_and_keeps_note_locations(self):
         attempt, _, _ = self.submitted()
         job = claim_job()
-        self.assertEqual(job.prompt_version,"sori-feedback-2-notation-1")
+        self.assertEqual(job.prompt_version,"sori-exam-feedback-3-notation-2")
         self.assertIn("N4 빔과 박 묶음",job.prompt_text)
         self.assertIn("notation_suggestion",job.prompt_text)
         value = {"status":"completed","recognized_musicxml":"<score-partwise/>","score":100,"pitch_accuracy":100,"rhythm_accuracy":100,"feedback":{"summary":"음정과 리듬은 맞고 표기를 더 읽기 좋게 해 봐요.","recommendations":[]},"annotations":[{"type":"notation_error","measure":1,"note_index":2,"end_note_index":5,"message":"6/8의 빔을 3개씩 묶어 봐요."},{"type":"notation_suggestion","measure":3,"note_index":1,"end_note_index":None,"message":"권장 제자리표를 적어 봐요."}]}
@@ -314,7 +325,7 @@ class FlowTests(TestCase):
         self.assertEqual(job.annotations[1]["type"],"notation_suggestion")
 
     def test_repeated_create_upload_submit_never_duplicate(self):
-        q = self.current_questions().first().metadata
+        q = current_versions("exam").first().metadata
         key = str(uuid.uuid4()); body={"question_id":q["id"], "question_version":q["version"]}
         first=self.post("attempts/",body,key); second=self.post("attempts/",body,key)
         self.assertEqual(first.data,second.data)

@@ -1,5 +1,6 @@
 """Pure validation of model output; no database or provider dependency."""
 import math
+import copy
 
 ANNOTATION_TYPES = ["pitch_error", "rhythm_error", "missing_note", "extra_note", "recognition_uncertain", "notation_error", "notation_suggestion"]
 RESULT_SCHEMA = {"type": "object", "additionalProperties": False, "properties": {
@@ -11,6 +12,22 @@ RESULT_SCHEMA = {"type": "object", "additionalProperties": False, "properties": 
     "feedback": {"type": "object", "additionalProperties": False, "properties": {"summary": {"type": "string"}, "recommendations": {"type": "array", "items": {"type": "string"}}}, "required": ["summary", "recommendations"]},
     "annotations": {"type": "array", "items": {"type": "object", "additionalProperties": False, "properties": {"type": {"type": "string", "enum": ANNOTATION_TYPES}, "measure": {"type": ["integer", "null"]}, "note_index": {"type": ["integer", "null"], "minimum": 1, "maximum": 128}, "end_note_index": {"type": ["integer", "null"], "minimum": 1, "maximum": 128}, "message": {"type": "string"}}, "required": ["type", "measure", "note_index", "end_note_index", "message"]}},
 }, "required": ["status", "recognized_musicxml", "score", "pitch_accuracy", "rhythm_accuracy", "feedback", "annotations"]}
+
+def schema_for_version(version):
+    schema = copy.deepcopy(RESULT_SCHEMA)
+    if version == "ai-melodic-v2":
+        schema["properties"]["status"]["enum"] = ["completed"]
+        for field in ("score", "pitch_accuracy", "rhythm_accuracy"):
+            schema["properties"][field].update(type="integer" if field == "score" else "number", minimum=0, maximum=100)
+    return schema
+
+
+def validate_result_for_version(value, layout, version):
+    result = validate_result(value, layout)
+    if version == "ai-melodic-v2" and result["status"] != "completed":
+        raise ValueError("a submitted exam must receive a numeric grade")
+    return result
+
 
 def validate_result(value, layout):
     if not isinstance(value, dict) or set(value) != set(RESULT_SCHEMA["required"]) or value["status"] not in ("completed", "needs_review"):

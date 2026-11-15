@@ -1,0 +1,2255 @@
+{
+  "total": 2260,
+  "scored": 2233,
+  "accepted": 1937,
+  "excluded": [
+    {
+      "source": "trained-ear",
+      "source_id": "Batchellor-Charmbury-1884a_1-1-019",
+      "source_sha256": "adc23aa413060f30d5ea4ec352534504a1afa80fd8484d3d69c5ef109dd364e4",
+      "reason": "pickup_or_incomplete_measure",
+      "scored": true
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Batchellor-Charmbury-1884a_1-1-022",
+      "source_sha256": "0c6e9b1aeb41bfc745abdd3f66f58f2fd0162629c4eae989975e752cceee1e5e",
+      "reason": "pickup_or_incomplete_measure",
+      "scored": true
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Batchellor-Charmbury-1884a_1-1-034",
+      "source_sha256": "0fc0d6a1d832e43bd7a8ece0e2cbc4f165e1186d08544007d016fe4ad2f1fff7",
+      "reason": "pickup_or_incomplete_measure",
+      "scored": true
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Batchellor-Charmbury-1884a_1-1-036",
+      "source_sha256": "75ca3a649b19721fdd1bd3f95cb67466e72380a00629f1058bc81eb7a5642fea",
+      "reason": "pickup_or_incomplete_measure",
+      "scored": true
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Batchellor-Charmbury-1884a_1-1-044",
+      "source_sha256": "0e2abed7789cfda916b67fa47259086377d8a3dca8330b5a678737b97652fb43",
+      "reason": "pickup_or_incomplete_measure",
+      "scored": true
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Batchellor-Charmbury-1884a_1-1-049",
+      "source_sha256": "23a6bbe3d1af6cfd0701f58664b180524e9e3a4a449a9f9b6bd11ba1d8221e20",
+      "reason": "pickup_or_incomplete_measure",
+      "scored": true
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Batchellor-Charmbury-1884a_1-1-081",
+      "source_sha256": "499b5038465cc3b2b76636cdf57aef51901374163528f157e750bfa1e90fbcb6",
+      "reason": "pickup_or_incomplete_measure",
+      "scored": true
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Batchellor-Charmbury-1884a_1-1-085",
+      "source_sha256": "10706cfb234e6d0b6d8815d9c7a8aa94b9eba5e1d9723c1dd42db458de36836e",
+      "reason": "pickup_or_incomplete_measure",
+      "scored": true
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Batchellor-Charmbury-1884a_1-1-098",
+      "source_sha256": "d6d272ce70d96e1e9859046838d74af0057b74f850b65ab092fb9dc4c8dd9762",
+      "reason": "pickup_or_incomplete_measure",
+      "scored": true
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Batchellor-Charmbury-1884a_1-1-103",
+      "source_sha256": "7de646b770951f5cc990aaab08f7c6884937da944ecd1e43c117dfa6ce49d40f",
+      "reason": "pickup_or_incomplete_measure",
+      "scored": true
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Batchellor-Charmbury-1884a_1-1-112",
+      "source_sha256": "bf664c0da9ea75ec9e103a93366111f93370ff97cad61d63fb6f5fff1fd58a9e",
+      "reason": "pickup_or_incomplete_measure",
+      "scored": true
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Batchellor-Charmbury-1884b_2-2-015",
+      "source_sha256": "7afcf6845e998ac17acf735f0313a8e4969bbe40f34e63fb35c22d6c642a5ba7",
+      "reason": "pickup_or_incomplete_measure",
+      "scored": true
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Batchellor-Charmbury-1884b_2-2-016",
+      "source_sha256": "408c06a2b0eed07893499cf3173bacb58d97909097a9c8639ccbc1c3597eb35b",
+      "reason": "pickup_or_incomplete_measure",
+      "scored": true
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Batchellor-Charmbury-1884b_2-2-018",
+      "source_sha256": "83ba03de0f35fc37c0bbe61f0ae2e5490408d3650b8559a28779ca5bcda6a056",
+      "reason": "pickup_or_incomplete_measure",
+      "scored": true
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Batchellor-Charmbury-1884b_2-2-021",
+      "source_sha256": "e8fa925dd94ab8ea84ada28559981074c734469188e68570cfbf29e6ecb5636b",
+      "reason": "pickup_or_incomplete_measure",
+      "scored": true
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Batchellor-Charmbury-1884b_2-2-023",
+      "source_sha256": "533a08e26009efd6700525a81d4527fee4710a71bbb5d168696b474f733f1687",
+      "reason": "pickup_or_incomplete_measure",
+      "scored": true
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Batchellor-Charmbury-1884b_2-2-024",
+      "source_sha256": "256bcf6adecf11eae9fa6646ffd760e60e73b635bfee9e7bae72ae37a7a39fb7",
+      "reason": "pickup_or_incomplete_measure",
+      "scored": true
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Batchellor-Charmbury-1884c_3-1-013",
+      "source_sha256": "9582da9d674aeb3e813e41b896f0afd574dabfbec9b1a2ca4f9d79c8fb958179",
+      "reason": "pickup_or_incomplete_measure",
+      "scored": true
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Batchellor-Charmbury-1887a_4-1-002",
+      "source_sha256": "3e166e0d5bd892d16f6af7072651a151fd78ba89af127858a98829e8730a816c",
+      "reason": "notated_duration_mismatch at measure 1",
+      "scored": false
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Batchellor-Charmbury-1887a_4-1-012",
+      "source_sha256": "eedb851799de58373be5d442a4207d416c1f8a55802a36df50471b1842a7444c",
+      "reason": "pickup_or_incomplete_measure",
+      "scored": true
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Batchellor-Charmbury-1887a_4-1-046",
+      "source_sha256": "34d4255bb5dad4d43baf8aba35851565c03fa13ca59c3816c22926b424b0e6d9",
+      "reason": "pickup_or_incomplete_measure",
+      "scored": true
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Batchellor-Charmbury-1887a_4-1-047",
+      "source_sha256": "691a203657ecb8a826eb7952d9f9625a6c4ca2b2a4c95806463fc208cf74aab7",
+      "reason": "pickup_or_incomplete_measure",
+      "scored": true
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Batchellor-Charmbury-1887a_4-2-013",
+      "source_sha256": "97b8a252b580a5d29a61937d229ebd51c2ce10a7a5c80d3e354b66a7bf7f0788",
+      "reason": "pickup_or_incomplete_measure",
+      "scored": true
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Batchellor-Charmbury-1887a_4-2-017",
+      "source_sha256": "fa66ef0a47129d37da8c1098f7b1fcb33af12aea331a1c2d3ec9b06ad915c4e1",
+      "reason": "pickup_or_incomplete_measure",
+      "scored": true
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Batchellor-Charmbury-1887a_4-3-003",
+      "source_sha256": "e5c82311c99eaf87d1aafb5043d16bb3103808d670bb8f67bdfc71d8090d80bc",
+      "reason": "pickup_or_incomplete_measure",
+      "scored": true
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Batchellor-Charmbury-1887a_4-3-004",
+      "source_sha256": "331825664caa93703a52e4b930774ed7b924fc8f804954c8935cbfba73dab7fa",
+      "reason": "pickup_or_incomplete_measure",
+      "scored": true
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Batchellor-Charmbury-1887a_4-3-005",
+      "source_sha256": "44002ac27c7c85cd41cdfc12d058d7dff03fdcccabc3fb95a83a91c64418ccdf",
+      "reason": "pickup_or_incomplete_measure",
+      "scored": true
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Batchellor-Charmbury-1887a_4-3-006",
+      "source_sha256": "a2c919b71f64401a869a1f8c4ca6505eb01a607a81bcd0c97e122ed0edd1ca8f",
+      "reason": "pickup_or_incomplete_measure",
+      "scored": true
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Batchellor-Charmbury-1887a_4-3-007",
+      "source_sha256": "496ca350a02893528bcf22125961fb5fa21d8e6985a96b0ce093f7e21cc2d834",
+      "reason": "pickup_or_incomplete_measure",
+      "scored": true
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Boissiere-1876-1-078",
+      "source_sha256": "1cf46482bf8331c466bac17bfe552caf1f5dd6734a5d1438800a2ecd6e6a290d",
+      "reason": "repeat_requires_performance_expansion",
+      "scored": true
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Cole-Lewis-1904_1-01-067",
+      "source_sha256": "f0cad4a750d2167641a37941d47b231cc8f6e0c19e436c0cd232eb3cb92a59f7",
+      "reason": "unsupported_note_type at measure 4",
+      "scored": false
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Cole-Lewis-1904_1-01-073",
+      "source_sha256": "65f7037c409d2371b4751230546c6d116a9536b9bd025820dbe6d6d8d593fbe7",
+      "reason": "unsupported_note_type at measure 4",
+      "scored": false
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Cole-Lewis-1904_1-01-101",
+      "source_sha256": "9bc74d0e55c48f269f4d28b63a667e7cfbae991240ece1c915424164c95c1e26",
+      "reason": "unsupported_note_type at measure 4",
+      "scored": false
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Cole-Lewis-1904_1-01-115",
+      "source_sha256": "59c7c929c137e99541c3d97d3b7d6eca412a2c1f18ce63d2074acfe207a949bd",
+      "reason": "unsupported_note_type at measure 4",
+      "scored": false
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Cole-Lewis-1904_1-01-196",
+      "source_sha256": "2285bd3c7cb0a488b44c6b01cba4c3e3d77671dd9711310c9708e4ac65118722",
+      "reason": "unsupported_note_type at measure 4",
+      "scored": false
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Cole-Lewis-1904_1-01-211",
+      "source_sha256": "caa697291fd0d599cfc1defbf0410f15cfc9f73abe733a009f9d17563d926b3d",
+      "reason": "unsupported_clef",
+      "scored": true
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Cole-Lewis-1904_1-01-215",
+      "source_sha256": "a722a4c8eb2fbc20862aaad322f4f1dcfabb5c6912d89a4109c02c39bd9afc78",
+      "reason": "unsupported_clef",
+      "scored": true
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Cole-Lewis-1904_1-01-216",
+      "source_sha256": "bc79f746e508182eebefdeb472b1cbe1ddd85bc726b34c40a5e012c1b942bdef",
+      "reason": "unsupported_clef",
+      "scored": true
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Cole-Lewis-1904_1-01-219",
+      "source_sha256": "88b905f01df803fca17f8d1cfed4e9a92990558c3f93f57a9209e4657548abaf",
+      "reason": "unsupported_clef",
+      "scored": true
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Cole-Lewis-1904_1-01-220",
+      "source_sha256": "a019dd5f518db99abd14c9a92d4eb3edbb3faebd341ad494447e59ab9f5a4757",
+      "reason": "unsupported_clef",
+      "scored": true
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Cole-Lewis-1904_1-01-222",
+      "source_sha256": "7c52aeeeacc9ec5cd4511e32c1bff28540cfe3a2110f8766fa5daf68b6bfb77e",
+      "reason": "unsupported_note_type at measure 8",
+      "scored": false
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Cole-Lewis-1904_1-01-223",
+      "source_sha256": "39634ce6b40ba96e4f4567e11e0f2d853c662e80fd299bb1e53944a54d8f2513",
+      "reason": "unsupported_clef",
+      "scored": true
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Cole-Lewis-1904_1-01-224",
+      "source_sha256": "48c576f1ade3570696e1d79c5a798fc222fed53644470517a52ad94cd312b3b0",
+      "reason": "unsupported_clef",
+      "scored": true
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Cole-Lewis-1904_1-01-225",
+      "source_sha256": "1743568c3d02efdb6b8d9f497feb32ea6844130fadac624188e48a4d20e5d23f",
+      "reason": "unsupported_clef",
+      "scored": true
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Cole-Lewis-1904_1-01-237",
+      "source_sha256": "10d250c23710e9d1cac8f425e3b603aee1b48924260d1962d815b903495028a8",
+      "reason": "unsupported_clef",
+      "scored": true
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Cole-Lewis-1904_1-01-239",
+      "source_sha256": "33d8fd2bd9adc5177f731cb1e5243c7937567fddf69fd6eb5aad9c8e2de4acbd",
+      "reason": "unsupported_clef",
+      "scored": true
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Cole-Lewis-1904_1-01-240",
+      "source_sha256": "7729647ccf4ecf130762a7a38ba97391f5bbb546e2bbf1984b150a02473396da",
+      "reason": "unsupported_clef",
+      "scored": true
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Cole-Lewis-1904_1-01-242",
+      "source_sha256": "0327b5f6bddf359ccd41349b4e56707e5683b01675620f28b4e890e16882f60c",
+      "reason": "unsupported_clef",
+      "scored": true
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Cole-Lewis-1904_1-01-243",
+      "source_sha256": "6a019b964e039458e4fef8a7ea507bf821f120a4e0169cef447e9d01a12222cb",
+      "reason": "unsupported_clef",
+      "scored": true
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Cole-Lewis-1904_1-01-258",
+      "source_sha256": "ca13d9bbcfabe24b3267e4e3b4c03667d747b0793e9ea05db625c29c02e6770a",
+      "reason": "unsupported_clef",
+      "scored": true
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Cole-Lewis-1904_1-01-261",
+      "source_sha256": "67df463acfac3e75e6fd7e846b72dda67e7e37439fe06fe2236b99b1be426970",
+      "reason": "unsupported_clef",
+      "scored": true
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Cole-Lewis-1904_1-01-263",
+      "source_sha256": "a2797a0e5a852c8d0aa0d15f2aadcedf9979b62d2891bddfdbc7971b18b41fbb",
+      "reason": "unsupported_clef",
+      "scored": true
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Cole-Lewis-1904_1-01-264",
+      "source_sha256": "820fd925858cb2fe12fd16b9d74a49b9a23dd5f5161398399dfa467a20e729aa",
+      "reason": "unsupported_clef",
+      "scored": true
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Cole-Lewis-1904_1-01-265",
+      "source_sha256": "820dbf06af84fb8c0c5f5b1827d27b669548e2eaefa2f66b4eef2d03e7548ca0",
+      "reason": "unsupported_clef",
+      "scored": true
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Cole-Lewis-1904_1-01-277",
+      "source_sha256": "7b24e4d6f31003b7e21ef3ed5ca8b0d3742bdf223db21ae695cd4ac3d8a6e849",
+      "reason": "unsupported_clef",
+      "scored": true
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Cole-Lewis-1904_1-01-281",
+      "source_sha256": "723d73f7d0b4ab052b7d44f73f72d849996f42fef8a7e5574492fe58f900b500",
+      "reason": "unsupported_clef",
+      "scored": true
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Cole-Lewis-1904_1-01-303",
+      "source_sha256": "2bd249114cfec588fc687df254b474a9b3ff336c46d100deb5db8e37c7454814",
+      "reason": "unsupported_clef",
+      "scored": true
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Cole-Lewis-1904_1-01-310",
+      "source_sha256": "583b7cb31fb1c188061ae0c6a1fe6b7628e05649be9340c2f859805c8ca7ff8f",
+      "reason": "unsupported_clef",
+      "scored": true
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Cole-Lewis-1904_1-01-316",
+      "source_sha256": "f37c9ebcbe6d9b97369673ddc1fbafd87cdc03c43dd02bd298571bccd9f8f6fb",
+      "reason": "unsupported_clef",
+      "scored": true
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Cole-Lewis-1904_1-01-343",
+      "source_sha256": "2eed486be282660010fb3cae93d8dda9aab0e544f07842dec868bfffca3f54bd",
+      "reason": "unsupported_clef",
+      "scored": true
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Cole-Lewis-1904_1-01-398",
+      "source_sha256": "3dbd268cd374b4323f004124c986487208d229fa1d4982be8aca03b5df651ff5",
+      "reason": "unsupported_clef",
+      "scored": true
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Cole-Lewis-1904_1-01-413",
+      "source_sha256": "eca20c2399a51f91bdca1800c6d52ae3fab216d37548b5bc288aa609eb173d2c",
+      "reason": "unsupported_clef",
+      "scored": true
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Cole-Lewis-1904_1-01-418",
+      "source_sha256": "f920616c3d35099e02d2c8b1d489158f7807cf7255af644b7da223ede27ccbc5",
+      "reason": "unsupported_clef",
+      "scored": true
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Cole-Lewis-1904_1-01-422",
+      "source_sha256": "2120d7d4e7a5e13e9ac33638c7f0e06ebb5d2850f9b4f47fc6186984ce3afb56",
+      "reason": "unsupported_clef",
+      "scored": true
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Cole-Lewis-1904_1-01-424",
+      "source_sha256": "b3fa77c07dbc509effbe176cd22f8b525d9d27d494f65222f7718435b6d6775b",
+      "reason": "unsupported_clef",
+      "scored": true
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Cole-Lewis-1904_2-03-020",
+      "source_sha256": "724d9b1ae3e3257ecc0bccc2450c11fba952a060d2d27513cc8364b2340e401d",
+      "reason": "unsupported_clef",
+      "scored": true
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Cole-Lewis-1904_2-03-021",
+      "source_sha256": "190334378af3a6d49d3291c71498f389d154841891965674c9c14461284eba0f",
+      "reason": "unsupported_clef",
+      "scored": true
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Cole-Lewis-1904_2-03-022",
+      "source_sha256": "c4e42d012e2b4282e76699259265501651b20b10b5b6d3eca25b17abe3999e57",
+      "reason": "unsupported_clef",
+      "scored": true
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Cole-Lewis-1904_2-03-026",
+      "source_sha256": "fb1f46887dfd455043a2dbbda8fdd28c9e173f448b547a454698662cc99b76ff",
+      "reason": "unsupported_clef",
+      "scored": true
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Cole-Lewis-1904_2-03-037",
+      "source_sha256": "8a92d3230fa25f52c390d0d42d3357f82a26cf2aff4d53300897911e2795e8b0",
+      "reason": "unsupported_clef",
+      "scored": true
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Cole-Lewis-1904_2-03-048",
+      "source_sha256": "d5fef9fc954ed11d3ac817caba9fbe494e546d0623bb0432e8fca7424d9506dc",
+      "reason": "unsupported_clef",
+      "scored": true
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Cole-Lewis-1904_2-03-053",
+      "source_sha256": "4b4568de725b97b234b20b18d6336942867fff4fcf94891bf3a35c3dd45af7c2",
+      "reason": "unsupported_clef",
+      "scored": true
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Cole-Lewis-1904_2-03-061",
+      "source_sha256": "d94819301a649dd9faa571384cbee2f405ac8f6bb5ef4d29345501aa09e43c26",
+      "reason": "unsupported_clef",
+      "scored": true
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Cole-Lewis-1904_2-03-062",
+      "source_sha256": "1838acd53eb0cce8e066ab7e227f3396f9e0ddaadbd827a1f05992760bd74132",
+      "reason": "unsupported_clef",
+      "scored": true
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Cole-Lewis-1904_2-03-064",
+      "source_sha256": "9882c5cce6871e78b82f1d76cc40878ad6a2fc7e9e6e1c36db3173265dc9bf2f",
+      "reason": "unsupported_clef",
+      "scored": true
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Cole-Lewis-1904_2-03-072",
+      "source_sha256": "540bb76d0ac8d1dddf4be25c0869c1a55ff3bb1f432f6bb42ac7df2928111f1e",
+      "reason": "unsupported_clef",
+      "scored": true
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Cole-Lewis-1904_2-03-084",
+      "source_sha256": "b04f6056eb8a20faacdfe0cf53973e1a319bfee7692ad8e07d571bb91cf65376",
+      "reason": "unsupported_clef",
+      "scored": true
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Cole-Lewis-1904_2-03-086",
+      "source_sha256": "0cb2c852d004ac04d33d90acab5c0939e98fa110ffde065c767dfe5fede8c37c",
+      "reason": "unsupported_clef",
+      "scored": true
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Cole-Lewis-1904_2-03-087",
+      "source_sha256": "85582ed4464a17a2be86bfc56ac0197552db45ad775e15c28d4d127ff54a6c07",
+      "reason": "unsupported_clef",
+      "scored": true
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Cole-Lewis-1904_2-03-099",
+      "source_sha256": "32da147738c0b0f070e164702532f8e4fc71117e7d709ff1a1cec61df9b271de",
+      "reason": "unsupported_clef",
+      "scored": true
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Cole-Lewis-1904_2-03-103",
+      "source_sha256": "58125fde7dcd2cba417e1c2b14418ebc7ec23fac98d10624163d0c82062c4e7b",
+      "reason": "unsupported_clef",
+      "scored": true
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Cole-Lewis-1904_2-03-105",
+      "source_sha256": "f91a0bfebc8b7129187f06f47e1702db358327e2da74e68241b0b505f92fb3c8",
+      "reason": "unsupported_clef",
+      "scored": true
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Cole-Lewis-1904_2-03-106",
+      "source_sha256": "0e98c0e49cbb1ed93e6ba5476036ea9feff6c6ab1b1bc38a11236f4c185f2902",
+      "reason": "unsupported_clef",
+      "scored": true
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Cole-Lewis-1904_2-03-117",
+      "source_sha256": "58f3ae96d48ed1f85fe56d713862b0a0f7d6e1ea849a7ab6cafddcbc5a5692f9",
+      "reason": "unsupported_clef",
+      "scored": true
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Cole-Lewis-1904_2-03-118",
+      "source_sha256": "bb1f26977a7dd09c8e0edc4c923e2a11fdf4ed4769247c57294ca3d427fcf184",
+      "reason": "unsupported_clef",
+      "scored": true
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Cole-Lewis-1904_2-03-119",
+      "source_sha256": "9f88b23f898d742eabb28439c4c4b1770a7894ec9d43ed92c6faa26abcd293c8",
+      "reason": "unsupported_clef",
+      "scored": true
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Cole-Lewis-1904_2-03-132",
+      "source_sha256": "e855d6807216bc2043df35bfc757ba90603715ec49a6d95a3f813908f6feaeaa",
+      "reason": "unsupported_clef",
+      "scored": true
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Cole-Lewis-1904_2-03-133",
+      "source_sha256": "61c47f3cb05198e903610cce1f2ce088df0ed8895b3a843213436acebe3a8fd0",
+      "reason": "unsupported_clef",
+      "scored": true
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Cole-Lewis-1904_2-03-152",
+      "source_sha256": "d25b387d75efb4696af2f7e3856a096016fca09899566b2c88c7967cd89baf61",
+      "reason": "unsupported_clef",
+      "scored": true
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Cole-Lewis-1904_2-03-153",
+      "source_sha256": "f5df4ad499afb3e60a5891e8a8830fed0d30d224da68b90e28183dd13fba3f6e",
+      "reason": "unsupported_clef",
+      "scored": true
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Cole-Lewis-1904_2-03-163",
+      "source_sha256": "478b913500049040cb6f43987532db93f2ef4edb4010db59884d949238c6f415",
+      "reason": "unsupported_clef",
+      "scored": true
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Cole-Lewis-1904_2-03-164",
+      "source_sha256": "fa79f04cad71d1524a69ad83dcd1ce0a25ab686fdacfa3372bb95551c0766844",
+      "reason": "unsupported_clef",
+      "scored": true
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Cole-Lewis-1904_2-03-174",
+      "source_sha256": "239816a8e2163465c24d4bfdeefb75fccb7734f6f8b5449b2d0b974192def8aa",
+      "reason": "unsupported_clef",
+      "scored": true
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Cole-Lewis-1904_2-03-175",
+      "source_sha256": "e83f02e1936341629868295350cdeef5a0cdde0de780039baf93ce94699ed45f",
+      "reason": "unsupported_clef",
+      "scored": true
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Cole-Lewis-1904_2-03-209",
+      "source_sha256": "6f953e7805af8810e1964b5850f8c31a83f916ee1c44d7c4aee1a7288c4f89e5",
+      "reason": "unsupported_clef",
+      "scored": true
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Cole-Lewis-1904_2-03-210",
+      "source_sha256": "60090de92f809fdbb0432b3650133ad48e808096c769208373767e90ce4561fa",
+      "reason": "unsupported_note_type at measure 8",
+      "scored": false
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Cole-Lewis-1904_2-03-217",
+      "source_sha256": "dc69bb8ed5a5d9aeb40645e2fa1b7d68e07292d3c6a1cf50deeef740e9635246",
+      "reason": "unsupported_clef",
+      "scored": true
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Cole-Lewis-1904_2-03-226",
+      "source_sha256": "37d6f7f3cea08a562284e3ce8832d03e2ef4e3f7e2bcaa6cfad73ca7ac42af05",
+      "reason": "unsupported_clef",
+      "scored": true
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Cole-Lewis-1904_2-03-227",
+      "source_sha256": "190f365542a018633983f3aa8d69e727eeeae12eef716e9fa85dcc1459ca159a",
+      "reason": "notated_duration_mismatch at measure 1",
+      "scored": false
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Cole-Lewis-1904_2-03-228",
+      "source_sha256": "e1946b8824b2f3d6e15d80fcac1c306007b80ddb01d03b11dccbcfec909d28bf",
+      "reason": "notated_duration_mismatch at measure 3",
+      "scored": false
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Cole-Lewis-1904_2-03-235",
+      "source_sha256": "e1dec05ea885951d02c2b8f79e9d719ef12675894a62346f1ee46ce12d9f2c7e",
+      "reason": "unsupported_clef",
+      "scored": true
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Cole-Lewis-1904_2-03-236",
+      "source_sha256": "489859ef3dce9717c18d55bb29a545da55f6af0304cd3d38784a159d73040f8c",
+      "reason": "unsupported_clef",
+      "scored": true
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Cole-Lewis-1904_2-03-252",
+      "source_sha256": "2bbf917968ffdfe2a9ed4528473566868ef0fcaaac9ed13ced76b70ed2d970c4",
+      "reason": "unsupported_clef",
+      "scored": true
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Cole-Lewis-1904_2-03-253",
+      "source_sha256": "7f6205935356ddcbd00d11ef6af8f165cb9052707b6dbdaf9111c687be3ebed2",
+      "reason": "unsupported_clef",
+      "scored": true
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Cole-Lewis-1904_2-05-044",
+      "source_sha256": "e7aa161cc0fb1c4d1bcd70d6cd6ec94a6464111e1f8e35e177c6811e2b79982c",
+      "reason": "unsupported_clef",
+      "scored": true
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Cole-Lewis-1904_2-05-048",
+      "source_sha256": "8e630f65b8aed0e83562e75d4422d9066b10311c3a8daba935a92edaf508d26c",
+      "reason": "unsupported_clef",
+      "scored": true
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Cole-Lewis-1904_2-05-049",
+      "source_sha256": "edd2b22ce5cde83a909f0cb1f51a193bc388e4aebb196bc717eb411a92d06422",
+      "reason": "unsupported_clef",
+      "scored": true
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Cole-Lewis-1904_2-05-051",
+      "source_sha256": "c36b739454888287244fc9192ef511d4223141b2362aac36eb31d86b590c781a",
+      "reason": "unsupported_clef",
+      "scored": true
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Cole-Lewis-1904_2-05-052",
+      "source_sha256": "8c9e168abfebbf23f262dbe3161a92a35e4cb4fdcd9e980d966752388194ba20",
+      "reason": "unsupported_clef",
+      "scored": true
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Cole-Lewis-1904_2-05-053",
+      "source_sha256": "79158cab0e26253738913ef834fd69147a95ce966223dc9c1138d8da2362fbbf",
+      "reason": "unsupported_clef",
+      "scored": true
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Cole-Lewis-1904_2-05-055",
+      "source_sha256": "40e8076a9ba6bc455ce040b25c290168b9696cbf194a81f1a191371ce8fd4e7d",
+      "reason": "unsupported_clef",
+      "scored": true
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Cole-Lewis-1904_2-05-057",
+      "source_sha256": "9114582fee06d0d06d651f80ca8c3d07fc171140142bc680dd2d176898d86eae",
+      "reason": "unsupported_clef",
+      "scored": true
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Cole-Lewis-1904_2-05-059",
+      "source_sha256": "c1233ea790f9556cbb5e6b7f663836c16a6715c02d575752f3f165f51cedf97f",
+      "reason": "unsupported_clef",
+      "scored": true
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Cole-Lewis-1904_2-05-086",
+      "source_sha256": "c08c5502197ee7288e93a111ccc5907f3f63428941b4a9f81d5ff96ebd690261",
+      "reason": "unsupported_clef",
+      "scored": true
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Cole-Lewis-1904_2-05-087",
+      "source_sha256": "f865653a7302c5efed131f4f4600400ceeedf314dc86bb516a4671ecfc8b755f",
+      "reason": "unsupported_clef",
+      "scored": true
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Cole-Lewis-1904_2-05-088",
+      "source_sha256": "9de9fc6a7566ab90b695fa2777e4a4e62f4c166b5901c1529e5f1313aef6c71a",
+      "reason": "unsupported_clef",
+      "scored": true
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Cole-Lewis-1904_2-05-089",
+      "source_sha256": "823defe48e32503d06b02d461f903f511d102c75e2365eeca7c1adf57780f1d7",
+      "reason": "unsupported_clef",
+      "scored": true
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Cole-Lewis-1904_2-05-121",
+      "source_sha256": "4f9346de847104e579f0939e951dfc32e5d23bbed16f8aea2b26ca89b95af120",
+      "reason": "unsupported_clef",
+      "scored": true
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Cole-Lewis-1904_2-05-124",
+      "source_sha256": "53b825e597135dadaf4268703f20765248033ddc2137cc3a64c65d323d432027",
+      "reason": "unsupported_clef",
+      "scored": true
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Cole-Lewis-1904_2-05-131",
+      "source_sha256": "399457a850e70c1d64dd4a1ba9c1473ba6727ff235016c1a17c696677c9cab96",
+      "reason": "unsupported_clef",
+      "scored": true
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Cole-Lewis-1904_2-05-134",
+      "source_sha256": "626d3fa55e959bf0508ee96ed031e2e89d82fe3ff2d25b9714681fdafe348531",
+      "reason": "unsupported_clef",
+      "scored": true
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Cole-Lewis-1904_2-05-135",
+      "source_sha256": "ebc6e79b5c41a38a182476aa606313dec49f123d2b8c358a4a65bfe37001bc22",
+      "reason": "unsupported_clef",
+      "scored": true
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Cole-Lewis-1904_2-05-137",
+      "source_sha256": "8ca1c297978cea9d510d200d98b3872f45bbfedc36f2277906c52d115c61d770",
+      "reason": "unsupported_clef",
+      "scored": true
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Cole-Lewis-1904_2-05-164",
+      "source_sha256": "a9b98498c6e9152de6f597b2b1b3a9be59392b3a3aea4339d9ad93b526bfabff",
+      "reason": "unsupported_clef",
+      "scored": true
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Cole-Lewis-1904_2-05-165",
+      "source_sha256": "7fdc46082f8fed60cd11da8518209554eb86177acc72f3715f9ce892641e7131",
+      "reason": "unsupported_clef",
+      "scored": true
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Cole-Lewis-1904_2-05-168",
+      "source_sha256": "fec6a753d937eae62817e9410203bdce4f94e42adb6ce6e469642c97dcb9a32a",
+      "reason": "unsupported_clef",
+      "scored": true
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Cole-Lewis-1904_2-05-169",
+      "source_sha256": "7796e9346af6b15a7f33b5c224ca9cb261423bcdd7d18caab0e11f22b3eec54b",
+      "reason": "unsupported_clef",
+      "scored": true
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Cole-Lewis-1904_2-05-170",
+      "source_sha256": "46e62ae55563bd114cb666dd12854da6c3ba913db3a81de2aee2ab42368df160",
+      "reason": "unsupported_clef",
+      "scored": true
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Cole-Lewis-1904_2-05-190",
+      "source_sha256": "d9edd29b72b22522c181757d5faed18a1daf3c3b3f6d29ba6cd1617ce23e1c7c",
+      "reason": "unsupported_clef",
+      "scored": true
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Cole-Lewis-1904_2-05-213",
+      "source_sha256": "158000e35a84a9b725133fdd481668e58f40bacad7ef4b7f6788eec9b8fbaf8c",
+      "reason": "unsupported_clef",
+      "scored": true
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Cole-Lewis-1904_2-05-214",
+      "source_sha256": "3017d8811bb07c6c1f6da6460267991091612ad3ab318433fa332a465272bfdd",
+      "reason": "unsupported_clef",
+      "scored": true
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Cole-Lewis-1904_2-05-216",
+      "source_sha256": "682746969f8875539c5537662cbe8479d8c881df15a90a74afccda0c88abda59",
+      "reason": "notated_duration_mismatch at measure 7",
+      "scored": false
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Cole-Lewis-1904_2-05-218",
+      "source_sha256": "12155f056cb311ba3b4bbe10853662a2205c5f441cc73052b96a08beda305afe",
+      "reason": "unsupported_clef",
+      "scored": true
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Cole-Lewis-1904_2-05-219",
+      "source_sha256": "b122768705b4094991346e971eeb22390d2560a64a2332ca8a4c8faf0747d6d2",
+      "reason": "unsupported_clef",
+      "scored": true
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Cole-Lewis-1904_2-05-221",
+      "source_sha256": "9d61f6d4231e075efd35de38f4f7cfa6e0d3fd5957032750efd5273f5f8486dd",
+      "reason": "notated_duration_mismatch at measure 4",
+      "scored": false
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Cole-Lewis-1904_3-07-009",
+      "source_sha256": "bfacc6d09d1bed4d067c9553c559c0c18d80258463a8e800f1b771cbb2763294",
+      "reason": "unsupported_clef",
+      "scored": true
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Cole-Lewis-1904_3-07-016",
+      "source_sha256": "1be9cfa04607b491f1396629858d7be0e7ff5c5de143abcbd277f8706dc810a9",
+      "reason": "pickup_or_incomplete_measure",
+      "scored": true
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Cole-Lewis-1904_3-07-020",
+      "source_sha256": "82f4d662d1c94f6158be6502ab3c08c1389d303ed10c8c1a6b80a2696ccebdf3",
+      "reason": "unsupported_clef",
+      "scored": true
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Cole-Lewis-1904_3-07-022",
+      "source_sha256": "e0f84b80035648290ddc12add8915c4676a4de362c8132346e09eb39ae05ce0a",
+      "reason": "unsupported_clef",
+      "scored": true
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Cole-Lewis-1904_3-07-023",
+      "source_sha256": "ec4a8dad72ff15f8f2288e360682348aef5d0872d1e1355909dce6d1c0851855",
+      "reason": "unsupported_clef",
+      "scored": true
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Cole-Lewis-1904_3-07-025",
+      "source_sha256": "212fda296b364136273e04681d48399fec92e0f14a28385f2127cab543e8e339",
+      "reason": "pickup_or_incomplete_measure",
+      "scored": true
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Cole-Lewis-1904_3-07-030",
+      "source_sha256": "954b01f029e0ed9232c7ec2861153222bbb584925f0d29b6cea855058b63edda",
+      "reason": "unsupported_clef",
+      "scored": true
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Cole-Lewis-1904_3-07-038",
+      "source_sha256": "43d78d3e53c0cbf5aebefcafdcdbdfed60c873b1ec3cb4aaa6ee2762fbf85f3e",
+      "reason": "unsupported_clef",
+      "scored": true
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Cole-Lewis-1904_3-07-095",
+      "source_sha256": "89e05f546040d5fe14d87fd81798841371643d5ffedf738b9fa74e40c43f2137",
+      "reason": "unsupported_clef",
+      "scored": true
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Cole-Lewis-1904_3-07-097",
+      "source_sha256": "a46060f0ffb611d0d1e1cb844171132873d1eac526c51ac7eb556670f2aa13cc",
+      "reason": "unsupported_clef",
+      "scored": true
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Cole-Lewis-1904_3-07-099",
+      "source_sha256": "3383259a587623ab9c1edc75a7e297e83d18e3b19f14ab3ace344e425d5df2fa",
+      "reason": "unsupported_clef",
+      "scored": true
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Cole-Lewis-1904_3-07-101",
+      "source_sha256": "753dbcb0ba3b80423edc5ef8912162397b597235d58b5fa898593813bf8c2d8f",
+      "reason": "unsupported_clef",
+      "scored": true
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Cole-Lewis-1904_3-07-104",
+      "source_sha256": "b6665121fbda2f7802b6830c0bd40e3f417896101e321a09ba60b2d7766311fa",
+      "reason": "unsupported_clef",
+      "scored": true
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Cole-Lewis-1904_3-07-106",
+      "source_sha256": "d1473bbf606483dc8fbdc12e6a48eb507afc9ec0ac4d8ae6c9ecd6426971f992",
+      "reason": "unsupported_clef",
+      "scored": true
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Cole-Lewis-1904_3-07-108",
+      "source_sha256": "8c1d4599f6d88effceecf5dfb758dea0041cb69bec5562b106909d0e651f8554",
+      "reason": "unsupported_clef",
+      "scored": true
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Cole-Lewis-1904_3-07-110",
+      "source_sha256": "d0e2a744d79a6dda012650e217f210ebd35e25e6ee622d5559e098efe8cf6663",
+      "reason": "unsupported_clef",
+      "scored": true
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Cole-Lewis-1904_3-07-112",
+      "source_sha256": "67f92be0eeb3bc49d67440cae3865e4ff717efe5dbe2df791a0000750c5f38df",
+      "reason": "unsupported_clef",
+      "scored": true
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Cole-Lewis-1904_3-07-119",
+      "source_sha256": "808fb6f66de3a78ae3a72a51c442503bcf882c83be9b1f78052611b42e05d3f8",
+      "reason": "unsupported_clef",
+      "scored": true
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Cole-Lewis-1904_3-07-123",
+      "source_sha256": "c62e01955a8999c0225338ade9ca625499b20833a44548993fcd419df82f2a79",
+      "reason": "notated_duration_mismatch at measure 1",
+      "scored": false
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Cole-Lewis-1904_4-09-007",
+      "source_sha256": "17dba938530737139d355c3b117a724eba1c4b1ad04798981ce759fb7d522de9",
+      "reason": "chord_or_grace_not_supported at measure 8",
+      "scored": false
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Cole-Lewis-1904_4-09-045",
+      "source_sha256": "ce3cc81db74d0eb2bcfd7f0a1171d8816af67790877880de2cb58360be5c2faf",
+      "reason": "pickup_or_incomplete_measure",
+      "scored": true
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Cringan-1901_034",
+      "source_sha256": "e53ce163d279e086ff12ff80617490bbec2ee4deeb4626432b64d36853c05689",
+      "reason": "pickup_or_incomplete_measure",
+      "scored": true
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Cringan-1901_041",
+      "source_sha256": "192110056fd38cde2ce73ae1d3886766d44be60e0d1df8f832317cfe7cc10638",
+      "reason": "pickup_or_incomplete_measure",
+      "scored": true
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Cringan-1901_042",
+      "source_sha256": "a7dfd7fa964fd40eb09280fed0add8c7007f9449313b0c22036e78af5762e7f4",
+      "reason": "pickup_or_incomplete_measure",
+      "scored": true
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Cringan-1901_043",
+      "source_sha256": "9e07c20276ffe7bade557d9310bd3f159fb25c41e91fd243d1e9d27d728889e5",
+      "reason": "pickup_or_incomplete_measure",
+      "scored": true
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Cringan-1901_044",
+      "source_sha256": "5d44d1cb8757ff896246c907c3b25e81d146e59e077ceb4f274e1427b1f17727",
+      "reason": "pickup_or_incomplete_measure",
+      "scored": true
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Cringan-1901_048",
+      "source_sha256": "fe34800625c2fc1c472de18dedfb71df9f697eab794b2059473576d0a6072379",
+      "reason": "pickup_or_incomplete_measure",
+      "scored": true
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Cringan-1901_049",
+      "source_sha256": "80057cc5e94005f03420ed60fa1901553c07ae6727135ceb9d24f76e5621f211",
+      "reason": "pickup_or_incomplete_measure",
+      "scored": true
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Cringan-1901_050",
+      "source_sha256": "422a2482c320e9f1fec76387ff2abd298e918ea4147e5e53079eee5cf7f2b177",
+      "reason": "pickup_or_incomplete_measure",
+      "scored": true
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Cringan-1901_063",
+      "source_sha256": "4df611a18cbb1a9a5a6e7dc13c017c8b045f223fab248344641e32da2fe1d598",
+      "reason": "pickup_or_incomplete_measure",
+      "scored": true
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Cringan-1901_064",
+      "source_sha256": "9222b33049e77ba04b386ae4ce2576d81f282e0f84ed8dc599aa5e2f8e2298d2",
+      "reason": "pickup_or_incomplete_measure",
+      "scored": true
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Cringan-1901_065",
+      "source_sha256": "e83eaad57e890fd5f0ce1b553e09f8acaa07b82af9364d29e033aafef128c399",
+      "reason": "pickup_or_incomplete_measure",
+      "scored": true
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Cringan-1901_066",
+      "source_sha256": "e50853116b8d3bc878bb1acd5465841845b34ce80d0f5aa9043179b7690192f8",
+      "reason": "pickup_or_incomplete_measure",
+      "scored": true
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Cringan-1901_069",
+      "source_sha256": "43cd8fe02c0f43d61e832d9d4fd354dc71d294093c83bfe657c74fb43e9c4815",
+      "reason": "pickup_or_incomplete_measure",
+      "scored": true
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Cringan-1901_070",
+      "source_sha256": "fa59717f677b8f459d4823959dab2cb4bc14a23b78e3a52aefa20d73a9495c32",
+      "reason": "pickup_or_incomplete_measure",
+      "scored": true
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Cringan-1901_073",
+      "source_sha256": "33aba841c84af08a030ce33533541945ae5b3c7ef285c213641dcfb83941545e",
+      "reason": "pickup_or_incomplete_measure",
+      "scored": true
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Cringan-1901_077",
+      "source_sha256": "b305cbca0a493e5eafb72b828da3f223eea3a7024cb5d78ba2d61c7d23f7a8eb",
+      "reason": "pickup_or_incomplete_measure",
+      "scored": true
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Cringan-1901_083",
+      "source_sha256": "3b718638e0d51f41baff11d06d0a4017a355bd721043b759ad8a8773c9d09328",
+      "reason": "pickup_or_incomplete_measure",
+      "scored": true
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Cringan-1901_084",
+      "source_sha256": "ee20c762ac74a5490497b7776533cc146c3bf79358407878b1a915d63e1359c0",
+      "reason": "pickup_or_incomplete_measure",
+      "scored": true
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Cringan-1901_085",
+      "source_sha256": "2bbc6bf54a12c3605ac3618817dc8d9b3e7c2e6eb6a1a2e03fcccddf5ecbbd9d",
+      "reason": "pickup_or_incomplete_measure",
+      "scored": true
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Cringan-1901_087",
+      "source_sha256": "a9e74e27e1874ad6b1906eb86779e0cccd25fd818ef02471dec17230663b3b65",
+      "reason": "pickup_or_incomplete_measure",
+      "scored": true
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Cringan-1901_091",
+      "source_sha256": "972d15863fe0d1911aa1eb842de033f646bceb76b1140f6474567af67f36d370",
+      "reason": "pickup_or_incomplete_measure",
+      "scored": true
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Cringan-1901_093",
+      "source_sha256": "e07759087c9a7211a759cd7caf641ecdb672eb0d244ba04191d081c13121113b",
+      "reason": "pickup_or_incomplete_measure",
+      "scored": true
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Cringan-1901_097",
+      "source_sha256": "18c45ef94783e9e384c4f2c9feacb85f45a85afe08d7b85d298dc986dbb874b5",
+      "reason": "pickup_or_incomplete_measure",
+      "scored": true
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Cringan-1901_098",
+      "source_sha256": "074acb0dc52135507e20db2028318adbf6937bca76c8bef8ec9ff60647720850",
+      "reason": "pickup_or_incomplete_measure",
+      "scored": true
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Cringan-1901_105",
+      "source_sha256": "5059e42d7b3ee219036009f4e706a282be3e45e8cdc2072be916687796085559",
+      "reason": "pickup_or_incomplete_measure",
+      "scored": true
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Cringan-1901_106",
+      "source_sha256": "fbc70b1e1375f9afa7d3a70a5e6b813a4ea0220b3b7bcb4baf243247fae302ff",
+      "reason": "pickup_or_incomplete_measure",
+      "scored": true
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Cringan-1901_108",
+      "source_sha256": "b9b2586cc540eafb26c18afbef4d4614d994437a90ef79488e4876e8a029921b",
+      "reason": "unsupported_clef",
+      "scored": true
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Cringan-1901_109",
+      "source_sha256": "b070aad16c703409594abba8a498cfd7611e9253b9d40cf47c0b2ad8e7a33679",
+      "reason": "pickup_or_incomplete_measure",
+      "scored": true
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Crowell-2004_033",
+      "source_sha256": "f1ba0799d14a8af15f3af5674cac1d12f8a80f9c64dd73d53131f41e75f8c2d1",
+      "reason": "unsupported_clef",
+      "scored": true
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Crowell-2004_101",
+      "source_sha256": "ab094b861c774d888f11c3bba09c604ef5da9dab6aa9e5ceb4432d08cf1e251b",
+      "reason": "repeat_requires_performance_expansion",
+      "scored": true
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Crowell-2004_103",
+      "source_sha256": "08f3dff772807dd691285f5dae18db27fbe5103282f68c0f29ca2a6b8487c7c2",
+      "reason": "chord_or_grace_not_supported at measure 6",
+      "scored": false
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Crowell-2004_116",
+      "source_sha256": "ae9784b616c9176f40417ea0a7498cec45ff0fe1a826be8b6e86e71b64af30dd",
+      "reason": "repeat_requires_performance_expansion",
+      "scored": true
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Crowell-2004_170",
+      "source_sha256": "c4b6e359259cd32b785d90fab5156c8a53387d4e2342f3015fa70d6040818d0f",
+      "reason": "repeat_requires_performance_expansion",
+      "scored": true
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Crowell-2004_182",
+      "source_sha256": "c068e0b07ffd02b2a9b08c2c760977284d5e63217a878f3ede5ed630c2d74961",
+      "reason": "unsupported_clef",
+      "scored": true
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Crowell-2004_183",
+      "source_sha256": "2e2e38bca90e750015b26959ae3d0ad065a72925da717c3094038a9517c9b16a",
+      "reason": "unsupported_clef",
+      "scored": true
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Crowell-2004_184",
+      "source_sha256": "00591eb448f15bb8b8dffc1a00ed5fa98a0d4328c65d3c39787e074ea91a7da1",
+      "reason": "unsupported_clef",
+      "scored": true
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Crowell-2004_187",
+      "source_sha256": "1374957a401965dac1352420040174ad0cd354f58d413c2d72bdd24d91d79bd7",
+      "reason": "unsupported_clef",
+      "scored": true
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Crowell-2004_204",
+      "source_sha256": "f52263d85dd466c4a6f44336470d455e061f95d7eab5c285d81d871a55a56dd2",
+      "reason": "unsupported_clef",
+      "scored": true
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Crowell-2004_205",
+      "source_sha256": "749246ff12a4aa5d59bcd74ee62fbad244b4a3c641c7da4b65a0967bfae29e1a",
+      "reason": "repeat_requires_performance_expansion",
+      "scored": true
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Crowell-2004_206",
+      "source_sha256": "8315aca6c7283e050ee3a678be76e59b00c6197d7d3e7a5a9b67e534134ed505",
+      "reason": "unsupported_clef",
+      "scored": true
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Crowell-2004_214",
+      "source_sha256": "fb6bde00a13e888eac91716c23e5a1a3ac45734c5ec751ffad96893dd8592771",
+      "reason": "notated_duration_mismatch at measure 3",
+      "scored": false
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Crowell-2004_233",
+      "source_sha256": "eed6820d43d1efa63981b246adced87c9784e7dea02a1a8349d2c35cfd1e93c2",
+      "reason": "unsupported_clef",
+      "scored": true
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Crowell-2004_240",
+      "source_sha256": "412b3d30f36796c3b655506d4f73200c9f0b3dabd4ee34359a1a628b5349c181",
+      "reason": "notated_duration_mismatch at measure 1",
+      "scored": false
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Crowell-2004_271",
+      "source_sha256": "0e3ce54091dbda7bd23ffc527f35877f41d262042658428ba8389239a91bc54a",
+      "reason": "pickup_or_incomplete_measure",
+      "scored": true
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Crowell-2004_277",
+      "source_sha256": "32129cf3fe8bca5d5b5c70968e8939db366ee0c5422eb7baaf7ae148c75bf614",
+      "reason": "notated_duration_mismatch at measure 1",
+      "scored": false
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Crowell-2004_295",
+      "source_sha256": "e4cb43429d52753377e14b880a55bdb05251810af59f17c41ee61a0b3cd92e8d",
+      "reason": "unsupported_clef",
+      "scored": true
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Crowell-2004_296",
+      "source_sha256": "ed5294f88a59e554a8efd16a0cba0dec041e51e2e38f868c0e20f7cbfbca09ce",
+      "reason": "unsupported_clef",
+      "scored": true
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Crowell-2004_345",
+      "source_sha256": "a1a001dcfec8390a74c6d2eba55ff7811c38e940cb5b365b74c113b9fb3db7a9",
+      "reason": "unsupported_clef",
+      "scored": true
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Crowell-2004_425",
+      "source_sha256": "6a52bd64d72c6f8369f628a09c4394fefe4189b0ebbc84709e696cc38e629474",
+      "reason": "unsupported_clef",
+      "scored": true
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Hollis-1915_10-06",
+      "source_sha256": "d3e289e3bdf2a933a4ac2029431a18fce1eddcf3745a7b33e634a5b9fd36f4c8",
+      "reason": "pickup_or_incomplete_measure",
+      "scored": true
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Hollis-1915_16-07",
+      "source_sha256": "06e8e285e1ef166254359fc3ae8c04ee61494a3c88be421356a4510cf990a835",
+      "reason": "notated_duration_mismatch at measure 8",
+      "scored": false
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Hollis-1915_27-06",
+      "source_sha256": "064eeda0065e8940161cfad65072a515896280c7090c62345c532a4151314040",
+      "reason": "repeat_requires_performance_expansion",
+      "scored": true
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Hollis-1915_28-01",
+      "source_sha256": "bfb1d5bb62e03e8779204372b00715b748b59a48b173110c7df84c1bef2764ed",
+      "reason": "pickup_or_incomplete_measure",
+      "scored": true
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Hollis-1915_28-02",
+      "source_sha256": "e0a5aae47e24aa0fb00b73b97cfcd36e81acaaf7efb74975c6bce24b2896df77",
+      "reason": "pickup_or_incomplete_measure",
+      "scored": true
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Hollis-1915_28-04",
+      "source_sha256": "adf5266918a657127e352d6d3124e8e2f3cd822f313deb29a095b57216e8a78f",
+      "reason": "pickup_or_incomplete_measure",
+      "scored": true
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Hollis-1915_29-02",
+      "source_sha256": "ea14f050676e9470266987accfa43376cc538a41b964f14496796c1acab86283",
+      "reason": "pickup_or_incomplete_measure",
+      "scored": true
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Hollis-1915_29-03",
+      "source_sha256": "267d350e77720e374b96269d059a14ebf41b5b1ae86c59e3b0e82fb6e846b90a",
+      "reason": "pickup_or_incomplete_measure",
+      "scored": true
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Hollis-1915_29-04",
+      "source_sha256": "8bc7610a44065a2bbfcf79f09651af6d116b8c6a2cd19745c17686be5f4c5f67",
+      "reason": "pickup_or_incomplete_measure",
+      "scored": true
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Hollis-1915_30-07",
+      "source_sha256": "f6cdefb790c8b9fe0677ba47698c01e53b3aaf68e540d13b3db9ba018e97daa5",
+      "reason": "pickup_or_incomplete_measure",
+      "scored": true
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Hollis-1915_30-08",
+      "source_sha256": "9f447e429848d88a92c919c462c6186aff97fa4599922e51e958b6e483175610",
+      "reason": "pickup_or_incomplete_measure",
+      "scored": true
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Hollis-1915_33-07",
+      "source_sha256": "d82876bbc8e6c76bd92b9b0662f4ec7c940986156212f353bdf8047144a950e9",
+      "reason": "pickup_or_incomplete_measure",
+      "scored": true
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Hollis-1915_35-07",
+      "source_sha256": "a45350c2a63c5cbddbfde700d85beb40d883c895eb5798a4de2a1e2ec2ccdc1a",
+      "reason": "repeat_requires_performance_expansion",
+      "scored": true
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Hollis-1915_41-03",
+      "source_sha256": "13fdaf03464d460e6a5fa146baf16eb68620adee1c9dca3ae73a3e82d52da936",
+      "reason": "pickup_or_incomplete_measure",
+      "scored": true
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Hollis-1915_41-05",
+      "source_sha256": "ca0a28968435291e7f5a1c7dffd25ab22bde08499e91467ce74d5085dec5c451",
+      "reason": "pickup_or_incomplete_measure",
+      "scored": true
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Hollis-1915_45-03",
+      "source_sha256": "390f380f53ed3acfb410d05fbebd0449fcff85743a32ee5e39acaa7b1fd06303",
+      "reason": "pickup_or_incomplete_measure",
+      "scored": true
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Hollis-1915_48-01",
+      "source_sha256": "311040095c7c4294efb2658144e884df21a49e3ba190728ad0ce0d496621048b",
+      "reason": "pickup_or_incomplete_measure",
+      "scored": true
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Hollis-1915_48-02",
+      "source_sha256": "fc78484b1811155de28986b1aed117dd65f595d2e827dfea25a4aa392cf8996f",
+      "reason": "pickup_or_incomplete_measure",
+      "scored": true
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Hollis-1915_48-03",
+      "source_sha256": "d92952847287a539e60ebecfa742631263116d4fe65256e93008a2ecda9b4afe",
+      "reason": "pickup_or_incomplete_measure",
+      "scored": true
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Hollis-1915_50-07",
+      "source_sha256": "5a77d8415b3bcfcd074ec2c036f5e4f9e1b9325097bfc558eb14d3ee1c5a8e47",
+      "reason": "pickup_or_incomplete_measure",
+      "scored": true
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Hollis-1915_54-03",
+      "source_sha256": "6e53025833ef63d6657e0df30063eb039afbc64b6f883bf1604953fa4543ad89",
+      "reason": "pickup_or_incomplete_measure",
+      "scored": true
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Hollis-1915_54-04",
+      "source_sha256": "ca8dc4d73513194ecc01ae370217b645ff6c96a5a919cf3b64b16edf75953447",
+      "reason": "pickup_or_incomplete_measure",
+      "scored": true
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Hollis-1915_57-07",
+      "source_sha256": "85d8083e15d80f405a38d66cc463f5437893e1ba5a0d503b096f274e77feeee7",
+      "reason": "pickup_or_incomplete_measure",
+      "scored": true
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Hollis-1915_60-01",
+      "source_sha256": "22aca794dc24c415385ae8ac7ef542934f2d287a545ffcf290b7e1528f3feee5",
+      "reason": "pickup_or_incomplete_measure",
+      "scored": true
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Hollis-1915_60-02",
+      "source_sha256": "fea687c21aeb178aa843a010beeb7dbd000441fc27471245834b7910c436f763",
+      "reason": "pickup_or_incomplete_measure",
+      "scored": true
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Hollis-1915_60-03",
+      "source_sha256": "191ebd0abe43b0288f1103510a551c9c70842c0a13e8311182af8f10433812ed",
+      "reason": "pickup_or_incomplete_measure",
+      "scored": true
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Hollis-1915_60-04",
+      "source_sha256": "233b98912def73aac8d61a382714bfd349287f574857608b659e37d6330372ff",
+      "reason": "pickup_or_incomplete_measure",
+      "scored": true
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Hollis-1915_64-01",
+      "source_sha256": "4111260e150f363bb2143787b46721dd262b047e82633375b2076ab4579e155e",
+      "reason": "pickup_or_incomplete_measure",
+      "scored": true
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Somervell-1911_011",
+      "source_sha256": "cf584f902194956fcb760558355386628752d4163b29c38113c559655aa108c7",
+      "reason": "pickup_or_incomplete_measure",
+      "scored": true
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Somervell-1911_181",
+      "source_sha256": "2041b3c45ef0926e33fc3deaf52de1d3d01c43ef523a2a8dd1c21941b32f3823",
+      "reason": "pickup_or_incomplete_measure",
+      "scored": true
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Somervell-1911_354",
+      "source_sha256": "3f5b96eb919c1887ecab16ba4b6cad79ad0a1a824f922de99989966986a4efce",
+      "reason": "notated_duration_mismatch at measure 1",
+      "scored": false
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Somervell-1911_355",
+      "source_sha256": "9468d36575e7627c48af80ca76ae2c16b04b044f557ff524e10e8fb334cee5dd",
+      "reason": "notated_duration_mismatch at measure 1",
+      "scored": false
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Somervell-1911_356",
+      "source_sha256": "7b9f48fa05d385d0ebef35fdee573e6393b14a2acbd2bedb9798c00e485e4a0c",
+      "reason": "notated_duration_mismatch at measure 1",
+      "scored": false
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Somervell-1911_359",
+      "source_sha256": "4296dc97d2030174a99bbcbab2a24676495b94a733c56285257173430dccdb62",
+      "reason": "notated_duration_mismatch at measure 1",
+      "scored": false
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Somervell-1911_361",
+      "source_sha256": "a8da3d9a5c44583957d175a5f41627a81d91baadadc32a0fa17b06cec0d0d4a0",
+      "reason": "notated_duration_mismatch at measure 1",
+      "scored": false
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Sullivan_04-02-03_02",
+      "source_sha256": "a9a127d95005d27f88e4f1e26a1aee9a61501fec7bb2562014cd756c5b3a6d79",
+      "reason": "unsupported_clef",
+      "scored": true
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Sullivan_04-02-03_06",
+      "source_sha256": "53681073f931b0bd6936722eac0f3826f687e3878e9965dba532d1abcc9b574a",
+      "reason": "unsupported_clef",
+      "scored": true
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Sullivan_04-02-04_02",
+      "source_sha256": "8f9e92440eafe8934f48bc284a79eeae739f84833c327491071aebde4e759ccc",
+      "reason": "unsupported_clef",
+      "scored": true
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Sullivan_04-02-04_04",
+      "source_sha256": "860842556a9b3804a7e8cba78e6c8e85e70bd3dcba64712b524c03b8c78591a2",
+      "reason": "unsupported_clef",
+      "scored": true
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Sullivan_04-02-04_05",
+      "source_sha256": "f6e926f80ed32362f222092a55c921df24a734ca6c9cd370b816c3ec18a73f08",
+      "reason": "unsupported_clef",
+      "scored": true
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Sullivan_04-03-01_02",
+      "source_sha256": "65ae7e8388fa660d4c1adbd08b02071fb49baa37a5fdb044e67dc4e59a4f4748",
+      "reason": "unsupported_clef",
+      "scored": true
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Sullivan_04-03-01_06",
+      "source_sha256": "b8e1c1d16959b9e443f42e2b57ffd77450777fe6b45164365973f2f84513966a",
+      "reason": "unsupported_clef",
+      "scored": true
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Wedge-1922_02-06-06",
+      "source_sha256": "4a8b2c782d43284b7eab77e3b4a572417ebb97e871a97c3385d7528c2b575f57",
+      "reason": "unsupported_clef",
+      "scored": true
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Wedge-1922_02-06-07",
+      "source_sha256": "a6a3f195761eed0596f0653ad4d7a52f6d38a54e5e8cfe3be33afa5b8232ea0b",
+      "reason": "unsupported_clef",
+      "scored": true
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Wedge-1922_03-06-19",
+      "source_sha256": "2fa14fef81f911e9b78e77c89aae4d921977613400e8197b3c8f0d45ef0218e1",
+      "reason": "unsupported_clef",
+      "scored": true
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Wedge-1922_06-06-15",
+      "source_sha256": "4001d10d0d52196bf7f7a704cc2a52f510b752a6e016dd144099d93ff12a20a5",
+      "reason": "unsupported_clef",
+      "scored": true
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Wedge-1922_06-06-16",
+      "source_sha256": "9e904ade6b8ee8764225cfb20454a0591e96544b69488da62a62643d904b41c4",
+      "reason": "unsupported_clef",
+      "scored": true
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Wedge-1922_06-06-20",
+      "source_sha256": "c2b3f9d219aed56efa229a603f323ff2da5300ed917139b977b951d7eecbc7c3",
+      "reason": "unsupported_clef",
+      "scored": true
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Wedge-1922_07-06-13",
+      "source_sha256": "08b1c019eb8aef64d898d3a73126d8c2b81705e812b94edaf26176ec8b3de4f3",
+      "reason": "unsupported_clef",
+      "scored": true
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Wedge-1922_07-06-19",
+      "source_sha256": "272b645b1cd84a558f77298d0938f540f33bebf28dd410e1d255a8c4c9bbcd56",
+      "reason": "unsupported_clef",
+      "scored": true
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Wedge-1922_08-06-01",
+      "source_sha256": "f22c24d0a682fa26a836128ac7ce4d95defc383aa332eb0fbad381a701536d32",
+      "reason": "notated_duration_mismatch at measure 4",
+      "scored": false
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Wedge-1922_08-06-12",
+      "source_sha256": "6c5f3a81073edf675d33b82487f6f5e35813d9599b53d33edda14e9b74587e3a",
+      "reason": "unsupported_clef",
+      "scored": true
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Wedge-1922_10-06-04",
+      "source_sha256": "df84fd6babff1e3a07a3647c27c2f3b9526036e402d701981fadff79b15ba8f6",
+      "reason": "notated_duration_mismatch at measure 8",
+      "scored": false
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Wedge-1922_11-06-09",
+      "source_sha256": "e9d196a6398ccf4d9bf77484e67a02841fa7e390382a803152d9de4b64a71588",
+      "reason": "unsupported_clef",
+      "scored": true
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Wedge-1922_18-03-03",
+      "source_sha256": "c8605a03762fa6a186480a0c0f3a01b6f8007c3d583d50fb4b4e55d1796bb004",
+      "reason": "notated_duration_mismatch at measure 5",
+      "scored": false
+    },
+    {
+      "source": "generated-100",
+      "source_id": "L02-06",
+      "source_sha256": "8948fe3a6076b5f3785344f380ed1896908c29e94344147eefb103dbc9ea955a",
+      "reason": "unsupported_clef",
+      "scored": true
+    },
+    {
+      "source": "generated-100",
+      "source_id": "L03-02",
+      "source_sha256": "9c3cd7ea6d5d25135ba3808526f04c302e413b522fe128cd601bdba79a6191c6",
+      "reason": "unsupported_clef",
+      "scored": true
+    },
+    {
+      "source": "generated-100",
+      "source_id": "L03-10",
+      "source_sha256": "377711a02273399d7eb67743638487edf1660a1b4eb590b109067fa18ef87f96",
+      "reason": "pickup_or_incomplete_measure",
+      "scored": true
+    },
+    {
+      "source": "generated-100",
+      "source_id": "L04-02",
+      "source_sha256": "f3747e48e7dd2cc2d06c0631252a89384556be33118a05f31fa0687ec747d0fd",
+      "reason": "pickup_or_incomplete_measure",
+      "scored": true
+    },
+    {
+      "source": "generated-100",
+      "source_id": "L05-03",
+      "source_sha256": "0f6ef88fe6963b8ac56488ece660bb186b4c22e74938ce24f05c47117927a0cf",
+      "reason": "unsupported_clef",
+      "scored": true
+    },
+    {
+      "source": "generated-100",
+      "source_id": "L05-06",
+      "source_sha256": "230e5bb726f2ef05a9a812c08da3480e5e1a54935fb4621badf7f7f52831af04",
+      "reason": "pickup_or_incomplete_measure",
+      "scored": true
+    },
+    {
+      "source": "generated-100",
+      "source_id": "L05-09",
+      "source_sha256": "95e3e2dbb8c0d7ae8e4948009763655087909ece2b3b859767a2d6f8eed6e7ea",
+      "reason": "unsupported_clef",
+      "scored": true
+    },
+    {
+      "source": "generated-100",
+      "source_id": "L06-01",
+      "source_sha256": "26563935f225a7dc7cf7e78d5df595502671bfa0836b4a14bd4fcb8918707667",
+      "reason": "pickup_or_incomplete_measure",
+      "scored": true
+    },
+    {
+      "source": "generated-100",
+      "source_id": "L06-06",
+      "source_sha256": "6252f94260d4a536934b989d76419786a1e3078bbe73bd06cc37317e363d9385",
+      "reason": "unsupported_clef",
+      "scored": true
+    },
+    {
+      "source": "generated-100",
+      "source_id": "L07-03",
+      "source_sha256": "59c11aade949146ad845226f87e17788b68f70bc1eb36a48190b9ae5a99298f8",
+      "reason": "unsupported_clef",
+      "scored": true
+    },
+    {
+      "source": "generated-100",
+      "source_id": "L07-06",
+      "source_sha256": "44b448f76c9eb0a5e6ce6201dd0e2e8971817095f740e4c6e37be8fb096dcabe",
+      "reason": "unsupported_clef",
+      "scored": true
+    },
+    {
+      "source": "generated-100",
+      "source_id": "L07-10",
+      "source_sha256": "8535f139f88da64a393990add4774291fffd03bdcab9a1fd9fcbc6311e5765e0",
+      "reason": "pickup_or_incomplete_measure",
+      "scored": true
+    },
+    {
+      "source": "generated-100",
+      "source_id": "L08-01",
+      "source_sha256": "3ef16546cf23fca8ab8601ebc570dd8bd2a941b098330403344440e5aad7fdbd",
+      "reason": "unsupported_clef",
+      "scored": true
+    },
+    {
+      "source": "generated-100",
+      "source_id": "L08-08",
+      "source_sha256": "af316dd8bb9aa4f7b9ee236efe8cb66ed8d447f69d06b500a53e5116b10cdb45",
+      "reason": "unsupported_clef",
+      "scored": true
+    },
+    {
+      "source": "generated-100",
+      "source_id": "L08-09",
+      "source_sha256": "3b8a9f637362c81bce5aebf275eb67333812f3e999cbb75094fbc51a28b60d7a",
+      "reason": "pickup_or_incomplete_measure",
+      "scored": true
+    },
+    {
+      "source": "generated-100",
+      "source_id": "L09-02",
+      "source_sha256": "f4a4180014fd598bb1cef97722314553797fe5c827a9aa038fc3c8172b06034d",
+      "reason": "pickup_or_incomplete_measure",
+      "scored": true
+    },
+    {
+      "source": "generated-100",
+      "source_id": "L09-05",
+      "source_sha256": "3759c20f611c818e94665267c514485f7d7206dc0d3565550604b76fd3e5005c",
+      "reason": "unsupported_clef",
+      "scored": true
+    },
+    {
+      "source": "generated-100",
+      "source_id": "L09-07",
+      "source_sha256": "76d036deae639ad2fd708b97352b118b07626c139ed78df3c782681a1e13309a",
+      "reason": "unsupported_clef",
+      "scored": true
+    },
+    {
+      "source": "generated-100",
+      "source_id": "L10-05",
+      "source_sha256": "f4023d53f182ab5ab03db5a94964c02fef3439daa6b465cb8293f09067f33257",
+      "reason": "unsupported_clef",
+      "scored": true
+    },
+    {
+      "source": "generated-100",
+      "source_id": "L10-08",
+      "source_sha256": "e28e6605f4e0d3a2a264e9692389f486c4ce1523541df913c7ed83143a4a3b6a",
+      "reason": "pickup_or_incomplete_measure",
+      "scored": true
+    }
+  ],
+  "duplicates": [
+    {
+      "source": "existing",
+      "source_id": "5f82d6e0-b52e-5812-b14c-b4f8dd0dfb1f",
+      "source_sha256": "7738bc41ea74818747ceca24f284eb0953e427a88f848a39f467303a1b8006cc",
+      "canonical_question_id": "128f51a9-5498-50fd-a2a7-1a271883e72b"
+    },
+    {
+      "source": "existing",
+      "source_id": "dda9f8e8-9b74-54a8-8cdf-4df97f49f878",
+      "source_sha256": "9d25b51ac758818cc6b8f7f58597c51345958c3cac069f8178e528b636f918fb",
+      "canonical_question_id": "cfe540d9-445e-59c5-9338-586fc9ba2842"
+    },
+    {
+      "source": "existing",
+      "source_id": "a935ed61-be86-569b-bbdd-b9c6cdeba215",
+      "source_sha256": "a63390f2ac4c176685dfe13f1d2a3357149efb29bb96231cfcf7c9866ab288ad",
+      "canonical_question_id": "e8b704b7-efe5-583c-944a-270915628ca2"
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Batchellor-Charmbury-1884a_1-1-080",
+      "source_sha256": "fead5756565e0189d36f2934a3756fbb3389a87932bbafa8065a40e72657a986",
+      "canonical_question_id": "d35d76f4-dc07-5d9b-ad45-f334fe24fdab"
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Batchellor-Charmbury-1884a_1-1-084",
+      "source_sha256": "6b3059bad042d2f25526886ac2e3c9d3ad73aea5d987a6a400cc4e69b0fbcf1b",
+      "canonical_question_id": "6a7bb4e2-e33b-59b9-84fd-f55758ac8bb0"
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Batchellor-Charmbury-1884a_1-1-106",
+      "source_sha256": "d87e4a80ce30faf0a2027a26ad9fefc58784466007066838de9921f581566275",
+      "canonical_question_id": "d15aafec-1fc4-5619-afd5-205a1021eb77"
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Batchellor-Charmbury-1884b_2-1-007",
+      "source_sha256": "661234d9f5bb1382eee952c89f63c7c98cebf1babd59dc9293b68e450ee3c117",
+      "canonical_question_id": "4d0fd99b-6ea0-5f99-9ece-8f0f09aaef1d"
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Batchellor-Charmbury-1884b_2-1-024",
+      "source_sha256": "50576b1e7892b5b197a1bec07a7c7a2b48c4c4652e159d8ce474097e2666d314",
+      "canonical_question_id": "fd729e7e-4f6a-57f2-abda-6ade7da10d41"
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Batchellor-Charmbury-1884b_2-1-051",
+      "source_sha256": "4cc670a82e1c25bed2c9c00f5bad9246c95d70a2552862c9dd62148e701fb824",
+      "canonical_question_id": "a37f9cd9-75ad-5357-902c-49ce31b6be5a"
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Batchellor-Charmbury-1887a_4-1-045",
+      "source_sha256": "b35927d01268c71bcc456d63b21cb8cfbfda0000cfdf691af347cce6fedc87d1",
+      "canonical_question_id": "4e53893c-b3e5-5729-957b-97956e82d596"
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Batchellor-Charmbury-1887a_4-3-001",
+      "source_sha256": "f577bb7bf5773c5f62cd53e86468c6f32af4924a6fb85daa768037695a15350d",
+      "canonical_question_id": "5b43a391-d32c-5585-b696-52372ad14a62"
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Cole-Lewis-1904_1-01-156",
+      "source_sha256": "6a1db9908235ea6d68cc101bf56a7f003f0536be6217dd89364a38840596c31a",
+      "canonical_question_id": "f03d89aa-66f7-5d24-8ef4-29b822bc1935"
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Cole-Lewis-1904_1-01-177",
+      "source_sha256": "2a9b4220313de4138131e71a77afbc87d665ec632904fa1c2f44f54316d964ae",
+      "canonical_question_id": "ec099d45-bc32-50d1-8a97-b6eb22fdcd2e"
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Cole-Lewis-1904_1-01-254",
+      "source_sha256": "e31975ccb9b30b76728b5632239d8ff8537e0b0ffb6a2593f8f7ddbb878264fe",
+      "canonical_question_id": "2eb72f02-22dd-5d33-a82c-0862d5cbc719"
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Cole-Lewis-1904_2-03-186",
+      "source_sha256": "6546d1a66d23c9cda7c2184dc2158958517782e4f6dcdf8e2b283d52dc9e1b08",
+      "canonical_question_id": "4e232236-dcd1-5d2e-ad8a-9fcf25f333e8"
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Cole-Lewis-1904_2-05-147",
+      "source_sha256": "40cdf42c587733cf96eeafcf516de34a6c7a252438830c1ffa316ec48e8c9e17",
+      "canonical_question_id": "80aeca13-bb69-5352-9496-539f185a8d49"
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Cole-Lewis-1904_2-05-201",
+      "source_sha256": "abeb473623ec8c75596bffec832db5596f7a169fc2767c7b73136f813cc1862d",
+      "canonical_question_id": "2d8a4a82-b2a2-5b4d-9f19-b734a1530ce8"
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Cringan-1901_059",
+      "source_sha256": "5112355c9abbf07925f0b173e745aeae851a681f5cc4c369fe6a813960051d79",
+      "canonical_question_id": "1dae4725-4598-5351-bf6f-a180de024121"
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Cringan-1901_060",
+      "source_sha256": "9efe3da27a919da2efc27f09c6bbe5de8dda833362e601c750e5ddc0c9a9a0ed",
+      "canonical_question_id": "2116e321-0bd8-599e-97ee-b7015c0c6754"
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Cringan-1901_061",
+      "source_sha256": "7db1472a7e9c4016a5a1577eb4890a5b999da1b3f579a696177e380a7ba1e95e",
+      "canonical_question_id": "52405b76-1808-519f-b968-475f372bacbb"
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Cringan-1901_062",
+      "source_sha256": "d19d267c09123b77ca45c82e196e628335d8500d99f05d77e5d0c9e4e10c409b",
+      "canonical_question_id": "e67eeee4-b55a-5548-8827-160fab40d373"
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Cringan-1901_092",
+      "source_sha256": "250561674286d2b407cd5006891aa79a458825df7e835a714c8189e8ca9b493d",
+      "canonical_question_id": "f0624670-8d06-59b5-94a8-03601d539ed6"
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Crowell-2004_043",
+      "source_sha256": "439c14255988239e3c0e877c4f184ad49cde0a87a85d8ce1921e05a6ade5a1f5",
+      "canonical_question_id": "bebdd02b-4822-5795-aa7e-9630a6317ca4"
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Crowell-2004_066",
+      "source_sha256": "4bf96cb04d219d4c9098fe41ae710d7b8857ee6b4d70c2d1cb345b47b1a168cf",
+      "canonical_question_id": "ed72a148-d26c-52b5-90c1-58fa004b9cfa"
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Crowell-2004_139",
+      "source_sha256": "0543c82fd67489433479bfd85d690d06f2ed94ed5d8772be6321cd1d375e59d9",
+      "canonical_question_id": "776afc03-96ed-5f23-b015-915e31e4eaf1"
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Crowell-2004_198",
+      "source_sha256": "129e8ab09ba6b81e989df9b22f0326c67b84b97dff0f12b7c0c95f3bc2b8a17f",
+      "canonical_question_id": "84ee97f9-3d79-5874-99a6-0848323dfeef"
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Crowell-2004_200",
+      "source_sha256": "a56cb100d5433e66df182c7415e62a8657e131b825f3200ddb34636769fbe0e8",
+      "canonical_question_id": "35150db1-9a55-5fd0-abc7-5f8e9dd8d7a9"
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Crowell-2004_203",
+      "source_sha256": "9238cbad58ecae7765aa8cdad60920f54f5116b22ec7a49ef054b7453ff8a5b8",
+      "canonical_question_id": "c772514b-2e1a-57ad-b6e5-85136ea2c795"
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Hollis-1915_42-02",
+      "source_sha256": "e3002df2d908ea782f90506a1347c44b6cf959d704702c20409b98a94485e5a4",
+      "canonical_question_id": "19976692-c070-50f9-9b1d-5e900cd000f9"
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Hollis-1915_46-01",
+      "source_sha256": "0908fa90e1623f65b9fc3d618d93d62b5d994612e0347938836ebfa74a2878ce",
+      "canonical_question_id": "9daa5b49-a89d-5f6a-bf59-27cc0c0593e1"
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Hollis-1915_47-02",
+      "source_sha256": "8611e96b407c1078013166531dafb61419613832725b74c62606fffd675ea2ec",
+      "canonical_question_id": "44ca8c67-03f4-556e-819f-a6294906321a"
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Hollis-1915_55-01",
+      "source_sha256": "edaedb1f0b62ed0114a3454fb40e08b080309201e66f7c4b0da6342279998bbf",
+      "canonical_question_id": "5ce30096-a49d-575a-b165-4df172880e96"
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Hollis-1915_56-02",
+      "source_sha256": "8103496c5f38708483bfd028fb69fdef9d5a06b9b483da74bb5cc6f96cb92fee",
+      "canonical_question_id": "748cb582-c874-5f84-b82f-5225318151ba"
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Hollis-1915_59-02",
+      "source_sha256": "91e7eb29f2ba33dc20e5d70730af965873c8dde39ff0da497ec637c5d69b60d9",
+      "canonical_question_id": "7034a4c5-7889-5767-9568-379b39f0b4a2"
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Somervell-1911_175",
+      "source_sha256": "fb5edc4c831266bbf077f07ce7b852b541f04b6ef72d979d60b2a8615c3b2263",
+      "canonical_question_id": "16b67631-636f-538f-a523-6019cb449fc9"
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Somervell-1911_209",
+      "source_sha256": "79dc33e38199a69cbd79bd39cfab6c5a544f560511757152feee3af5abfcda40",
+      "canonical_question_id": "1d3e82eb-2bb8-5f9a-8812-6d16b1492e86"
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Somervell-1911_211",
+      "source_sha256": "6335ae48a2eeeb97efc28e24765180ac315751d5844240dfe9019f86f52ee6af",
+      "canonical_question_id": "32021b55-d296-502e-aef0-2053635e3bef"
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Somervell-1911_217",
+      "source_sha256": "cf8edbb3c1255552f73d300a6528b9fab7e721b58ab6f5c8ea80b8daece958e1",
+      "canonical_question_id": "1dd3151d-5c09-5b38-af10-0e49557a236a"
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Somervell-1911_221",
+      "source_sha256": "46400a0efe9cd715b237b835d6b792c1ff009b111e657affc43d5a5bc1c70d67",
+      "canonical_question_id": "969187fd-0578-5e49-a2e7-8c7278e3eb21"
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Somervell-1911_334",
+      "source_sha256": "48fc2bae2bf4a265b8301c2ab6226dd8d329391d43953c9effb408a491e777aa",
+      "canonical_question_id": "ba3a5402-e116-5018-94ef-ee11834ef9e3"
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Somervell-1911_438",
+      "source_sha256": "e442aad5bfd58c3c13aedf3bd60cd4760c84f358903a6d5d8d7513f08af619cb",
+      "canonical_question_id": "d17156b5-f671-5f6c-bd82-ad8f9166435f"
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Sullivan_04-02-04_01",
+      "source_sha256": "30859961c10c4aa2bf7443aa93e45979617c9249af88bf62d142fe1b0b8c2ea2",
+      "canonical_question_id": "da76f1d6-1d65-57c3-84ad-17e0a27d05fa"
+    },
+    {
+      "source": "trained-ear",
+      "source_id": "Sullivan_04-03-01_01",
+      "source_sha256": "311976528f6e3973b527c2ad68eaf82ce5da63d7cc7385b5c8dd93a235cee63b",
+      "canonical_question_id": "6bb7cac1-a248-5b4e-9a64-edd7d7a89752"
+    }
+  ],
+  "score_version": "practice-difficulty-1",
+  "cutoffs": [
+    7.5,
+    9.5,
+    13.0,
+    30.0,
+    55.0,
+    62.0,
+    68.0,
+    74.0
+  ],
+  "counts": {
+    "5": 191,
+    "9": 399,
+    "3": 401,
+    "2": 563,
+    "1": 172,
+    "4": 138,
+    "8": 20,
+    "6": 39,
+    "7": 14
+  },
+  "sources": {
+    "existing": 110,
+    "trained-ear": 747,
+    "generated-100": 80,
+    "generated-1000": 1000
+  }
+}

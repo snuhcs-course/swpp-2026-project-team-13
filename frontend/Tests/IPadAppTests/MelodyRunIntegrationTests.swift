@@ -161,7 +161,7 @@ import SwiftUI
     }
     func testMiniGameDoesNotReplacePreparedExamAttempt() async throws {
         let exam = AppModel(); exam.demo = true
-        await exam.connect(); await exam.choose(try XCTUnwrap(exam.questions.first?.id)); await exam.begin()
+        await exam.connect(); await exam.choose(try XCTUnwrap(exam.questions.first?.id),mode:.practice); await exam.begin()
         XCTAssertNil(exam.error)
         let id = try XCTUnwrap(exam.session?.id), score = exam.mainScore
         exam.navigate(.minigames)

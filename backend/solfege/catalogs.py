@@ -8,7 +8,7 @@ def shipped_questions():
     result = []
     order_path = settings.CONTENT_ROOT / "classical-question-order.json"
     classical_order = {qid:1001+index for index,qid in enumerate(json.loads(order_path.read_text(encoding="utf-8")))} if order_path.exists() else {}
-    for name in ("catalog.json", "classical-catalog.json", "additional-practice-catalog.json", "sheet-revisions.json", "brahms-catalog.json", "classical-tempo-revisions.json", "mahler-catalog.json"):
+    for name in ("catalog.json", "classical-catalog.json", "additional-practice-catalog.json", "sheet-revisions.json", "brahms-catalog.json", "classical-tempo-revisions.json", "mahler-catalog.json", "practice-bank-catalog.json"):
         path = settings.CONTENT_ROOT / name
         if path.exists():
             result.extend(json.loads(path.read_text(encoding="utf-8")))

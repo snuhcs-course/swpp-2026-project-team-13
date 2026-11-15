@@ -13,6 +13,7 @@ import FoundationNetworking
     func questions(page: Int) async throws -> QuestionPage
     func classicalQuestions(page: Int) async throws -> QuestionPage
     func recommendedQuestion() async throws -> Question
+    func examRecommendations() async throws -> ExamOffer
     func question(_ id: UUID) async throws -> Question
     func createAttempt(question: Question, key: UUID) async throws -> Attempt
     func createAttempt(question: Question, mode: StudyMode, key: UUID) async throws -> Attempt
@@ -30,6 +31,7 @@ import FoundationNetworking
 }
 
 extension ExamAPI {
+    func examRecommendations() async throws -> ExamOffer { throw SolfegeError.unsupported("서버를 레이팅 시험 지원 버전으로 업데이트해 주세요.") }
     func saveRhythmPlay(_ record: RhythmPlayRecord) async throws -> RhythmReceipt { throw SolfegeError.unsupported("서버를 리듬 게임 지원 버전으로 업데이트해 주세요.") }
     func createAttempt(question: Question, mode: StudyMode, key: UUID) async throws -> Attempt {
         guard mode == .exam else { throw SolfegeError.unsupported("이 연결은 Practice를 지원하지 않습니다. 앱과 서버를 업데이트해 주세요.") }
@@ -202,13 +204,14 @@ final class NoRedirectDelegate: NSObject, URLSessionTaskDelegate, @unchecked Sen
     }
     private func questionPage(page: Int, collection: String? = nil) async throws -> QuestionPage {
         var components = URLComponents(url: endpoint("questions/"), resolvingAgainstBaseURL: false)!
-        var queryItems = [URLQueryItem(name: "page", value: String(page)), URLQueryItem(name: "page_size", value: collection == "classical" ? "50" : "20")]
+        var queryItems = [URLQueryItem(name: "page", value: String(page)), URLQueryItem(name: "page_size", value: "50")]
         if let collection { queryItems.append(URLQueryItem(name: "collection", value: collection)) }
         components.queryItems = queryItems
         let data = try await execute(request(components.url!), limit: 2 * 1024 * 1024)
         return try ContractJSON.decoder().decode(QuestionPage.self, from: data)
     }
     func recommendedQuestion() async throws -> Question { try await json("questions/recommended/") }
+    func examRecommendations() async throws -> ExamOffer { try await json("exam/recommendations/") }
     func question(_ id: UUID) async throws -> Question { try await json("questions/\(id.uuidString.lowercased())/") }
     func createAttempt(question: Question, key: UUID) async throws -> Attempt {
         try await json("attempts/", method: "POST", body: JSONSerialization.data(withJSONObject: ["question_id": question.id.uuidString.lowercased(), "question_version": question.version]), key: key)

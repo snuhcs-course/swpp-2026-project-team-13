@@ -50,12 +50,15 @@ struct ResultView: View {
                                     }.buttonStyle(.plain)
                                 }
                             }
-                            Button { if let id = model.session?.attempt.question.id { Task { await model.choose(id,mode:.exam) } } } label: { Label("새 Exam 시작하기",systemImage:"arrow.clockwise") }.buttonStyle(PrimaryButton())
                         }
+                        Button { Task { await model.startRecommendedExam() } } label: { Label("다음 시험",systemImage:"arrow.right") }
+                            .buttonStyle(PrimaryButton()).disabled(model.busy || !model.canChooseNextExam)
+                            .accessibilityIdentifier("next-exam")
                     } else { messageCard("제출 결과를 확인해 주세요",detail:"새로고침으로 결과를 다시 불러올 수 있어요.",icon:"network") }
                     HStack {
                         Button("결과 새로고침") { Task { await model.refreshResult() } }.buttonStyle(.bordered)
-                        Button(model.resultLibraryScreen == .classical ? "클래식으로 돌아가기" : model.resultLibraryScreen == .main ? "홈으로 돌아가기" : "Practice로 돌아가기") { model.navigate(model.resultLibraryScreen) }
+                        Button(model.resultLibraryScreen == .main ? "홈으로" : model.resultLibraryScreen == .classical ? "클래식으로 돌아가기" : "Practice로 돌아가기") { model.navigate(model.resultLibraryScreen) }
+                            .accessibilityIdentifier("result-leave")
                     }
                 }.padding(24).frame(maxWidth:1100,alignment:.leading).frame(maxWidth:.infinity)
             }
@@ -160,6 +163,14 @@ struct ResultView: View {
         Card { HStack(alignment:.center,spacing:32) {
             VStack(alignment:.leading,spacing:8) { Text("AI 종합 평가").font(.subheadline).foregroundStyle(.secondary); HStack(alignment:.firstTextBaseline,spacing:4) { Text(g.score.map(String.init) ?? "—").font(.system(size:64,weight:.bold,design:.rounded)).foregroundStyle(SolfegeTheme.violet); Text("/ 100").foregroundStyle(.secondary) } }
             Spacer()
+            if let change = g.ratingChange {
+                VStack(alignment:.leading,spacing:8) {
+                    Text("레이팅").font(.subheadline).foregroundStyle(.secondary)
+                    Text(String(format:"%.1f → %.1f",change.before,change.after)).font(.title2.bold()).monospacedDigit()
+                    Text(String(format:"%+.1f",change.delta)).font(.title3.bold())
+                        .foregroundStyle(change.delta >= 0 ? SolfegeTheme.green : SolfegeTheme.danger)
+                }.accessibilityIdentifier("exam-rating-change")
+            }
             VStack(alignment:.leading,spacing:22) { accuracy("음정 평가",g.pitchAccuracy); accuracy("리듬 평가",g.rhythmAccuracy) }.frame(maxWidth:330)
         } }
     }

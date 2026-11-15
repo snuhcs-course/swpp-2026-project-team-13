@@ -129,7 +129,7 @@ final class SafeXML: NSObject, XMLParserDelegate {
 }
 
 enum MusicXMLParser {
-    static let version = "sori-parser-5"
+    static let version = "sori-parser-7"
     static func parseMXL(_ data: Data, asset: ScoreAsset, tempo: Double? = nil) throws -> MusicScore {
         guard data.count == asset.sizeBytes, data.sha256 == asset.sha256 else { throw SolfegeError.invalidScore("SCORE_HASH_MISMATCH: 악보의 해시 또는 크기가 다릅니다.") }
         guard ["sori-monophonic-v1", "sori-monophonic-v2", "sori-monophonic-v3", "sori-monophonic-v4"].contains(asset.profile), asset.musicxmlVersion == "4.0", asset.partId == "P1", asset.contentType == "application/vnd.recordare.musicxml" else { throw SolfegeError.unsupported("UNSUPPORTED_SCORE_PROFILE: 악보 형식을 확인해 주세요.") }
@@ -164,7 +164,22 @@ enum MusicXMLParser {
             } else if !node.children.isEmpty { throw fail("예상하지 못한 하위 기호: " + node.name) }
             let repeatable: Set<String> = ["part","measure","note","direction","dot","tie","tied","creator","rights","software","score-instrument","midi-instrument","beam","tuplet"]
             for group in Dictionary(grouping: node.children, by: \.name).values {
-                guard group.count == 1 || repeatable.contains(group[0].name) else { throw fail("중복 기호: " + group[0].name) }
+                if group.count == 1 || repeatable.contains(group[0].name) { continue }
+                // A historical imported score repeats the same 3:2 ratio.
+                // Accept only identical, plain ratio values; conflicting
+                // ratios and every other duplicate scalar remain invalid.
+                let redundantRatio = node.name == "time-modification" &&
+                    ["actual-notes","normal-notes"].contains(group[0].name) &&
+                    group.allSatisfy {
+                        $0.attributes.isEmpty && $0.children.isEmpty &&
+                        $0.text.trimmingCharacters(in: .whitespacesAndNewlines) ==
+                        group[0].text.trimmingCharacters(in: .whitespacesAndNewlines)
+                    }
+                guard redundantRatio else { throw fail("중복 기호: " + group[0].name) }
+                // one()/value() deliberately require exactly one child. Keep
+                // one validated value so the subsequent rhythm reader can use it.
+                let first = group[0]
+                node.children.removeAll { $0.name == first.name && $0 !== first }
             }
             if node.name == "sound" { guard Set(node.attributes.keys) == ["tempo"] else { throw fail("고정 템포 외의 재생 지시") } }
             if node.name == "bar-style" { guard ["regular","light-heavy","light-light"].contains(node.text.trimmingCharacters(in: .whitespacesAndNewlines)) else { throw fail("반복 마디") } }

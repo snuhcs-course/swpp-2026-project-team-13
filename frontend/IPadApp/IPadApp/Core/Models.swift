@@ -27,7 +27,7 @@ struct TimeSignature: Codable, Hashable {
     var numerator: Int; var denominator: Int
     var label: String { "\(numerator)/\(denominator)" }
     var ticksPerMeasure: Int { numerator * 480 * 4 / denominator }
-    var supported: Bool { [(2,2), (3,2), (2,4), (3,4), (4,4), (6,4), (3,8), (6,8), (7,8), (9,8), (12,8)].contains { $0.0 == numerator && $0.1 == denominator } }
+    var supported: Bool { [(2,2), (3,2), (4,2), (2,4), (3,4), (4,4), (5,4), (6,4), (2,8), (3,8), (4,8), (5,8), (6,8), (7,8), (9,8), (12,8)].contains { $0.0 == numerator && $0.1 == denominator } }
 }
 struct SheetSystem: Codable, Equatable {
     var index: Int; var firstMeasure: Int; var lastMeasure: Int
@@ -41,7 +41,7 @@ struct SheetLayout: Codable, Equatable {
     var displayHeight: Int? = nil
     static func supports(_ id: String) -> Bool {
         if ["staff-8bars-v1", "staff-8bars-4-4-v2", "staff-8bars-3-4-v2", "staff-8bars-6-8-v2", "staff-8bars-2-4-v2", "staff-8bars-7-8-v2", "staff-8bars-9-8-v2", "staff-8bars-12-8-v2"].contains(id) { return true }
-        for meter in [(2,2),(3,2),(2,4),(3,4),(4,4),(6,4),(3,8),(6,8),(7,8),(9,8),(12,8)] {
+        for meter in [(2,2),(3,2),(4,2),(2,4),(3,4),(4,4),(5,4),(6,4),(2,8),(3,8),(4,8),(5,8),(6,8),(7,8),(9,8),(12,8)] {
             for fifths in -7...7 {
                 if [3,4].contains(where: { id == "staff-8bars-\(meter.0)-\(meter.1)-key\(fifths)-v\($0)" }) { return true }
             }
@@ -80,6 +80,15 @@ struct QuestionSummary: Codable, Identifiable, Equatable {
     var collection: String? = nil
     var composer: String? = nil
     var difficulty: String? = nil
+    var practiceLevelNumber: Int? = nil
+    var difficultyScore: Double? = nil
+    var difficultyVersion: String? = nil
+    var practiceCompleted: Bool? = nil
+    enum CodingKeys: String, CodingKey {
+        case id, version, title, source, keySignature, timeSignature, measureCount, recommendedDurationSeconds
+        case tempo, collection, composer, difficulty, difficultyScore, difficultyVersion, practiceCompleted
+        case practiceLevelNumber = "practiceLevel"
+    }
 }
 struct Question: Codable, Identifiable, Equatable {
     var id: UUID; var version: Int; var title: String; var source: String
@@ -92,6 +101,15 @@ struct Question: Codable, Identifiable, Equatable {
     var collection: String? = nil
     var composer: String? = nil
     var difficulty: String? = nil
+    var practiceLevelNumber: Int? = nil
+    var difficultyScore: Double? = nil
+    var difficultyVersion: String? = nil
+    enum CodingKeys: String, CodingKey {
+        case id, version, title, source, keySignature, timeSignature, measureCount, recommendedDurationSeconds
+        case description, timePolicy, clef, sheetLayout, contentPolicy, scoreVisibility, scoreAssets
+        case tempo, correctScore, collection, composer, difficulty, difficultyScore, difficultyVersion
+        case practiceLevelNumber = "practiceLevel"
+    }
     func validate() throws {
         try sheetLayout.validate()
         guard source == "practice", keySignature.supported,
@@ -175,7 +193,7 @@ struct PlaybackPlan: Codable, Equatable {
               transposeSemitones == 0, velocity == 80, gateRatio == 1, releaseTailMs == 300,
               tempoBpm.isFinite, (40...200).contains(tempoBpm), allowManualPause, !allowManualReplay,
               interruptionPolicy == "restart_current_segment", scale.scoreKind == "scale", scale.fromMeasure == 1,
-              (version == 4 ? (1...5).contains(scale.toMeasure) : scale.toMeasure == 2), pauseAfterScaleMs >= 0, steps.count == 11,
+              (version == 4 ? [1,2,3,4,5,8].contains(scale.toMeasure) : scale.toMeasure == 2), pauseAfterScaleMs >= 0, steps.count == 11,
               zip(steps,ranges).enumerated().allSatisfy({ i,pair in
                   pair.0.order == i+1 && pair.0.fromMeasure == pair.1.0 && pair.0.toMeasure == pair.1.1 && pair.0.scoreKind == "main" && pair.0.pauseAfterMs >= 0
               }) else { throw SolfegeError.unsupported("지원하지 않는 재생 계획입니다.") }
@@ -206,6 +224,7 @@ struct Attempt: Codable, Identifiable, Equatable {
     var question: Question; var playbackPlan: PlaybackPlan; var serverTime: Date
     var mode: String? = nil
     var featureAnalysisId: UUID? = nil
+    var examRatingSnapshot: ExamRatingSnapshot? = nil
     var studyMode: StudyMode { mode.flatMap { StudyMode(rawValue:$0) } ?? (gradingMode == "self" ? .practice : .exam) }
 }
 struct BBox: Codable, Equatable {
@@ -232,6 +251,7 @@ struct Grading: Codable, Equatable {
     var status: String; var stage: String; var score: Int?; var pitchAccuracy: Double?; var rhythmAccuracy: Double?
     var feedback: Feedback?; var annotations: [Annotation]; var failure: GradingFailure?; var pollAfterMs: Int
     var createdAt: Date; var updatedAt: Date; var serverTime: Date
+    var ratingChange: ExamRatingChange? = nil
     var isPending: Bool { status == "queued" || status == "processing" }
     var canRetry: Bool { status == "failed" && failure?.retryable == true }
 }

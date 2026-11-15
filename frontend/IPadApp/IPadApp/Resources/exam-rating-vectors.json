@@ -1,0 +1,230 @@
+{
+  "version": "exam-rating-1",
+  "vectors": [
+    {
+      "rating": 7,
+      "completed": 0,
+      "difficulty": 7,
+      "grade": 0,
+      "after": 3.25,
+      "delta": -3.75,
+      "expected_score": 80.0
+    },
+    {
+      "rating": 7,
+      "completed": 0,
+      "difficulty": 7,
+      "grade": 80,
+      "after": 7.0,
+      "delta": 0.0,
+      "expected_score": 80.0
+    },
+    {
+      "rating": 7,
+      "completed": 0,
+      "difficulty": 7,
+      "grade": 100,
+      "after": 7.666666666666666,
+      "delta": 0.6666666666666661,
+      "expected_score": 80.0
+    },
+    {
+      "rating": 7,
+      "completed": 0,
+      "difficulty": 8,
+      "grade": 80,
+      "after": 7.546931342104868,
+      "delta": 0.5469313421048678,
+      "expected_score": 67.9823549707866
+    },
+    {
+      "rating": 7,
+      "completed": 0,
+      "difficulty": 6,
+      "grade": 80,
+      "after": 6.7789890232129455,
+      "delta": -0.2210109767870545,
+      "expected_score": 83.92908403176988
+    },
+    {
+      "rating": 40,
+      "completed": 0,
+      "difficulty": 47.8,
+      "grade": 90,
+      "after": 44.09028143086006,
+      "delta": 4.09028143086006,
+      "expected_score": 68.18516570207973
+    },
+    {
+      "rating": 40,
+      "completed": 20,
+      "difficulty": 32.3,
+      "grade": 90,
+      "after": 40.12285531412786,
+      "delta": 0.12285531412786099,
+      "expected_score": 88.10377607912821
+    },
+    {
+      "rating": 0,
+      "completed": 0,
+      "difficulty": 7,
+      "grade": 0,
+      "after": 0.0,
+      "delta": 0.0,
+      "expected_score": 38.21642145522582
+    },
+    {
+      "rating": 120,
+      "completed": 50,
+      "difficulty": 120,
+      "grade": 100,
+      "after": 120.30002723995787,
+      "delta": 0.3000272399578705,
+      "expected_score": 80.0
+    },
+    {
+      "rating": 7.5,
+      "completed": 0,
+      "difficulty": 7.499,
+      "grade": 79,
+      "after": 7.443510019199886,
+      "delta": -0.056489980800114026,
+      "expected_score": 80.00426632533537
+    },
+    {
+      "rating": 7.5,
+      "completed": 20,
+      "difficulty": 7.501,
+      "grade": 95,
+      "after": 7.577830301215235,
+      "delta": 0.0778303012152346,
+      "expected_score": 79.98399519989368
+    },
+    {
+      "rating": 9.5,
+      "completed": 0,
+      "difficulty": 9.499,
+      "grade": 79,
+      "after": 9.484760071998394,
+      "delta": -0.015239928001605563,
+      "expected_score": 80.01599520010703
+    },
+    {
+      "rating": 9.5,
+      "completed": 20,
+      "difficulty": 9.501,
+      "grade": 95,
+      "after": 9.636140799927354,
+      "delta": 0.13614079992735384,
+      "expected_score": 79.99085557549034
+    },
+    {
+      "rating": 13,
+      "completed": 0,
+      "difficulty": 12.999,
+      "grade": 79,
+      "after": 12.973510041142335,
+      "delta": -0.02648995885766503,
+      "expected_score": 80.00914128981584
+    },
+    {
+      "rating": 13,
+      "completed": 20,
+      "difficulty": 13.001,
+      "grade": 95,
+      "after": 13.660935373012325,
+      "delta": 0.6609353730123253,
+      "expected_score": 79.99811758062266
+    },
+    {
+      "rating": 30,
+      "completed": 0,
+      "difficulty": 29.999,
+      "grade": 79,
+      "after": 29.872260008470565,
+      "delta": -0.1277399915294346,
+      "expected_score": 80.00188228650538
+    },
+    {
+      "rating": 30,
+      "completed": 20,
+      "difficulty": 30.001,
+      "grade": 95,
+      "after": 30.971924755408928,
+      "delta": 0.9719247554089279,
+      "expected_score": 79.99871996927993
+    },
+    {
+      "rating": 55,
+      "completed": 0,
+      "difficulty": 54.999,
+      "grade": 79,
+      "after": 54.81226000576,
+      "delta": -0.18773999423999754,
+      "expected_score": 80.00127996928006
+    },
+    {
+      "rating": 55,
+      "completed": 20,
+      "difficulty": 55.001,
+      "grade": 95,
+      "after": 55.272198648027185,
+      "delta": 0.2721986480271852,
+      "expected_score": 79.99542817958938
+    },
+    {
+      "rating": 62,
+      "completed": 0,
+      "difficulty": 61.999,
+      "grade": 79,
+      "after": 61.9472600205713,
+      "delta": -0.05273997942870068,
+      "expected_score": 80.00457103673716
+    },
+    {
+      "rating": 62,
+      "completed": 20,
+      "difficulty": 62.001,
+      "grade": 95,
+      "after": 62.233324976295265,
+      "delta": 0.23332497629526472,
+      "expected_score": 79.99466613332939
+    },
+    {
+      "rating": 68,
+      "completed": 0,
+      "difficulty": 67.999,
+      "grade": 79,
+      "after": 67.95476002399982,
+      "delta": -0.045239976000175375,
+      "expected_score": 80.00533280000398
+    },
+    {
+      "rating": 68,
+      "completed": 20,
+      "difficulty": 68.001,
+      "grade": 95,
+      "after": 68.23332497629526,
+      "delta": 0.23332497629526472,
+      "expected_score": 79.99466613332935
+    },
+    {
+      "rating": 74,
+      "completed": 0,
+      "difficulty": 73.999,
+      "grade": 79,
+      "after": 73.95476002399982,
+      "delta": -0.045239976000175375,
+      "expected_score": 80.00533280000398
+    },
+    {
+      "rating": 74,
+      "completed": 20,
+      "difficulty": 74.001,
+      "grade": 95,
+      "after": 74.23332497629526,
+      "delta": 0.23332497629526472,
+      "expected_score": 79.99466613332937
+    }
+  ]
+}
