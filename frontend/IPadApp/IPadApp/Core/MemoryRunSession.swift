@@ -150,6 +150,8 @@ struct MemoryPlayRecord: Codable, Identifiable {
     var replayWithCountIn: Int? = nil
     var replayDirect: Int? = nil
     var retryOf: UUID? = nil
+    // Numbered level, when the play came from the level map.
+    var stage: Int? = nil
 }
 
 // Intrinsic width at a fixed staff size, independent of the screen's width.
