@@ -161,7 +161,9 @@ import ImageIO
         let api = try DemoExamAPI(outcome:"completed",storageScope:demoScope)
         let list = try await api.questions(page:1)
         let q = try await api.question(try XCTUnwrap(list.results.first?.id))
-        XCTAssertEqual(q.sheetLayout.displayHeight,620)
+        // The demo serves the newest (v5) sheet: one set of barlines shared by both staves.
+        XCTAssertEqual(q.sheetLayout.displayHeight,574)
+        XCTAssertEqual(q.sheetLayout.systems[0].barlineX,q.sheetLayout.systems[1].barlineX)
         let templateData = try await api.asset(q.sheetLayout.templatePngUrl,authenticated:false,limit:10_485_760)
         let template = try AnswerExporter.validateTemplate(templateData,layout:q.sheetLayout)
         let points = [PKStrokePoint(location:CGPoint(x:200,y:450),timeOffset:0,size:CGSize(width:4,height:4),opacity:1,force:1,azimuth:0,altitude:.pi/2),PKStrokePoint(location:CGPoint(x:240,y:450),timeOffset:0.1,size:CGSize(width:4,height:4),opacity:1,force:1,azimuth:0,altitude:.pi/2)]

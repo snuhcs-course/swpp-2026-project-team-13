@@ -19,7 +19,8 @@ import SwiftUI
                 let attempt = try await api.createAttempt(question:q,mode:.practice,key:UUID())
                 XCTAssertEqual(attempt.playbackPlan.tempo,q.tempo)
                 XCTAssertEqual(attempt.playbackPlan.tempoBpm,q.tempo?.quarterBpm)
-                if q.composer == "브람스" { XCTAssertEqual(q.version,2) }
+                // Brahms: v1 → tempo revision v2 → aligned v5 sheet v3.
+                if q.composer == "브람스" { XCTAssertEqual(q.version,3); XCTAssertTrue(q.sheetLayout.id.hasSuffix("-v5")) }
             }
             for asset in [q.scoreAssets.main,q.scoreAssets.scale] {
                 let data = try await api.asset(asset.url,authenticated:true,limit:1_048_576)
