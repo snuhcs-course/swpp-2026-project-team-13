@@ -17,7 +17,6 @@ struct PracticeResultView: View {
     @State private var manualPlayback = false
     @State private var showingSaveRecovery = false
     @State private var confirmComplete = false
-    @State private var playback = PracticeReviewSelection()
     @State private var playbackTask: Task<Void,Never>?
 
     private var reference: (image: UIImage, geometry: PracticeReviewGeometry?)? {
@@ -35,11 +34,18 @@ struct PracticeResultView: View {
     var body: some View {
         VStack(spacing:12) {
             header
-            Text("내 악보에서 틀린 마디를 선택해주세요.").font(.subheadline).foregroundStyle(SolfegeTheme.ink)
-                .frame(maxWidth:.infinity,alignment:.leading)
-            VStack(spacing:8) {
+            HStack(spacing:20) {
+                (Text("내 악보에서 ").foregroundColor(SolfegeTheme.ink)
+                 + Text("틀린 마디").foregroundColor(SolfegeTheme.deepViolet)
+                 + Text("를 선택해주세요.").foregroundColor(SolfegeTheme.ink))
+                    .font(.system(size:18,weight:.semibold))
+                    .fixedSize(horizontal:false,vertical:true)
+                    .accessibilityIdentifier("practice-review-instruction")
+                Spacer(minLength:0)
+                replayButton
+            }.padding(.vertical,6)
+            VStack(spacing:12) {
                 scorePanel(title:"정답 악보",reference:true)
-                reviewTransport
                 scorePanel(title:"내 악보",reference:false)
             }.frame(maxHeight:.infinity)
             footer
@@ -68,7 +74,7 @@ struct PracticeResultView: View {
             guard !manualPlayback, scenePhase == .active, model.screen == .result, model.session?.id == id else { return }
             play()
         }
-        .onChange(of:model.session?.id) { _,_ in stopListening(release:true); selectedMeasure = nil; playback = PracticeReviewSelection(); manualPlayback = false }
+        .onChange(of:model.session?.id) { _,_ in stopListening(release:true); selectedMeasure = nil; manualPlayback = false }
         .onChange(of:scenePhase) { _,phase in if phase != .active { stopListening(release:true) } }
         .onReceive(NotificationCenter.default.publisher(for:AVAudioSession.interruptionNotification).receive(on:RunLoop.main)) { _ in stopListening(release:true) }
         .onReceive(NotificationCenter.default.publisher(for:AVAudioSession.mediaServicesWereResetNotification).receive(on:RunLoop.main)) { _ in stopListening(release:true) }
@@ -98,14 +104,12 @@ struct PracticeResultView: View {
             HStack {
                 Text(title).font(.subheadline.weight(.semibold)).foregroundStyle(SolfegeTheme.ink)
                 Spacer()
-                if isReference, reference?.geometry?.isValid == true { Text(playback.selecting ? "시작·끝 마디를 선택하세요" : "마디를 눌러 재생").font(.caption).foregroundStyle(SolfegeTheme.muted) }
+                if isReference, reference?.geometry?.isValid == true { Text("마디를 눌러 재생").font(.caption).foregroundStyle(SolfegeTheme.muted) }
             }.padding(.horizontal,16).padding(.top,12)
             if isReference, let reference {
                 if let geometry = reference.geometry, geometry.isValid {
-                    ReviewScoreImage(image:reference.image,geometry:geometry,errors:[],selected:audio.measure,review:false,playbackRange:playback.range.measures) { measure in
-                        manualPlayback = true
-                        if playback.selecting { stopListening() }
-                        if playback.tap(measure) { play() }
+                    ReviewScoreImage(image:reference.image,geometry:geometry,errors:[],selected:audio.measure,review:false) { measure in
+                        manualPlayback = true; play(measure:measure)
                     }.disabled(model.mainScore == nil)
                 } else {
                     // An unfamiliar server may still provide the older PNG-only contract.
@@ -131,43 +135,16 @@ struct PracticeResultView: View {
         .background(.white,in:RoundedRectangle(cornerRadius:16))
         .overlay(RoundedRectangle(cornerRadius:16).stroke(SolfegeTheme.keyEdge.opacity(0.65)))
     }
-    private var reviewTransport: some View {
-        HStack(spacing:12) {
-            Button { manualPlayback = true; playback.all(); play() } label: {
-                Label("전체 듣기",systemImage:"arrow.clockwise")
-            }.accessibilityIdentifier("practice-review-replay")
-            Button {
-                stopListening()
-                if playback.selecting { playback.cancel() } else { playback.begin() }
-            } label: {
-                Label(playback.selecting ? "선택 취소" : "구간 선택",systemImage:"arrow.left.and.right")
-            }.accessibilityIdentifier("practice-review-select-range")
-            Divider().frame(height:18)
-            Text(playback.selecting ? (playback.anchor == nil ? "시작 마디 선택" : "끝 마디 선택") : playback.range == .full ? "전체" : playback.range.label)
-                .font(.subheadline).foregroundStyle(SolfegeTheme.muted).frame(minWidth:110,alignment:.leading)
-                .accessibilityIdentifier("practice-review-range")
-            Spacer(minLength:0)
-            Button {
-                manualPlayback = true
-                if audio.isPlaying { playbackTask?.cancel(); audio.pause() }
-                else if audio.isPaused && audio.range == playback.range {
-                    playbackTask = Task {
-                        do { try await audio.resume() }
-                        catch is CancellationError { }
-                        catch { audio.shutdown(); model.error = error.localizedDescription }
-                    }
-                } else { play() }
-            } label: {
-                Image(systemName:audio.isPlaying ? "pause.fill" : "play.fill").frame(width:44,height:40).contentShape(Rectangle())
-            }.disabled(playback.selecting).accessibilityLabel(audio.isPlaying ? "일시정지" : "재생")
-                .accessibilityIdentifier("practice-review-play-pause")
-            Button { stopListening() } label: {
-                Image(systemName:"stop.fill").frame(width:44,height:40).contentShape(Rectangle())
-            }.accessibilityLabel("정지").accessibilityIdentifier("practice-review-stop")
-        }
-        .font(.subheadline.weight(.medium)).buttonStyle(.plain).foregroundStyle(SolfegeTheme.deepViolet)
-        .padding(.horizontal,16).frame(height:44).background(SolfegeTheme.soft.opacity(0.4),in:RoundedRectangle(cornerRadius:10))
-        .disabled(!ready)
+    private var replayButton: some View {
+        let listening = audio.isPlaying || playbackTask != nil
+        return Button {
+            if listening { stopListening() }
+            else { manualPlayback = true; play() }
+        } label: {
+            Label(listening ? "정지" : "전체 다시듣기",systemImage:listening ? "stop.fill" : "arrow.clockwise")
+                .font(.subheadline)
+        }.buttonStyle(.bordered).disabled(!ready)
+            .accessibilityIdentifier("practice-review-replay")
     }
     private var footer: some View {
         VStack(spacing:12) {
@@ -175,20 +152,18 @@ struct PracticeResultView: View {
             HStack {
                 Text("\(model.practiceErrors.count)개 마디 표시").font(.subheadline).foregroundStyle(SolfegeTheme.muted)
                 Spacer()
-                Button { stopListening(); selectedMeasure = nil; confirmComplete = true } label: { Text("채점 완료").frame(width:180) }
+                Button { stopListening(); selectedMeasure = nil; confirmComplete = true } label: { Text("채점 완료") }
                     .buttonStyle(PrimaryButton())
                     .disabled(model.busy || !ready || model.session?.selfAssessment == nil)
                     .opacity(model.busy || !ready || model.session?.selfAssessment == nil ? 0.45 : 1)
                     .accessibilityIdentifier("practice-review-complete")
                     .popover(isPresented:$confirmComplete,attachmentAnchor:.rect(.bounds),arrowEdge:.bottom) {
-                        VStack(alignment:.leading,spacing:14) {
-                            Text("채점을 마칠까요?").font(.headline)
-                            Text(model.practiceErrors.isEmpty ? "오답 표시 없이 채점을 완료합니다." : "\(model.practiceErrors.count)개 마디의 오답 표시를 저장합니다.")
-                                .font(.subheadline).foregroundStyle(SolfegeTheme.muted)
-                            Button("완료하기") { confirmComplete = false; Task { await complete() } }
-                                .buttonStyle(PrimaryButton(compact:true)).accessibilityIdentifier("confirm-practice-complete")
-                            Button("계속 채점하기") { confirmComplete = false }.frame(maxWidth:.infinity,minHeight:36)
-                        }.padding(24).frame(width:310).presentationCompactAdaptation(.popover)
+                        AnswerConfirmation(title:"채점을 마칠까요?",
+                            message:model.practiceErrors.isEmpty ? "오답 표시 없이 채점을 완료합니다." : "\(model.practiceErrors.count)개 마디의 오답 표시를 저장합니다.",
+                            confirmTitle:"채점 완료",cancelTitle:"계속 채점하기",confirmIdentifier:"confirm-practice-complete") {
+                                confirmComplete = false; Task { await complete() }
+                            } cancel: { confirmComplete = false }
+                            .presentationCompactAdaptation(.popover)
                     }
             }
         }
@@ -231,11 +206,14 @@ struct PracticeResultView: View {
             Button("닫기") { showingSaveRecovery = false }
         }.padding(28).presentationDetents([.medium])
     }
-    private func play() {
+    private func play(measure: Int? = nil) {
         guard let score = model.mainScore, let attempt = model.session?.attempt else { return }
-        let range = playback.range, voice = model.selectedVoice
+        let range = measure.map { PracticeReviewRange(from:$0,through:$0) } ?? .full
+        let voice = model.selectedVoice
         playbackTask?.cancel()
         playbackTask = Task {
+            // A cancelled older request must not clear the replacement task.
+            defer { if !Task.isCancelled { playbackTask = nil } }
             guard !Task.isCancelled, model.screen == .result, model.session?.id == attempt.id else { return }
             do { try await audio.play(score:score,range:range,bpm:attempt.playbackPlan.tempoBpm,voice:voice) }
             catch is CancellationError { }
@@ -260,7 +238,6 @@ private struct ReviewScoreImage: View {
     let errors: [MeasureError]
     let selected: Int?
     let review: Bool
-    var playbackRange: ClosedRange<Int>? = nil
     let onTap: (Int) -> Void
     var body: some View {
         GeometryReader { proxy in
@@ -288,11 +265,10 @@ private struct ReviewScoreImage: View {
     private func measureButton(_ region: AnswerMeasureRegion) -> some View {
         let marked = errors.contains(where: { $0.measure == region.id })
         let color = review ? SolfegeTheme.danger : SolfegeTheme.violet
-        let inRange = !review && playbackRange?.contains(region.id) == true
         let types = errors.first(where: { $0.measure == region.id })?.types ?? []
         let tags = SelfAssessmentErrorType.allCases.filter { types.contains($0.rawValue) }.map(\.title).joined(separator:" · ")
         return Button { onTap(region.id) } label: {
-            Rectangle().fill(color.opacity(selected == region.id ? 0.09 : marked || inRange ? 0.045 : 0.001))
+            Rectangle().fill(color.opacity(selected == region.id ? 0.09 : marked ? 0.045 : 0.001))
                 .overlay { if selected == region.id || marked { RoundedRectangle(cornerRadius:6).stroke(color.opacity(0.8),lineWidth:1.2) } }
                 .overlay(alignment:.bottomLeading) {
                     if review, !tags.isEmpty {

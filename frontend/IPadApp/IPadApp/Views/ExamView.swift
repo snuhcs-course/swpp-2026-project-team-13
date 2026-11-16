@@ -166,7 +166,10 @@ struct ExamView: View {
             .buttonStyle(PrimaryButton()).disabled(model.drawingMissing).accessibilityIdentifier("submit-answer")
             // A popover keeps the sheet visible (no dimming) and points at the button it belongs to.
             .popover(isPresented: $confirmSubmit, attachmentAnchor: .rect(.bounds), arrowEdge: .bottom) {
-                SubmitConfirmation(exam: !practice) {
+                AnswerConfirmation(title:"이 답안으로 제출할까요?",
+                    message:practice ? "제출을 시작하면 현재 필기를 고정해 전송합니다.\n통신이 끊겨도 같은 답안으로 복구할 수 있어요."
+                                     : "제출하면 현재 필기를 고정해 AI 평가로 전송합니다.\n제출 후에는 답안을 수정할 수 없어요.",
+                    confirmTitle:"답안 제출",cancelTitle:"계속 작성하기",confirmIdentifier:"confirm-submit") {
                     confirmSubmit = false
                     Task { await model.submit() }
                 } cancel: { confirmSubmit = false }
@@ -233,32 +236,6 @@ struct WritingTimer: View {
         .accessibilityElement(children:.ignore)
         .accessibilityLabel("\(state.caption) \(state.text)")
         .accessibilityIdentifier("writing-timer")
-    }
-}
-
-// S12: confirmation shown directly above the submit button, without dimming the sheet.
-private struct SubmitConfirmation: View {
-    let exam: Bool
-    let submit: () -> Void
-    let cancel: () -> Void
-    var body: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            Text("이 답안으로 제출할까요?").font(.system(size: 18, weight: .bold)).foregroundStyle(SolfegeTheme.ink)
-            Text(exam ? "제출하면 현재 필기를 고정해 AI 평가로 전송합니다.\n제출 후에는 답안을 수정할 수 없어요."
-                      : "제출을 시작하면 현재 필기를 고정해 전송합니다.\n통신이 끊겨도 같은 답안으로 복구할 수 있어요.")
-                .font(.system(size: 14)).foregroundStyle(SolfegeTheme.muted).fixedSize(horizontal: false, vertical: true)
-            Button(action: submit) {
-                Text("답안 제출").font(.system(size: 15, weight: .bold)).foregroundStyle(.white)
-                    .frame(maxWidth: .infinity).padding(.vertical, 12)
-                    .background(SolfegeTheme.violet, in: RoundedRectangle(cornerRadius: 10))
-            }.buttonStyle(.plain).padding(.top, 4).accessibilityIdentifier("confirm-submit")
-            Button(action: cancel) {
-                Text("계속 작성하기").font(.system(size: 15, weight: .bold)).foregroundStyle(SolfegeTheme.violet)
-                    .frame(maxWidth: .infinity).padding(.vertical, 6)
-            }.buttonStyle(.plain)
-        }
-        .padding(.horizontal, 24).padding(.top, 22).padding(.bottom, 14)
-        .frame(width: 352)
     }
 }
 
