@@ -55,6 +55,7 @@ struct ContentView: View {
                 case .settings: SettingsView(model: model)
                 case .minigames: MiniGameHubView(connection:model.rhythmConnection).id(model.rhythmConnection?.identity ?? "disconnected")
                 case .classical: ClassicalExamLibraryView(model:model)
+                case .dailyTraining: DailyTrainingView(model:model)
                 }
             }
             .toolbar {
@@ -75,7 +76,7 @@ struct ContentView: View {
     @ViewBuilder private var backButton: some View {
         if [.question,.exam,.result].contains(model.screen) {
             let target = model.screen == .result ? model.resultLibraryScreen : model.selectedMode == .exam ? .main : model.questionLibraryScreen
-            back(target == .classical ? "클래식" : target == .main ? "홈" : model.selectedMode.title, to: target)
+            back(target == .classical ? "클래식" : target == .main ? "홈" : target == .dailyTraining ? "오늘의 트레이닝" : model.selectedMode.title, to: target)
         } else if model.needsAuthentication {
             back("돌아가기", to: .main).accessibilityIdentifier("back-to-auth")
         } else if model.screen == .practiceQuestions {

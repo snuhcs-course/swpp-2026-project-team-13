@@ -57,7 +57,7 @@ struct ResultView: View {
                     } else { messageCard("제출 결과를 확인해 주세요",detail:"새로고침으로 결과를 다시 불러올 수 있어요.",icon:"network") }
                     HStack {
                         Button("결과 새로고침") { Task { await model.refreshResult() } }.buttonStyle(.bordered)
-                        Button(model.resultLibraryScreen == .main ? "홈으로" : model.resultLibraryScreen == .classical ? "클래식으로 돌아가기" : "Practice로 돌아가기") { model.navigate(model.resultLibraryScreen) }
+                        Button(model.resultLibraryScreen == .main ? "홈으로" : model.resultLibraryScreen == .classical ? "클래식으로 돌아가기" : model.resultLibraryScreen == .dailyTraining ? "오늘의 트레이닝으로" : "Practice로 돌아가기") { model.navigate(model.resultLibraryScreen) }
                             .accessibilityIdentifier("result-leave")
                     }
                 }.padding(24).frame(maxWidth:1100,alignment:.leading).frame(maxWidth:.infinity)
@@ -115,7 +115,14 @@ struct ResultView: View {
                     Button(model.practiceErrors.isEmpty ? "오류 표시 없이 채점 완료" : "채점 완료") { Task { await model.savePracticeAssessment(completed:true) } }.buttonStyle(PrimaryButton())
                         .disabled(model.busy || !model.practiceComparisonReady || (review.isCompleted && model.session?.practiceEdits == nil))
                 }
-                Button { if let id = model.session?.attempt.question.id { Task { await model.choose(id,mode:.practice) } } } label: { Label("새 Practice 시작하기",systemImage:"arrow.clockwise") }.buttonStyle(.bordered)
+                if let item = model.dailyPracticeItem {
+                    // Daily Training moves on only when the user asks, once grading is saved as complete.
+                    if review.isCompleted && model.session?.practiceEdits == nil {
+                        DailyNextButton(nextTitle:model.dailyNextTitle(after:item.id)) { model.advanceDaily() }.disabled(model.busy)
+                    }
+                } else {
+                    Button { if let id = model.session?.attempt.question.id { Task { await model.choose(id,mode:.practice) } } } label: { Label("새 Practice 시작하기",systemImage:"arrow.clockwise") }.buttonStyle(.bordered)
+                }
             } else { Text("자기채점 기록을 불러오지 못했어요. 결과 새로고침으로 다시 시도해 주세요.").font(.subheadline) }
         }
     }

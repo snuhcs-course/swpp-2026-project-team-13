@@ -2,7 +2,7 @@ import SwiftUI
 import PencilKit
 
 @MainActor final class AppModel: ObservableObject {
-    enum Screen: String { case main, home, practiceLevels, practiceQuestions, recommendingExam, examSelection, question, exam, result, history, settings, minigames, classical }
+    enum Screen: String { case main, home, practiceLevels, practiceQuestions, recommendingExam, examSelection, question, exam, result, history, settings, minigames, classical, dailyTraining }
     @Published var screen: Screen = .main
     @Published var profile: UserProfile?
     @Published var questions: [QuestionSummary] = []
@@ -27,6 +27,7 @@ import PencilKit
     @Published var session: SessionRecord?
     @Published var history: [SessionRecord] = []
     @Published private(set) var practiceResumeId: UUID?
+    @Published var daily = DailyTrainingState()
     @Published var busy = false
     @Published var busyText = "준비 중"
     @Published var error: String?
@@ -68,7 +69,7 @@ import PencilKit
         return RhythmConnection(api:api,profileId:profile.id,demo:demo,generation:ticket.generation)
     }
     private let httpSession: URLSession?
-    private let demoScope: String?
+    let demoScope: String?
     private var operationGeneration = UUID()
     private var loginDeadlines: [String: Date] = [:]
     private var signupDeadlines: [String: Date] = [:]
@@ -93,9 +94,10 @@ import PencilKit
     // Classical stays Practice-only; legacy exam attempts remain resumable.
     var questionLibraryScreen: Screen {
         guard selectedMode == .practice else { return libraryScreen }
+        if dailyPracticeItem != nil { return .dailyTraining }
         return selectedQuestion?.collection == "classical" ? .classical : .practiceQuestions
     }
-    var resultLibraryScreen: Screen { session?.attempt.studyMode != .practice ? .main : session?.attempt.question.collection == "classical" ? .classical : .home }
+    var resultLibraryScreen: Screen { session?.attempt.studyMode != .practice ? .main : dailyPracticeItem != nil ? .dailyTraining : session?.attempt.question.collection == "classical" ? .classical : .home }
     var canChooseNextExam: Bool {
         session?.attempt.studyMode == .exam && session?.attempt.status == "submitted" && session?.grading?.status == "completed"
     }
@@ -169,7 +171,7 @@ import PencilKit
         classicalQuestions = []; classicalLoaded = false; classicalPage = 0; classicalHasNextPage = false; selectedComposer = nil; selectedPracticeLevel = nil; recommendedExam = nil
         examOffer = nil; selectedQuestion = nil; template = nil; submittedImage = nil; mainScore = nil
         correctScoreImage = nil; correctScoreError = nil; prepared = false; connected = false
-        waitingSince = nil; error = nil; screen = .main
+        waitingSince = nil; error = nil; screen = .main; daily = DailyTrainingState()
         authenticating = false; logoutNeedsConfirmation = false; logoutFailure = nil; pendingLocalLogout = nil
     }
     private func saveConnection() {
@@ -909,6 +911,8 @@ import PencilKit
     }
     func navigate(_ target: Screen) {
         if target != .exam { player.pause() }
+        // Leaving for a library or home ends the Daily Training run; its progress stays saved.
+        if [.main, .home, .practiceLevels, .practiceQuestions, .classical, .dailyTraining].contains(target) { daily.activeIndex = nil }
         if target == .examSelection {
             Task { await self.startRecommendedExam() }; return
         }

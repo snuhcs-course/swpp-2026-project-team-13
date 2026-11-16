@@ -7,7 +7,7 @@ struct MainHomeView: View {
     @Environment(\.dynamicTypeSize) private var typeSize
 
     private struct Entry: Identifiable {
-        enum Action { case open(AppModel.Screen), recommendedExam, inDevelopment }
+        enum Action { case open(AppModel.Screen), recommendedExam, daily, inDevelopment }
         let id, title, symbol, detail: String
         let action: Action
         var needsServer = true
@@ -15,7 +15,7 @@ struct MainHomeView: View {
         var inDevelopment: Bool { if case .inDevelopment = action { return true }; return false }
     }
     private let entries = [
-        Entry(id: "daily", title: "Daily Training", symbol: "sun.max", detail: "미니게임 세트와 청음 한 문제를 매일 연습하는 메뉴를 만들고 있어요", action: .inDevelopment),
+        Entry(id: "daily", title: "Daily Training", symbol: "sun.max", detail: "미니게임 2개와 Practice 2문제를 매일 새로 풀어요", action: .daily),
         Entry(id: "drill", title: "Drill", symbol: "pianokeys", detail: "미니게임을 골라 듣고 기억하는 연습을 해요", action: .open(.minigames), needsServer: false),
         Entry(id: "practice", title: "Practice", symbol: "pencil", detail: StudyMode.practice.detail, action: .open(.home)),
         Entry(id: "exam", title: "Exam", symbol: "music.note.list", detail: StudyMode.exam.detail, action: .recommendedExam, accent: true),
@@ -149,6 +149,7 @@ struct MainHomeView: View {
             switch entry.action {
             case .open(let screen): model.navigate(screen)
             case .recommendedExam: Task { await model.startRecommendedExam() }
+            case .daily: model.openDaily()
             case .inDevelopment: break
             }
         } label: {

@@ -41,11 +41,15 @@ struct MelodyRunView: View {
     @AppStorage("memory-run-tutorial-v3") private var tutorialSeen = false
     @State private var showingTutorial = false
     @State private var choosingDifficulty = false
-    init(connection: RhythmConnection? = nil) { _game = StateObject(wrappedValue:MelodyRunModel(connection:connection)) }
+    private let daily: DailyGameContext?
+    init(connection: RhythmConnection? = nil, daily: DailyGameContext? = nil) {
+        _game = StateObject(wrappedValue:MelodyRunModel(connection:connection)); self.daily = daily
+    }
     var body: some View {
         VStack(spacing:16) {
             HStack {
                 Text("Memory run").font(.title2.bold())
+                if daily != nil { DailyChip() }
                 Spacer()
                 if game.page == .setup || game.page == .playing {
                     Button { game.pause(); showingTutorial = true } label: { Label("게임 방법",systemImage:"questionmark.circle").frame(minHeight:44) }.accessibilityLabel("게임 방법")
@@ -61,8 +65,9 @@ struct MelodyRunView: View {
         }.padding(24).frame(maxWidth:1100).frame(maxWidth:.infinity)
             .background(SolfegeTheme.background.ignoresSafeArea()).tint(SolfegeTheme.violet).preferredColorScheme(.light)
             .overlay { if game.working { ProgressView("잠시 후 시작해요").padding(24).background(.regularMaterial,in:RoundedRectangle(cornerRadius:18)).allowsHitTesting(false) } }
-            .task { if !tutorialSeen { showingTutorial = true } }
-            .sheet(isPresented:$showingTutorial) { MemoryTutorialView { tutorialSeen = true; showingTutorial = false } }
+            .task { if !tutorialSeen { showingTutorial = true } else { startDaily() } }
+            .sheet(isPresented:$showingTutorial) { MemoryTutorialView { tutorialSeen = true; showingTutorial = false; startDaily() } }
+            .onChange(of:game.page) { _, page in if page == .result { daily?.finished() } }
             .alert("확인이 필요해요",isPresented:Binding(get:{game.error != nil},set:{if !$0 {game.error = nil}})) {
                 if game.storageFailed { Button("저장 다시 시도") { game.retryStorage() } }
                 Button("확인") { game.error = nil }
@@ -111,11 +116,16 @@ struct MelodyRunView: View {
         }
         return game.difficulty == .beginner ? "짧고 익숙한 선율부터" : game.difficulty == .intermediate ? "조금 더 길고 빠르게" : "네 마디를 한 번에"
     }
-    private var setProgress: some View {
-        HStack(spacing:7) {
+    @ViewBuilder private var setProgress: some View {
+        if let daily { DailyProgressBar(done:daily.done,current:daily.index) } else { HStack(spacing:7) {
             ForEach(0..<game.setCount,id:\.self) { i in Capsule().fill(i < game.setIndex || (i == game.setIndex && game.page == .result) ? SolfegeTheme.violet : SolfegeTheme.violet.opacity(0.13)).frame(height:6) }
             Text("\(game.setIndex+1)/\(game.setCount)").font(.caption.monospacedDigit()).padding(.leading,8)
-        }
+        } }
+    }
+    // Daily Training skips setup and opens one question at today's difficulty.
+    private func startDaily() {
+        guard let daily, game.page == .setup, !game.working else { return }
+        game.newDailyRound(difficulty:daily.difficulty)
     }
     private var play: some View {
         GeometryReader { geometry in
@@ -173,8 +183,13 @@ struct MelodyRunView: View {
                         Button { game.replay(user:false) } label: { Label("원본",systemImage:"play.fill") }.buttonStyle(.bordered)
                         Button { game.replay(user:true) } label: { Label("내 답",systemImage:"play.fill") }.buttonStyle(.bordered)
                         if game.replaying != nil { Button { game.stopReplay() } label: { Image(systemName:"stop.fill") }.accessibilityLabel("재생 정지") }
-                        Spacer(); Button("다시 풀기") { game.retry() }.buttonStyle(.bordered).disabled(game.working)
-                        Button(game.isLastRound ? "결과 보기" : "다음") { game.next() }.buttonStyle(PrimaryButton(compact:true)).disabled(game.working)
+                        Spacer()
+                        if let daily {
+                            DailyNextButton(nextTitle:daily.nextTitle) { game.stop(); daily.next() }.disabled(game.working)
+                        } else {
+                            Button("다시 풀기") { game.retry() }.buttonStyle(.bordered).disabled(game.working)
+                            Button(game.isLastRound ? "결과 보기" : "다음") { game.next() }.buttonStyle(PrimaryButton(compact:true)).disabled(game.working)
+                        }
                     }
                     VStack(alignment:.leading,spacing:8) {
                         Text("정답").font(.headline).foregroundStyle(SolfegeTheme.green)
@@ -203,6 +218,7 @@ struct MelodyRunView: View {
         }
     }
     private func back() {
+        if let daily { game.stop(); daily.exit(); return }
         if game.page == .playing || game.page == .result || game.working {
             game.setup(); choosingDifficulty = true
         } else if game.page == .summary {
