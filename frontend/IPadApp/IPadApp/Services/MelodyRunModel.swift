@@ -1,7 +1,11 @@
 import SwiftUI
 
 @MainActor final class MelodyRunModel: ObservableObject {
-    enum Page { case setup, playing, result, summary }
+    enum Page { case map, setup, playing, result, summary }
+    static let levelStorageKey = "solfege.memory-run.levels.v1"
+    @Published private(set) var level: MemoryLevel?
+    @Published private(set) var levelProgress = MemoryLevelProgress()
+    private let defaults: UserDefaults
     @Published var difficulty: MemoryDifficulty = .beginner
     @Published private(set) var setIndex = 0
     @Published private(set) var setExcerpts: [MemoryExcerpt] = []
@@ -26,11 +30,17 @@ import SwiftUI
         if meter.denominator == 2 { return "𝅗𝅥 = \(Int((settings.bpm/2).rounded()))" }
         return "♩ = \(Int(settings.bpm.rounded()))"
     }
-    var keyboardRange: ClosedRange<Int> { difficulty == .beginner && excerpt != nil ? 60...72 : round?.keyboardRange ?? 60...84 }
+    var keyboardRange: ClosedRange<Int> {
+        if level != nil, let round { return round.targets.allSatisfy { (60...72).contains($0.midi) } ? 60...72 : round.keyboardRange }
+        return difficulty == .beginner && excerpt != nil ? 60...72 : round?.keyboardRange ?? 60...84
+    }
+    var showsSolfege: Bool { level.map { $0.number < 31 } ?? (difficulty == .beginner) }
+    var passed: Bool { (answers?.result.accuracy ?? 0) >= MemoryLevel.passAccuracy }
+    private var entryPage: Page { level != nil ? .map : .setup }
     @Published var settings = MelodySettings()
     @Published private(set) var questions: [MelodyQuestion] = []
     @Published var selection = ""
-    @Published private(set) var page: Page = .setup
+    @Published private(set) var page: Page = .map
     @Published private(set) var round: MelodyRound?
     @Published private(set) var answers: MelodyAnswers?
     @Published private(set) var phase: MelodyPhase = .countIn
@@ -85,7 +95,9 @@ import SwiftUI
         }
     }
 
-    init(connection: RhythmConnection? = nil) {
+    init(connection: RhythmConnection? = nil, defaults: UserDefaults = .standard) {
+        self.defaults = defaults
+        if let data = defaults.data(forKey:Self.levelStorageKey), let saved = try? JSONDecoder().decode(MemoryLevelProgress.self,from:data) { levelProgress = saved }
         do {
             guard let url = Bundle.main.url(forResource:"memory-run-v2",withExtension:"json") else {
                 throw SolfegeError.invalidScore("미니게임 문제 목록이 없어요.")
@@ -153,7 +165,7 @@ import SwiftUI
     func newSet() {
         guard let catalog, !working, !transitionPending else { return }
         do {
-            endObservation(outcome:"abandoned")
+            endObservation(outcome:"abandoned"); level = nil
             var rng = SystemRandomNumberGenerator()
             let heard = records.filter { $0.listenStarts > 0 }
             setExcerpts = try catalog.makeSet(level:difficulty,mode:settings.mode,
@@ -184,12 +196,33 @@ import SwiftUI
         setIndex += 1; queueStart()
     }
     func retry() { guard page == .result, !working, !transitionPending else { return }; queueStart() }
+    // MARK: Numbered levels
+    func openLevel(_ number: Int) {
+        guard (1...MemoryLevel.count).contains(number), number <= levelProgress.unlocked, !working, !transitionPending else { return }
+        endObservation(outcome:"abandoned")
+        level = .level(number); setExcerpts = []; setIndex = 0; setId = UUID()
+        settings.mode = .memory
+        queueStart()
+    }
+    func nextLevel() {
+        guard page == .result, let level, passed, level.number < MemoryLevel.count else { return }
+        openLevel(level.number+1)
+    }
+    func showMap() { stop(); level = nil; settings.mode = .memory; page = .map }
+    func openGroove() { stop(); level = nil; settings.mode = .groove; page = .setup }
+    private func recordLevel(_ number: Int, accuracy: Int) {
+        levelProgress.record(level:number,accuracy:accuracy)
+        if let data = try? JSONEncoder().encode(levelProgress) { defaults.set(data,forKey:Self.levelStorageKey) }
+    }
     func start(afterDelay: Bool = false) async {
-        if let excerpt {
+        if let level {
+            settings.mode = .memory; settings.startBar = 1; settings.bars = level.bars
+            settings.bpm = level.bpm; settings.inputBars = 2; settings.advanceEarly = true
+        } else if let excerpt {
             selection = excerpt.sourceId; settings.startBar = excerpt.first; settings.bars = excerpt.bars
             settings.bpm = difficulty.quarterBpm; settings.inputBars = 2; settings.advanceEarly = true
         }
-        guard !working, let question else { return }
+        guard !working, level != nil || question != nil else { return }
         working = true; defer { working = false }
         if afterDelay {
             do { try await Task.sleep(for:.seconds(1)) } catch { return }
@@ -199,11 +232,16 @@ import SwiftUI
         guard !Task.isCancelled else { return }
         do {
             try settings.validate()
-            let url = localURLs[question.id] ?? Bundle.main.url(forResource:question.file,withExtension:nil)
-            guard let url else { throw SolfegeError.invalidScore("문제 XML을 찾지 못했어요.") }
-            let data = try Data(contentsOf:url)
-            if let expected = question.sha256, data.sha256 != expected { throw SolfegeError.invalidScore("선율 파일이 변경됐어요. 최신 앱을 설치해 주세요.") }
-            let source = try MelodyXMLParser.parse(data)
+            let source: MelodySource
+            if let level { source = level.source }
+            else {
+                guard let question else { return }
+                let url = localURLs[question.id] ?? Bundle.main.url(forResource:question.file,withExtension:nil)
+                guard let url else { throw SolfegeError.invalidScore("문제 XML을 찾지 못했어요.") }
+                let data = try Data(contentsOf:url)
+                if let expected = question.sha256, data.sha256 != expected { throw SolfegeError.invalidScore("선율 파일이 변경됐어요. 최신 앱을 설치해 주세요.") }
+                source = try MelodyXMLParser.parse(data)
+            }
             guard settings.mode != .groove || source.supportsGroove(start:settings.startBar,bars:settings.bars) else {
                 throw SolfegeError.invalidScore("이 선율은 마디를 잇는 붙임줄이 있어 Groove에서 사용할 수 없어요.")
             }
@@ -215,7 +253,7 @@ import SwiftUI
             page = .playing; paused = false
             beginObservation()
             try beginClock(from:1)
-        } catch { audio.stop(); endObservation(outcome:"technical_error"); page = .setup; self.error = error.localizedDescription }
+        } catch { audio.stop(); endObservation(outcome:"technical_error"); page = entryPage; self.error = error.localizedDescription }
     }
     private func beginClock(from measure: Int, includeCountIn: Bool = true) throws {
         guard let round else { return }
@@ -336,13 +374,14 @@ import SwiftUI
         guard page == .playing else { return }
         runner?.cancel(); runner = nil; audio.stopClock(); audio.releaseKeys(); page = .result; paused = false
         if let result = answers?.result {
-            setScores[setIndex] = result.accuracy
+            if let level { recordLevel(level.number,accuracy:result.accuracy) }
+            else if setScores.indices.contains(setIndex) { setScores[setIndex] = result.accuracy }
             mutateRecord { $0.accuracy = result.accuracy }
         }
         endObservation(outcome:"submitted")
     }
     func pause() {
-        if working || transitionPending { transition?.cancel(); transition = nil; transitionPending = false; working = false; page = .setup; audio.stop(); return }
+        if working || transitionPending { transition?.cancel(); transition = nil; transitionPending = false; working = false; page = entryPage; audio.stop(); return }
         guard page == .playing else { stopReplay(); audio.stop(); return }
         runner?.cancel(); runner = nil; paused = true; audio.stop()
         accumulateInputTime(); mutateRecord { $0.interruptions += 1 }
@@ -372,14 +411,27 @@ import SwiftUI
         catch { pause(); self.error = error.localizedDescription }
     }
     private func beginObservation() {
-        guard let excerpt, let question, let round, let answers else { return }
-        let record = MemoryPlayRecord(setId:setId,setIndex:setIndex,excerptId:excerpt.id,sourceId:question.id,
-            sourceSha256:question.sha256 ?? "",catalogSha256:catalogHash,analysisKey:question.analysisKey ?? "",
-            difficultyVersion:catalog?.difficultyVersion ?? "",level:difficulty,mode:settings.mode.rawValue,
-            bars:excerpt.bars,first:excerpt.first,bpm:settings.bpm,score:excerpt.score,fingerprint:excerpt.fingerprint,
-            priorExposures:records.filter { $0.excerptId == excerpt.id && $0.listenStarts > 0 }.count,
-            priorPatternExposures:records.filter { $0.fingerprint == excerpt.fingerprint && $0.listenStarts > 0 }.count,
-            expected:round.targets.map(\.midi),givenIndices:answers.givenIndices.sorted(),actual:answers.pitches)
+        guard let round, let answers else { return }
+        let record: MemoryPlayRecord
+        if let level {
+            let id = "level-\(level.number)"
+            record = MemoryPlayRecord(setId:setId,setIndex:0,excerptId:id,sourceId:"memory-"+id,sourceSha256:"",catalogSha256:"",
+                analysisKey:level.signature,difficultyVersion:"memory-levels-v1",
+                level:level.number <= 18 ? .beginner : level.number <= 36 ? .intermediate : .advanced,mode:settings.mode.rawValue,
+                bars:level.bars,first:1,bpm:settings.bpm,score:Double(level.number),fingerprint:level.signature,
+                priorExposures:records.filter { $0.excerptId == id && $0.listenStarts > 0 }.count,
+                priorPatternExposures:records.filter { $0.fingerprint == level.signature && $0.listenStarts > 0 }.count,
+                expected:round.targets.map(\.midi),givenIndices:answers.givenIndices.sorted(),actual:answers.pitches,stage:level.number)
+        } else {
+            guard let excerpt, let question else { return }
+            record = MemoryPlayRecord(setId:setId,setIndex:setIndex,excerptId:excerpt.id,sourceId:question.id,
+                sourceSha256:question.sha256 ?? "",catalogSha256:catalogHash,analysisKey:question.analysisKey ?? "",
+                difficultyVersion:catalog?.difficultyVersion ?? "",level:difficulty,mode:settings.mode.rawValue,
+                bars:excerpt.bars,first:excerpt.first,bpm:settings.bpm,score:excerpt.score,fingerprint:excerpt.fingerprint,
+                priorExposures:records.filter { $0.excerptId == excerpt.id && $0.listenStarts > 0 }.count,
+                priorPatternExposures:records.filter { $0.fingerprint == excerpt.fingerprint && $0.listenStarts > 0 }.count,
+                expected:round.targets.map(\.midi),givenIndices:answers.givenIndices.sorted(),actual:answers.pitches)
+        }
         var updated = record
         updated.inputPolicy = "guided-first-manual-v3"
         updated.replayWithCountIn = 0; updated.replayDirect = 0

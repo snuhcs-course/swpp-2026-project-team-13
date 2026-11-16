@@ -38,25 +38,28 @@ struct MelodyRunView: View {
     @StateObject private var game: MelodyRunModel
     @Environment(\.dismiss) private var dismiss
     @Environment(\.scenePhase) private var scenePhase
-    @AppStorage("memory-run-tutorial-v3") private var tutorialSeen = false
+    @AppStorage("memory-run-tutorial-v4") private var tutorialSeen = false
     @State private var showingTutorial = false
-    @State private var choosingDifficulty = false
     private let daily: DailyGameContext?
     init(connection: RhythmConnection? = nil, daily: DailyGameContext? = nil) {
         _game = StateObject(wrappedValue:MelodyRunModel(connection:connection)); self.daily = daily
     }
     var body: some View {
         VStack(spacing:16) {
-            HStack {
+            HStack(spacing:12) {
                 Text("Memory run").font(.title2.bold())
                 if daily != nil { DailyChip() }
+                else if let level = game.level, game.page == .playing || game.page == .result {
+                    Pill(text:"레벨 \(level.number) · \(level.keyLabel)",icon:"flag").accessibilityIdentifier("memory-level-label")
+                }
                 Spacer()
-                if game.page == .setup || game.page == .playing {
+                if [.map,.setup,.playing].contains(game.page) {
                     Button { game.pause(); showingTutorial = true } label: { Label("게임 방법",systemImage:"questionmark.circle").frame(minHeight:44) }.accessibilityLabel("게임 방법")
                 }
                 Button(action:back) { Image(systemName:"xmark").frame(width:44,height:44) }.accessibilityLabel("뒤로가기")
             }
             switch game.page {
+            case .map: if daily == nil { levelMap } else { Spacer() }
             case .setup: setup
             case .playing: play
             case .result: result
@@ -66,7 +69,7 @@ struct MelodyRunView: View {
             .background(SolfegeTheme.background.ignoresSafeArea()).tint(SolfegeTheme.violet).preferredColorScheme(.light)
             .overlay { if game.working { ProgressView("잠시 후 시작해요").padding(24).background(.regularMaterial,in:RoundedRectangle(cornerRadius:18)).allowsHitTesting(false) } }
             .task { if !tutorialSeen { showingTutorial = true } else { startDaily() } }
-            .sheet(isPresented:$showingTutorial) { MemoryTutorialView { tutorialSeen = true; showingTutorial = false; startDaily() } }
+            .sheet(isPresented:$showingTutorial,onDismiss:{ tutorialSeen = true; startDaily() }) { MemoryTutorialView { tutorialSeen = true; showingTutorial = false } }
             .onChange(of:game.page) { _, page in if page == .result { daily?.finished() } }
             .alert("확인이 필요해요",isPresented:Binding(get:{game.error != nil},set:{if !$0 {game.error = nil}})) {
                 if game.storageFailed { Button("저장 다시 시도") { game.retryStorage() } }
@@ -81,50 +84,95 @@ struct MelodyRunView: View {
             }
             .onDisappear { game.stop() }
     }
+
+    // MARK: Level map (stage selection)
+    private var levelMap: some View {
+        ScrollView {
+            VStack(alignment:.leading,spacing:22) {
+                VStack(alignment:.leading,spacing:10) {
+                    Text("선율을 기억해서 건반으로 복원해요").font(.system(size:28,weight:.bold,design:.rounded)).foregroundStyle(SolfegeTheme.ink)
+                    Text("레벨마다 정해진 선율이 한 번 나와요. 강조된 첫 음을 뺀 음의 \(MemoryLevel.passAccuracy)% 이상을 맞히면 다음 레벨이 열려요.")
+                        .foregroundStyle(SolfegeTheme.muted)
+                    HStack { Pill(text:"\(game.levelProgress.cleared.count) / \(MemoryLevel.count) 레벨 완료",icon:"flag") }
+                }
+                Button { game.openLevel(game.levelProgress.unlocked) } label: {
+                    Label("레벨 \(game.levelProgress.unlocked) 시작",systemImage:"play.fill")
+                }.buttonStyle(PrimaryButton()).disabled(game.working || showingTutorial).accessibilityIdentifier("memory-continue")
+                Text("한 마디 세 음 → 네 음 → 두 마디 → 4도 도약 → 8분음표 → 사장조·바장조 → 네 마디")
+                    .font(.subheadline).foregroundStyle(SolfegeTheme.muted)
+                LazyVGrid(columns:[GridItem(.adaptive(minimum:120),spacing:14)],spacing:14) {
+                    ForEach(1...MemoryLevel.count,id:\.self) { levelButton($0) }
+                }.accessibilityIdentifier("memory-level-map")
+                Button { game.openGroove() } label: {
+                    HStack(spacing:18) {
+                        Image(systemName:"metronome").font(.system(size:28,weight:.light)).foregroundStyle(SolfegeTheme.violet)
+                        VStack(alignment:.leading,spacing:6) {
+                            Text("Groove 연습").font(.headline)
+                            Text("한 마디씩 듣고 바로 따라 쳐요. 레벨 진행과는 따로 기록돼요.").font(.subheadline).foregroundStyle(.secondary)
+                        }
+                        Spacer(); Image(systemName:"chevron.right")
+                    }.padding(20).frame(maxWidth:.infinity,alignment:.leading).background(.white,in:RoundedRectangle(cornerRadius:18))
+                }.buttonStyle(.plain)
+                Text("레벨 진행과 최고 기록은 이 기기에 저장돼요. 인터넷 연결 없이도 열린 레벨을 풀 수 있어요.")
+                    .font(.footnote).foregroundStyle(SolfegeTheme.muted)
+            }.padding(.vertical,8)
+        }
+    }
+    private func levelButton(_ number: Int) -> some View {
+        let level = MemoryLevel.level(number)
+        let unlocked = number <= game.levelProgress.unlocked
+        let best = game.levelProgress.best[number]
+        let cleared = (best ?? 0) >= MemoryLevel.passAccuracy
+        return Button { game.openLevel(number) } label: {
+            VStack(alignment:.leading,spacing:8) {
+                HStack {
+                    Text("\(number)").font(.title2.bold())
+                    Spacer(minLength:2)
+                    Image(systemName:!unlocked ? "lock.fill" : cleared ? "checkmark.circle.fill" : level.isMilestone ? "sparkles" : "music.note")
+                        .font(.caption).foregroundStyle(cleared ? SolfegeTheme.green : unlocked ? SolfegeTheme.violet : SolfegeTheme.muted)
+                }
+                Text(level.stageTitle).font(.caption).lineLimit(1).minimumScaleFactor(0.8)
+                Text(best.map { "최고 \($0)%" } ?? (unlocked ? "도전 전" : "잠김")).font(.caption2).foregroundStyle(SolfegeTheme.muted)
+            }.padding(14).foregroundStyle(unlocked ? SolfegeTheme.ink : SolfegeTheme.muted)
+                .frame(height:104).frame(maxWidth:.infinity)
+                .background(unlocked ? Color.white : SolfegeTheme.field,in:RoundedRectangle(cornerRadius:18))
+                .overlay(RoundedRectangle(cornerRadius:18).stroke(number == game.levelProgress.unlocked ? SolfegeTheme.violet : .clear,lineWidth:2))
+        }.buttonStyle(.plain).disabled(!unlocked || game.working)
+            .accessibilityLabel("레벨 \(number), \(level.stageTitle), \(unlocked ? best.map { "최고 \($0)%" } ?? "도전 전" : "잠김")")
+            .accessibilityIdentifier("memory-level-\(number)")
+    }
+
+    // MARK: Groove setup
     private var setup: some View {
         ScrollView {
             VStack(alignment:.leading,spacing:26) {
-                if !choosingDifficulty {
-                    Text("게임 선택").font(.title2.bold()).padding(.top,28)
-                    modeButton(.memory,title:"Memory",description:"선율 전체를 기억해서 건반으로 복원하기",icon:"brain.head.profile")
-                    modeButton(.groove,title:"Groove",description:"한 마디씩 듣고, 바로 따라 치기",icon:"metronome")
-                } else {
-                    Button("모드 다시 선택",systemImage:"chevron.left") { choosingDifficulty = false }
-                    Text(game.settings.mode == .memory ? "Memory" : "Groove").font(.title2.bold())
-                    Picker("난이도",selection:$game.difficulty) { ForEach(MemoryDifficulty.allCases) { Text($0.title).tag($0) } }.pickerStyle(.segmented)
-                    VStack(alignment:.leading,spacing:12) {
-                        Text(difficultyTitle).font(.title3.bold())
-                        Text(game.difficulty == .beginner ? "2마디" : game.difficulty == .intermediate ? "2~4마디" : "4마디").foregroundStyle(.secondary)
-                    }.padding(22).frame(maxWidth:.infinity,alignment:.leading).background(.white,in:RoundedRectangle(cornerRadius:18))
-                    Button("\(game.difficulty.barPlan.count)문제 시작") { game.newSet() }.buttonStyle(PrimaryButton()).disabled(game.catalog == nil || game.working || showingTutorial)
-                }
+                Button("레벨맵으로",systemImage:"chevron.left") { game.showMap() }
+                Text("Groove").font(.title2.bold())
+                Text("한 마디씩 듣고, 바로 따라 치기").foregroundStyle(.secondary)
+                Picker("난이도",selection:$game.difficulty) { ForEach(MemoryDifficulty.allCases) { Text($0.title).tag($0) } }.pickerStyle(.segmented)
+                VStack(alignment:.leading,spacing:12) {
+                    Text(difficultyTitle).font(.title3.bold())
+                    Text(game.difficulty == .beginner ? "2마디" : game.difficulty == .intermediate ? "2~4마디" : "4마디").foregroundStyle(.secondary)
+                }.padding(22).frame(maxWidth:.infinity,alignment:.leading).background(.white,in:RoundedRectangle(cornerRadius:18))
+                Button("\(game.difficulty.barPlan.count)문제 시작") { game.newSet() }.buttonStyle(PrimaryButton()).disabled(game.catalog == nil || game.working || showingTutorial)
             }
         }
     }
-    private func modeButton(_ mode: MelodyMode,title: String,description: String,icon: String) -> some View {
-        Button { game.settings.mode = mode; choosingDifficulty = true } label: {
-            HStack(spacing:24) {
-                Image(systemName:icon).font(.system(size:36,weight:.light)).frame(width:56).foregroundStyle(SolfegeTheme.violet)
-                VStack(alignment:.leading,spacing:10) { Text(title).font(.title.bold()); Text(description).font(.body).foregroundStyle(.secondary) }
-                Spacer(); Image(systemName:"chevron.right")
-            }.padding(28).frame(maxWidth:.infinity,alignment:.leading).background(.white,in:RoundedRectangle(cornerRadius:18))
-        }.buttonStyle(.plain)
-    }
     private var difficultyTitle: String {
-        if game.settings.mode == .groove {
-            return game.difficulty == .beginner ? "차근차근 따라 치기" : game.difficulty == .intermediate ? "조금 더 빠르게" : "빠른 선율에 도전하기"
-        }
-        return game.difficulty == .beginner ? "짧고 익숙한 선율부터" : game.difficulty == .intermediate ? "조금 더 길고 빠르게" : "네 마디를 한 번에"
+        game.difficulty == .beginner ? "차근차근 따라 치기" : game.difficulty == .intermediate ? "조금 더 빠르게" : "빠른 선율에 도전하기"
     }
     @ViewBuilder private var setProgress: some View {
-        if let daily { DailyProgressBar(done:daily.done,current:daily.index) } else { HStack(spacing:7) {
-            ForEach(0..<game.setCount,id:\.self) { i in Capsule().fill(i < game.setIndex || (i == game.setIndex && game.page == .result) ? SolfegeTheme.violet : SolfegeTheme.violet.opacity(0.13)).frame(height:6) }
-            Text("\(game.setIndex+1)/\(game.setCount)").font(.caption.monospacedDigit()).padding(.leading,8)
-        } }
+        if let daily { DailyProgressBar(done:daily.done,current:daily.index) }
+        else if game.level == nil {
+            HStack(spacing:7) {
+                ForEach(0..<game.setCount,id:\.self) { i in Capsule().fill(i < game.setIndex || (i == game.setIndex && game.page == .result) ? SolfegeTheme.violet : SolfegeTheme.violet.opacity(0.13)).frame(height:6) }
+                Text("\(game.setIndex+1)/\(game.setCount)").font(.caption.monospacedDigit()).padding(.leading,8)
+            }
+        }
     }
-    // Daily Training skips setup and opens one question at today's difficulty.
+    // Daily Training skips the level map and opens one question at today's difficulty.
     private func startDaily() {
-        guard let daily, game.page == .setup, !game.working else { return }
+        guard let daily, game.page == .map || game.page == .setup, !game.working else { return }
         game.newDailyRound(difficulty:daily.difficulty)
     }
     private var play: some View {
@@ -151,8 +199,8 @@ struct MelodyRunView: View {
                     Spacer()
                     if let first = game.guidedPitch { Text("첫 음 \(MelodyRound.noteName(first)) ↓").font(.subheadline.bold()).foregroundStyle(SolfegeTheme.violet) }
                 }
-                MelodyPianoView(range:game.keyboardRange,enabled:game.canEnter,solfege:game.difficulty == .beginner,reference:game.guidedPitch,onDown:game.keyDown,onUp:game.keyUp)
-                    .frame(height:max(150,min(230,geometry.size.height*0.30))).frame(maxWidth:game.difficulty == .beginner ? 780 : .infinity)
+                MelodyPianoView(range:game.keyboardRange,enabled:game.canEnter,solfege:game.showsSolfege,reference:game.guidedPitch,onDown:game.keyDown,onUp:game.keyUp)
+                    .frame(height:max(150,min(230,geometry.size.height*0.30))).frame(maxWidth:game.keyboardRange.count <= 13 ? 780 : .infinity)
                 HStack(spacing:12) {
                     if game.settings.mode == .memory {
                         Button("바로 듣기",systemImage:"play.fill") { game.listenAgain(includeCountIn:false) }.buttonStyle(.bordered).disabled(!game.canEnter)
@@ -179,6 +227,12 @@ struct MelodyRunView: View {
                         Text("\(answers.result.correct)/\(answers.result.expected.count)음").foregroundStyle(.secondary)
                         Spacer()
                     }
+                    if let level = game.level {
+                        Text(game.passed ? (level.number == MemoryLevel.count ? "마지막 레벨까지 통과했어요!" : "통과! 레벨 \(level.number+1)이 열렸어요.")
+                                         : "\(MemoryLevel.passAccuracy)% 이상이면 다음 레벨이 열려요. 다시 풀어 볼까요?")
+                            .font(.headline).foregroundStyle(game.passed ? SolfegeTheme.green : SolfegeTheme.ink)
+                            .accessibilityIdentifier("memory-level-outcome")
+                    }
                     HStack(spacing:12) {
                         Button { game.replay(user:false) } label: { Label("원본",systemImage:"play.fill") }.buttonStyle(.bordered)
                         Button { game.replay(user:true) } label: { Label("내 답",systemImage:"play.fill") }.buttonStyle(.bordered)
@@ -186,6 +240,12 @@ struct MelodyRunView: View {
                         Spacer()
                         if let daily {
                             DailyNextButton(nextTitle:daily.nextTitle) { game.stop(); daily.next() }.disabled(game.working)
+                        } else if let level = game.level {
+                            Button("다시 풀기") { game.retry() }.buttonStyle(.bordered).disabled(game.working)
+                            Button("레벨맵") { game.showMap() }.buttonStyle(.bordered).disabled(game.working)
+                            if game.passed && level.number < MemoryLevel.count {
+                                Button("다음 판") { game.nextLevel() }.buttonStyle(PrimaryButton(compact:true)).disabled(game.working).accessibilityIdentifier("memory-next-level")
+                            }
                         } else {
                             Button("다시 풀기") { game.retry() }.buttonStyle(.bordered).disabled(game.working)
                             Button(game.isLastRound ? "결과 보기" : "다음") { game.next() }.buttonStyle(PrimaryButton(compact:true)).disabled(game.working)
@@ -212,21 +272,19 @@ struct MelodyRunView: View {
                 }
                 HStack(spacing:16) {
                     Button("다시 \(game.setCount)문제 풀기") { game.newSet() }.buttonStyle(PrimaryButton()).disabled(game.working)
-                    Button("난이도 변경하기") { game.setup(); choosingDifficulty = true }.buttonStyle(.bordered)
+                    Button("난이도 변경하기") { game.setup() }.buttonStyle(.bordered)
                 }
             }
         }
     }
     private func back() {
         if let daily { game.stop(); daily.exit(); return }
-        if game.page == .playing || game.page == .result || game.working {
-            game.setup(); choosingDifficulty = true
-        } else if game.page == .summary {
-            game.setup(); choosingDifficulty = false
-        } else if choosingDifficulty {
-            game.stop(); choosingDifficulty = false
-        } else {
-            game.stop(); dismiss()
+        switch game.page {
+        case .map: game.stop(); dismiss()
+        case .setup: game.showMap()
+        case .summary: game.setup()
+        case .playing, .result:
+            if game.level != nil { game.showMap() } else { game.setup() }
         }
     }
 }

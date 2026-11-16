@@ -1,6 +1,6 @@
 import SwiftUI
 
-private struct MiniGameTutorial<Illustration: View>: View {
+struct MiniGameTutorial<Illustration: View>: View {
     let title: String; let titles: [String]; let messages: [String]; let done: ()->Void
     @ViewBuilder var illustration: (Int)->Illustration
     @State private var page = 0
@@ -33,14 +33,7 @@ private struct MiniGameTutorial<Illustration: View>: View {
 
 private enum MiniGameExamples {
     static let rhythm: RhythmCatalog? = try? Bundled.decode("rhythm-puzzle-v3")
-    static let melody: MelodyRound? = {
-        guard let bank: MemoryCatalog = try? Bundled.decode("memory-run-v2"),
-              let excerpt = bank.excerpts.first(where:{$0.beginnerEligible && $0.bars == 2}),
-              let source = bank.sources.first(where:{$0.id == excerpt.sourceId}),
-              let url = Bundle.main.url(forResource:source.file,withExtension:nil),
-              let data = try? Data(contentsOf:url), let music = try? MelodyXMLParser.parse(data) else { return nil }
-        return try? MelodyRound(source:music,start:excerpt.first,bars:2)
-    }()
+    static let melody: MelodyRound? = try? MelodyRound(source:MemoryLevel.level(13).source,start:1,bars:2)
 }
 
 struct RhythmTutorialView: View {
@@ -74,14 +67,14 @@ struct RhythmTutorialView: View {
 struct MemoryTutorialView: View {
     let done: ()->Void
     var body: some View {
-        MiniGameTutorial(title:"Memory run",titles:["두 가지 연습 방식","듣고, 첫 음부터 직접 입력","다시 듣고 편하게 고치기","정답과 내 답을 나란히 확인"],messages:[
-            "Memory는 선율 전체를 기억해서 건반으로 복원해요. Groove는 한 마디씩 듣고 바로 따라 쳐요. 첫 예비박 다음에는 준비 마디 없이 듣기와 입력이 이어져요.",
-            "리듬과 쉼표는 이미 표시되어 있어요. 회색 점선 음표 자리를 건반으로 채우세요. 강조된 건반에서 시작하면 돼요.",
-            "Memory에서는 ‘바로 듣기’ 또는 ‘예비박부터 듣기’로 다시 들을 수 있어요. 답은 유지돼요. 채운 마디를 선택하고 건반을 누르면 그 마디의 첫 음부터 다시 입력해요. 되돌리면 이전 답이 돌아와요.",
-            "위에는 정답 전체, 아래에는 내 답 전체가 같은 간격으로 보여요. 빈칸이 있어도 제출할 수 있어요. 초급은 2마디씩, 중급은 2·2·4·4마디, 고급은 4마디씩 네 문제를 풀어요."
+        MiniGameTutorial(title:"Memory run",titles:["예비박 다음, 선율 한 번 듣기","강조된 첫 음부터 직접 입력","기억한 음높이를 건반으로","80% 이상이면 다음 레벨"],messages:[
+            "레벨을 고르면 예비박 한 마디 뒤에 선율이 한 번 나와요. 듣는 동안에는 건반을 눌러도 입력되지 않아요.",
+            "선율이 끝나면 첫 음 건반이 강조돼요. 그 건반을 직접 눌러 시작하세요. 첫 음은 점수에 들어가지 않아요. 리듬과 쉼표는 이미 표시되어 있어요.",
+            "회색 점선 음표 자리를 건반으로 채우세요. ‘바로 듣기’나 ‘예비박부터 듣기’로 다시 들어도 답은 유지돼요. ‘한 음 취소’와 ‘이 마디 지우기’로 고칠 수 있어요.",
+            "위에는 정답, 아래에는 내 답이 보여요. 첫 음을 뺀 음의 80% 이상을 맞히면 다음 레벨이 열려요. 레벨이 오를수록 음, 마디, 8분음표, 조성이 하나씩 늘어나요."
         ],done:done) { step in
             VStack(spacing:12) {
-                if step == 0 { HStack(spacing:20) { Label("Memory",systemImage:"brain.head.profile"); Label("Groove",systemImage:"metronome") }.font(.title3.bold()).foregroundStyle(SolfegeTheme.violet).padding(.vertical,30) }
+                if step == 0 { HStack(spacing:20) { Label("예비박",systemImage:"metronome"); Image(systemName:"arrow.right"); Label("선율 듣기",systemImage:"speaker.wave.2") }.font(.title3.bold()).foregroundStyle(SolfegeTheme.violet).padding(.vertical,30) }
                 else if let round = MiniGameExamples.melody {
                     let pitches: [Int?] = round.targets.enumerated().map { step == 3 || $0.offset < 2 ? $0.element.midi : nil }
                     if step == 3 { Text("정답").font(.caption); MemoryPhraseView(round:round,answers:pitches,reveal:true); Text("내 답").font(.caption) }

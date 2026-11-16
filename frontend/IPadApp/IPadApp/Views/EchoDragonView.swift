@@ -6,6 +6,7 @@ import AVFoundation
     @Environment(\.dismiss) private var dismiss
     @Environment(\.scenePhase) private var scenePhase
     @State private var help = false
+    @AppStorage("echo-dragon-tutorial-v1") private var tutorialSeen = false
 
     init(model: EchoDragonModel? = nil) {
         _game = StateObject(wrappedValue:model ?? EchoDragonModel())
@@ -33,7 +34,8 @@ import AVFoundation
             }
         }
         .background(SolfegeTheme.background.ignoresSafeArea()).tint(SolfegeTheme.violet)
-        .sheet(isPresented:$help) { instructions }
+        .task { if !tutorialSeen { help = true } }
+        .sheet(isPresented:$help,onDismiss:{ tutorialSeen = true }) { EchoDragonTutorialView { tutorialSeen = true; help = false } }
         .alert("확인이 필요해요",isPresented:Binding(get:{game.error != nil},set:{if !$0 { game.error = nil }})) {
             Button("확인") { game.error = nil }
         } message: { Text(game.error ?? "") }
@@ -189,28 +191,32 @@ import AVFoundation
         if !game.heardCall { return challenge.level.rule == .mirror ? "같은 간격으로, 반대 방향으로!" : "내 부름에 답해줄래?" }
         return game.isPlaying ? "소리를 귀에 담아요." : "내 시작음에서 어떤 음으로 이어질까요?"
     }
+}
 
-    private var instructions: some View {
-        NavigationStack {
-            ScrollView {
-                VStack(alignment:.leading,spacing:22) {
-                    EchoDragonMascot(happy:true,singing:false).frame(width:180,height:155).frame(maxWidth:.infinity)
-                    Text("두 음 사이의 간격으로 대화해요.").font(.title2.bold())
-                    Text("① 드래곤 듣기를 누르세요. 두 음 뒤에 내 시작음이 들려요.\n\n② 밝은 건반을 눌러 대답을 미리 들어보세요. 시작음과 고른 음이 함께 들려요.\n\n③ 마음에 드는 소리를 찾으면 대답하기를 누르세요. 정답이면 다음 번호의 판이 열려요.")
-                    Text("따라 하기 ↗↗").font(.headline)
-                    Text("드래곤이 온음 올라가면, 나도 내 시작음에서 온음 올라가요. 시작하는 음높이가 달라도 간격이 같으면 돼요.")
-                    Text("거울 대답 ↗↘ · 25판에서 등장").font(.headline)
-                    Text("드래곤이 온음 올라가면, 나는 온음 내려가요. 내려가는 부름에는 올라가며 답해요. 간격은 그대로예요.")
-                    Text("다시 듣기에는 불이익이 없어요. 힌트를 쓰면 정답 건반이 표시되고 별 1개를 받아요. 예전 판을 다시 풀면 가장 좋은 별 기록이 남아요.")
-                        .foregroundStyle(SolfegeTheme.muted)
-                }.padding(28)
-            }.navigationTitle("에코 드래곤 하는 법").navigationBarTitleDisplayMode(.inline)
-                .toolbar { ToolbarItem(placement:.confirmationAction) { Button("확인") { help = false } } }
-        }.presentationDetents([.large])
+// Echo Dragon's own paged guide: the call, the starting note, previewing candidates and answering.
+struct EchoDragonTutorialView: View {
+    let done: () -> Void
+    private static let example = EchoDragonChallenge.make(number:2,variation:0)
+    var body: some View {
+        MiniGameTutorial(title:"에코 드래곤",titles:["드래곤의 부름 듣기","내 시작음에서 출발","밝은 건반으로 미리 듣기","대답하고 별 모으기"],messages:[
+            "‘드래곤 듣기’를 누르면 드래곤이 두 음을 불러요. 두 음 사이의 간격을 귀에 담아 두세요. 다시 듣기는 언제나 자유예요.",
+            "부름이 끝나면 발자국이 있는 내 시작음이 들려요. 이 음에서 드래곤과 같은 간격만큼 움직여 대답해요. 시작하는 음높이가 달라도 간격이 같으면 돼요.",
+            "밝은 건반이 답 후보예요. 건반을 누르면 시작음과 고른 음이 함께 들려서, 제출하기 전에 소리를 비교할 수 있어요.",
+            "마음에 드는 소리를 찾으면 ‘대답하기’를 누르세요. 첫 제출 정답 ★★★, 두 번째 ★★, 힌트를 쓰면 ★이에요. 정답이면 다음 번호의 판이 열려요. 25판부터 나오는 거울 대답은 그 판에서 따로 알려 줘요."
+        ],done:done) { step in
+            VStack(spacing:14) {
+                EchoDragonMascot(happy:step == 3,singing:step == 0).frame(width:150,height:130)
+                if step > 0 {
+                    EchoDragonKeyboard(challenge:Self.example,selected:step >= 2 ? Self.example.answer : nil,reveal:step == 3,
+                                       enabled:false,onRoot:{},onSelect:{ _ in }).frame(height:120)
+                }
+                Text(["드래곤 듣기 → 두 음","발자국 = 내 시작음","밝은 건반 = 답 후보","대답하기 → ★"][step]).font(.headline).foregroundStyle(SolfegeTheme.violet)
+            }
+        }
     }
 }
 
-private struct EchoDragonKeyboard: View {
+struct EchoDragonKeyboard: View {
     let challenge: EchoDragonChallenge
     let selected: Int?
     let reveal: Bool
@@ -256,7 +262,7 @@ private struct EchoDragonKeyboard: View {
 }
 
 // A native vector mascot keeps the prototype self-contained and sharp on iPad.
-private struct EchoDragonMascot: View {
+struct EchoDragonMascot: View {
     let happy: Bool
     let singing: Bool
     var body: some View {

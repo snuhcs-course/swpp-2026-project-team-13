@@ -138,6 +138,30 @@ import SwiftUI
         XCTAssertTrue(csv.contains("prior_pattern_exposures")); XCTAssertTrue(csv.contains("submitted"))
         XCTAssertFalse(game.storageFailed)
     }
+    func testLevelMapPlaysFixedLevelUnlocksOnlyOnPassAndOpensNextLevel() async throws {
+        let defaults = try XCTUnwrap(UserDefaults(suiteName:"memory-levels-\(UUID())"))
+        let game = MelodyRunModel(defaults:defaults); defer { game.stop() }
+        XCTAssertEqual(game.page,.map); XCTAssertEqual(game.levelProgress.unlocked,1)
+        game.openLevel(2); XCTAssertNil(game.level) // Locked levels never open.
+        game.openLevel(1)
+        try await waitUntil({game.page == .playing && !game.working},seconds:12)
+        XCTAssertEqual(game.level?.number,1); XCTAssertEqual(game.round?.score.measures,1)
+        XCTAssertEqual(game.round?.targets.map(\.midi),MemoryLevel.level(1).midis)
+        game.finish() // Empty answer: 0%, level 2 stays locked.
+        XCTAssertFalse(game.passed); XCTAssertEqual(game.levelProgress.unlocked,1)
+        game.retry()
+        try await waitUntil({game.page == .playing && !game.working && game.canEnter},seconds:12)
+        XCTAssertEqual(game.level?.number,1)
+        for midi in MemoryLevel.level(1).midis { game.keyDown(midi); game.keyUp(midi) }
+        game.finish()
+        XCTAssertTrue(game.passed); XCTAssertEqual(game.levelProgress.unlocked,2)
+        game.nextLevel()
+        try await waitUntil({game.page == .playing && !game.working},seconds:12)
+        XCTAssertEqual(game.level?.number,2)
+        game.showMap(); XCTAssertEqual(game.page,.map)
+        // Progress survives a new model (app relaunch), offline or not.
+        XCTAssertEqual(MelodyRunModel(defaults:defaults).levelProgress.unlocked,2)
+    }
     func testHelpOrBackgroundCancelsDelayedStart() async throws {
         let game = MelodyRunModel()
         game.newSet()
