@@ -47,6 +47,32 @@ import ImageIO
         player.restore(saved); player.resume()
         XCTAssertEqual(player.cursor.nextSegmentIndex,5)
     }
+    func testPausedSegmentContinuesFromItsPositionAndPracticeCanJumpToASegment() async throws {
+        let api = try DemoExamAPI(outcome:"completed",storageScope:demoScope)
+        let list = try await api.questions(page:1)
+        let q = try await api.question(try XCTUnwrap(list.results.first?.id))
+        let mainData = try await api.asset(q.scoreAssets.main.url,authenticated:true,limit:1_048_576)
+        let scaleData = try await api.asset(q.scoreAssets.scale.url,authenticated:true,limit:1_048_576)
+        let main = try MusicXMLParser.parseMXL(mainData,asset:q.scoreAssets.main)
+        let scale = try MusicXMLParser.parseMXL(scaleData,asset:q.scoreAssets.scale)
+        let player = PianoPlayback(); defer { player.pause() }
+        try player.prepare(main:main,scale:scale,plan:.exam(meter:q.timeSignature,scaleMeasures:scale.measures))
+        player.restore(PlaybackCursor(index:2,phase:"segment"))
+        player.resume()
+        try await Task.sleep(for:.milliseconds(700))
+        player.pause()
+        XCTAssertEqual(player.cursor.index,2); XCTAssertEqual(player.cursor.phase,"segment")
+        let first = try XCTUnwrap(player.cursor.segmentOffsetMs)
+        XCTAssertGreaterThan(first,400)
+        // Resuming continues from the saved point instead of restarting the segment.
+        player.resume()
+        try await Task.sleep(for:.milliseconds(300))
+        player.pause()
+        XCTAssertGreaterThan(try XCTUnwrap(player.cursor.segmentOffsetMs),first+150)
+        player.jump(to:6)
+        XCTAssertEqual(player.cursor.index,6); XCTAssertEqual(player.cursor.phase,"segment")
+        XCTAssertNil(player.cursor.segmentOffsetMs); XCTAssertTrue(player.isPlaying)
+    }
     func testUndoAndRedoAvailabilityFollowsTheUndoStack() async throws {
         let scene = try XCTUnwrap(UIApplication.shared.connectedScenes.compactMap { $0 as? UIWindowScene }.first)
         let window = UIWindow(windowScene:scene), drawing = DrawingController()
