@@ -46,4 +46,13 @@ final class ExamPlaybackStateTests: XCTestCase {
         let final = cursor
         XCTAssertFalse(cursor.skipForward()); XCTAssertEqual(cursor,final)
     }
+    func testPausedSegmentOffsetSurvivesSavingAndIsDroppedWhenSkipping() throws {
+        var cursor = PlaybackCursor(index:3,phase:"segment",segmentOffsetMs:2400)
+        let restored = try ContractJSON.decoder().decode(PlaybackCursor.self,from:ContractJSON.encoder().encode(cursor))
+        XCTAssertEqual(restored.segmentOffsetMs,2400)
+        let legacy = try ContractJSON.decoder().decode(PlaybackCursor.self,from:Data(#"{"index":3,"phase":"segment"}"#.utf8))
+        XCTAssertNil(legacy.segmentOffsetMs)
+        XCTAssertTrue(cursor.skipForward())
+        XCTAssertNil(cursor.segmentOffsetMs)
+    }
 }
