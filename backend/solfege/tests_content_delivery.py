@@ -30,13 +30,19 @@ class ContentDeliveryTests(TestCase):
             asset=assets[name]
             response=self.client.get(f'/api/v1/content/assets/{asset["sha256"]}/',HTTP_ACCEPT=asset['content_type'])
             self.assertEqual(response.status_code,200)
-            try:data=b''.join(response.streaming_content)
-            finally:response.close()
+            # Django's test client closes a consumed stream with its DB cleanup
+            # signal temporarily disconnected. Closing it again here closes the
+            # PostgreSQL connection inside TestCase's enclosing transaction.
+            data=b''.join(response.streaming_content)
+            self.assertTrue(response.closed)
             self.assertEqual(len(data),asset['size_bytes'])
             self.assertEqual(hashlib.sha256(data).hexdigest(),asset['sha256'])
             self.assertEqual(response['Content-Type'],asset['content_type'])
             self.assertIn('immutable',response['Cache-Control'])
             self.assertEqual(response['ETag'],'"'+asset['sha256']+'"')
+        # Guard the next test's setup as well as the download itself: consuming
+        # streaming responses must leave the enclosing DB transaction usable.
+        self.assertTrue(get_user_model().objects.filter(pk=self.user.pk).exists())
         digest=assets[xml]['sha256']
         self.assertEqual(APIClient().get(f'/api/v1/content/assets/{digest}/').status_code,401)
 
