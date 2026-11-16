@@ -31,6 +31,7 @@ import ImageIO
     func testReferenceImagesAndCompactAnswerRenderTogether() async throws {
         let api = try DemoExamAPI(outcome:"completed",storageScope:demoScope)
         let questions = try await api.questions(page:1)
+        var renderedKinds = Set<String>()
         for summary in questions.results {
             let q = try await api.question(summary.id)
             let asset = try XCTUnwrap(q.correctScore)
@@ -39,17 +40,26 @@ import ImageIO
             let reference = try XCTUnwrap(UIImage(data:data))
             XCTAssertEqual(reference.cgImage?.width,asset.pixelWidth)
             let template = try AnswerExporter.validateTemplate(Bundled.data(q.sheetLayout.id,ext:"png"),layout:q.sheetLayout)
-            let renderer = ImageRenderer(content:VStack(alignment:.leading,spacing:12) {
-                Text("정답 악보")
-                Image(uiImage:reference).resizable().scaledToFit()
-                Text("내 악보")
-                CompactAnswerView(image:template,layout:q.sheetLayout,annotation:nil)
-            }.padding(20).frame(width:1024).background(.white))
-            renderer.scale = 2
-            let rendered = try XCTUnwrap(renderer.uiImage)
-            XCTAssertLessThan(rendered.size.height,700)
-            let attachment = XCTAttachment(image:rendered)
-            attachment.name = "comparison-"+q.title; attachment.lifetime = .keepAlways; add(attachment)
+            XCTAssertTrue(try XCTUnwrap(asset.geometry).isValid)
+            let kind = q.timeSignature.label + (asset.layoutMode ?? "legacy")
+            // Every asset is checked above; render representative geometry rather
+            // than retaining thousands of full-resolution screenshots in xcresult.
+            if renderedKinds.count < 8, renderedKinds.insert(kind).inserted {
+                let model = AppModel(demoScope:demoScope)
+                var attempt: Attempt = try Bundled.decode("attempt-submitted")
+                attempt.question = q; attempt.mode = "practice"; attempt.gradingMode = "self"
+                model.session = SessionRecord(attempt:attempt); model.screen = .result
+                model.correctScoreImage = reference; model.submittedImage = template
+                for size in [CGSize(width:1024,height:744),CGSize(width:1194,height:810)] {
+                    let renderer = ImageRenderer(content:ResultView(model:model).frame(width:size.width,height:size.height))
+                    renderer.scale = 1
+                    let rendered = try XCTUnwrap(renderer.uiImage)
+                    XCTAssertEqual(rendered.size,size)
+                    let attachment = XCTAttachment(image:rendered)
+                    attachment.name = "practice-comparison-"+kind+"-"+String(Int(size.width))
+                    attachment.lifetime = .keepAlways; add(attachment)
+                }
+            }
         }
     }
     func testVoiceSelectionPersistsAndCanPrepareNextProblem() async throws {

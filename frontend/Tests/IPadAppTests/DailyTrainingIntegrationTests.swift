@@ -17,6 +17,19 @@ import XCTest
         XCTAssertEqual(model.screen, .result)
         await model.savePracticeAssessment(completed: true); XCTAssertNil(model.error)
     }
+    func testPracticeReviewCompletionReturnsToDailyListAndMarksOnlyThatItem() async throws {
+        let model = try await freshModel(scope:"daily-review-"+UUID().uuidString)
+        if let key = model.dailyStorageKey { UserDefaults.standard.removeObject(forKey:key) }
+        model.openDaily(); model.startDailyItem(2)
+        try await waitUntil { model.screen == .question }
+        await finishPractice(model)
+        let result = await model.finishPracticeAssessment()
+        XCTAssertTrue(result); XCTAssertEqual(model.screen,.dailyTraining)
+        XCTAssertNil(model.daily.activeIndex)
+        XCTAssertEqual(model.daily.plan?.items[2].completed,true)
+        XCTAssertEqual(model.daily.plan?.completedCount,1)
+        if let key = model.dailyStorageKey { UserDefaults.standard.removeObject(forKey:key) }
+    }
 
     func testEachItemMovesOnOnlyWhenAskedAndTheSetEndsOnTheList() async throws {
         let scope = "daily-" + UUID().uuidString

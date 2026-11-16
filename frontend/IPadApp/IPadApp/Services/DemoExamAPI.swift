@@ -21,7 +21,7 @@ import Foundation
     // The demo has no accounts, so nothing can be taken.
     func usernameCheck(_ username: String) async throws -> UsernameCheck { UsernameCheck(available: true) }
     private struct EngravingManifest: Decodable { var scores: [String: ImageEntry] }
-    private struct ImageEntry: Decodable { var resource:String; var contentType:String; var sha256:String; var sizeBytes:Int; var pixelWidth:Int; var pixelHeight:Int; var renderer:String }
+    private struct ImageEntry: Decodable { var resource:String; var contentType:String; var sha256:String; var sizeBytes:Int; var pixelWidth:Int; var pixelHeight:Int; var renderer:String; var geometry:PracticeReviewGeometry?; var layoutMode:String? }
     private var cachedCatalog: [Question]?
     private struct DemoRating: Codable {
         var state = ExamRatingState()
@@ -70,6 +70,7 @@ import Foundation
     }
     private var difficultyManifest: PracticeDifficultyManifest?
     private var cachedEngraving: EngravingManifest?
+    private var cachedPracticeEngraving: EngravingManifest?
     private func catalog() throws -> [Question] {
         if let cachedCatalog { return cachedCatalog }
         let practice: [Question] = try Bundled.decode("practice-catalog")
@@ -83,15 +84,18 @@ import Foundation
         let revisions: [Question] = try Bundled.decode("sheet-revisions")
         let tempoRevisions: [Question] = try Bundled.decode("classical-tempo-revisions")
         let alignedSheets: [Question] = try Bundled.decode("sheet-revisions-v5")
+        let musescoreSheets: [Question] = try Bundled.decode("sheet-revisions-v6")
         // The highest published version wins, as on the server.
-        let current = Dictionary((revisions + tempoRevisions + alignedSheets).map { ($0.id,$0) }) { $0.version >= $1.version ? $0 : $1 }
+        let current = Dictionary((revisions + tempoRevisions + alignedSheets + musescoreSheets).map { ($0.id,$0) }) { $0.version >= $1.version ? $0 : $1 }
         let values = (practice + classical + brahms + mahler + additional + bank).map { current[$0.id] ?? $0 }
         let engraving: EngravingManifest = try Bundled.decode("engraving-manifest")
         cachedEngraving = engraving
+        let practiceEngraving: EngravingManifest = try Bundled.decode("practice-layout-v2")
+        cachedPracticeEngraving = practiceEngraving
         let resolved: [Question] = values.map { source in
             var q = source
-            if let image = engraving.scores[q.scoreAssets.main.sha256] {
-                q.correctScore = ReferenceImage(url:q.scoreAssets.main.url.deletingLastPathComponent().deletingLastPathComponent().appendingPathComponent("display",isDirectory:true),contentType:image.contentType,sha256:image.sha256,sizeBytes:image.sizeBytes,pixelWidth:image.pixelWidth,pixelHeight:image.pixelHeight,renderer:image.renderer)
+            if let image = (q.sheetLayout.id.hasSuffix("-v6") ? practiceEngraving : engraving).scores[q.scoreAssets.main.sha256] {
+                q.correctScore = ReferenceImage(url:q.scoreAssets.main.url.deletingLastPathComponent().deletingLastPathComponent().appendingPathComponent("display",isDirectory:true),contentType:image.contentType,sha256:image.sha256,sizeBytes:image.sizeBytes,pixelWidth:image.pixelWidth,pixelHeight:image.pixelHeight,renderer:image.renderer,geometry:image.geometry,layoutMode:image.layoutMode)
             }
             q.tempo = q.tempo ?? TempoDefaults.setting(for:q.timeSignature); q.recommendedDurationSeconds = Int(ceil(PlaybackPlan.exam(meter:q.timeSignature,setting:q.tempo,scaleMeasures:q.scoreAssets.scale.measureCount).nominalDurationSeconds(meter:q.timeSignature))); return difficulty.annotating(q)
         }
@@ -285,7 +289,13 @@ import Foundation
         if let index = values.firstIndex(where: { url.path.lowercased().contains($0.id.uuidString.lowercased()) }) {
             // Foundation URL.path strips a trailing slash on Apple platforms.
             if url.lastPathComponent == "display" {
-                let manifest = try cachedEngraving ?? Bundled.decode("engraving-manifest")
+                let path = url.pathComponents
+                let versionIndex = path.firstIndex(of:"versions").map { $0+1 }
+                let requestedVersion = versionIndex.flatMap { $0 < path.count ? Int(path[$0]) : nil }
+                let modern = values[index].sheetLayout.id.hasSuffix("-v6") && requestedVersion == values[index].version
+                let manifest: EngravingManifest
+                if modern { manifest = try cachedPracticeEngraving ?? Bundled.decode("practice-layout-v2") }
+                else { manifest = try cachedEngraving ?? Bundled.decode("engraving-manifest") }
                 guard let item = manifest.scores[values[index].scoreAssets.main.sha256] else { throw SolfegeError.configuration("정답 이미지가 없습니다.") }
                 let image = try Bundled.data(item.resource,ext:"png")
                 guard image.count <= limit else { throw SolfegeError.storage("정답 이미지 용량 초과") }

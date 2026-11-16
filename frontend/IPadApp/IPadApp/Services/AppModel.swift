@@ -120,7 +120,7 @@ import PencilKit
         return base != current
     }
     var practiceComparisonReady: Bool {
-        submittedImage != nil && (correctScoreImage != nil || (session?.attempt.question.correctScore == nil && mainScore != nil))
+        submittedImage != nil && (correctScoreImage != nil || session.map { PracticeReferenceAssets.reference(for:$0.attempt.question) != nil } == true || (session?.attempt.question.correctScore == nil && mainScore != nil))
     }
 
     init(httpSession: URLSession? = nil, demoScope: String? = nil) {
@@ -814,6 +814,7 @@ import PencilKit
         do {
             guard asset.contentType == "image/png", asset.sizeBytes > 0, asset.sizeBytes <= 2_097_152,
                   asset.pixelWidth > 0, asset.pixelWidth <= 4096, asset.pixelHeight > 0, asset.pixelHeight <= 2048 else { throw SolfegeError.invalidScore("정답 이미지 규격을 확인해 주세요.") }
+            if let geometry = asset.geometry, !geometry.isValid { throw SolfegeError.invalidScore("정답 악보의 마디 위치를 확인해 주세요.") }
             let data = try await cached("correct-score.png", url:asset.url, authenticated:true, sha:asset.sha256, limit:2_097_152, id:record.id)
             guard data.count == asset.sizeBytes, let image = UIImage(data:data), image.cgImage?.width == asset.pixelWidth,
                   image.cgImage?.height == asset.pixelHeight else { throw SolfegeError.invalidScore("정답 이미지의 크기가 일치하지 않습니다.") }
@@ -896,6 +897,30 @@ import PencilKit
         guard !busy, var record = session, record.selfAssessmentSave == nil else { return }
         record.practiceEdits = nil; record.practiceBaseRevision = nil
         do { try persist(record) } catch { report(error) }
+    }
+    @discardableResult func finishPracticeAssessment() async -> Bool {
+        guard !busy, let id = session?.id, session?.attempt.studyMode == .practice, !practiceHasConflict else { return false }
+        let dailyIndex = dailyPracticeItem?.id
+        if session?.selfAssessment?.isCompleted != true || session?.practiceEdits != nil || session?.selfAssessmentSave != nil {
+            await savePracticeAssessment(completed:true)
+            // First reconcile an interrupted temporary-save operation using its
+            // original key and body, then issue a separate completion request.
+            if session?.id == id, session?.selfAssessment?.isCompleted != true,
+               session?.selfAssessmentSave == nil, !practiceHasConflict, error == nil {
+                await savePracticeAssessment(completed:true)
+            }
+        }
+        // S14 presents explicit keep-local/use-server actions for this state.
+        if practiceHasConflict { error = nil; return false }
+        guard session?.id == id, session?.selfAssessment?.isCompleted == true,
+              session?.practiceEdits == nil, session?.selfAssessmentSave == nil else { return false }
+        if let dailyIndex { completeDailyItem(dailyIndex); exitDailyItem() }
+        else { navigate(.home) }
+        return true
+    }
+    func leavePracticeReview() {
+        if dailyPracticeItem != nil { exitDailyItem() }
+        else { navigate(.home) }
     }
     func keepLocalPracticeEdits() {
         guard !busy, var record = session, record.selfAssessmentSave == nil, let review = record.selfAssessment else { return }
