@@ -40,7 +40,7 @@ final class PracticeReviewTests: XCTestCase {
             for x in [24.0,size.0/2,size.0-230] {
                 for y in [10.0,size.1-100] {
                     let anchor = BBox(x:x,y:y,width:200,height:92)
-                    let result = PracticeReviewPopover.frame(anchor:anchor,width:228,height:204,containerWidth:size.0,containerHeight:size.1)
+                    let result = PracticeReviewPopover.frame(anchor:anchor,width:228,height:248,containerWidth:size.0,containerHeight:size.1)
                     XCTAssertGreaterThanOrEqual(result.x,12); XCTAssertGreaterThanOrEqual(result.y,12)
                     XCTAssertLessThanOrEqual(result.x+result.width,size.0-12)
                     XCTAssertLessThanOrEqual(result.y+result.height,size.1-12)
@@ -75,5 +75,39 @@ final class PracticeReviewTests: XCTestCase {
                 }
             }
         }
+    }
+    func testRangeSelectionSupportsReversedEndsAndNeverPlaysAnIncompleteSelection() {
+        var selection = PracticeReviewSelection()
+        XCTAssertTrue(selection.tap(3)); XCTAssertEqual(selection.range,PracticeReviewRange(from:3,through:3))
+        selection.begin()
+        XCTAssertFalse(selection.tap(6)); XCTAssertTrue(selection.selecting)
+        XCTAssertFalse(selection.tap(2)); XCTAssertFalse(selection.selecting)
+        XCTAssertEqual(selection.range,PracticeReviewRange(from:2,through:6))
+        selection.begin(); selection.tap(4); selection.tap(4)
+        XCTAssertEqual(selection.range,PracticeReviewRange(from:4,through:4))
+        selection.begin(); selection.tap(8); selection.cancel(); XCTAssertFalse(selection.selecting); XCTAssertNil(selection.anchor)
+        XCTAssertEqual(selection.range,PracticeReviewRange(from:4,through:4))
+        selection.all(); XCTAssertEqual(selection.range,.full)
+        XCTAssertFalse(selection.tap(9)); XCTAssertEqual(selection.range,.full)
+    }
+    func testPreparedRangesRetainTiesRestsAndSilentSpaceBeforeEverySeek() throws {
+        let score = MusicScore(tempo:96,measures:8,events:[MusicEvent(midi:60,onset:1800,duration:360),MusicEvent(midi:62,onset:2400,duration:480)],symbols:[])
+        for bpm in [60.0,80,144] {
+            let sequence = try PracticeReviewSequence(score:score,bpm:bpm)
+            XCTAssertEqual(sequence.slices.count,36)
+            let second = try XCTUnwrap(sequence.slice(for:PracticeReviewRange(from:2,through:3)))
+            XCTAssertEqual(second.end-second.musicStart,3840)
+            XCTAssertGreaterThan(second.musicStart,second.start)
+            let notes = sequence.events.filter { $0.onset >= second.musicStart && $0.onset < second.end }
+            XCTAssertEqual(notes,[MusicEvent(midi:60,onset:second.musicStart,duration:240),MusicEvent(midi:62,onset:second.musicStart+480,duration:480)])
+            for (left,right) in zip(sequence.slices,sequence.slices.dropFirst()) {
+                XCTAssertGreaterThanOrEqual(right.start-left.end,960)
+            }
+            let full = try XCTUnwrap(sequence.slice(for:.full))
+            XCTAssertEqual(full.end-full.musicStart,score.totalTicks)
+            XCTAssertEqual(sequence.events.filter { $0.onset >= full.musicStart && $0.onset < full.end }.map { MusicEvent(midi:$0.midi,onset:$0.onset-full.musicStart,duration:$0.duration) },score.events)
+        }
+        XCTAssertThrowsError(try PracticeReviewSequence(score:score,bpm:0))
+        XCTAssertThrowsError(try PracticeReviewSequence(score:score,bpm:.nan))
     }
 }

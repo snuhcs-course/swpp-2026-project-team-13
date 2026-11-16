@@ -43,12 +43,15 @@ struct RhythmPuzzleView: View {
                 .onPreferenceChange(RhythmBarFrames.self) { frames = $0 }
                 .background(SolfegeTheme.background.ignoresSafeArea())
         }.tint(SolfegeTheme.violet).preferredColorScheme(.light)
-        .task { game.sync(); game.makeExport(); if !tutorialSeen { showingTutorial = true } else { startDaily() } }
+        .environment(\.rhythmEngraving,game.engraving)
+        .overlay { if game.contentLoading { ProgressView("문제를 준비하고 있어요").padding(24).background(.regularMaterial,in:RoundedRectangle(cornerRadius:18)) } }
+        .task { await game.prepareContent(); guard !Task.isCancelled else { return }; game.sync(); game.makeExport(); if !tutorialSeen { showingTutorial = true } else { startDaily() } }
         .onChange(of:game.draft?.finished == true) { _, finished in if finished { daily?.finished() } }
         .sheet(isPresented:$showingTutorial,onDismiss:{ startDaily(); game.activate() }) {
             RhythmTutorialView { tutorialSeen = true; showingTutorial = false }
         }
         .alert("확인이 필요해요",isPresented:Binding(get:{game.error != nil},set:{if !$0 {game.error = nil}})) {
+            if game.catalog == nil { Button("다시 시도") { Task { await game.prepareContent(); startDaily() } } }
             if game.storageFailed { Button("저장 다시 시도") { game.retryStorage() } }
             Button("확인") { game.error = nil }
         } message: { Text(game.error ?? "") }
@@ -163,7 +166,7 @@ struct RhythmPuzzleView: View {
             return distanceA == distanceB ? a.key < b.key : distanceA < distanceB
         }
         guard let entry else { game.message = "위 악보의 점선 빈칸에 놓아 주세요."; return }
-        let layout = RhythmBarLayout(round:round,bar:entry.key,board:game.board,tiles:game.tiles,drawings:RhythmInk.drawings)
+        let layout = RhythmBarLayout(round:round,bar:entry.key,board:game.board,tiles:game.tiles,drawings:game.engraving?.tiles ?? RhythmInk.drawings)
         let scale = Double(entry.value.width)/layout.width
         let x = Double(location.x-entry.value.minX)/scale
         game.place(id,at:layout.nearestTime(to:x,tiles:game.tiles))

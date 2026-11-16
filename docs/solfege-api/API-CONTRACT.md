@@ -1,4 +1,13 @@
-# solfège API 계약 v0.13.1
+# solfège API 계약 v0.14.0
+
+## v0.14.0 온라인 문제 자료 배포
+
+설치용 앱은 전체 문제은행을 포함하지 않는다. 기존 문제 조회·응시·악보·빈 답안지 API는 유지하며, 미니게임 자료도 인증된 서버에서 받는다. 상세 운영·빌드 정책은 [콘텐츠 분리 안내](../CONTENT-DELIVERY.md)를 따른다.
+
+- `GET /api/v1/content/manifest/`: Bearer 인증. `version: 1`, `assets` 딕셔너리. 키는 파일명, 값은 `url`, `sha256`, `size_bytes`, `content_type`이다. 서버 내부 경로나 사용자 자료는 포함하지 않는다.
+- `GET /api/v1/content/assets/{sha256}/`: Bearer 인증. 매니페스트에 등록된 SHA-256만 조회 가능하다. 응답은 `application/json` 또는 `application/xml`, SHA ETag와 `Cache-Control: private, max-age=31536000, immutable`을 제공한다. 미등록 해시는 404다.
+
+앱은 같은 API origin만 허용하고, 파일당 최대 8MiB와 정확한 크기·해시를 확인한다. 재현 가능한 파일은 100MiB 캐시에서 재사용한다. 진행 중인 응시 자료·필기·제출 답안은 자동 캐시 정리 대상에서 제외한다. 이 전환을 사용하는 앱을 배포하기 전에 서버부터 업데이트해야 한다.
 
 ## v0.13.1 Practice 정답 비교 화면과 악보 좌표
 

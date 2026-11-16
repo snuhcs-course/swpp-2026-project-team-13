@@ -12,7 +12,10 @@ import UIKit
         var geometry: PracticeReviewGeometry
     }
     private struct Manifest: Decodable { var scores: [String:Entry] }
-    private static let manifest: Manifest? = try? Bundled.decode("practice-layout-v2")
+    private static let manifest: Manifest? = {
+        if DemoContent.hasFullBank { return try? Bundled.decode("practice-layout-v2") }
+        return try? DemoContent.decode("engraving")
+    }()
     private static let cache = NSCache<NSString,UIImage>()
     static func reference(for question: Question) -> (image: UIImage, geometry: PracticeReviewGeometry)? {
         guard let entry = manifest?.scores[question.scoreAssets.main.sha256], entry.geometry.isValid else { return nil }

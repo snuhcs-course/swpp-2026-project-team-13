@@ -15,9 +15,6 @@ struct ExamView: View {
     var body: some View {
         VStack(spacing: 0) {
             header.padding(.horizontal, 28).padding(.top, 6).padding(.bottom, 12)
-            if player.showsScaleNotice, let key = player.scaleKey {
-                scaleNotice(key).padding(.horizontal, 28).padding(.bottom, 12)
-            }
             if model.drawingMissing {
                 Label("이 기기에 편집 가능한 필기 원본이 없어요. 연습 기록에서 기존 이미지를 확인하거나 새 응시를 시작해 주세요.", systemImage: "exclamationmark.triangle").font(.subheadline).padding(.horizontal, 28).padding(.bottom, 8).foregroundStyle(.orange)
             }
@@ -35,7 +32,7 @@ struct ExamView: View {
             questionMeta.fixedSize().frame(maxWidth: .infinity, alignment: .leading)
             SegmentProgressBar(cursor: player.cursor, onSelect: canJump ? { player.jump(to: $0) } : nil)
                 .frame(minWidth: 360, idealWidth: 560, maxWidth: 560).layoutPriority(1)
-            WritingTimer(cursor: player.cursor, plan: attempt?.playbackPlan)
+            WritingTimer(cursor: player.cursor, plan: attempt?.playbackPlan, isPlaying:player.isPlaying)
                 .fixedSize().frame(maxWidth: .infinity, alignment: .trailing)
         }
     }
@@ -62,31 +59,10 @@ struct ExamView: View {
             .background(SolfegeTheme.soft, in: Capsule())
     }
 
-    private func scaleNotice(_ key: KeySignature) -> some View {
-        let sounding = player.isPlaying && player.cursor.phase == "segment"
-        return HStack(spacing:18) {
-            Image(systemName:"pianokeys").font(.system(size:32)).accessibilityHidden(true)
-            VStack(alignment:.leading,spacing:6) {
-                Text("\(key.label)\(key.mode == "minor" ? " 자연단음계" : " 음계") \(sounding ? "듣는 중" : "안내")")
-                    .font(.title2.bold()).accessibilityIdentifier("scale-notice-title")
-                Text("문제에 앞서 이 조성의 기준음을 들려드려요.").font(.subheadline)
-                if let began = player.scaleStartedAt, sounding {
-                    TimelineView(.animation(minimumInterval:0.1)) { context in
-                        ProgressView(value:min(1,max(0,context.date.timeIntervalSince(began)/max(0.1,player.scaleDuration))))
-                            .tint(SolfegeTheme.violet).accessibilityLabel("음계 재생 진행")
-                    }
-                }
-            }
-            Spacer(minLength:0)
-        }.foregroundStyle(SolfegeTheme.violet).padding(18)
-            .frame(maxWidth:.infinity,alignment:.leading).background(SolfegeTheme.soft,in:RoundedRectangle(cornerRadius:16))
-            .accessibilityElement(children:.contain).accessibilityIdentifier("scale-notice")
-    }
-
     // MARK: Drawing tools — pen, eraser, three pen widths, undo/redo
 
     private struct PenWidth { let width: CGFloat; let label: String; let dot: CGFloat }
-    private static let penWidths = [PenWidth(width: 1.5, label: "가는 펜", dot: 4), PenWidth(width: 2, label: "보통 펜", dot: 8), PenWidth(width: 3, label: "굵은 펜", dot: 13)]
+    private static let penWidths = [PenWidth(width: 1.5, label: "가는 펜", dot: 4), PenWidth(width: 2, label: "보통 펜", dot: 8), PenWidth(width: 4.5, label: "굵은 펜", dot: 16)]
 
     private var drawingTools: some View {
         HStack(spacing: 4) {
@@ -200,93 +176,62 @@ struct ExamView: View {
     }
 }
 
-// The 11 listening segments in the S9/S16 playback-order style, filled from the left as they play.
+// Scale and all eleven listening segments share one stable progress bar.
 struct SegmentProgressBar: View {
     let cursor: PlaybackCursor
-    // Practice passes a handler so a segment can be tapped to hear it again.
     var onSelect: ((Int) -> Void)? = nil
-    private let ranges = PlaybackPlan.examMeasureRanges
-
-    // 0-based segment that is playing or whose writing time is running.
-    private var current: Int? { (1...11).contains(cursor.index) ? cursor.index - 1 : nil }
-    private var finished: Int { min(11, max(0, cursor.index - 1)) }
-
+    private var labels: [String] {
+        ["스케일"] + PlaybackPlan.examMeasureRanges.map { "\($0.from)–\($0.to)" }
+    }
     var body: some View {
-        HStack(spacing: 0) {
-            ForEach(Array(ranges.enumerated()), id: \.offset) { index, range in
-                segment(index, range)
-            }
+        HStack(spacing:0) {
+            ForEach(0..<12,id:\.self) { index in segment(index) }
         }
-        .frame(height: 32)
-        .background(.white)
-        .clipShape(Capsule())
-        .overlay(Capsule().strokeBorder(SolfegeTheme.keyEdge, lineWidth: 1.5))
-        .accessibilityElement(children: onSelect == nil ? .ignore : .contain)
-        .accessibilityLabel(onSelect == nil ? "구간 진행 \(min(cursor.index, 11)) / 11" : "구간 진행")
+        .frame(height:36).background(.white).clipShape(Capsule())
+        .overlay(Capsule().strokeBorder(SolfegeTheme.keyEdge,lineWidth:1.5))
+        .accessibilityElement(children:onSelect == nil ? .ignore : .contain)
+        .accessibilityLabel(onSelect == nil ? "구간 진행 \(min(12,cursor.progressIndex+1)) / 12" : "구간 진행")
         .accessibilityIdentifier("segment-progress")
     }
-
-    @ViewBuilder private func segment(_ index: Int, _ range: (from: Int, to: Int)) -> some View {
-        let isCurrent = index == current
-        let done = index < finished && !isCurrent
-        let label = Text("\(range.from)–\(range.to)").font(.system(size: 14, weight: .bold))
-            .foregroundStyle(isCurrent ? .white : done ? SolfegeTheme.deepViolet : SolfegeTheme.ink)
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .background(isCurrent ? SolfegeTheme.violet : done ? SolfegeTheme.keyUnavailable : .clear)
-            .overlay(alignment: .leading) {
-                // Dividers as on S9/S16, hidden next to the solid current segment.
-                if index > 0 && !isCurrent && index - 1 != current {
-                    Rectangle().fill(SolfegeTheme.keyEdge).frame(width: 1.5, height: 18).offset(x: -0.75)
+    @ViewBuilder private func segment(_ index: Int) -> some View {
+        let current = cursor.progressIndex == index
+        let done = cursor.progressIndex > index
+        let label = Text(labels[index]).font(.system(size:12,weight:.bold))
+            .foregroundStyle(current ? .white : done ? SolfegeTheme.deepViolet : SolfegeTheme.ink)
+            .frame(maxWidth:.infinity,maxHeight:.infinity)
+            .background(current ? SolfegeTheme.violet : done ? SolfegeTheme.keyUnavailable : .clear)
+            .overlay(alignment:.leading) {
+                if index > 0 && !current && index-1 != cursor.progressIndex {
+                    Rectangle().fill(SolfegeTheme.keyEdge).frame(width:1,height:18)
                 }
             }
         if let onSelect {
-            Button { onSelect(index + 1) } label: { label.contentShape(Rectangle()) }
+            Button { onSelect(index) } label: { label.contentShape(Rectangle()) }
                 .buttonStyle(.plain)
-                .accessibilityLabel("\(index + 1)번째 구간 \(range.from)에서 \(range.to)마디 다시 듣기")
-                .accessibilityIdentifier("segment-\(index + 1)")
-        } else {
-            label
-        }
+                .accessibilityLabel(index == 0 ? "스케일 다시 듣기" : "\(index)번째 구간 \(labels[index])마디 다시 듣기")
+                .accessibilityIdentifier("segment-\(index)")
+        } else { label }
     }
 }
 
-// Counts down only the writing time after each segment: 20 s between segments, 2 min after the last.
 struct WritingTimer: View {
     let cursor: PlaybackCursor
     let plan: PlaybackPlan?
-
-    private func limitMs(after index: Int) -> Int {
-        guard let plan, (1...plan.steps.count).contains(index) else { return index == 11 ? 120_000 : 20_000 }
-        return plan.steps[index - 1].pauseAfterMs
-    }
-
-    private var state: (ms: Int, caption: String, live: Bool) {
-        switch cursor.index {
-        case 0: return (limitMs(after: 1), "필기 시간", false)
-        case 1...11:
-            if cursor.phase == "gap" {
-                if cursor.shortenedGap == true { return (0, "다음 구간 준비", false) }
-                return (cursor.remainingWaitMs ?? limitMs(after: cursor.index), "필기 남은 시간", true)
-            }
-            return (limitMs(after: cursor.index), "재생 후 필기 시간", false)
-        default: return (0, "필기 시간 종료", false)
-        }
-    }
-
+    var isPlaying = true
     var body: some View {
-        let state = state
-        let seconds = (state.ms + 999) / 1000
-        VStack(alignment: .trailing, spacing: 0) {
-            HStack(spacing: 8) {
-                Image(systemName: "clock").font(.system(size: 18, weight: .semibold))
-                Text(String(format: "%d:%02d", seconds / 60, seconds % 60))
-                    .font(.system(size: 28, weight: .bold)).monospacedDigit()
-            }
-            .foregroundStyle(state.live ? SolfegeTheme.ink : SolfegeTheme.muted.opacity(0.7))
-            Text(state.caption).font(.system(size: 11)).foregroundStyle(SolfegeTheme.muted)
+        let state = WritingTimerState(cursor:cursor,plan:plan,isPlaying:isPlaying)
+        VStack(alignment:.trailing,spacing:1) {
+            Text(state.caption).font(.system(size:11)).foregroundStyle(SolfegeTheme.muted)
+            HStack(spacing:7) {
+                Image(systemName:"clock").font(.system(size:15,weight:.medium))
+                Text(state.text).font(.system(size:34,weight:.semibold)).monospacedDigit().frame(width:100,alignment:.trailing)
+            }.foregroundStyle(state.urgent ? Color.orange : SolfegeTheme.ink)
         }
-        .accessibilityElement(children: .ignore)
-        .accessibilityLabel("\(state.caption) \(seconds)초")
+        .frame(width:132,height:56,alignment:.trailing)
+        .padding(.horizontal,10).padding(.vertical,4)
+        .background(Color.black.opacity(0.025),in:RoundedRectangle(cornerRadius:10))
+        .accessibilityElement(children:.ignore)
+        .accessibilityLabel("\(state.caption) \(state.text)")
         .accessibilityIdentifier("writing-timer")
     }
 }

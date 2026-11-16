@@ -8,7 +8,9 @@ import SwiftUI
     @Published private(set) var setScores: [Int?] = Array(repeating:nil,count:4)
     @Published private(set) var exportURL: URL?
     @Published private(set) var storageFailed = false
-    private(set) var catalog: MemoryCatalog?
+    @Published private(set) var catalog: MemoryCatalog?
+    @Published private(set) var contentLoading = false
+    private var contentProvider: TrainingContentProvider?
     private var catalogHash = ""
     private var setId = UUID()
     private var records: [MemoryPlayRecord] = []
@@ -87,15 +89,8 @@ import SwiftUI
 
     init(connection: RhythmConnection? = nil) {
         do {
-            guard let url = Bundle.main.url(forResource:"memory-run-v2",withExtension:"json") else {
-                throw SolfegeError.invalidScore("미니게임 문제 목록이 없어요.")
-            }
-            let data = try Data(contentsOf:url)
-            var value = try JSONDecoder().decode(MemoryCatalog.self,from:data)
-            let groove: MemoryGroovePolicy = try Bundled.decode("memory-groove-v1")
-            try value.applyGroovePolicy(groove,catalogSha256:data.sha256)
-            try value.validate(); catalog = value; catalogHash = data.sha256
-            questions = value.sources
+            if let connection, !connection.demo { contentProvider = try TrainingContentProvider(connection:connection) }
+            else { try installCatalog(DemoContent.data("memory-run-v2"),groove:DemoContent.data("memory-groove-v1")) }
             let root = try LocalStore(scope:connection?.scope ?? "memory-run-guest").root
             let storage = try MemoryRunStore(root:root)
             records = try storage.load(); store = storage
@@ -105,6 +100,23 @@ import SwiftUI
             try loadLocalQuestions()
             selection = questions.first?.id ?? ""
         } catch { self.error = error.localizedDescription }
+    }
+    private func installCatalog(_ data: Data, groove: Data) throws {
+        var value = try JSONDecoder().decode(MemoryCatalog.self,from:data)
+        let policy = try ContractJSON.decoder().decode(MemoryGroovePolicy.self,from:groove)
+        try value.applyGroovePolicy(policy,catalogSha256:data.sha256); try value.validate()
+        catalog = value; catalogHash = data.sha256
+        questions = questions.filter { localURLs[$0.id] != nil } + value.sources
+        selection = questions.first?.id ?? ""
+    }
+    func prepareContent() async {
+        guard catalog == nil, !contentLoading, let contentProvider else { return }
+        contentLoading = true; defer { contentLoading = false }
+        do {
+            let data = try await contentProvider.data("memory-run-v2.json")
+            let groove = try await contentProvider.data("memory-groove-v1.json")
+            try Task.checkCancellation(); try installCatalog(data,groove:groove)
+        } catch { if !Task.isCancelled { self.error = error.localizedDescription } }
     }
     private func localDirectory() throws -> URL {
         let documents = try FileManager.default.url(for:.documentDirectory,in:.userDomainMask,appropriateFor:nil,create:true)
@@ -199,9 +211,12 @@ import SwiftUI
         guard !Task.isCancelled else { return }
         do {
             try settings.validate()
-            let url = localURLs[question.id] ?? Bundle.main.url(forResource:question.file,withExtension:nil)
-            guard let url else { throw SolfegeError.invalidScore("문제 XML을 찾지 못했어요.") }
-            let data = try Data(contentsOf:url)
+            let data: Data
+            if let url = localURLs[question.id] { data = try Data(contentsOf:url) }
+            else if let contentProvider { data = try await contentProvider.data(question.file) }
+            else if let url = Bundle.main.url(forResource:question.file,withExtension:nil) { data = try Data(contentsOf:url) }
+            else { throw SolfegeError.invalidScore("문제 XML을 찾지 못했어요.") }
+            try Task.checkCancellation()
             if let expected = question.sha256, data.sha256 != expected { throw SolfegeError.invalidScore("선율 파일이 변경됐어요. 최신 앱을 설치해 주세요.") }
             let source = try MelodyXMLParser.parse(data)
             guard settings.mode != .groove || source.supportsGroove(start:settings.startBar,bars:settings.bars) else {

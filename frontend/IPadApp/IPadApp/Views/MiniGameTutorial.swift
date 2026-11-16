@@ -32,9 +32,10 @@ private struct MiniGameTutorial<Illustration: View>: View {
 }
 
 private enum MiniGameExamples {
-    static let rhythm: RhythmCatalog? = try? Bundled.decode("rhythm-puzzle-v3")
+    static let rhythm: RhythmCatalog? = try? DemoContent.decode("rhythm-puzzle-v3",forceSmall:true)
     static let melody: MelodyRound? = {
-        guard let bank: MemoryCatalog = try? Bundled.decode("memory-run-v2"),
+        guard let bytes = try? DemoContent.data("memory-run-v2",forceSmall:true),
+              let bank = try? JSONDecoder().decode(MemoryCatalog.self,from:bytes),
               let excerpt = bank.excerpts.first(where:{$0.beginnerEligible && $0.bars == 2}),
               let source = bank.sources.first(where:{$0.id == excerpt.sourceId}),
               let url = Bundle.main.url(forResource:source.file,withExtension:nil),

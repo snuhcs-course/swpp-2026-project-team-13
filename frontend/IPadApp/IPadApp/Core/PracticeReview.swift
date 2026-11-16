@@ -52,8 +52,68 @@ struct PracticeReviewClip {
     var ticks: Int
     var bpm: Double
     static func make(score: MusicScore, measure: Int?, bpm: Double) throws -> PracticeReviewClip {
+        try make(score:score,from:measure ?? 1,through:measure ?? score.measures,bpm:bpm)
+    }
+    static func make(score: MusicScore, from: Int, through to: Int, bpm: Double) throws -> PracticeReviewClip {
         guard bpm.isFinite, (20...400).contains(bpm) else { throw SolfegeError.invalidScore("재생 속도를 확인해 주세요.") }
-        let from = measure ?? 1, to = measure ?? score.measures
         return PracticeReviewClip(events:try score.segment(from:from,through:to),ticks:(to-from+1)*score.ticksPerMeasure,bpm:bpm)
     }
+}
+
+struct PracticeReviewRange: Hashable {
+    var from: Int
+    var through: Int
+    var measures: ClosedRange<Int> { from...through }
+    var label: String { from == through ? "\(from)마디" : "\(from)–\(through)마디" }
+    static let full = PracticeReviewRange(from:1,through:8)
+}
+
+struct PracticeReviewSelection {
+    var range = PracticeReviewRange.full
+    var selecting = false
+    private(set) var anchor: Int?
+    private var previousRange: PracticeReviewRange?
+    mutating func begin() { previousRange = range; selecting = true; anchor = nil }
+    mutating func cancel() { range = previousRange ?? range; previousRange = nil; selecting = false; anchor = nil }
+    mutating func all() { range = .full; previousRange = nil; selecting = false; anchor = nil }
+    // Returns true only for the normal one-tap immediate playback action.
+    mutating func tap(_ measure: Int) -> Bool {
+        guard (1...8).contains(measure) else { return false }
+        guard selecting else { range = PracticeReviewRange(from:measure,through:measure); return true }
+        if let anchor {
+            range = PracticeReviewRange(from:min(anchor,measure),through:max(anchor,measure))
+            self.anchor = nil; previousRange = nil; selecting = false
+        } else { anchor = measure; range = PracticeReviewRange(from:measure,through:measure) }
+        return false
+    }
+}
+
+// One sequence is prepared per score/tempo. Each contiguous range has its own
+// clipped notes and a silent lead, so ties and leading rests survive seeking.
+// Selecting another bar only seeks; it never reloads MIDI into a running engine.
+struct PracticeReviewSequence {
+    struct Slice {
+        var range: PracticeReviewRange
+        var start: Int
+        var musicStart: Int
+        var end: Int
+    }
+    var events: [MusicEvent] = []
+    var slices: [Slice] = []
+    var ticks = 0
+    init(score: MusicScore, bpm: Double) throws {
+        guard score.measures == 8, bpm.isFinite, (20...400).contains(bpm) else { throw SolfegeError.invalidScore("재생할 문제를 확인해 주세요.") }
+        let lead = max(1,Int((bpm*480/60*0.12).rounded()))
+        let gap = max(960,Int((bpm*480/60*2).rounded()))
+        for first in 1...score.measures {
+            for last in first...score.measures {
+                let clip = try PracticeReviewClip.make(score:score,from:first,through:last,bpm:bpm)
+                let start = ticks, musicStart = start+lead, end = musicStart+clip.ticks
+                slices.append(Slice(range:PracticeReviewRange(from:first,through:last),start:start,musicStart:musicStart,end:end))
+                events += clip.events.map { MusicEvent(midi:$0.midi,onset:$0.onset+musicStart,duration:$0.duration) }
+                ticks = end+gap
+            }
+        }
+    }
+    func slice(for range: PracticeReviewRange) -> Slice? { slices.first { $0.range == range } }
 }

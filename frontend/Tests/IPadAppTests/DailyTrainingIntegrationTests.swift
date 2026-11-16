@@ -87,9 +87,9 @@ import XCTest
         // A signed-in account stays "connected" when airplane mode is turned on later.
         model.demo = false; NetworkStatus.shared.online = false
         defer { model.demo = true; NetworkStatus.shared.online = true }
-        XCTAssertTrue(model.dailyAvailable(plan.items[memory]))
+        XCTAssertFalse(model.dailyAvailable(plan.items[memory]))
         XCTAssertFalse(plan.items.filter { $0.kind != .memoryRun }.contains(where: model.dailyAvailable))
-        XCTAssertEqual(plan.firstOpen(available: model.dailyAvailable), memory)
+        XCTAssertNil(plan.firstOpen(available: model.dailyAvailable))
         XCTAssertNil(model.dailyNextTitle(after: memory), "Nothing else can open offline, so the button reads 완료")
         model.startDailyItem(try XCTUnwrap(plan.items.firstIndex { $0.kind == .practice }))
         XCTAssertNil(model.daily.activeIndex, "A closed row does not start")

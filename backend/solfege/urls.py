@@ -2,7 +2,10 @@ from django.urls import path
 from . import views
 from . import rhythm_views
 from . import auth_views
+from . import content_delivery
 urlpatterns = [
+    path("content/manifest/", content_delivery.manifest),
+    path("content/assets/<str:digest>/", content_delivery.asset),
     path("drills/rhythm/plays/", rhythm_views.plays),
     path("auth/signup-availability/", auth_views.signup_availability),
     path("auth/username-check/", auth_views.username_check),

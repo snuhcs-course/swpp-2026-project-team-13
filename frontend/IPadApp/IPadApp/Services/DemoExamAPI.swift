@@ -5,7 +5,9 @@ import Foundation
     let scope: String
     let store: LocalStore
     let outcome: String
-    init(outcome: String, storageScope: String? = nil) throws {
+    private let smallContent: Bool
+    init(outcome: String, storageScope: String? = nil, smallContent: Bool? = nil) throws {
+        self.smallContent = smallContent ?? !DemoContent.hasFullBank
         scope = storageScope.map { "demo-client-"+$0 } ?? "sori-local-demo-v3"
         store = try LocalStore(scope:storageScope ?? "demo-backend-v3"); self.outcome = outcome
     }
@@ -36,7 +38,10 @@ import Foundation
     private func saveRating(_ ledger: DemoRating) throws {
         try ContractJSON.encoder().encode(ledger).write(to:store.root.appendingPathComponent("exam-rating-v1.json"),options:.atomic)
     }
-    private func pools() throws -> QuestionPoolManifest { try Bundled.decode("question-pools") }
+    private func pools() throws -> QuestionPoolManifest {
+        if smallContent { return try DemoContent.decode("pools",forceSmall:true) }
+        return try Bundled.decode("question-pools")
+    }
     private func activeExam() throws -> SessionRecord? {
         try store.all().last(where: { $0.blocksNewExam })
     }
@@ -73,25 +78,35 @@ import Foundation
     private var cachedPracticeEngraving: EngravingManifest?
     private func catalog() throws -> [Question] {
         if let cachedCatalog { return cachedCatalog }
+        let values: [Question]
+        let difficulty: PracticeDifficultyManifest
+        let engraving: EngravingManifest
+        let practiceEngraving: EngravingManifest
+        if smallContent {
+            values = try DemoContent.decode("catalog",forceSmall:true)
+            difficulty = try DemoContent.decode("difficulty",forceSmall:true)
+            engraving = try DemoContent.decode("engraving",forceSmall:true)
+            practiceEngraving = engraving
+        } else {
         let practice: [Question] = try Bundled.decode("practice-catalog")
         let classical: [Question] = try Bundled.decode("classical-catalog")
         let brahms: [Question] = try Bundled.decode("brahms-catalog")
         let mahler: [Question] = try Bundled.decode("mahler-catalog")
         let additional: [Question] = try Bundled.decode("additional-practice-catalog")
         let bank: [Question] = try Bundled.decode("practice-bank-catalog")
-        let difficulty: PracticeDifficultyManifest = try Bundled.decode("practice-difficulty")
-        try difficulty.validate(); difficultyManifest = difficulty
+        difficulty = try Bundled.decode("practice-difficulty")
         let revisions: [Question] = try Bundled.decode("sheet-revisions")
         let tempoRevisions: [Question] = try Bundled.decode("classical-tempo-revisions")
         let alignedSheets: [Question] = try Bundled.decode("sheet-revisions-v5")
         let musescoreSheets: [Question] = try Bundled.decode("sheet-revisions-v6")
         // The highest published version wins, as on the server.
         let current = Dictionary((revisions + tempoRevisions + alignedSheets + musescoreSheets).map { ($0.id,$0) }) { $0.version >= $1.version ? $0 : $1 }
-        let values = (practice + classical + brahms + mahler + additional + bank).map { current[$0.id] ?? $0 }
-        let engraving: EngravingManifest = try Bundled.decode("engraving-manifest")
-        cachedEngraving = engraving
-        let practiceEngraving: EngravingManifest = try Bundled.decode("practice-layout-v2")
-        cachedPracticeEngraving = practiceEngraving
+        values = (practice + classical + brahms + mahler + additional + bank).map { current[$0.id] ?? $0 }
+        engraving = try Bundled.decode("engraving-manifest")
+        practiceEngraving = try Bundled.decode("practice-layout-v2")
+        }
+        try difficulty.validate(); difficultyManifest = difficulty
+        cachedEngraving = engraving; cachedPracticeEngraving = practiceEngraving
         let resolved: [Question] = values.map { source in
             var q = source
             if let image = (q.sheetLayout.id.hasSuffix("-v6") ? practiceEngraving : engraving).scores[q.scoreAssets.main.sha256] {
@@ -108,7 +123,8 @@ import Foundation
         return QuestionPage(count: values.count, next: nil, previous: nil, results: values.map { q in QuestionSummary(id:q.id,version:q.version,title:q.title,source:q.source,keySignature:q.keySignature,timeSignature:q.timeSignature,measureCount:q.measureCount,recommendedDurationSeconds:q.recommendedDurationSeconds,tempo:q.tempo,difficulty:q.difficulty,practiceLevelNumber:q.practiceLevelNumber,difficultyScore:q.difficultyScore,difficultyVersion:q.difficultyVersion,practiceCompleted:completed.contains(q.id)) })
     }
     func classicalQuestions(page: Int) async throws -> QuestionPage {
-        let order: [UUID] = try Bundled.decode("classical-question-order")
+        let order: [UUID]
+        if smallContent { order = [] } else { order = try Bundled.decode("classical-question-order") }
         let ranks = Dictionary(uniqueKeysWithValues:order.enumerated().map { ($0.element,$0.offset) })
         let values = try catalog().filter { $0.collection == "classical" }.sorted { (ranks[$0.id] ?? Int.max) < (ranks[$1.id] ?? Int.max) }
         return QuestionPage(count:values.count,next:nil,previous:nil,results:values.map { q in

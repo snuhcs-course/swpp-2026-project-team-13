@@ -6,6 +6,8 @@ import FoundationNetworking
 
 @MainActor protocol ExamAPI {
     var scope: String { get }
+    func contentManifest() async throws -> ContentManifest
+    func contentAsset(_ asset: ContentAsset) async throws -> Data
     func saveRhythmPlay(_ record: RhythmPlayRecord) async throws -> RhythmReceipt
     func profile() async throws -> UserProfile
     func updateGoal(_ goal: String) async throws -> UserProfile
@@ -31,6 +33,8 @@ import FoundationNetworking
 }
 
 extension ExamAPI {
+    func contentManifest() async throws -> ContentManifest { throw SolfegeError.unsupported("문제 자료를 지원하는 서버로 업데이트해 주세요.") }
+    func contentAsset(_ asset: ContentAsset) async throws -> Data { throw SolfegeError.unsupported("서버의 문제 파일을 받을 수 없습니다.") }
     func examRecommendations() async throws -> ExamOffer { throw SolfegeError.unsupported("서버를 레이팅 시험 지원 버전으로 업데이트해 주세요.") }
     func saveRhythmPlay(_ record: RhythmPlayRecord) async throws -> RhythmReceipt { throw SolfegeError.unsupported("서버를 리듬 게임 지원 버전으로 업데이트해 주세요.") }
     func createAttempt(question: Question, mode: StudyMode, key: UUID) async throws -> Attempt {
@@ -253,6 +257,20 @@ final class NoRedirectDelegate: NSObject, URLSessionTaskDelegate, @unchecked Sen
     }
     func saveRhythmPlay(_ record: RhythmPlayRecord) async throws -> RhythmReceipt {
         try await json("drills/rhythm/plays/", method:"POST", body:ContractJSON.encoder().encode(record), key:record.clientPlayId)
+    }
+    func contentManifest() async throws -> ContentManifest {
+        let value: ContentManifest = try await json("content/manifest/")
+        try value.validate()
+        guard value.assets.values.allSatisfy({ Origin($0.url) == Origin(base) }) else {
+            throw SolfegeError.configuration("문제 파일은 연결한 서버에서만 받을 수 있습니다.")
+        }
+        return value
+    }
+    func contentAsset(_ asset: ContentAsset) async throws -> Data {
+        guard asset.isValid, Origin(asset.url) == Origin(base) else { throw SolfegeError.configuration("문제 파일 주소를 확인해 주세요.") }
+        let data = try await execute(request(asset.url,accept:asset.contentType),limit:asset.sizeBytes)
+        guard data.count == asset.sizeBytes, data.sha256 == asset.sha256 else { throw SolfegeError.invalidScore("문제 파일을 다시 받아 주세요.") }
+        return data
     }
     func asset(_ url: URL, authenticated: Bool, limit: Int) async throws -> Data {
         let accept = url.path.trimmingCharacters(in: CharacterSet(charactersIn: "/")).hasSuffix("/scores/main") || url.path.trimmingCharacters(in: CharacterSet(charactersIn: "/")).hasSuffix("/scores/scale") ? "application/vnd.recordare.musicxml" : "image/png"

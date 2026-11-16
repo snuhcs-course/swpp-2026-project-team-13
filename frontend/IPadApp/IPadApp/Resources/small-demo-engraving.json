@@ -1,0 +1,330 @@
+{
+  "version": 2,
+  "style_sha256": "6483c3ee69915178a2e2ce13197e0fd28678b70871d6dea7f4770fede6a31265",
+  "scores": {
+    "1accb0beaf393bf5a46288578e7811383a9a14dca847936cffbf788fc7b190d4": {
+      "resource": "practice-reference-v2-1accb0beaf393bf5a462",
+      "renderer": "MuseScore Studio 4.6.3",
+      "layout_mode": "equal",
+      "geometry": {
+        "logical_width": 1330,
+        "logical_height": 574,
+        "systems": [
+          {
+            "index": 1,
+            "first_measure": 1,
+            "last_measure": 4,
+            "staff_line_y": [
+              164,
+              176,
+              188,
+              200,
+              212
+            ],
+            "barline_x": [
+              54,
+              422.797181036793,
+              706.8747585202843,
+              991.1020834249923,
+              1276.0397486611125
+            ]
+          },
+          {
+            "index": 2,
+            "first_measure": 5,
+            "last_measure": 8,
+            "staff_line_y": [
+              340,
+              352,
+              364,
+              376,
+              388
+            ],
+            "barline_x": [
+              54,
+              424.29565634749207,
+              708.1828653707702,
+              992.209743220542,
+              1276.0446364290854
+            ]
+          }
+        ]
+      },
+      "content_type": "image/png",
+      "sha256": "e6864cc096208b141b544e55cb36b4ebb29dbe66cb89ad6caeb440754adadb8b",
+      "size_bytes": 42247,
+      "pixel_width": 2660,
+      "pixel_height": 1148
+    },
+    "d584d7ef1f19ba070c23eee6b2518e7c8faf1ef981dc210fbd1117ecc52a6bf2": {
+      "resource": "practice-reference-v2-d584d7ef1f19ba070c23",
+      "renderer": "MuseScore Studio 4.6.3",
+      "layout_mode": "equal",
+      "geometry": {
+        "logical_width": 1330,
+        "logical_height": 574,
+        "systems": [
+          {
+            "index": 1,
+            "first_measure": 1,
+            "last_measure": 4,
+            "staff_line_y": [
+              164,
+              176,
+              188,
+              200,
+              212
+            ],
+            "barline_x": [
+              54,
+              425.2411357445975,
+              708.5930141868083,
+              992.546762071986,
+              1276.0397486611125
+            ]
+          },
+          {
+            "index": 2,
+            "first_measure": 5,
+            "last_measure": 8,
+            "staff_line_y": [
+              340,
+              352,
+              364,
+              376,
+              388
+            ],
+            "barline_x": [
+              54,
+              424.9628029757618,
+              709.4883609311253,
+              992.7712982961359,
+              1276.0446364290854
+            ]
+          }
+        ]
+      },
+      "content_type": "image/png",
+      "sha256": "115a9ba36b190d3fd1c581956db43ca5f1a2803ee5943f2dac85485280aa0dfa",
+      "size_bytes": 44313,
+      "pixel_width": 2660,
+      "pixel_height": 1148
+    },
+    "66ccbe52a34194ba4d1ef70ebbbce67b86568471d773ad82a182f291c3617ace": {
+      "resource": "practice-reference-v2-66ccbe52a34194ba4d1e",
+      "renderer": "MuseScore Studio 4.6.3",
+      "layout_mode": "equal",
+      "geometry": {
+        "logical_width": 1330,
+        "logical_height": 574,
+        "systems": [
+          {
+            "index": 1,
+            "first_measure": 1,
+            "last_measure": 4,
+            "staff_line_y": [
+              164,
+              176,
+              188,
+              200,
+              212
+            ],
+            "barline_x": [
+              54,
+              424.4789597673796,
+              707.9738661952396,
+              991.4716523812001,
+              1276.0397486611125
+            ]
+          },
+          {
+            "index": 2,
+            "first_measure": 5,
+            "last_measure": 8,
+            "staff_line_y": [
+              340,
+              352,
+              364,
+              376,
+              388
+            ],
+            "barline_x": [
+              54,
+              425.6563474922005,
+              709.1187904967601,
+              992.5793136549073,
+              1276.0446364290854
+            ]
+          }
+        ]
+      },
+      "content_type": "image/png",
+      "sha256": "d10a29516ca2747a899d49f1b5020c64ba3ae7ef371d3a566f5c40b2e2bb3391",
+      "size_bytes": 40880,
+      "pixel_width": 2660,
+      "pixel_height": 1148
+    },
+    "827452658c3a0a20532bd8d92935591f884b5a26912d906f832287badeeafaa1": {
+      "resource": "practice-reference-v2-827452658c3a0a20532b",
+      "renderer": "MuseScore Studio 4.6.3",
+      "layout_mode": "equal",
+      "geometry": {
+        "logical_width": 1330,
+        "logical_height": 574,
+        "systems": [
+          {
+            "index": 1,
+            "first_measure": 1,
+            "last_measure": 4,
+            "staff_line_y": [
+              164,
+              176,
+              188,
+              200,
+              212
+            ],
+            "barline_x": [
+              54,
+              424.33833158014727,
+              708.0794573255847,
+              991.6972334323918,
+              1276.0397486611125
+            ]
+          },
+          {
+            "index": 2,
+            "first_measure": 5,
+            "last_measure": 8,
+            "staff_line_y": [
+              340,
+              352,
+              364,
+              376,
+              388
+            ],
+            "barline_x": [
+              54,
+              425.6011519078473,
+              709.3539716822652,
+              992.992080633549,
+              1276.0446364290854
+            ]
+          }
+        ]
+      },
+      "content_type": "image/png",
+      "sha256": "f4156a744f7cfdde7f0c9e7cee56ce64b680761b33311f1cf90a5d6c2b82db81",
+      "size_bytes": 21703,
+      "pixel_width": 2660,
+      "pixel_height": 1148
+    },
+    "24dbbc07e91b7f0ad1896151e7b5b61012862bd1c45d6c712118198bfbbec4e7": {
+      "resource": "practice-reference-v2-24dbbc07e91b7f0ad189",
+      "renderer": "MuseScore Studio 4.6.3",
+      "layout_mode": "equal",
+      "geometry": {
+        "logical_width": 1330,
+        "logical_height": 574,
+        "systems": [
+          {
+            "index": 1,
+            "first_measure": 1,
+            "last_measure": 4,
+            "staff_line_y": [
+              164,
+              176,
+              188,
+              200,
+              212
+            ],
+            "barline_x": [
+              54,
+              425.0117150159387,
+              708.5546174121374,
+              992.0908003727686,
+              1276.0397486611125
+            ]
+          },
+          {
+            "index": 2,
+            "first_measure": 5,
+            "last_measure": 8,
+            "staff_line_y": [
+              340,
+              352,
+              364,
+              376,
+              388
+            ],
+            "barline_x": [
+              54,
+              425.6928245740339,
+              709.1619870410365,
+              992.6225101991837,
+              1276.0446364290854
+            ]
+          }
+        ]
+      },
+      "content_type": "image/png",
+      "sha256": "7c7c04472c76d28bdc084199833cc6074f102d6d85a2411d6242c56cfb4dd0c7",
+      "size_bytes": 21663,
+      "pixel_width": 2660,
+      "pixel_height": 1148
+    },
+    "7fb9dc57434bc222dd0fb87ea0038e3e19c1dcfddccae96aa39718a5cee80a66": {
+      "resource": "practice-reference-v2-7fb9dc57434bc222dd0f",
+      "renderer": "MuseScore Studio 4.6.3",
+      "layout_mode": "natural",
+      "geometry": {
+        "logical_width": 1330,
+        "logical_height": 574,
+        "systems": [
+          {
+            "index": 1,
+            "first_measure": 1,
+            "last_measure": 4,
+            "staff_line_y": [
+              164,
+              176,
+              188,
+              200,
+              212
+            ],
+            "barline_x": [
+              54,
+              374.4100455561733,
+              688.6410901484276,
+              972.9788057803146,
+              1276.0397486611125
+            ]
+          },
+          {
+            "index": 2,
+            "first_measure": 5,
+            "last_measure": 8,
+            "staff_line_y": [
+              340,
+              352,
+              364,
+              376,
+              388
+            ],
+            "barline_x": [
+              54,
+              472.9104871610269,
+              781.4394048476119,
+              1059.716342692584,
+              1276.0446364290854
+            ]
+          }
+        ]
+      },
+      "content_type": "image/png",
+      "sha256": "20b3a0d8949ce65727d431a742a00d41a9bd5f5b37567a6f2650344bf1fff968",
+      "size_bytes": 61102,
+      "pixel_width": 2660,
+      "pixel_height": 1148
+    }
+  }
+}

@@ -1,5 +1,14 @@
 import SwiftUI
 
+private struct RhythmEngravingKey: EnvironmentKey {
+    static let defaultValue: RhythmEngraving? = nil
+}
+extension EnvironmentValues {
+    var rhythmEngraving: RhythmEngraving? {
+        get { self[RhythmEngravingKey.self] }
+        set { self[RhythmEngravingKey.self] = newValue }
+    }
+}
 enum RhythmInk {
     static let drawings: [String:RhythmDrawing] = {
         let engraving: RhythmEngraving? = try? Bundled.decode("rhythm-engraving-v3")
@@ -64,10 +73,11 @@ enum RhythmInk {
 }
 
 struct RhythmNotationView: View {
+    @Environment(\.rhythmEngraving) private var engraving
     let tile: RhythmTile
     var body: some View {
         Canvas { context,size in
-            guard let drawing = RhythmInk.drawings[tile.id] else { return }
+            guard let drawing = (engraving?.tiles ?? RhythmInk.drawings)[tile.id] else { return }
             let scale = min(1.12,(size.width-16)/CGFloat(drawing.width))
             let x = (size.width-CGFloat(drawing.width)*scale)/2
             let y = (size.height-CGFloat(drawing.height)*scale)/2

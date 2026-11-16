@@ -107,6 +107,13 @@ final class LocalStore {
     func write(_ data: Data, name: String, id: UUID) throws { try data.write(to: folder(id).appendingPathComponent(name), options: [.atomic, .completeFileProtectionUntilFirstUserAuthentication]) }
     func read(_ name: String, id: UUID) throws -> Data { try Data(contentsOf: folder(id).appendingPathComponent(name)) }
     func exists(_ name: String, id: UUID) -> Bool { FileManager.default.fileExists(atPath: root.appendingPathComponent(id.uuidString).appendingPathComponent(name).path) }
+    func releaseReproducibleAssets(_ id: UUID) throws {
+        // Never include drawing.pkdrawing, submission/submitted PNGs or journals.
+        for name in ["template.png","main.mxl","scale.mxl","correct-score.png"] {
+            let url = root.appendingPathComponent(id.uuidString).appendingPathComponent(name)
+            if FileManager.default.fileExists(atPath:url.path) { try FileManager.default.removeItem(at:url) }
+        }
+    }
 }
 
 enum TokenVault {

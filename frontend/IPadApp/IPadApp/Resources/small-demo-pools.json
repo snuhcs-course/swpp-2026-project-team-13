@@ -1,0 +1,29 @@
+{
+  "version": "question-pools-1",
+  "records": {
+    "128f51a9-5498-50fd-a2a7-1a271883e72b": {
+      "pool": "practice",
+      "family": "128f51a9-5498-50fd-a2a7-1a271883e72b"
+    },
+    "cfe540d9-445e-59c5-9338-586fc9ba2842": {
+      "pool": "practice",
+      "family": "cfe540d9-445e-59c5-9338-586fc9ba2842"
+    },
+    "e8b704b7-efe5-583c-944a-270915628ca2": {
+      "pool": "practice",
+      "family": "e8b704b7-efe5-583c-944a-270915628ca2"
+    },
+    "fc2a7f11-ada9-5e53-8178-42848b99375a": {
+      "pool": "exam",
+      "family": "fc2a7f11-ada9-5e53-8178-42848b99375a"
+    },
+    "a056175a-507d-5bc6-8823-c9d00d9f6946": {
+      "pool": "exam",
+      "family": "a056175a-507d-5bc6-8823-c9d00d9f6946"
+    },
+    "90fb15e7-c91d-5dcc-94b8-fb827be50579": {
+      "pool": "exam",
+      "family": "90fb15e7-c91d-5dcc-94b8-fb827be50579"
+    }
+  }
+}

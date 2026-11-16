@@ -24,6 +24,8 @@ import AudioToolbox
     private var sampler: AVAudioUnitSampler { audioGraph.piano }
     private var metronome: AVAudioUnitSampler { audioGraph.click }
     private var sequencer: AVAudioSequencer?
+    private var loadedIndex: Int?
+    private var preparedMIDI: [Int:Data] = [:]
     private var main: MusicScore?
     private var scale: MusicScore?
     private var plan: PlaybackPlan?
@@ -62,7 +64,7 @@ import AudioToolbox
 
     // Practice only: replay one of the 11 segments from its beginning, then continue in order.
     func jump(to index: Int) {
-        guard prepared, (1...11).contains(index) else { return }
+        guard prepared, (0...11).contains(index) else { return }
         playbackGeneration = UUID(); runner?.cancel(); runner = nil
         waitAnchor = nil; segmentAnchor = nil; silence(); isPlaying = false; scaleStartedAt = nil
         cursor = PlaybackCursor(index: index, phase: "segment")
@@ -103,28 +105,28 @@ import AudioToolbox
         self.main = main; self.scale = scale; self.plan = plan
         scaleKey = scale.keySignature; scaleStartedAt = nil
         scaleDuration = Double(scale.totalTicks)/480*60/Double(plan.tempoBpm)
-        for i in 0...11 { _ = try midi(index:i) }
+        preparedMIDI = [:]
+        for i in 0...11 { preparedMIDI[i] = try midi(index:i) }
         try rebuildAudioGraph()
         prepared = true; message = "스케일·예비박·11개 구간이 준비되었어요"
     }
     // A sampler is rebuilt after leaving a problem or an audio interruption. Reusing a
     // stopped I/O graph can leave a running sequencer connected to a silent instrument.
     private func rebuildAudioGraph() throws {
-        sequencer?.stop(); sequencer = nil; engine.stop()
+        sequencer?.stop(); sequencer = nil; loadedIndex = nil; engine.stop()
         let audio = AVAudioSession.sharedInstance()
         try audio.setCategory(.playback,mode:.default,options:[])
         try audio.setActive(true)
         guard let url = instrumentURL else { throw SolfegeError.invalidScore("SOUND_BANK_UNAVAILABLE") }
         try audioGraph.rebuild(bank:url,program:instrumentProgram,bankMSB:bankMSB,bankLSB:bankLSB,clickURL:clickURL,gain:outputGain)
-        sequencer = AVAudioSequencer(audioEngine:engine)
         engine.prepare(); graphNeedsRebuild = false
     }
     func audioConfigurationChanged(_ notification: Notification) {
-        guard let changed = notification.object as? AVAudioEngine, changed === engine else { return }
+        guard let changed = notification.object as? AVAudioEngine, changed === engine, !engine.isRunning else { return }
         invalidateAudio()
     }
-    func invalidateAudio() { pause(); graphNeedsRebuild = true }
-    func stopForPreparation() { prepared = false; pause() }
+    func invalidateAudio() { pause(); graphNeedsRebuild = true; engine.pause() }
+    func stopForPreparation() { prepared = false; invalidateAudio() }
     func restore(_ cursor: PlaybackCursor) {
         self.cursor = cursor
         message = cursor.index > 11 ? "필기 시간 종료 · 답안을 제출해 주세요" : "재생을 누르면 멈춘 곳부터 이어져요"
@@ -147,6 +149,15 @@ import AudioToolbox
         for (trackIndex,track) in seq.tracks.enumerated() {
             track.destinationAudioUnit = trackIndex == 1 && countIn(index:index) != nil ? metronome : sampler
         }
+    }
+    private func sequence(index: Int) throws -> AVAudioSequencer {
+        if loadedIndex == index, let sequencer { return sequencer }
+        sequencer?.stop(); sequencer = nil; loadedIndex = nil
+        guard let data = preparedMIDI[index] else { throw SolfegeError.invalidScore("PLAYBACK_PREPARE_FAILED") }
+        let seq = AVAudioSequencer(audioEngine:engine)
+        try seq.load(from:data,options:[]); route(seq,index:index); seq.rate = 1
+        sequencer = seq; loadedIndex = index
+        return seq
     }
     private func checkpointSegment() {
         guard let anchor = segmentAnchor, cursor.phase == "segment" else { return }
@@ -184,6 +195,7 @@ import AudioToolbox
         let generation = UUID(); playbackGeneration = generation
         isPlaying = true
         runner = Task { [weak self] in
+            await Task.yield()
             guard let self, let plan else { return }
             do {
                 try Task.checkCancellation()
@@ -200,10 +212,9 @@ import AudioToolbox
                     guard generation == playbackGeneration else { throw CancellationError() }
                     let index = cursor.index
                     if cursor.phase != "gap" {
-                        guard let seq = sequencer, let score = (index == 0 ? self.scale : self.main) else { throw SolfegeError.invalidScore("PLAYBACK_PREPARE_FAILED") }
+                        guard let score = (index == 0 ? self.scale : self.main) else { throw SolfegeError.invalidScore("PLAYBACK_PREPARE_FAILED") }
+                        let seq = try sequence(index:index)
                         seq.stop()
-                        try seq.load(from:midi(index:index),options:[])
-                        route(seq,index:index)
                         seq.currentPositionInBeats = 0; seq.prepareToPlay()
                         let count = countIn(index:index)
                         let bars = index == 0 ? plan.scale.toMeasure-plan.scale.fromMeasure+1 : plan.steps[index-1].toMeasure-plan.steps[index-1].fromMeasure+1
@@ -251,11 +262,14 @@ import AudioToolbox
     }
     func pause() {
         let wasPlaying = isPlaying
-        playbackGeneration = UUID(); graphNeedsRebuild = true
+        isPlaying = false
+        playbackGeneration = UUID()
         runner?.cancel(); runner = nil
         checkpointWait(); waitAnchor = nil
         checkpointSegment(); segmentAnchor = nil
-        silence(); engine.pause(); isPlaying = false; scaleStartedAt = nil
+        // Keep a healthy engine and its loaded instrument warm for user pause.
+        // Backgrounding/interruption explicitly invalidates it instead.
+        silence(); scaleStartedAt = nil
         if prepared, cursor.index <= 11 {
             if wasPlaying { do { try onCursor?(cursor) } catch { onError?(error) } }
             message = "일시 정지 · 재생하면 멈춘 곳부터 이어져요"

@@ -98,6 +98,21 @@
 		};
 /* End PBXGroup section */
 
+/* Begin PBXShellScriptBuildPhase section */
+		A00000000000000000000014 /* Select bundled content */ = {
+			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
+			buildActionMask = 2147483647;
+			files = ();
+			inputPaths = ();
+			outputPaths = ();
+			name = "Select bundled content";
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "python3 \"$PROJECT_DIR/../../scripts/app_content_policy.py\" --app \"$TARGET_BUILD_DIR/$WRAPPER_NAME\"\n";
+		};
+/* End PBXShellScriptBuildPhase section */
+
 /* Begin PBXNativeTarget section */
 		A00000000000000000000010 /* IPadApp */ = {
 			isa = PBXNativeTarget;
@@ -106,6 +121,7 @@
 				A00000000000000000000011 /* Sources */,
 				A00000000000000000000012 /* Frameworks */,
 				A00000000000000000000013 /* Resources */,
+				A00000000000000000000014 /* Select bundled content */,
 			);
 			buildRules = (
 			);

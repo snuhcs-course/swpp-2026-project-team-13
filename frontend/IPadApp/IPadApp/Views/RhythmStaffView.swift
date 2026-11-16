@@ -6,13 +6,15 @@ struct RhythmBarFrames: PreferenceKey {
 }
 
 struct RhythmStaffBar: View {
+    @Environment(\.rhythmEngraving) private var engraving
+    private var drawings: [String:RhythmDrawing] { engraving?.tiles ?? RhythmInk.drawings }
     let round: RhythmRound; let bar: Int; let board: RhythmBoard
     let tiles: [String:RhythmTile]; let scale: CGFloat
     var hints: [RhythmTime] = []; var selected: RhythmPlacement? = nil
     var splitTie = true; var editable = false
     var tapPiece: (RhythmPlacement) -> Void = { _ in }
     var tapTie: (RhythmTime) -> Void = { _ in }
-    private var layout: RhythmBarLayout { RhythmBarLayout(round:round,bar:bar,board:board,tiles:tiles,drawings:RhythmInk.drawings) }
+    private var layout: RhythmBarLayout { RhythmBarLayout(round:round,bar:bar,board:board,tiles:tiles,drawings:drawings) }
     private var top: CGFloat { 16 }
     private var baseline: CGFloat { top+58*scale }
     private func point(_ x: Double) -> CGFloat { CGFloat(x)*scale }
@@ -36,7 +38,7 @@ struct RhythmStaffBar: View {
                     context.stroke(line,with:.color(SolfegeTheme.ink),lineWidth:0.9)
                 }
                 for part in layout.segments {
-                    if let p = part.placement, let drawing = RhythmInk.drawings[p.tileId] {
+                    if let p = part.placement, let drawing = drawings[p.tileId] {
                         RhythmInk.draw(drawing,in:context,at:CGPoint(x:point(part.x),y:top),scale:scale)
                     }
                 }
@@ -102,14 +104,16 @@ struct RhythmPuzzleBoardView: View {
 }
 
 struct RhythmStaffSystem: View {
+    @Environment(\.rhythmEngraving) private var engraving
+    private var drawings: [String:RhythmDrawing] { engraving?.tiles ?? RhythmInk.drawings }
     let round: RhythmRound; let board: RhythmBoard; let tiles: [String:RhythmTile]
     var compact = false; var hints: [RhythmTime] = []; var selected: RhythmPlacement? = nil; var editable = false
     var tapPiece: (RhythmPlacement) -> Void = { _ in }; var tapTie: (RhythmTime) -> Void = { _ in }
     var connect: (RhythmPlacement,RhythmPlacement) -> Void = { _,_ in }
     var body: some View {
         GeometryReader { geo in
-            let a = RhythmBarLayout(round:round,bar:0,board:board,tiles:tiles,drawings:RhythmInk.drawings)
-            let b = RhythmBarLayout(round:round,bar:1,board:board,tiles:tiles,drawings:RhythmInk.drawings)
+            let a = RhythmBarLayout(round:round,bar:0,board:board,tiles:tiles,drawings:drawings)
+            let b = RhythmBarLayout(round:round,bar:1,board:board,tiles:tiles,drawings:drawings)
             let scale = min(CGFloat(1.2),max(0.7,geo.size.width/CGFloat(a.width+b.width)))
             ScrollView(.horizontal,showsIndicators:false) {
                     HStack(spacing:0) { staff(0,scale:scale,split:false); staff(1,scale:scale,split:false) }
