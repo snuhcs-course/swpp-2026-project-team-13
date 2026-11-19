@@ -96,20 +96,34 @@ enum ExamRatingModel {
             modelVersion:version,difficultyVersion:difficultyVersion,poolVersion:poolVersion)
     }
     static func choices(rating: Double, questions: [Question]) -> [ExamChoice] {
+        var rng = SystemRandomNumberGenerator()
+        return choices(rating:rating,questions:questions,using:&rng)
+    }
+    static func choices<R: RandomNumberGenerator>(rating: Double, questions: [Question], using rng: inout R) -> [ExamChoice] {
+        let difficulties = questions.compactMap(\.difficultyScore).filter { $0.isFinite && $0 >= 0 }
+        let lowest = difficulties.min() ?? .infinity, highest = difficulties.max() ?? -.infinity
+        func remainingDirections(_ question: Question) -> Int {
+            let difficulty = question.difficultyScore!
+            return (lowest < min(rating,difficulty) ? 1 : 0) + (highest > max(rating,difficulty) ? 1 : 0)
+        }
         var selected: [String:Question] = [:]
         for (category,target,lo,hi) in [("matched",0.8,0.75,0.85),("challenge",0.625,0.55,0.70),("easy",0.915,0.88,0.95)] {
-            let eligible = questions.filter { q in
+            var eligible = questions.filter { q in
                 guard let d = q.difficultyScore, d.isFinite, d >= 0, !selected.values.contains(where: { $0.id == q.id }) else { return false }
                 if category == "challenge" { return d > max(rating,selected["matched"]?.difficultyScore ?? rating) }
                 if category == "easy" { return d < min(rating,selected["matched"]?.difficultyScore ?? rating) }
                 return abs(skill(d)-skill(rating)) <= 0.5
+            }
+            // Preserve the most easy/challenge slots before drawing at random.
+            if category == "matched", let slots = eligible.map(remainingDirections).max() {
+                eligible = eligible.filter { remainingDirections($0) == slots }
             }
             let preferred = eligible.filter { (lo...hi).contains(expected(rating,$0.difficultyScore!)) }
             let nearest = Array(eligible.sorted {
                 let a = abs(expected(rating,$0.difficultyScore!)-target), b = abs(expected(rating,$1.difficultyScore!)-target)
                 return a == b ? $0.id.uuidString < $1.id.uuidString : a < b
             }.prefix(5))
-            selected[category] = (preferred.isEmpty || category == "matched" ? nearest : preferred).randomElement()
+            selected[category] = (preferred.isEmpty || category == "matched" ? nearest : preferred).randomElement(using:&rng)
         }
         return ["challenge","matched","easy"].map { category in
             let q = selected[category], d = q?.difficultyScore

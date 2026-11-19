@@ -93,5 +93,31 @@ class RatingTests(unittest.TestCase):
         self.assertIsNone(rating.recommendations(0,questions)[2]['question_id'])
         self.assertTrue(all(c['question_id'] is None for c in rating.recommendations(7,[])))
 
+    def test_small_demo_preserves_all_three_choices_for_every_draw(self):
+        resources=ROOT/'frontend/IPadApp/IPadApp/Resources'
+        index=json.loads((resources/'small-demo-index.json').read_text(encoding='utf8'))['files']
+        pools=json.loads((resources/index['pools']).read_text(encoding='utf8'))['records']
+        scores=json.loads((resources/index['difficulty']).read_text(encoding='utf8'))['records']
+        questions=[rating.Question(q,scores[q]['score']) for q in scores if pools[q]['pool']=='exam']
+        self.assertEqual(len(questions),3)
+        for seed in range(64):
+            with self.subTest(seed=seed):
+                choices=rating.recommendations(7,questions,seed=seed)
+                self.assertEqual({c['question_id'] for c in choices},{q.id for q in questions})
+                self.assertGreater(choices[0]['difficulty_score'],choices[1]['difficulty_score'])
+                self.assertLess(choices[2]['difficulty_score'],choices[1]['difficulty_score'])
+
+    def test_sparse_banks_only_leave_a_direction_empty_when_necessary(self):
+        for scores,missing in [([6,6.1],{'challenge'}),([7.1,7.2],{'easy'}),([7,7],{'challenge','easy'})]:
+            questions=[rating.Question(str(i),score) for i,score in enumerate(scores)]
+            for seed in range(32):
+                with self.subTest(scores=scores,seed=seed):
+                    choices=rating.recommendations(7,questions,seed=seed)
+                    self.assertEqual({c['category'] for c in choices if c['question_id'] is None},missing)
+                    ids=[c['question_id'] for c in choices if c['question_id'] is not None]
+                    self.assertEqual(len(ids),len(set(ids)))
+        choices=rating.recommendations(7,[rating.Question('seen',7),rating.Question('unseen',6.1)],seen=['seen'])
+        self.assertEqual([c['question_id'] for c in choices if c['question_id'] is not None],['unseen'])
+
 
 if __name__=='__main__':unittest.main()

@@ -74,6 +74,7 @@ def recommendations(rating, questions, *, seen=(), seed=0):
 
     Prefer the prototype's expected-grade bands; if sparse, take the nearest
     candidate in the correct direction. Matched stays within half a skill unit.
+    Prefer matched candidates that leave the most directional slots fillable.
     A service persists the result, so repeated GETs cannot reroll the choices.
     """
     number(rating, "rating")
@@ -84,6 +85,13 @@ def recommendations(rating, questions, *, seen=(), seed=0):
         number(q.difficulty, "difficulty")
     seen = set(seen)
     available = [q for q in items if q.id not in seen]
+    lowest = min((q.difficulty for q in available), default=math.inf)
+    highest = max((q.difficulty for q in available), default=-math.inf)
+
+    def remaining_directions(question):
+        return (int(lowest < min(rating, question.difficulty))
+                + int(highest > max(rating, question.difficulty)))
+
     rng = random.Random(seed)
     selected = {}
     for category, target, lo, hi in (("matched", .8, .75, .85),
@@ -97,6 +105,11 @@ def recommendations(rating, questions, *, seen=(), seed=0):
             eligible = [q for q in eligible if q.difficulty < min(rating, matched.difficulty if matched else rating)]
         else:
             eligible = [q for q in eligible if abs(to_skill(q.difficulty)-to_skill(rating)) <= .5]
+            # A random matched choice must not consume the only easy/challenge
+            # candidate when another matched choice could preserve that slot.
+            if eligible:
+                slots = max(map(remaining_directions, eligible))
+                eligible = [q for q in eligible if remaining_directions(q) == slots]
         preferred = [q for q in eligible if lo <= expected_fraction(rating, q.difficulty) <= hi]
         if (not preferred or category == "matched") and eligible:
             # A small nearest-score set keeps sparse-band choices meaningful.
