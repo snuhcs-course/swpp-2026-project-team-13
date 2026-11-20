@@ -14,6 +14,8 @@ import SwiftUI
     @Published private(set) var soundLabel = ""
     @Published private(set) var interrupted = false
     @Published private(set) var preview = false
+    // Opened from a Drill stage: the stairs keep the progress, not the 72-level map.
+    @Published private(set) var staged = false
     @Published private(set) var stars = 0
     @Published var error: String?
     let audio: any EchoDragonPlaying
@@ -32,10 +34,10 @@ import SwiftUI
             self.error = "진행 기록을 읽지 못했어요. 이번 플레이는 저장하지 않고 기존 기록을 유지해요. 앱을 다시 열어 주세요."
         }
     }
-    func open(_ number: Int, preview: Bool = false) {
-        guard (1...EchoDragonLevel.count).contains(number), preview || number <= progress.unlocked else { return }
+    func open(_ number: Int, preview: Bool = false, stage: Bool = false) {
+        guard (1...EchoDragonLevel.count).contains(number), preview || stage || number <= progress.unlocked else { return }
         cancelAudio()
-        self.preview = preview
+        self.preview = preview && !stage; staged = stage
         challenge = .make(number:number,variation:UInt64.random(in:0...UInt64.max))
         selected = nil; result = nil; attempts = 0; usedHint = false
         heardCall = false; interrupted = false; stars = 0
@@ -83,13 +85,13 @@ import SwiftUI
         guard challenge.isCorrect(selected) else { result = .incorrect; return }
         result = .correct
         stars = EchoDragonProgress.earnedStars(attempts:attempts,hint:usedHint)
-        guard !preview, storageReadable else { return }
+        guard !preview, !staged, storageReadable else { return }
         progress.record(level:challenge.level.number,stars:stars)
         do { defaults.set(try JSONEncoder().encode(progress),forKey:Self.storageKey) }
         catch { self.error = "진행 기록을 저장하지 못했어요. 이 화면을 닫기 전에 다시 시도해 주세요." }
     }
     func next() {
-        guard result == .correct, let challenge else { return }
+        guard result == .correct, let challenge, !staged else { return }
         if preview || challenge.level.number == EchoDragonLevel.count { map(); return }
         open(challenge.level.number+1)
     }

@@ -53,7 +53,7 @@ struct ContentView: View {
                 case .result: ResultView(model: model)
                 case .history: HistoryView(model: model)
                 case .settings: SettingsView(model: model)
-                case .minigames: MiniGameHubView(connection:model.rhythmConnection).id(model.rhythmConnection?.identity ?? "disconnected")
+                case .minigames: DrillStairsView(connection:model.rhythmConnection,back:{ model.navigate(.main) }).id(model.rhythmConnection?.identity ?? "disconnected")
                 case .classical: ClassicalExamLibraryView(model:model)
                 case .dailyTraining: DailyTrainingView(model:model)
                 }
@@ -72,7 +72,7 @@ struct ContentView: View {
                     }
                 }
             }
-            .toolbar([.main,.home,.practiceLevels,.practiceQuestions,.recommendingExam,.examSelection].contains(model.screen) || (model.screen == .result && model.session?.attempt.studyMode == .practice) ? .hidden : .automatic, for: .navigationBar)
+            .toolbar([.main,.home,.practiceLevels,.practiceQuestions,.recommendingExam,.examSelection,.minigames].contains(model.screen) || (model.screen == .result && model.session?.attempt.studyMode == .practice) ? .hidden : .automatic, for: .navigationBar)
             .toolbarBackground(SolfegeTheme.background, for: .navigationBar)
             .overlay { if model.screen != .recommendingExam { busyOverlay } }
         }
