@@ -37,6 +37,7 @@ import AVFoundation
 
     func start(_ timeline: MelodyTimeline, round: MelodyRound, settings: MelodySettings) throws {
         stopClock()
+        discardSequence()
         transportLeadTicks = MelodyTimeline.ticks(milliseconds:MelodyTimeline.audioLeadMilliseconds,bpm:settings.bpm)
         let seq = AVAudioSequencer(audioEngine:graph.engine)
         try seq.load(from:timeline.midi(tempo:settings.bpm,leadTicks:transportLeadTicks),options:[])
@@ -58,6 +59,7 @@ import AVFoundation
         } else if let first = timeline.windows.first(where: { $0.phase == .listen }) {
             try schedule(first,round:round)
         }
+        graph.engine.prepare(); try graph.engine.start()
         seq.currentPositionInBeats = 0; seq.prepareToPlay(); try seq.start()
     }
 
@@ -90,14 +92,22 @@ import AVFoundation
         livePiano.sendController(123,withValue:0,onChannel:0)
     }
     func stopClock() {
-        sequencer?.stop(); sequencer = nil; referenceTrack = nil; transportLeadTicks = 0
+        // Recall still needs the live keyboard. Keep the stopped sequence alive
+        // until the engine is quiescent; sequencer.stop() only stops its player.
+        sequencer?.stop()
         for unit in [graph.piano,graph.click] {
             unit.sendController(120,withValue:0,onChannel:0)
             unit.sendController(123,withValue:0,onChannel:0)
         }
     }
+    private func discardSequence() {
+        // AVAudioSequencer deinit detaches its MusicSequence from the engine.
+        // Never let that race the engine's render thread (including on replay).
+        graph.engine.stop()
+        referenceTrack = nil; sequencer = nil; transportLeadTicks = 0
+    }
     func stop() {
-        stopClock(); releaseKeys(); graph.engine.stop(); ready = false
+        stopClock(); releaseKeys(); discardSequence(); ready = false
         if let previous = previousBufferDuration, previous > 0 {
             try? AVAudioSession.sharedInstance().setPreferredIOBufferDuration(previous)
         }
@@ -110,11 +120,14 @@ import AVFoundation
     func replay(events: [MusicEvent], ticks: Int, bpm: Double) throws {
         stopClock(); releaseKeys()
         if !ready { try prepare() }
+        discardSequence()
         transportLeadTicks = MelodyTimeline.ticks(milliseconds:MelodyTimeline.audioLeadMilliseconds,bpm:bpm)
         let seq = AVAudioSequencer(audioEngine:graph.engine)
         let shifted = events.map { MusicEvent(midi:$0.midi,onset:$0.onset+transportLeadTicks,duration:$0.duration) }
         try seq.load(from:MIDIFile.make(events:shifted,totalTicks:ticks+transportLeadTicks,tempo:bpm,velocity:Int(noteVelocity)),options:[])
         for track in seq.tracks { track.destinationAudioUnit = graph.piano }
-        sequencer = seq; seq.currentPositionInBeats = 0; seq.prepareToPlay(); try seq.start()
+        sequencer = seq
+        graph.engine.prepare(); try graph.engine.start()
+        seq.currentPositionInBeats = 0; seq.prepareToPlay(); try seq.start()
     }
 }

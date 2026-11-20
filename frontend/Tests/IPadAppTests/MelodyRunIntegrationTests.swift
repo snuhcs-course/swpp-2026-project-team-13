@@ -171,6 +171,30 @@ import SwiftUI
         exam.navigate(.exam); await exam.start(); exam.player.pause()
         XCTAssertNil(exam.error); XCTAssertEqual(exam.session?.attempt.status,"in_progress")
     }
+    func testActiveAudioCanStopReplayAndRebuildWithoutLosingLiveKeys() async throws {
+        let game = makeGame(mode:.memory)
+        await game.start(); XCTAssertNil(game.error)
+        defer { game.stop() }
+        let round = try XCTUnwrap(game.round), settings = game.settings
+        game.stop()
+        let events = try round.score.segment(from:1,through:1)
+        let timeline = MelodyTimeline(round:round,settings:settings)
+        for _ in 0..<2 {
+            try game.audio.prepare()
+            try game.audio.start(timeline,round:round,settings:settings)
+            try await Task.sleep(for:.milliseconds(200))
+            game.audio.stopClock()
+            XCTAssertTrue(game.audio.isRunning,"Recall must retain the live piano engine")
+            game.audio.noteOn(60); game.audio.noteOff(60)
+            for _ in 0..<2 {
+                try game.audio.replay(events:events,ticks:round.score.timeSignature.ticksPerMeasure,bpm:settings.bpm)
+                try await Task.sleep(for:.milliseconds(200))
+                XCTAssertTrue(game.audio.isRunning)
+            }
+            game.audio.stop(); game.audio.stop()
+            XCTAssertFalse(game.audio.isRunning)
+        }
+    }
     func testLandscapeKeyboardAndBothClefsRender() async throws {
         let game = makeGame(mode:.memory)
         await game.start(); XCTAssertNil(game.error)
