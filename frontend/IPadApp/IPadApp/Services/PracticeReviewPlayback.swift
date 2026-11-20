@@ -22,8 +22,12 @@ import Combine
     private var arrangement: PracticeReviewSequence?
     private var activeSlice: PracticeReviewSequence.Slice?
     private var velocity = 80
+    private(set) var instrumentLoadCount = 0
 
     var positionSeconds: TimeInterval {
+        // Stop is a logical return to zero. The next play seeks once, immediately
+        // before starting; never seek a stopped Core Audio sequence during teardown.
+        guard isPlaying || isPaused else { return 0 }
         guard let seq = sequencer, let slice = activeSlice, let bpm = preparedBpm else { return 0 }
         return max(0,(seq.currentPositionInBeats*480-Double(slice.musicStart))/480*60/bpm)
     }
@@ -74,10 +78,9 @@ import Combine
     func stop() {
         isPlaying = false; isPaused = false
         cancelMonitor(); silence(); measure = nil
-        if let slice = activeSlice { sequencer?.currentPositionInBeats = Double(slice.start)/480 }
     }
     func shutdown() {
-        stop(); graph.engine.stop(); sequencer = nil
+        stop(); sequencer = nil; graph.engine.stop()
         preparedVoice = nil; instrument = nil; preparedScore = nil; preparedBpm = nil; arrangement = nil; activeSlice = nil
     }
     private func check(_ request: UUID) throws {
@@ -107,10 +110,15 @@ import Combine
     }
     private func prepare(score: MusicScore, bpm: Double, voice: String) throws {
         let music = try PracticeReviewSequence(score:score,bpm:bpm)
-        silence(); sequencer = nil; graph.engine.stop()
+        // Tempo and excerpt changes affect MIDI, not the loaded instrument. Keep
+        // the sampler/engine alive instead of repeatedly loading the large bank.
+        let rebuildInstrument = preparedVoice != voice || instrument == nil || !graph.engine.isRunning
+        silence(); sequencer = nil
         preparedScore = nil; preparedBpm = nil
-        let audio = AVAudioSession.sharedInstance()
-        try audio.setCategory(.playback,mode:.default,options:[]); try audio.setActive(true)
+        if rebuildInstrument {
+            let audio = AVAudioSession.sharedInstance()
+            try audio.setCategory(.playback,mode:.default,options:[]); try audio.setActive(true)
+        }
         if preparedVoice != voice || instrument == nil {
             let url: URL, program: UInt8, msb: UInt8, lsb: UInt8, gain: Float
             if voice == "grand-piano" {
@@ -133,15 +141,16 @@ import Combine
             preparedVoice = voice
         }
         guard let instrument else { throw SolfegeError.invalidScore("악기 음원을 준비해 주세요.") }
-        // A different score/tempo gets a clean graph. Ordinary seeks, pauses and
-        // stops above keep this graph alive, so bar taps never reload the bank.
-        try graph.rebuild(bank:instrument.url,program:instrument.program,bankMSB:instrument.msb,bankLSB:instrument.lsb,clickURL:nil,gain:instrument.gain)
+        if rebuildInstrument {
+            try graph.rebuild(bank:instrument.url,program:instrument.program,bankMSB:instrument.msb,bankLSB:instrument.lsb,clickURL:nil,gain:instrument.gain)
+            instrumentLoadCount += 1
+        }
         let seq = AVAudioSequencer(audioEngine:graph.engine)
         try seq.load(from:MIDIFile.make(events:music.events,totalTicks:music.ticks,tempo:bpm,velocity:velocity),options:[])
         for track in seq.tracks { track.destinationAudioUnit = graph.piano }
         seq.rate = 1
         sequencer = seq; arrangement = music; preparedScore = score; preparedBpm = bpm
-        try graph.engine.start()
+        if !graph.engine.isRunning { try graph.engine.start() }
     }
     func configurationChanged(_ notification: Notification) {
         guard let engine = notification.object as? AVAudioEngine, engine === graph.engine, !engine.isRunning else { return }

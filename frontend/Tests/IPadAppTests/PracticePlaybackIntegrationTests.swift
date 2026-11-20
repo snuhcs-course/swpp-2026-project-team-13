@@ -12,7 +12,9 @@ import SwiftUI
         let player = PracticeReviewPlayback(); defer { player.shutdown() }
         let music = score()
         for bpm in [60.0,144,84] {
+            print("Review audio: prepare tempo \(bpm)")
             try await player.play(score:music,range:PracticeReviewRange(from:3,through:4),bpm:bpm,voice:"grand-piano")
+            XCTAssertEqual(player.instrumentLoadCount,1,"Tempo changes must reuse the loaded sampler")
             let began = ProcessInfo.processInfo.systemUptime
             try await Task.sleep(for:.milliseconds(350))
             XCTAssertEqual(player.positionSeconds+0.12,ProcessInfo.processInfo.systemUptime-began,accuracy:0.15,"Tempo changes must not accelerate the next playback")
@@ -26,12 +28,19 @@ import SwiftUI
         }
         for _ in 0..<3 {
             for bar in [1,8,2,7,3,6,4,5] {
+                print("Review audio: seek measure \(bar)")
                 try await player.play(score:music,range:PracticeReviewRange(from:bar,through:bar),bpm:84,voice:"grand-piano")
                 XCTAssertEqual(player.measure,bar)
             }
         }
         let old = Task { try await player.play(score:music,range:PracticeReviewRange(from:1,through:2),bpm:84,voice:"grand-piano") }
-        await Task.yield()
+        // Task.yield() does not promise that the older request has started.
+        // Establish request order before verifying that its late return is harmless.
+        let startDeadline = ProcessInfo.processInfo.systemUptime+2
+        while player.range != PracticeReviewRange(from:1,through:2), ProcessInfo.processInfo.systemUptime < startDeadline {
+            try await Task.sleep(for:.milliseconds(1))
+        }
+        XCTAssertEqual(player.range,PracticeReviewRange(from:1,through:2))
         try await player.play(score:music,range:PracticeReviewRange(from:7,through:8),bpm:84,voice:"grand-piano")
         _ = await old.result
         try await Task.sleep(for:.milliseconds(100))
@@ -39,7 +48,9 @@ import SwiftUI
         player.stop(); XCTAssertFalse(player.isPlaying); XCTAssertFalse(player.isPaused)
         XCTAssertEqual(player.positionSeconds,0,accuracy:0.025)
         XCTAssertEqual(player.range,PracticeReviewRange(from:7,through:8))
+        print("Review audio: change tempo after stop")
         try await player.play(score:music,range:PracticeReviewRange(from:8,through:8),bpm:200,voice:"grand-piano")
+        XCTAssertEqual(player.instrumentLoadCount,1,"Stopping and changing tempo must not reload the bank")
         let deadline = ProcessInfo.processInfo.systemUptime+3
         while player.isPlaying && ProcessInfo.processInfo.systemUptime < deadline { try await Task.sleep(for:.milliseconds(20)) }
         XCTAssertFalse(player.isPlaying,"Playback must stop at the chosen end, not continue through the prepared sequence")
