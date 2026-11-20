@@ -83,8 +83,10 @@ jobs:
       - uses: actions/checkout@v4
       - name: Fetch pinned external instrument bank and license
         run: python3 scripts/fetch_soundfont.py
-      - name: Bundle and verify historical composer portraits
-        run: python3 scripts/fetch_composer_portraits.py
+      - name: Verify composer portraits without external downloads
+        run: |
+          python3 scripts/fetch_composer_portraits.py --check
+          python3 scripts/test_composer_portraits.py
       - name: Cache versioned classical grand piano
         uses: actions/cache@v4
         with:
