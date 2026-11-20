@@ -9,7 +9,7 @@ struct QuestionFilter: Equatable {
         var label: String {
             switch self {
             case .all: return "전체"
-            case .maximumAccidentals(0): return "다장조·가단조만"
+            case .maximumAccidentals(0): return "조표 없음"
             case .maximumAccidentals(let count): return "조표 \(count)개까지"
             case .individual(let keys): return keys.count == 1 ? keys.first!.label : "\(keys.count)개 조성"
             }
@@ -25,9 +25,15 @@ struct QuestionFilter: Equatable {
         }
     }
     enum SortOrder: String, CaseIterable, Identifiable {
-        case ascending, descending
+        case ascending, descending, questionNumber
         var id: String { rawValue }
-        var label: String { self == .ascending ? "낮은순" : "높은순" }
+        var label: String {
+            switch self {
+            case .ascending: return "난이도 낮은순"
+            case .descending: return "난이도 높은순"
+            case .questionNumber: return "문제번호순"
+            }
+        }
     }
     struct KeyGroup: Identifiable {
         let fifths: Int
@@ -56,6 +62,17 @@ struct QuestionFilter: Equatable {
             keySelection.includes(q.keySignature) && (meter == nil || q.timeSignature == meter) &&
                 (showCompleted || (q.practiceCompleted != true && !completedQuestionIDs.contains(q.id)))
         }.sorted { lhs, rhs in
+            if sortOrder == .questionNumber {
+                // Imported/original named exercises come before the numbered bank.
+                // collection is supplied by the server; a title is not proof of AI origin.
+                let aBank = lhs.element.collection == "practice_bank"
+                let bBank = rhs.element.collection == "practice_bank"
+                if aBank != bBank { return !aBank }
+                // Titles contain the published question number. Numeric comparison
+                // keeps 2 before 10, including older titles without zero padding.
+                let order = lhs.element.title.compare(rhs.element.title, options: [.numeric, .caseInsensitive])
+                return order == .orderedSame ? lhs.offset < rhs.offset : order == .orderedAscending
+            }
             let a = lhs.element.difficultyScore.flatMap { $0.isFinite ? $0 : nil }
             let b = rhs.element.difficultyScore.flatMap { $0.isFinite ? $0 : nil }
             // Unknown scores stay last in both directions; ties keep catalog order.
@@ -74,7 +91,15 @@ struct QuestionFilter: Equatable {
         }
     }
     static func meterOptions(in questions: [QuestionSummary]) -> [TimeSignature] {
-        Set(questions.map(\.timeSignature)).sorted { $0.denominator == $1.denominator ? $0.numerator < $1.numerator : $0.denominator < $1.denominator }
+        // A fixed menu order, independent of this level's question counts.
+        let common = [(4,4),(3,4),(6,8),(2,4),(2,2),(3,8),(9,8),(12,8)]
+            .map { TimeSignature(numerator:$0.0,denominator:$0.1) }
+        let priority = Dictionary(uniqueKeysWithValues:common.enumerated().map { ($0.element,$0.offset) })
+        return Set(questions.map(\.timeSignature)).sorted {
+            let a = priority[$0] ?? common.count, b = priority[$1] ?? common.count
+            if a != b { return a < b }
+            return $0.denominator == $1.denominator ? $0.numerator < $1.numerator : $0.denominator < $1.denominator
+        }
     }
     static func keyGroups(in questions: [QuestionSummary]) -> [KeyGroup] {
         let keys: [KeySignature] = keyOptions(in: questions)
