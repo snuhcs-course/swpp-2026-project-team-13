@@ -1,0 +1,8 @@
+{
+  "version": "exam-reference-glyphs-1",
+  "resource": "exam-note-map-v1.json",
+  "sha256": "7c9f2f2c2860f49932c66cd749b4958de73b937488569c7024dcd1055929d6f4",
+  "image_count": 387,
+  "verified_measure_count": 3096,
+  "delivery": "server-only; sparse annotations in grading response"
+}

@@ -44,5 +44,7 @@ frontend/IPadApp/IPadApp/Resources/memory-run-v2.json text eol=lf
 backend/content/drills/*.xml text eol=lf
 backend/content/drills/*.json text eol=lf
 backend/content/client-content-manifest.json text eol=lf
+# The server verifies the reference glyph map against its published hash.
+backend/content/engraving/exam-note-map*.json text eol=lf
 frontend/IPadApp/IPadApp/Resources/small-demo-*.json text eol=lf
 docs/memory-import-report.json text eol=lf

@@ -316,7 +316,7 @@ class FlowTests(TestCase):
     def test_submission_freezes_notation_rubric_in_job_and_keeps_note_locations(self):
         attempt, _, _ = self.submitted()
         job = claim_job()
-        self.assertEqual(job.prompt_version,"sori-exam-feedback-3-notation-2")
+        self.assertEqual(job.prompt_version,"sori-exam-feedback-4-refnotes-1")
         self.assertIn("N4 빔과 박 묶음",job.prompt_text)
         self.assertIn("notation_suggestion",job.prompt_text)
         value = {"status":"completed","recognized_musicxml":"<score-partwise/>","score":100,"pitch_accuracy":100,"rhythm_accuracy":100,"feedback":{"summary":"음정과 리듬은 맞고 표기를 더 읽기 좋게 해 봐요.","recommendations":[]},"annotations":[{"type":"notation_error","measure":1,"note_index":2,"end_note_index":5,"message":"6/8의 빔을 3개씩 묶어 봐요."},{"type":"notation_suggestion","measure":3,"note_index":1,"end_note_index":None,"message":"권장 제자리표를 적어 봐요."}]}

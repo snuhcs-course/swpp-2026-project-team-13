@@ -52,6 +52,7 @@ jobs:
       - name: Verify immutable Practice engravings and measure playback geometry
         run: python ../scripts/test_practice_notation.py
       - run: python ../scripts/test_grading_contract.py
+      - run: python ../scripts/test_exam_feedback.py
       - run: python ../scripts/test_learning_records.py
       - run: python ../scripts/test_playback.py
       - run: python ../scripts/test_audio_assets.py
@@ -117,7 +118,13 @@ jobs:
         run: |
           SIM_ID=$(xcrun simctl list devices available -j | python3 -c 'import json,sys; d=json.load(sys.stdin); print(next(x["udid"] for group in d["devices"].values() for x in group if x["name"].startswith("iPad")))')
           set -o pipefail
-          xcodebuild -project frontend/IPadApp/IPadApp.xcodeproj -scheme IPadApp -configuration Debug -destination "platform=iOS Simulator,id=$SIM_ID" -derivedDataPath build/DerivedData -resultBundlePath build/Comparison.xcresult CODE_SIGNING_ALLOWED=YES CODE_SIGN_IDENTITY=- -only-testing:IPadAppTests/IntegrationTests/testDemoReferenceAssetRoutesReturnPinnedPNGWithOrWithoutSlash -only-testing:IPadAppTests/IntegrationTests/testReferenceImagesAndCompactAnswerRenderTogether -only-testing:IPadAppTests/IntegrationTests/testVoiceSelectionPersistsAndCanPrepareNextProblem -only-testing:IPadAppTests/IntegrationTests/testRealAppFlowPrepareStartSubmitAndRestoreResult -only-testing:IPadAppTests/AuthenticationIntegrationTests -only-testing:IPadAppTests/SignupIntegrationTests -only-testing:IPadAppTests/AccountDeletionIntegrationTests -only-testing:IPadAppTests/MelodyRunIntegrationTests -only-testing:IPadAppTests/ClassicalIntegrationTests -only-testing:IPadAppTests/PracticeLibraryIntegrationTests -only-testing:IPadAppTests/ExamControlsIntegrationTests -only-testing:IPadAppTests/PracticeIntegrationTests -only-testing:IPadAppTests/PracticePlaybackIntegrationTests -only-testing:IPadAppTests/RhythmPuzzleIntegrationTests -only-testing:IPadAppTests/MainHomeIntegrationTests -only-testing:IPadAppTests/EchoDragonIntegrationTests -only-testing:IPadAppTests/ExamRatingIntegrationTests -only-testing:IPadAppTests/DailyTrainingIntegrationTests test 2>&1 | tee build/ipad-tests.log
+          xcodebuild -project frontend/IPadApp/IPadApp.xcodeproj -scheme IPadApp -configuration Debug -destination "platform=iOS Simulator,id=$SIM_ID" -derivedDataPath build/DerivedData -resultBundlePath build/Comparison.xcresult CODE_SIGNING_ALLOWED=YES CODE_SIGN_IDENTITY=- -only-testing:IPadAppTests/IntegrationTests/testDemoReferenceAssetRoutesReturnPinnedPNGWithOrWithoutSlash -only-testing:IPadAppTests/IntegrationTests/testReferenceImagesAndCompactAnswerRenderTogether -only-testing:IPadAppTests/IntegrationTests/testVoiceSelectionPersistsAndCanPrepareNextProblem -only-testing:IPadAppTests/IntegrationTests/testRealAppFlowPrepareStartSubmitAndRestoreResult -only-testing:IPadAppTests/AuthenticationIntegrationTests -only-testing:IPadAppTests/SignupIntegrationTests -only-testing:IPadAppTests/AccountDeletionIntegrationTests -only-testing:IPadAppTests/MelodyRunIntegrationTests -only-testing:IPadAppTests/ClassicalIntegrationTests -only-testing:IPadAppTests/PracticeLibraryIntegrationTests -only-testing:IPadAppTests/ExamControlsIntegrationTests -only-testing:IPadAppTests/PracticeIntegrationTests -only-testing:IPadAppTests/PracticePlaybackIntegrationTests -only-testing:IPadAppTests/RhythmPuzzleIntegrationTests -only-testing:IPadAppTests/MainHomeIntegrationTests -only-testing:IPadAppTests/EchoDragonIntegrationTests -only-testing:IPadAppTests/ExamRatingIntegrationTests -only-testing:IPadAppTests/FeedbackRatingIntegrationTests -only-testing:IPadAppTests/DailyTrainingIntegrationTests test 2>&1 | tee build/ipad-tests.log
+      - name: Print simulator failure diagnostics
+        if: failure() && hashFiles('build/Comparison.xcresult/Info.plist') != ''
+        run: |
+          xcrun xcresulttool get test-results summary --path build/Comparison.xcresult || true
+          xcrun xcresulttool export diagnostics --path build/Comparison.xcresult --output-path build/SimulatorDiagnostics || true
+          python3 scripts/print_simulator_crashes.py build/SimulatorDiagnostics
       - name: Export rendered simulator screenshots
         if: always() && hashFiles('build/Comparison.xcresult/Info.plist') != ''
         run: xcrun xcresulttool export attachments --path build/Comparison.xcresult --output-path build/Screenshots
@@ -130,6 +137,7 @@ jobs:
             build/Comparison.xcresult
             build/ipad-tests.log
             build/Screenshots
+            build/SimulatorDiagnostics
           if-no-files-found: ignore
           retention-days: 7
 

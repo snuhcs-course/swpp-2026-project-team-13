@@ -15,7 +15,7 @@ RESULT_SCHEMA = {"type": "object", "additionalProperties": False, "properties": 
 
 def schema_for_version(version):
     schema = copy.deepcopy(RESULT_SCHEMA)
-    if version == "ai-melodic-v2":
+    if version in ("ai-melodic-v2", "ai-melodic-v3"):
         schema["properties"]["status"]["enum"] = ["completed"]
         for field in ("score", "pitch_accuracy", "rhythm_accuracy"):
             schema["properties"][field].update(type="integer" if field == "score" else "number", minimum=0, maximum=100)
@@ -24,7 +24,7 @@ def schema_for_version(version):
 
 def validate_result_for_version(value, layout, version):
     result = validate_result(value, layout)
-    if version == "ai-melodic-v2" and result["status"] != "completed":
+    if version in ("ai-melodic-v2", "ai-melodic-v3") and result["status"] != "completed":
         raise ValueError("a submitted exam must receive a numeric grade")
     return result
 
