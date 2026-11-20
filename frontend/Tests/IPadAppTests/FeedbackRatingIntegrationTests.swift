@@ -27,9 +27,30 @@ import SwiftUI
         XCTAssertEqual(model.session?.grading?.ratingChange,before.ratingChange)
         let restored = try await api.result(attempt)
         XCTAssertEqual(restored.feedbackRating?.rating?.reason,"마디 비교가 도움이 됐어요.")
-        let renderer = ImageRenderer(content:ExamResultView(model:model).frame(width:1180,height:792))
-        renderer.scale = 1
-        let attachment = XCTAttachment(image:try XCTUnwrap(renderer.uiImage))
-        attachment.name = "exam-result-short-coach-survey"; attachment.lifetime = .keepAlways; add(attachment)
+        XCTAssertTrue(model.canChooseNextExam)
+        try captureResult(model,name:"completed")
+
+        // Render the same screen while queued, recognizing, writing feedback and
+        // after a retryable failure. None may unlock new rated recommendations.
+        for (status,stage) in [("queued","queued"),("processing","recognizing"),("processing","feedback"),("failed","done")] {
+            var pending = before
+            pending.status = status; pending.stage = stage
+            pending.score = nil; pending.ratingChange = nil; pending.feedback = nil
+            pending.failure = status == "failed" ? GradingFailure(code:"RECOGNITION_TIMEOUT",message:"시간 내에 채점을 완료하지 못했어요.",retryable:true) : nil
+            model.session?.grading = pending
+            XCTAssertFalse(model.canChooseNextExam,"A \(status)/\(stage) result must keep the next-exam button disabled")
+            XCTAssertEqual(model.session?.grading?.canRetry,status == "failed")
+            try captureResult(model,name:status+"-"+stage)
+        }
+        model.session?.grading = before
+        XCTAssertTrue(model.canChooseNextExam)
+    }
+    private func captureResult(_ model: AppModel,name: String) throws {
+        for (width,height) in [(1024.0,768.0),(1194.0,834.0)] {
+            let renderer = ImageRenderer(content:ExamResultView(model:model).frame(width:width,height:height))
+            renderer.scale = 1
+            let attachment = XCTAttachment(image:try XCTUnwrap(renderer.uiImage))
+            attachment.name = "exam-result-\(name)-\(Int(width))"; attachment.lifetime = .keepAlways; add(attachment)
+        }
     }
 }
