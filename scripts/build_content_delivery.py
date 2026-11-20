@@ -19,6 +19,7 @@ def sha(data):return hashlib.sha256(data).hexdigest()
 def publish_drills():
     target=CONTENT/'drills';target.mkdir(exist_ok=True)
     names=['memory-run-v2.json','memory-groove-v1.json','rhythm-engraving-v3.json']
+    if (RES/'drill-stage-sets-v1.json').exists(): names.append('drill-stage-sets-v1.json')
     memory=read(RES/'memory-run-v2.json')
     names += sorted({s['file'] for s in memory['sources']})
     for name in names:
@@ -83,6 +84,11 @@ def small_demo():
     payloads['memory-groove-v1']={'version':'memory-groove-v1','catalogSha256':sha(raw),'excludedExcerptIds':[]}
     rhythm=read(RES/'rhythm-puzzle-v3.json');rounds=[]
     for level in ['beginner','intermediate','advanced']:rounds += [r for r in rhythm['rounds'] if r['level']==level][:8]
+    if (RES/'drill-stage-sets-v1.json').exists():
+        course=read(RES/'drill-stage-sets-v1.json')
+        required={q['catalog_id'] for s in course['stages'] if s['game']=='rhythmPuzzle' for q in s['questions']}
+        rounds += [r for r in rhythm['rounds'] if r['id'] in required and r['id'] not in {v['id'] for v in rounds}]
+        payloads['drill-stage-sets-v1']=course
     tileids={t for r in rounds for t in r['choices']}|{p['tile_id'] for r in rounds for p in r['solution']}
     rhythm={**rhythm,'rounds':rounds,'tiles':[t for t in rhythm['tiles'] if t['id'] in tileids],'exceptions':[],'source_count':len({r['question_id'] for r in rounds})}
     payloads['rhythm-puzzle-v3']=rhythm

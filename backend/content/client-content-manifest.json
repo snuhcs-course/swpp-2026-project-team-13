@@ -31,6 +31,11 @@
       "size_bytes": 488715,
       "content_type": "application/json"
     },
+    "drill-stage-sets-v1.json": {
+      "sha256": "60320beff321d60776b8647ad7644106effd4d3eda117e66572c663e2276cbde",
+      "size_bytes": 16916,
+      "content_type": "application/json"
+    },
     "melody--Batchellor-Charmbury-1884a_1-1-018.xml": {
       "sha256": "17e6aee8267aed584bd9af3015d88226b9ca0c30f82604466657367565339bc6",
       "size_bytes": 4474,
@@ -4902,6 +4907,12 @@
       "path": "drills/rhythm-engraving-v3.json",
       "sha256": "2ea1a9451fdda564a04e9138db3214317344e1d7713717d4a3d1eb37c99bef79",
       "size_bytes": 488715,
+      "content_type": "application/json"
+    },
+    "60320beff321d60776b8647ad7644106effd4d3eda117e66572c663e2276cbde": {
+      "path": "drills/drill-stage-sets-v1.json",
+      "sha256": "60320beff321d60776b8647ad7644106effd4d3eda117e66572c663e2276cbde",
+      "size_bytes": 16916,
       "content_type": "application/json"
     },
     "17e6aee8267aed584bd9af3015d88226b9ca0c30f82604466657367565339bc6": {

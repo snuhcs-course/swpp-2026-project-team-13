@@ -25,12 +25,12 @@ enum DemoContent {
         pinned = try LocalStore(scope:connection.scope).root.appendingPathComponent("training-content",isDirectory:true)
         try FileManager.default.createDirectory(at:pinned,withIntermediateDirectories:true)
     }
-    private func catalog() async throws -> ContentManifest {
-        if let manifest { return manifest }
+    private func catalog(refresh: Bool = false) async throws -> ContentManifest {
+        if let manifest, !refresh { return manifest }
         let url = pinned.appendingPathComponent("manifest.json")
         let previous = (try? Data(contentsOf:url)).flatMap { try? ContractJSON.decoder().decode(ContentManifest.self,from:$0) }
         let modified = (try? url.resourceValues(forKeys:[.contentModificationDateKey]).contentModificationDate) ?? .distantPast
-        if let previous, (Date().timeIntervalSince(modified)<900 || !NetworkStatus.shared.online) {
+        if let previous, !refresh, (Date().timeIntervalSince(modified)<900 || !NetworkStatus.shared.online) {
             try previous.validate(); manifest = previous; return previous
         }
         do {
@@ -44,10 +44,12 @@ enum DemoContent {
         }
     }
     func data(_ name: String) async throws -> Data {
-        let catalog = try await catalog()
-        guard let asset = catalog.assets[name] else { throw SolfegeError.configuration("서버에 문제 자료가 없습니다: \(name)") }
+        var current = try await catalog()
+        // Refresh an older pinned manifest when an updated app requests a new catalog.
+        if current.assets[name] == nil { current = try await catalog(refresh:true) }
+        guard let asset = current.assets[name] else { throw SolfegeError.configuration("서버의 문제 자료를 업데이트해 주세요: \(name)") }
         let isCatalog = ["memory-run-v2.json","memory-groove-v1.json","rhythm-puzzle-v1.json",
-                         "rhythm-puzzle-v2.json","rhythm-puzzle-v3.json","rhythm-engraving-v3.json"].contains(name)
+                         "rhythm-puzzle-v2.json","rhythm-puzzle-v3.json","rhythm-engraving-v3.json","drill-stage-sets-v1.json"].contains(name)
         // A resumed Rhythm draft needs its catalog even after the LRU cache is trimmed.
         let pin = pinned.appendingPathComponent(name)
         if isCatalog, let data = try? Data(contentsOf:pin), data.sha256 == asset.sha256, data.count == asset.sizeBytes { return data }

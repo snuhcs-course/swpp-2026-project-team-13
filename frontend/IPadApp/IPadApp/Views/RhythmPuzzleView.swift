@@ -48,7 +48,11 @@ struct RhythmPuzzleView: View {
         .environment(\.rhythmEngraving,game.engraving)
         .overlay { if game.contentLoading { ProgressView("문제를 준비하고 있어요").padding(24).background(.regularMaterial,in:RoundedRectangle(cornerRadius:18)) } }
         .task { await game.prepareContent(); guard !Task.isCancelled else { return }; game.sync(); game.makeExport(); if !tutorialSeen { showingTutorial = true } else { startDaily() } }
-        .onChange(of:game.draft?.finished == true) { _, finished in if finished { daily?.finished(); stage?.finished() } }
+        .onChange(of:game.draft?.finished == true) { _, finished in if finished {
+            daily?.finished()
+            let correct=game.draft?.record.outcome == "correct"
+            stage?.report(DrillRoundResult(accuracy:correct ? 100 : 0,revealed:!correct,elapsedMs:0))
+        } }
         .sheet(isPresented:$showingTutorial,onDismiss:{ startDaily(); game.activate() }) {
             RhythmTutorialView { tutorialSeen = true; showingTutorial = false }
         }
@@ -84,7 +88,8 @@ struct RhythmPuzzleView: View {
     }
     private func play(_ round: RhythmRound, draft: RhythmDraft, compact: Bool) -> some View {
         VStack(alignment:.leading,spacing:14) {
-            if let daily { DailyProgressBar(done:daily.done,current:daily.index) } else if stage == nil { HStack(spacing:7) {
+            if let stage { DrillSetProgress(results:stage.results,index:stage.index) }
+            else if let daily { DailyProgressBar(done:daily.done,current:daily.index) } else { HStack(spacing:7) {
                 ForEach(draft.setIds.indices,id:\.self) { i in Capsule().fill(i < draft.index || (i == draft.index && draft.finished) ? SolfegeTheme.violet : SolfegeTheme.violet.opacity(0.13)).frame(height:6) }
                 Text("\(draft.index+1)/\(draft.setIds.count)").font(.caption.monospacedDigit()).padding(.leading,8)
             } }
@@ -154,7 +159,7 @@ struct RhythmPuzzleView: View {
                     .accessibilityValue(game.tieMode ? "연결할 두 조각을 선택" : "꺼짐")
                 if draft.finished, let daily { DailyNextButton(nextTitle:daily.nextTitle) { game.close(); daily.next() } }
                 else if draft.finished, let stage {
-                    Button("계단으로") { game.close(); stage.exit() }.buttonStyle(PrimaryButton()).accessibilityIdentifier("drill-stage-exit")
+                    Button(stage.nextTitle) { game.close(); stage.next() }.buttonStyle(PrimaryButton()).accessibilityIdentifier("drill-stage-next")
                 }
                 else if draft.finished { Button(draft.index+1 == draft.setIds.count ? "결과 보기" : "다음") { game.next() }.buttonStyle(PrimaryButton()) }
                 else { Button("제출") { game.submit() }.buttonStyle(PrimaryButton()).disabled(!game.canSubmit) }
@@ -189,7 +194,7 @@ struct RhythmPuzzleView: View {
     private func startDaily() {
         guard game.page == .setup else { return }
         if let daily { game.newDailyRound(difficulty:daily.difficulty) }
-        else if let stage { game.newDailyRound(difficulty:stage.stage.difficulty) }
+        else if let stage { game.newStageRound(stage.question) }
     }
     // Shown only if the stage's round could not start (content or storage failed).
     private func stageStart(_ stage: DrillStageContext) -> some View {

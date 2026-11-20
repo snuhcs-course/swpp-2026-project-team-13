@@ -12,6 +12,7 @@ import SwiftUI
     @Published private(set) var contentLoading = false
     private var contentProvider: TrainingContentProvider?
     private var catalogHash = ""
+    private var fixedStageBpm: Double?
     private var setId = UUID()
     private var records: [MemoryPlayRecord] = []
     private var currentRecordId: UUID?
@@ -28,7 +29,7 @@ import SwiftUI
         if meter.denominator == 2 { return "𝅗𝅥 = \(Int((settings.bpm/2).rounded()))" }
         return "♩ = \(Int(settings.bpm.rounded()))"
     }
-    var keyboardRange: ClosedRange<Int> { difficulty == .beginner && excerpt != nil ? 60...72 : round?.keyboardRange ?? 60...84 }
+    var keyboardRange: ClosedRange<Int> { fixedStageBpm == nil && difficulty == .beginner && excerpt != nil ? 60...72 : round?.keyboardRange ?? 60...84 }
     @Published var settings = MelodySettings()
     @Published private(set) var questions: [MelodyQuestion] = []
     @Published var selection = ""
@@ -163,6 +164,7 @@ import SwiftUI
         if let next = (candidates.isEmpty ? questions : candidates).randomElement() { selection = next.id }
     }
     func newSet() {
+        fixedStageBpm = nil
         guard let catalog, !working, !transitionPending else { return }
         do {
             endObservation(outcome:"abandoned")
@@ -180,6 +182,17 @@ import SwiftUI
         newSet()
         guard setExcerpts.count > 1 else { return }
         setExcerpts = [setExcerpts[0]]; setScores = [nil]
+    }
+    func newStageRound(_ q: DrillStageQuestion) {
+        guard !working, !transitionPending else { return }
+        guard let catalog,
+              let excerpt=catalog.excerpts.first(where:{ $0.id==q.catalogId }), excerpt.bars==2,
+              let source=catalog.sources.first(where:{ $0.id==excerpt.sourceId }), source.sha256==q.sourceSha256 else {
+            error="고정된 스테이지 문제를 확인하지 못했어요."; return
+        }
+        endObservation(outcome:"abandoned"); fixedStageBpm=q.bpm
+        settings.mode = .memory; setExcerpts=[excerpt]; setIndex=0; setScores=[nil]; setId=UUID()
+        queueStart()
     }
     private func queueStart() {
         transition?.cancel()
@@ -199,7 +212,7 @@ import SwiftUI
     func start(afterDelay: Bool = false) async {
         if let excerpt {
             selection = excerpt.sourceId; settings.startBar = excerpt.first; settings.bars = excerpt.bars
-            settings.bpm = difficulty.quarterBpm; settings.inputBars = 2; settings.advanceEarly = true
+            settings.bpm = fixedStageBpm ?? difficulty.quarterBpm; settings.inputBars = 2; settings.advanceEarly = true
         }
         guard !working, let question else { return }
         working = true; defer { working = false }

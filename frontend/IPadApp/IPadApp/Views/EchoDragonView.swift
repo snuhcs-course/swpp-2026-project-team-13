@@ -39,7 +39,7 @@ import AVFoundation
         .background(SolfegeTheme.background.ignoresSafeArea()).tint(SolfegeTheme.violet)
         .sheet(isPresented:$help,onDismiss:{ if stage != nil { stageHelpSeen = true } }) { instructions }
         .onAppear { openStage() }
-        .onChange(of:game.result) { _, result in if result == .correct { stage?.finished() } }
+        .onChange(of:game.result) { _, result in if result == .correct { stage?.report(DrillRoundResult(accuracy:100,revealed:false,elapsedMs:0)) } }
         .alert("확인이 필요해요",isPresented:Binding(get:{game.error != nil},set:{if !$0 { game.error = nil }})) {
             Button("확인") { game.error = nil }
         } message: { Text(game.error ?? "") }

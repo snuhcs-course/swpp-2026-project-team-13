@@ -35,6 +35,7 @@ import SwiftUI
     private var playbackId = UUID()
     private var catalogVersions: [String:String] = [:]
     private var currentRoundIds: Set<String> = []
+    private var closed = false
     var draft: RhythmDraft? { journal.draft }
     var round: RhythmRound? { catalog?.rounds.first { $0.id == draft?.record.roundId } }
     var board: RhythmBoard { draft?.board ?? RhythmBoard() }
@@ -119,6 +120,16 @@ import SwiftUI
         level = difficulty.rawValue
         newSet(limit:1)
     }
+    func newStageRound(_ q: DrillStageQuestion) {
+        guard let catalog, connection != nil, !storageFailed,
+              let round=catalog.rounds.first(where:{ $0.id==q.catalogId }),
+              round.sourceXmlSha256==q.sourceSha256, round.firstMeasure==q.firstMeasure,
+              abs(round.tempoBpm-q.bpm)<0.001, currentRoundIds.contains(round.id) else {
+            error="고정된 스테이지 문제를 확인하지 못했어요."; return
+        }
+        if draft?.finished == false { abandon() }
+        begin(set:[round.id],index:0)
+    }
     func newSet(limit: Int? = nil) {
         guard let catalog, connection != nil, !storageFailed else { return }
         if draft != nil && draft?.finished == false { abandon() }
@@ -136,6 +147,7 @@ import SwiftUI
     }
     private func begin(set: [String], index: Int, hash: String? = nil) {
         guard let r = catalog?.rounds.first(where: { $0.id == set[index] }) else { return }
+        closed=false
         let now = Date()
         let hash = hash ?? catalogHash
         var record = RhythmPlayRecord(catalogSha256:hash,roundId:r.id,choiceOrder:r.choices.shuffled(),startedAt:now,finishedAt:now)
@@ -315,6 +327,7 @@ import SwiftUI
         journal.draft = nil; anchor = nil; save()
     }
     func close() {
+        guard !closed else { return }; closed=true
         // Keep the unfinished round resumable. Finalized records are immutable.
         checkpoint(); stopListening(completed:false); anchor = nil; audio.shutdown(); save()
         syncTask?.cancel(); syncTask = nil

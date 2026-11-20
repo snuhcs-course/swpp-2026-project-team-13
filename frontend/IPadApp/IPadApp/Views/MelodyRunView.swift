@@ -37,7 +37,10 @@ struct MelodyRunView: View {
             .overlay { if game.contentLoading { ProgressView("문제를 준비하고 있어요").padding(24).background(.regularMaterial,in:RoundedRectangle(cornerRadius:18)) } }
             .task { await game.prepareContent(); guard !Task.isCancelled else { return }; if !tutorialSeen { showingTutorial = true } else { startDaily() } }
             .sheet(isPresented:$showingTutorial) { MemoryTutorialView { tutorialSeen = true; showingTutorial = false; startDaily() } }
-            .onChange(of:game.page) { _, page in if page == .result { daily?.finished(); stage?.finished() } }
+            .onChange(of:game.page) { _, page in if page == .result {
+                daily?.finished()
+                stage?.report(DrillRoundResult(accuracy:game.answers?.result.accuracy ?? 0,revealed:false,elapsedMs:0))
+            } }
             .alert("확인이 필요해요",isPresented:Binding(get:{game.error != nil},set:{if !$0 {game.error = nil}})) {
                 if game.catalog == nil { Button("다시 시도") { Task { await game.prepareContent(); startDaily() } } }
                 if game.storageFailed { Button("저장 다시 시도") { game.retryStorage() } }
@@ -88,7 +91,8 @@ struct MelodyRunView: View {
         return game.difficulty == .beginner ? "짧고 익숙한 선율부터" : game.difficulty == .intermediate ? "조금 더 길고 빠르게" : "네 마디를 한 번에"
     }
     @ViewBuilder private var setProgress: some View {
-        if let daily { DailyProgressBar(done:daily.done,current:daily.index) } else if stage == nil { HStack(spacing:7) {
+        if let stage { DrillSetProgress(results:stage.results,index:stage.index) }
+        else if let daily { DailyProgressBar(done:daily.done,current:daily.index) } else { HStack(spacing:7) {
             ForEach(0..<game.setCount,id:\.self) { i in Capsule().fill(i < game.setIndex || (i == game.setIndex && game.page == .result) ? SolfegeTheme.violet : SolfegeTheme.violet.opacity(0.13)).frame(height:6) }
             Text("\(game.setIndex+1)/\(game.setCount)").font(.caption.monospacedDigit()).padding(.leading,8)
         } }
@@ -97,7 +101,7 @@ struct MelodyRunView: View {
     private func startDaily() {
         guard game.page == .setup, !game.working else { return }
         if let daily { game.newDailyRound(difficulty:daily.difficulty) }
-        else if let stage { game.newDailyRound(difficulty:stage.stage.difficulty) }
+        else if let stage { game.newStageRound(stage.question) }
     }
     // Shown only if the stage's question could not start (content failed, or paused while starting).
     private func stageStart(_ stage: DrillStageContext) -> some View {
@@ -167,9 +171,8 @@ struct MelodyRunView: View {
                         if let daily {
                             DailyNextButton(nextTitle:daily.nextTitle) { game.stop(); daily.next() }.disabled(game.working)
                         } else if let stage {
-                            Button("다시 풀기") { game.retry() }.buttonStyle(.bordered).disabled(game.working)
-                            Button("계단으로") { game.stop(); stage.exit() }.buttonStyle(PrimaryButton(compact:true)).disabled(game.working)
-                                .accessibilityIdentifier("drill-stage-exit")
+                            Button(stage.nextTitle) { game.stop(); stage.next() }.buttonStyle(PrimaryButton(compact:true)).disabled(game.working)
+                                .accessibilityIdentifier("drill-stage-next")
                         } else {
                             Button("다시 풀기") { game.retry() }.buttonStyle(.bordered).disabled(game.working)
                             Button(game.isLastRound ? "결과 보기" : "다음") { game.next() }.buttonStyle(PrimaryButton(compact:true)).disabled(game.working)

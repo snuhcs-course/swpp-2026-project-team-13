@@ -7,6 +7,7 @@
     "engraving": "small-demo-engraving.json",
     "memory-run-v2": "small-demo-memory-run-v2.json",
     "memory-groove-v1": "small-demo-memory-groove-v1.json",
+    "drill-stage-sets-v1": "small-demo-drill-stage-sets-v1.json",
     "rhythm-puzzle-v3": "small-demo-rhythm-puzzle-v3.json",
     "rhythm-engraving-v3": "small-demo-rhythm-engraving-v3.json"
   },
@@ -51,6 +52,7 @@
     "practice-reference-v2-d584d7ef1f19ba070c23.pngdata",
     "small-demo-catalog.json",
     "small-demo-difficulty.json",
+    "small-demo-drill-stage-sets-v1.json",
     "small-demo-engraving.json",
     "small-demo-memory-groove-v1.json",
     "small-demo-memory-run-v2.json",
