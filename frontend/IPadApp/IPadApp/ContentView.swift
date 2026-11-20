@@ -53,7 +53,7 @@ struct ContentView: View {
                 case .result: ResultView(model: model)
                 case .history: HistoryView(model: model)
                 case .settings: SettingsView(model: model)
-                case .minigames: MiniGameHubView(connection:model.rhythmConnection).id(model.rhythmConnection?.identity ?? "disconnected")
+                case .minigames: DrillStairsView(connection:model.rhythmConnection,back:{ model.navigate(.main) }).id(model.rhythmConnection?.identity ?? "disconnected")
                 case .classical: ClassicalExamLibraryView(model:model)
                 case .dailyTraining: DailyTrainingView(model:model)
                 }
@@ -74,7 +74,7 @@ struct ContentView: View {
             }
             // Both result views own their header. A second navigation bar creates
             // another Home button and leaves an empty toolbar above the content.
-            .toolbar([.main,.home,.practiceLevels,.practiceQuestions,.recommendingExam,.examSelection,.result].contains(model.screen) ? .hidden : .automatic, for: .navigationBar)
+            .toolbar([.main,.home,.practiceLevels,.practiceQuestions,.recommendingExam,.examSelection,.minigames,.result].contains(model.screen) ? .hidden : .automatic, for: .navigationBar)
             .toolbarBackground(SolfegeTheme.background, for: .navigationBar)
             .overlay { if model.screen != .recommendingExam { busyOverlay } }
         }
