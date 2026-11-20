@@ -4,6 +4,19 @@ from django.contrib.auth.admin import UserAdmin
 from django.contrib.auth.forms import AdminUserCreationForm, UserChangeForm
 from django.core.exceptions import ValidationError
 from .models import UserProfile, Question, QuestionVersion, Attempt, Answer, GradingJob, usernames_differing_by_case
+from .models import AIFeedbackRating
+
+
+@admin.register(AIFeedbackRating)
+class AIFeedbackRatingAdmin(admin.ModelAdmin):
+    list_display = ("job", "stars", "reason", "updated_at")
+    list_filter = ("stars",)
+    search_fields = ("reason", "job__attempt__user__username", "job__prompt_version", "job__model")
+    readonly_fields = ("job", "stars", "reason", "feedback_id", "feedback_snapshot", "created_at", "updated_at")
+    list_select_related = ("job",)
+
+    def has_add_permission(self, request):
+        return False
 
 class CaseInsensitiveUsernameForm:
     # Reports what would otherwise be a unique index violation and a 500.

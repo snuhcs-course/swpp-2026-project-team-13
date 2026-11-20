@@ -830,6 +830,16 @@ import PencilKit
         } catch { if session?.id == record.id { correctScoreError = error.localizedDescription } }
     }
     func refreshResult() async { await run("결과를 확인하는 중") { try await self.loadResult() }; pollGeneration = UUID() }
+    func saveFeedbackRating(jobId: UUID, feedbackId: String, stars: Int, reason: String) async throws -> FeedbackRatingState {
+        guard let api, let store, let record = session, let grading = record.grading,
+              grading.jobId == jobId, grading.status == "completed", grading.feedbackRating?.enabled == true,
+              grading.feedbackRating?.feedbackId == feedbackId else { throw SolfegeError.configuration("평가할 채점 결과를 다시 확인해 주세요.") }
+        let result = try await api.saveFeedbackRating(record.id, request:FeedbackRatingWrite(jobId:jobId,feedbackId:feedbackId,stars:stars,reason:reason))
+        guard self.store === store, var current = session, current.id == record.id, current.grading?.jobId == jobId else { throw CancellationError() }
+        current.grading?.feedbackRating = result
+        try persist(current)
+        return result
+    }
     func poll() async {
         while !Task.isCancelled, foreground, screen == .result, session?.attempt.studyMode == .exam, session?.grading?.isPending == true {
             do {

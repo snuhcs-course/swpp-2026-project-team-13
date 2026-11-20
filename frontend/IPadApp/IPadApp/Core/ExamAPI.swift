@@ -25,6 +25,7 @@ import FoundationNetworking
     func answerImage(_ answer: Answer) async throws -> Data
     func submit(_ id: UUID, answerId: UUID, key: UUID) async throws -> Grading
     func result(_ id: UUID) async throws -> Grading
+    func saveFeedbackRating(_ id: UUID, request: FeedbackRatingWrite) async throws -> FeedbackRatingState
     func retryGrading(_ id: UUID, key: UUID) async throws -> Grading
     func submitPractice(_ id: UUID, answerId: UUID, key: UUID) async throws -> PracticeAssessment
     func practiceAssessment(_ id: UUID) async throws -> PracticeAssessment
@@ -33,6 +34,9 @@ import FoundationNetworking
 }
 
 extension ExamAPI {
+    func saveFeedbackRating(_ id: UUID, request: FeedbackRatingWrite) async throws -> FeedbackRatingState {
+        throw SolfegeError.unsupported("이 연결에서는 피드백을 평가할 수 없어요.")
+    }
     func contentManifest() async throws -> ContentManifest { throw SolfegeError.unsupported("문제 자료를 지원하는 서버로 업데이트해 주세요.") }
     func contentAsset(_ asset: ContentAsset) async throws -> Data { throw SolfegeError.unsupported("서버의 문제 파일을 받을 수 없습니다.") }
     func examRecommendations() async throws -> ExamOffer { throw SolfegeError.unsupported("서버를 레이팅 시험 지원 버전으로 업데이트해 주세요.") }
@@ -247,6 +251,9 @@ final class NoRedirectDelegate: NSObject, URLSessionTaskDelegate, @unchecked Sen
         try await json("attempts/\(id.uuidString.lowercased())/submit/", method: "POST", body: JSONSerialization.data(withJSONObject: ["answer_id": answerId.uuidString.lowercased()]), key: key)
     }
     func result(_ id: UUID) async throws -> Grading { try await json("attempts/\(id.uuidString.lowercased())/result/") }
+    func saveFeedbackRating(_ id: UUID, request: FeedbackRatingWrite) async throws -> FeedbackRatingState {
+        try await json("attempts/\(id.uuidString.lowercased())/feedback-rating/", method:"PUT", body:ContractJSON.encoder().encode(request))
+    }
     func retryGrading(_ id: UUID, key: UUID) async throws -> Grading { try await json("attempts/\(id.uuidString.lowercased())/grading-retries/", method: "POST", key: key) }
     func submitPractice(_ id: UUID, answerId: UUID, key: UUID) async throws -> PracticeAssessment {
         try await json("attempts/\(id.uuidString.lowercased())/submit/",method:"POST",body:JSONSerialization.data(withJSONObject:["answer_id":answerId.uuidString.lowercased()]),key:key)

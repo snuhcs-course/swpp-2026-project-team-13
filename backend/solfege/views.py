@@ -52,6 +52,11 @@ def new_job(attempt, answer):
         raise ContractError("AI_GRADING_NOT_AVAILABLE", "Practice는 자기채점으로 진행합니다.", 409)
     job = GradingJob.objects.create(attempt=attempt, answer=answer, grading_version=attempt.grading_version, model=settings.OPENROUTER_MODEL, reasoning_effort=settings.OPENROUTER_REASONING_EFFORT, prompt_version=settings.AI_PROMPT_VERSION, timeout_seconds=settings.AI_TIMEOUT_SECONDS, max_output_tokens=settings.AI_MAX_OUTPUT_TOKENS, prompt_text=(settings.BASE_DIR / "solfege" / "grading-prompt-v3.txt").read_text(encoding="utf-8") + "\n" + (settings.BASE_DIR / "solfege" / "notation-rules-v2.txt").read_text(encoding="utf-8"))
     attempt.current_job = job
+    if job.grading_version == "ai-melodic-v3":
+        job.prompt_text += "\n위치 규칙(v3): note_index/end_note_index는 반드시 정답 MusicXML의 해당 마디 안 note 요소 순서입니다(쉼표 포함, 1부터, 타이로 연결된 기보 음도 각각 셈). 학생 필기의 순서가 아닙니다. 대응 불명확·추가 음은 null로 두세요. 임의 좌표·순서를 만들지 마세요."
+    from .coaching import freeze_for_job
+    job.coaching = freeze_for_job(attempt, answer)
+    job.save(update_fields=["coaching", "prompt_text"])
     return job
 
 @api_view(["GET", "PATCH", "DELETE"])
@@ -162,7 +167,7 @@ def create_attempt(request):
         attempt = Attempt.objects.create(user=request.user, question_version=version, question_snapshot=snapshot, playback_plan=plan,
                                          mode=mode, feature_analysis=analysis,
                                          grading_mode="self" if mode == "practice" else "automatic",
-                                         grading_version="self-measure-v1" if mode == "practice" else "ai-melodic-v2",
+                                         grading_version="self-measure-v1" if mode == "practice" else "ai-melodic-v3",
                                          exam_rating_snapshot=rating_snapshot)
         return attempt_json(request, attempt), 201, absolute(request, f"/api/v1/attempts/{attempt.id}/")
     return run_idempotent(request, dict(request.data), operation)
@@ -287,6 +292,29 @@ def result(request, attempt_id):
     if not attempt.current_job_id:
         raise ContractError("NOT_SUBMITTED", "아직 제출하지 않았습니다.", 409)
     return Response(grading_json(attempt.current_job))
+
+@api_view(["PUT"])
+@parser_classes([JSONParser])
+def save_feedback_rating(request, attempt_id):
+    from .feedback_ratings import feedback_id, feedback_snapshot, state
+    from .models import AIFeedbackRating
+    with transaction.atomic():
+        attempt = owned(request, attempt_id, lock=True)
+        if not settings.AI_FEEDBACK_RATINGS_ENABLED:
+            raise ContractError("FEEDBACK_RATINGS_DISABLED", "지금은 피드백 평가를 받고 있지 않아요.", 409)
+        fields(request.data, {"job_id", "feedback_id", "stars"}, {"reason"})
+        job = get_object_or_404(GradingJob, id=uuid_value(request.data["job_id"], "job_id"), attempt=attempt)
+        if attempt.mode != "exam" or job.status != "completed":
+            raise ContractError("FEEDBACK_NOT_READY", "채점이 완료된 뒤 평가해 주세요.", 409)
+        if request.data["feedback_id"] != feedback_id(job):
+            raise ContractError("FEEDBACK_CHANGED", "피드백을 새로 불러온 뒤 평가해 주세요.", 409)
+        stars, reason = request.data["stars"], request.data.get("reason", "")
+        if type(stars) is not int or not 1 <= stars <= 5 or not isinstance(reason, str) or len(reason) > 500:
+            raise ContractError("VALIDATION_ERROR", "별점은 1~5점, 사유는 500자 이내로 입력해 주세요.")
+        AIFeedbackRating.objects.update_or_create(job=job, defaults={"stars": stars, "reason": reason.strip(),
+            "feedback_id": feedback_id(job), "feedback_snapshot": feedback_snapshot(job)})
+        return Response(state(job))
+
 
 @api_view(["PUT"])
 @parser_classes([JSONParser])

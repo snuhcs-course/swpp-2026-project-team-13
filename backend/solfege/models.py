@@ -170,12 +170,27 @@ class GradingJob(models.Model):
     usage = models.JSONField(default=dict)
     provider_request_id = models.CharField(max_length=200, blank=True)
     raw_response = models.JSONField(default=dict)
+    coaching = models.JSONField(default=dict)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     started_at = models.DateTimeField(null=True)
     lease_expires_at = models.DateTimeField(null=True, db_index=True)
     class Meta:
         constraints = [models.CheckConstraint(condition=models.Q(score__isnull=True) | models.Q(score__lte=100), name="score_range")]
+
+class AIFeedbackRating(models.Model):
+    """Optional beta survey; independent of the learner's exam grade/rating."""
+    job = models.OneToOneField(GradingJob, on_delete=models.CASCADE, related_name="beta_rating")
+    stars = models.PositiveSmallIntegerField()
+    reason = models.CharField(max_length=500, blank=True)
+    feedback_id = models.CharField(max_length=64)
+    feedback_snapshot = models.JSONField()
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        constraints = [models.CheckConstraint(condition=models.Q(stars__gte=1, stars__lte=5), name="ai_feedback_stars_range")]
+
 
 class SelfAssessmentRevision(models.Model):
     """One complete snapshot of a student's own measure-level review."""

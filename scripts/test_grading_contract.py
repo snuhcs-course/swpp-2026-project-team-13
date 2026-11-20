@@ -42,6 +42,16 @@ class AssessmentTests(unittest.TestCase):
             assessment.validate_result(value,LAYOUT)
         value.update(score=None,pitch_accuracy=None,rhythm_accuracy=None)
         self.assertEqual(assessment.validate_result(value,LAYOUT)["status"],"needs_review")
+    def test_current_exam_versions_always_require_numeric_grades(self):
+        for version in ("ai-melodic-v2", "ai-melodic-v3"):
+            with self.subTest(version=version):
+                schema = assessment.schema_for_version(version)
+                self.assertEqual(schema["properties"]["status"]["enum"], ["completed"])
+                value = self.result()
+                value.update(score=0, pitch_accuracy=0, rhythm_accuracy=0)
+                self.assertEqual(assessment.validate_result_for_version(value, LAYOUT, version)["score"], 0)
+                value.update(status="needs_review", score=None, pitch_accuracy=None, rhythm_accuracy=None)
+                with self.assertRaises(ValueError): assessment.validate_result_for_version(value, LAYOUT, version)
 
 if __name__ == "__main__":
     unittest.main()

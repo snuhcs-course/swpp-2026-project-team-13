@@ -254,7 +254,10 @@ struct Annotation: Codable, Identifiable, Equatable {
         ["pitch_error":"음정", "rhythm_error":"리듬", "missing_note":"빠진 음표", "extra_note":"추가 음표", "recognition_uncertain":"인식 확인", "notation_error":"표기 관습", "notation_suggestion":"권장 표기"][type] ?? "피드백"
     }
 }
-struct Feedback: Codable, Equatable { var summary: String; var recommendations: [String] }
+struct Feedback: Codable, Equatable {
+    var summary: String; var recommendations: [String]
+    var coach: CoachFeedback? = nil
+}
 struct GradingFailure: Codable, Equatable { var code: String; var message: String; var retryable: Bool }
 struct Grading: Codable, Equatable {
     var attemptId: UUID; var answerId: UUID; var jobId: UUID; var gradingMode: String; var gradingVersion: String
@@ -262,6 +265,8 @@ struct Grading: Codable, Equatable {
     var feedback: Feedback?; var annotations: [Annotation]; var failure: GradingFailure?; var pollAfterMs: Int
     var createdAt: Date; var updatedAt: Date; var serverTime: Date
     var ratingChange: ExamRatingChange? = nil
+    var feedbackRating: FeedbackRatingState? = nil
+    var referenceAnnotations: [ReferenceAnnotation]? = nil
     var isPending: Bool { status == "queued" || status == "processing" }
     var canRetry: Bool { status == "failed" && failure?.retryable == true }
 }

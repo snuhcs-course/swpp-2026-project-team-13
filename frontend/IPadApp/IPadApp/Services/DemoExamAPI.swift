@@ -225,13 +225,30 @@ import Foundation
         var r = try store.load(id)
         guard let old = r.grading else { throw SolfegeError.configuration("NOT_SUBMITTED") }
         guard old.isPending else {
-            let value = try withRating(old,record:r); r.grading = value; try store.save(r); return value
+            let value = try withFeedbackSurvey(withRating(old,record:r)); r.grading = value; try store.save(r); return value
         }
         let name = Date().timeIntervalSince(old.createdAt) < 4 ? "grading-processing" : "grading-\(outcome)"
         var g: Grading = try Bundled.decode(name)
         g.attemptId = id; g.answerId = old.answerId; g.jobId = old.jobId; g.createdAt = old.createdAt; g.updatedAt = Date(); g.serverTime = Date()
-        g = try withRating(g,record:r)
+        g = try withFeedbackSurvey(withRating(g,record:r))
         r.grading = g; try store.save(r); return g
+    }
+    private func withFeedbackSurvey(_ grading: Grading) throws -> Grading {
+        guard grading.status == "completed", grading.feedbackRating == nil else { return grading }
+        var value = grading
+        let identity = grading.jobId.uuidString + String(decoding:try ContractJSON.encoder().encode(grading.feedback),as:UTF8.self)
+        value.feedbackRating = FeedbackRatingState(enabled:true,feedbackId:Data(identity.utf8).sha256,rating:nil)
+        return value
+    }
+    func saveFeedbackRating(_ id: UUID, request: FeedbackRatingWrite) async throws -> FeedbackRatingState {
+        var record = try store.load(id)
+        guard record.attempt.studyMode == .exam, var grading = record.grading, grading.status == "completed",
+              grading.jobId == request.jobId, var state = grading.feedbackRating, state.enabled,
+              state.feedbackId == request.feedbackId, (1...5).contains(request.stars), request.reason.unicodeScalars.count <= 500
+        else { throw SolfegeError.configuration("평가할 채점 결과를 확인해 주세요.") }
+        state.rating = FeedbackRatingEntry(stars:request.stars,reason:request.reason.trimmingCharacters(in:.whitespacesAndNewlines),updatedAt:Date())
+        grading.feedbackRating = state; record.grading = grading; try store.save(record)
+        return state
     }
     func retryGrading(_ id: UUID, key: UUID) async throws -> Grading {
         var r = try store.load(id)
