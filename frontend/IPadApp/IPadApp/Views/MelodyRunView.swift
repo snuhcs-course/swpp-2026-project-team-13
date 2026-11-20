@@ -1,39 +1,6 @@
 import SwiftUI
 import AVFoundation
 
-struct MiniGameHubView: View {
-    var connection: RhythmConnection? = nil
-    @State private var playing = false
-    @State private var playingRhythm = false
-    @State private var playingEchoDragon = false
-    var body: some View {
-        ScrollView {
-            VStack(alignment:.leading,spacing:26) {
-                SectionCaption(eyebrow:"PLAY WITH SOUND",title:"Drill",subtitle:"미니게임을 골라 듣고 기억하는 연습을 해보세요.")
-                LazyVGrid(columns:[GridItem(.flexible(),spacing:20),GridItem(.flexible(),spacing:20)],spacing:20) {
-                    gameCard("에코 드래곤",subtitle:"작은 간격부터 차근차근, 드래곤의 부름에 피아노로 답해요.",icon:"sparkles") { playingEchoDragon = true }
-                    gameCard("Memory run",subtitle:"선율을 기억하고 건반으로 복원하세요.",icon:"pianokeys") { playing = true }
-                    gameCard("Rhythm puzzle",subtitle:"두 마디를 듣고 리듬 조각을 완성하세요.",icon:"metronome") { playingRhythm = true }.disabled(connection == nil)
-                }
-            }.padding(32).frame(maxWidth:1060).frame(maxWidth:.infinity)
-        }
-        .fullScreenCover(isPresented:$playing) { MelodyRunView(connection:connection) }
-        .fullScreenCover(isPresented:$playingRhythm) { RhythmPuzzleView(connection:connection) }
-        .fullScreenCover(isPresented:$playingEchoDragon) { EchoDragonView() }
-    }
-    private func gameCard(_ title: String, subtitle: String, icon: String, action: @escaping ()->Void) -> some View {
-        Button(action:action) {
-            VStack(alignment:.leading,spacing:18) {
-                HStack { Image(systemName:icon).font(.system(size:42,weight:.light)); Spacer(); Image(systemName:"arrow.up.right") }.foregroundStyle(SolfegeTheme.violet)
-                Text(title).font(.system(size:28,weight:.bold,design:.rounded)).foregroundStyle(SolfegeTheme.ink)
-                Text(subtitle).font(.subheadline).foregroundStyle(.secondary).lineLimit(2)
-                Spacer(minLength:0)
-            }.padding(28).frame(maxWidth:.infinity,alignment:.leading).frame(height:224)
-                .background(.white,in:RoundedRectangle(cornerRadius:22))
-        }.buttonStyle(.plain)
-    }
-}
-
 struct MelodyRunView: View {
     @StateObject private var game: MelodyRunModel
     @Environment(\.dismiss) private var dismiss
@@ -42,14 +9,16 @@ struct MelodyRunView: View {
     @State private var showingTutorial = false
     @State private var choosingDifficulty = false
     private let daily: DailyGameContext?
-    init(connection: RhythmConnection? = nil, daily: DailyGameContext? = nil) {
-        _game = StateObject(wrappedValue:MelodyRunModel(connection:connection)); self.daily = daily
+    private let stage: DrillStageContext?
+    init(connection: RhythmConnection? = nil, daily: DailyGameContext? = nil, stage: DrillStageContext? = nil) {
+        _game = StateObject(wrappedValue:MelodyRunModel(connection:connection)); self.daily = daily; self.stage = stage
     }
     var body: some View {
         VStack(spacing:16) {
             HStack {
                 Text("Memory run").font(.title2.bold())
                 if daily != nil { DailyChip() }
+                if let stage { StageChip(stage:stage.stage) }
                 Spacer()
                 if game.page == .setup || game.page == .playing {
                     Button { game.pause(); showingTutorial = true } label: { Label("게임 방법",systemImage:"questionmark.circle").frame(minHeight:44) }.accessibilityLabel("게임 방법")
@@ -57,7 +26,7 @@ struct MelodyRunView: View {
                 Button(action:back) { Image(systemName:"xmark").frame(width:44,height:44) }.accessibilityLabel("뒤로가기")
             }
             switch game.page {
-            case .setup: setup
+            case .setup: if let stage { stageStart(stage) } else { setup }
             case .playing: play
             case .result: result
             case .summary: summary
@@ -68,7 +37,7 @@ struct MelodyRunView: View {
             .overlay { if game.contentLoading { ProgressView("문제를 준비하고 있어요").padding(24).background(.regularMaterial,in:RoundedRectangle(cornerRadius:18)) } }
             .task { await game.prepareContent(); guard !Task.isCancelled else { return }; if !tutorialSeen { showingTutorial = true } else { startDaily() } }
             .sheet(isPresented:$showingTutorial) { MemoryTutorialView { tutorialSeen = true; showingTutorial = false; startDaily() } }
-            .onChange(of:game.page) { _, page in if page == .result { daily?.finished() } }
+            .onChange(of:game.page) { _, page in if page == .result { daily?.finished(); stage?.finished() } }
             .alert("확인이 필요해요",isPresented:Binding(get:{game.error != nil},set:{if !$0 {game.error = nil}})) {
                 if game.catalog == nil { Button("다시 시도") { Task { await game.prepareContent(); startDaily() } } }
                 if game.storageFailed { Button("저장 다시 시도") { game.retryStorage() } }
@@ -119,15 +88,24 @@ struct MelodyRunView: View {
         return game.difficulty == .beginner ? "짧고 익숙한 선율부터" : game.difficulty == .intermediate ? "조금 더 길고 빠르게" : "네 마디를 한 번에"
     }
     @ViewBuilder private var setProgress: some View {
-        if let daily { DailyProgressBar(done:daily.done,current:daily.index) } else { HStack(spacing:7) {
+        if let daily { DailyProgressBar(done:daily.done,current:daily.index) } else if stage == nil { HStack(spacing:7) {
             ForEach(0..<game.setCount,id:\.self) { i in Capsule().fill(i < game.setIndex || (i == game.setIndex && game.page == .result) ? SolfegeTheme.violet : SolfegeTheme.violet.opacity(0.13)).frame(height:6) }
             Text("\(game.setIndex+1)/\(game.setCount)").font(.caption.monospacedDigit()).padding(.leading,8)
         } }
     }
-    // Daily Training skips setup and opens one question at today's difficulty.
+    // Daily Training and a Drill stage skip setup and open one question at their difficulty.
     private func startDaily() {
-        guard let daily, game.page == .setup, !game.working else { return }
-        game.newDailyRound(difficulty:daily.difficulty)
+        guard game.page == .setup, !game.working else { return }
+        if let daily { game.newDailyRound(difficulty:daily.difficulty) }
+        else if let stage { game.newDailyRound(difficulty:stage.stage.difficulty) }
+    }
+    // Shown only if the stage's question could not start (content failed, or paused while starting).
+    private func stageStart(_ stage: DrillStageContext) -> some View {
+        VStack(spacing:18) {
+            Text("\(stage.stage.name) · Memory run").font(.title2.bold())
+            Text(stage.stage.difficulty.title).foregroundStyle(.secondary)
+            Button("시작하기") { startDaily() }.buttonStyle(PrimaryButton()).disabled(game.catalog == nil || game.working || showingTutorial)
+        }.frame(maxWidth:.infinity,maxHeight:.infinity)
     }
     private var play: some View {
         GeometryReader { geometry in
@@ -188,6 +166,10 @@ struct MelodyRunView: View {
                         Spacer()
                         if let daily {
                             DailyNextButton(nextTitle:daily.nextTitle) { game.stop(); daily.next() }.disabled(game.working)
+                        } else if let stage {
+                            Button("다시 풀기") { game.retry() }.buttonStyle(.bordered).disabled(game.working)
+                            Button("계단으로") { game.stop(); stage.exit() }.buttonStyle(PrimaryButton(compact:true)).disabled(game.working)
+                                .accessibilityIdentifier("drill-stage-exit")
                         } else {
                             Button("다시 풀기") { game.retry() }.buttonStyle(.bordered).disabled(game.working)
                             Button(game.isLastRound ? "결과 보기" : "다음") { game.next() }.buttonStyle(PrimaryButton(compact:true)).disabled(game.working)
@@ -221,6 +203,7 @@ struct MelodyRunView: View {
     }
     private func back() {
         if let daily { game.stop(); daily.exit(); return }
+        if let stage { game.stop(); stage.exit(); return }
         if game.page == .playing || game.page == .result || game.working {
             game.setup(); choosingDifficulty = true
         } else if game.page == .summary {

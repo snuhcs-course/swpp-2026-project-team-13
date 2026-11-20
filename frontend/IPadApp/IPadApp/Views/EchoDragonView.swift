@@ -6,34 +6,40 @@ import AVFoundation
     @Environment(\.dismiss) private var dismiss
     @Environment(\.scenePhase) private var scenePhase
     @State private var help = false
+    @AppStorage("echo-dragon-stage-help-v1") private var stageHelpSeen = false
+    private let stage: DrillStageContext?
 
-    init(model: EchoDragonModel? = nil) {
+    init(model: EchoDragonModel? = nil, stage: DrillStageContext? = nil) {
         _game = StateObject(wrappedValue:model ?? EchoDragonModel())
+        self.stage = stage
     }
 
     var body: some View {
         VStack(spacing:0) {
             HStack(spacing:14) {
-                if game.challenge != nil {
+                if game.challenge != nil && stage == nil {
                     Button { game.map() } label: { Label("레벨맵",systemImage:"chevron.left") }
                 }
                 Text("에코 드래곤").font(.title2.bold()).foregroundStyle(SolfegeTheme.ink)
+                if let stage { StageChip(stage:stage.stage) }
                 Spacer()
                 if game.preview { Pill(text:"미리 체험 · 진행 저장 없음",icon:"eye") }
                 Button { game.pause(); help = true } label: {
                     Image(systemName:"questionmark.circle").frame(width:44,height:44)
                 }.accessibilityLabel("게임 방법")
-                Button { game.stop(); dismiss() } label: {
+                Button { game.stop(); if let stage { stage.exit() } else { dismiss() } } label: {
                     Image(systemName:"xmark").frame(width:44,height:44)
                 }.accessibilityLabel("게임 닫기")
             }.padding(.horizontal,24).padding(.vertical,8)
             ScrollView {
                 if let challenge = game.challenge { play(challenge) }
-                else { levelMap }
+                else if stage == nil { levelMap }
             }
         }
         .background(SolfegeTheme.background.ignoresSafeArea()).tint(SolfegeTheme.violet)
-        .sheet(isPresented:$help) { instructions }
+        .sheet(isPresented:$help,onDismiss:{ if stage != nil { stageHelpSeen = true } }) { instructions }
+        .onAppear { openStage() }
+        .onChange(of:game.result) { _, result in if result == .correct { stage?.finished() } }
         .alert("확인이 필요해요",isPresented:Binding(get:{game.error != nil},set:{if !$0 { game.error = nil }})) {
             Button("확인") { game.error = nil }
         } message: { Text(game.error ?? "") }
@@ -48,6 +54,13 @@ import AVFoundation
                AVAudioSession.RouteChangeReason(rawValue:raw) == .oldDeviceUnavailable { game.pause() }
         }
         .onDisappear { game.stop() }
+    }
+
+    // A Drill stage opens its level straight away; the first time, the rules come up first.
+    private func openStage() {
+        guard let stage, game.challenge == nil, let level = stage.stage.echoLevel else { return }
+        game.open(level,stage:true)
+        if !stageHelpSeen { help = true }
     }
 
     private var levelMap: some View {
@@ -160,7 +173,11 @@ import AVFoundation
                                enabled:game.canAnswer,onRoot:{ game.root() },onSelect:{ game.select($0) })
                 .frame(height:180)
             HStack(spacing:14) {
-                if game.result == .correct {
+                if game.result == .correct, let stage {
+                    Button { game.stop(); stage.exit() } label: { Label("계단으로",systemImage:"arrow.right") }
+                        .buttonStyle(PrimaryButton()).accessibilityIdentifier("drill-stage-exit")
+                    Button("정답 대답 다시 듣기") { game.replayAnswer() }.disabled(game.isPlaying || game.interrupted)
+                } else if game.result == .correct {
                     Button { game.next() } label: {
                         Label(game.preview || challenge.level.number == EchoDragonLevel.count ? "레벨맵으로" : "다음 판",systemImage:"arrow.right")
                     }.buttonStyle(PrimaryButton()).accessibilityIdentifier("echo-next")
@@ -184,7 +201,7 @@ import AVFoundation
 
     private func message(_ challenge: EchoDragonChallenge) -> String {
         if game.interrupted { return "잠깐 쉬었어요. 다시 듣고 이어가요." }
-        if game.result == .correct { return game.preview ? "마음이 통했어요!" : challenge.level.number == 72 ? "마지막 인사까지 전했어요!" : "마음이 통했어요! 다음 판이 열렸어요." }
+        if game.result == .correct { return game.preview || game.staged ? "마음이 통했어요!" : challenge.level.number == 72 ? "마지막 인사까지 전했어요!" : "마음이 통했어요! 다음 판이 열렸어요." }
         if game.result == .incorrect { return "고개를 갸웃… 다시 귀 기울여 볼까요?" }
         if !game.heardCall { return challenge.level.rule == .mirror ? "같은 간격으로, 반대 방향으로!" : "내 부름에 답해줄래?" }
         return game.isPlaying ? "소리를 귀에 담아요." : "내 시작음에서 어떤 음으로 이어질까요?"
