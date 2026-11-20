@@ -1,0 +1,92 @@
+{
+  "version": "practice-difficulty-2",
+  "cutoffs": [
+    7.5,
+    9.5,
+    13.0,
+    30.0,
+    55.0,
+    62.0,
+    68.0,
+    74.0
+  ],
+  "records": {
+    "128f51a9-5498-50fd-a2a7-1a271883e72b": {
+      "main_sha256": "1accb0beaf393bf5a46288578e7811383a9a14dca847936cffbf788fc7b190d4",
+      "score": 47.52311054202171,
+      "content_score": 47.52311054202171,
+      "key_correction": 0.0,
+      "quarter_bpm": 82.5,
+      "reference_quarter_bpm": 82.5,
+      "level": 5,
+      "source": "existing",
+      "source_id": "128f51a9-5498-50fd-a2a7-1a271883e72b",
+      "score_floor": 0.0
+    },
+    "cfe540d9-445e-59c5-9338-586fc9ba2842": {
+      "main_sha256": "d584d7ef1f19ba070c23eee6b2518e7c8faf1ef981dc210fbd1117ecc52a6bf2",
+      "score": 49.18451061981816,
+      "content_score": 49.18451061981816,
+      "key_correction": 0.0,
+      "quarter_bpm": 80,
+      "reference_quarter_bpm": 80,
+      "level": 5,
+      "source": "existing",
+      "source_id": "cfe540d9-445e-59c5-9338-586fc9ba2842",
+      "score_floor": 0.0
+    },
+    "e8b704b7-efe5-583c-944a-270915628ca2": {
+      "main_sha256": "66ccbe52a34194ba4d1ef70ebbbce67b86568471d773ad82a182f291c3617ace",
+      "score": 46.807624262862,
+      "content_score": 46.807624262862,
+      "key_correction": 0.0,
+      "quarter_bpm": 80,
+      "reference_quarter_bpm": 80,
+      "level": 5,
+      "source": "existing",
+      "source_id": "e8b704b7-efe5-583c-944a-270915628ca2",
+      "score_floor": 0.0
+    },
+    "fc2a7f11-ada9-5e53-8178-42848b99375a": {
+      "main_sha256": "827452658c3a0a20532bd8d92935591f884b5a26912d906f832287badeeafaa1",
+      "score": 5.899961922287839,
+      "content_score": 5.899961922287839,
+      "key_correction": 0.0,
+      "quarter_bpm": 80,
+      "reference_quarter_bpm": 80,
+      "level": 1,
+      "source": "trained-ear",
+      "source_id": "Cole-Lewis-1904_1-01-105",
+      "score_floor": 0.0
+    },
+    "a056175a-507d-5bc6-8823-c9d00d9f6946": {
+      "main_sha256": "24dbbc07e91b7f0ad1896151e7b5b61012862bd1c45d6c712118198bfbbec4e7",
+      "score": 7.03048192779813,
+      "content_score": 7.03048192779813,
+      "key_correction": 0.0,
+      "quarter_bpm": 80,
+      "reference_quarter_bpm": 80,
+      "level": 1,
+      "source": "trained-ear",
+      "source_id": "Somervell-1911_056",
+      "score_floor": 0.0
+    },
+    "90fb15e7-c91d-5dcc-94b8-fb827be50579": {
+      "main_sha256": "7fb9dc57434bc222dd0fb87ea0038e3e19c1dcfddccae96aa39718a5cee80a66",
+      "score": 78.23455367978825,
+      "content_score": 75.79705367978825,
+      "key_correction": 2.4375,
+      "quarter_bpm": 82.5,
+      "reference_quarter_bpm": 82.5,
+      "level": 9,
+      "source": "generated-1000",
+      "source_id": "L06-070",
+      "score_floor": 7.5
+    }
+  },
+  "formula": {
+    "key": "(2*k + 0.5*k*k) * (0.8 + 0.2*u); k=abs(fifths)",
+    "score_floor": "0 for k=0; 7.5 for k=1; 9.5 for k>=2; complete eight-bar questions only",
+    "tempo": "max((content + key) * actual_quarter_bpm/reference_quarter_bpm, score_floor)"
+  }
+}

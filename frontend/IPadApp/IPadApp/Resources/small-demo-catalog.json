@@ -1,0 +1,944 @@
+[
+  {
+    "id": "128f51a9-5498-50fd-a2a7-1a271883e72b",
+    "version": 5,
+    "title": "청음 연습 1 · 6/8",
+    "source": "practice",
+    "key_signature": {
+      "tonic": "C",
+      "mode": "major",
+      "fifths": 0
+    },
+    "time_signature": {
+      "numerator": 6,
+      "denominator": 8
+    },
+    "measure_count": 8,
+    "recommended_duration_seconds": 300,
+    "description": "멜로디를 듣고 빈 오선에 적어보세요. 제출 후 AI 평가와 정답을 확인할 수 있어요.",
+    "time_policy": "advisory",
+    "clef": "treble",
+    "sheet_layout": {
+      "id": "staff-8bars-6-8-key0-v6",
+      "logical_width": 1330,
+      "logical_height": 846,
+      "pixel_width": 2660,
+      "pixel_height": 1692,
+      "export_scale": 2,
+      "display_height": 574,
+      "systems": [
+        {
+          "index": 1,
+          "first_measure": 1,
+          "last_measure": 4,
+          "staff_line_y": [
+            164,
+            176,
+            188,
+            200,
+            212
+          ],
+          "barline_x": [
+            54,
+            423.895,
+            707.93,
+            991.965,
+            1276
+          ]
+        },
+        {
+          "index": 2,
+          "first_measure": 5,
+          "last_measure": 8,
+          "staff_line_y": [
+            340,
+            352,
+            364,
+            376,
+            388
+          ],
+          "barline_x": [
+            54,
+            423.895,
+            707.93,
+            991.965,
+            1276
+          ]
+        }
+      ],
+      "template_sha256": "42b5803d63c82497a05cbd7cb595d6e433e0fc417fef8734347949281c2dee91",
+      "template_png_url": "https://api.sori.example/assets/sheets/staff-8bars-6-8-key0-v6.png"
+    },
+    "content_policy": "client_readable_practice",
+    "score_visibility": "after_submission",
+    "score_assets": {
+      "main": {
+        "url": "https://api.sori.example/api/v1/questions/128f51a9-5498-50fd-a2a7-1a271883e72b/versions/5/scores/main/",
+        "content_type": "application/vnd.recordare.musicxml",
+        "sha256": "1accb0beaf393bf5a46288578e7811383a9a14dca847936cffbf788fc7b190d4",
+        "size_bytes": 1652,
+        "musicxml_version": "4.0",
+        "profile": "sori-monophonic-v2",
+        "part_id": "P1",
+        "measure_count": 8,
+        "source_tempo_bpm": 96
+      },
+      "scale": {
+        "url": "https://api.sori.example/api/v1/questions/128f51a9-5498-50fd-a2a7-1a271883e72b/versions/5/scores/scale/",
+        "content_type": "application/vnd.recordare.musicxml",
+        "sha256": "b49c5527903617bf600471b2208c76f8b2e1b5b2c88f3e16a0dfd0bf10a882ee",
+        "size_bytes": 1083,
+        "musicxml_version": "4.0",
+        "profile": "sori-monophonic-v2",
+        "part_id": "P1",
+        "measure_count": 3,
+        "source_tempo_bpm": 96
+      }
+    },
+    "reference_display": {
+      "resource": "practice-reference-v2-1accb0beaf393bf5a462",
+      "renderer": "MuseScore Studio 4.6.3",
+      "layout_mode": "equal",
+      "geometry": {
+        "logical_width": 1330,
+        "logical_height": 574,
+        "systems": [
+          {
+            "index": 1,
+            "first_measure": 1,
+            "last_measure": 4,
+            "staff_line_y": [
+              164,
+              176,
+              188,
+              200,
+              212
+            ],
+            "barline_x": [
+              54,
+              422.797181036793,
+              706.8747585202843,
+              991.1020834249923,
+              1276.0397486611125
+            ]
+          },
+          {
+            "index": 2,
+            "first_measure": 5,
+            "last_measure": 8,
+            "staff_line_y": [
+              340,
+              352,
+              364,
+              376,
+              388
+            ],
+            "barline_x": [
+              54,
+              424.29565634749207,
+              708.1828653707702,
+              992.209743220542,
+              1276.0446364290854
+            ]
+          }
+        ]
+      },
+      "content_type": "image/png",
+      "sha256": "e6864cc096208b141b544e55cb36b4ebb29dbe66cb89ad6caeb440754adadb8b",
+      "size_bytes": 42247,
+      "pixel_width": 2660,
+      "pixel_height": 1148
+    }
+  },
+  {
+    "id": "cfe540d9-445e-59c5-9338-586fc9ba2842",
+    "version": 5,
+    "title": "청음 연습 2 · 4/4",
+    "source": "practice",
+    "key_signature": {
+      "tonic": "C",
+      "mode": "major",
+      "fifths": 0
+    },
+    "time_signature": {
+      "numerator": 4,
+      "denominator": 4
+    },
+    "measure_count": 8,
+    "recommended_duration_seconds": 300,
+    "description": "멜로디를 듣고 빈 오선에 적어보세요. 제출 후 AI 평가와 정답을 확인할 수 있어요.",
+    "time_policy": "advisory",
+    "clef": "treble",
+    "sheet_layout": {
+      "id": "staff-8bars-4-4-key0-v6",
+      "logical_width": 1330,
+      "logical_height": 846,
+      "pixel_width": 2660,
+      "pixel_height": 1692,
+      "export_scale": 2,
+      "display_height": 574,
+      "systems": [
+        {
+          "index": 1,
+          "first_measure": 1,
+          "last_measure": 4,
+          "staff_line_y": [
+            164,
+            176,
+            188,
+            200,
+            212
+          ],
+          "barline_x": [
+            54,
+            425.695,
+            709.13,
+            992.565,
+            1276
+          ]
+        },
+        {
+          "index": 2,
+          "first_measure": 5,
+          "last_measure": 8,
+          "staff_line_y": [
+            340,
+            352,
+            364,
+            376,
+            388
+          ],
+          "barline_x": [
+            54,
+            425.695,
+            709.13,
+            992.565,
+            1276
+          ]
+        }
+      ],
+      "template_sha256": "4eecd46df7007aa4807547200622193b3b7957c542b57df6700d226448263333",
+      "template_png_url": "https://api.sori.example/assets/sheets/staff-8bars-4-4-key0-v6.png"
+    },
+    "content_policy": "client_readable_practice",
+    "score_visibility": "after_submission",
+    "score_assets": {
+      "main": {
+        "url": "https://api.sori.example/api/v1/questions/cfe540d9-445e-59c5-9338-586fc9ba2842/versions/5/scores/main/",
+        "content_type": "application/vnd.recordare.musicxml",
+        "sha256": "d584d7ef1f19ba070c23eee6b2518e7c8faf1ef981dc210fbd1117ecc52a6bf2",
+        "size_bytes": 1781,
+        "musicxml_version": "4.0",
+        "profile": "sori-monophonic-v2",
+        "part_id": "P1",
+        "measure_count": 8,
+        "source_tempo_bpm": 96
+      },
+      "scale": {
+        "url": "https://api.sori.example/api/v1/questions/cfe540d9-445e-59c5-9338-586fc9ba2842/versions/5/scores/scale/",
+        "content_type": "application/vnd.recordare.musicxml",
+        "sha256": "b167aaba7171421def6dc3da4771eb5a9ab071aa7e2e818e7b4319692549cbb8",
+        "size_bytes": 1070,
+        "musicxml_version": "4.0",
+        "profile": "sori-monophonic-v2",
+        "part_id": "P1",
+        "measure_count": 2,
+        "source_tempo_bpm": 96
+      }
+    },
+    "reference_display": {
+      "resource": "practice-reference-v2-d584d7ef1f19ba070c23",
+      "renderer": "MuseScore Studio 4.6.3",
+      "layout_mode": "equal",
+      "geometry": {
+        "logical_width": 1330,
+        "logical_height": 574,
+        "systems": [
+          {
+            "index": 1,
+            "first_measure": 1,
+            "last_measure": 4,
+            "staff_line_y": [
+              164,
+              176,
+              188,
+              200,
+              212
+            ],
+            "barline_x": [
+              54,
+              425.2411357445975,
+              708.5930141868083,
+              992.546762071986,
+              1276.0397486611125
+            ]
+          },
+          {
+            "index": 2,
+            "first_measure": 5,
+            "last_measure": 8,
+            "staff_line_y": [
+              340,
+              352,
+              364,
+              376,
+              388
+            ],
+            "barline_x": [
+              54,
+              424.9628029757618,
+              709.4883609311253,
+              992.7712982961359,
+              1276.0446364290854
+            ]
+          }
+        ]
+      },
+      "content_type": "image/png",
+      "sha256": "115a9ba36b190d3fd1c581956db43ca5f1a2803ee5943f2dac85485280aa0dfa",
+      "size_bytes": 44313,
+      "pixel_width": 2660,
+      "pixel_height": 1148
+    }
+  },
+  {
+    "id": "e8b704b7-efe5-583c-944a-270915628ca2",
+    "version": 5,
+    "title": "청음 연습 3 · 3/4",
+    "source": "practice",
+    "key_signature": {
+      "tonic": "C",
+      "mode": "major",
+      "fifths": 0
+    },
+    "time_signature": {
+      "numerator": 3,
+      "denominator": 4
+    },
+    "measure_count": 8,
+    "recommended_duration_seconds": 300,
+    "description": "멜로디를 듣고 빈 오선에 적어보세요. 제출 후 AI 평가와 정답을 확인할 수 있어요.",
+    "time_policy": "advisory",
+    "clef": "treble",
+    "sheet_layout": {
+      "id": "staff-8bars-3-4-key0-v6",
+      "logical_width": 1330,
+      "logical_height": 846,
+      "pixel_width": 2660,
+      "pixel_height": 1692,
+      "export_scale": 2,
+      "display_height": 574,
+      "systems": [
+        {
+          "index": 1,
+          "first_measure": 1,
+          "last_measure": 4,
+          "staff_line_y": [
+            164,
+            176,
+            188,
+            200,
+            212
+          ],
+          "barline_x": [
+            54,
+            425.695,
+            709.13,
+            992.565,
+            1276
+          ]
+        },
+        {
+          "index": 2,
+          "first_measure": 5,
+          "last_measure": 8,
+          "staff_line_y": [
+            340,
+            352,
+            364,
+            376,
+            388
+          ],
+          "barline_x": [
+            54,
+            425.695,
+            709.13,
+            992.565,
+            1276
+          ]
+        }
+      ],
+      "template_sha256": "fd6f0e3444da61b88d3e8773164ed350f8cc2e5caf698cec4e8615d594885190",
+      "template_png_url": "https://api.sori.example/assets/sheets/staff-8bars-3-4-key0-v6.png"
+    },
+    "content_policy": "client_readable_practice",
+    "score_visibility": "after_submission",
+    "score_assets": {
+      "main": {
+        "url": "https://api.sori.example/api/v1/questions/e8b704b7-efe5-583c-944a-270915628ca2/versions/5/scores/main/",
+        "content_type": "application/vnd.recordare.musicxml",
+        "sha256": "66ccbe52a34194ba4d1ef70ebbbce67b86568471d773ad82a182f291c3617ace",
+        "size_bytes": 1683,
+        "musicxml_version": "4.0",
+        "profile": "sori-monophonic-v2",
+        "part_id": "P1",
+        "measure_count": 8,
+        "source_tempo_bpm": 96
+      },
+      "scale": {
+        "url": "https://api.sori.example/api/v1/questions/e8b704b7-efe5-583c-944a-270915628ca2/versions/5/scores/scale/",
+        "content_type": "application/vnd.recordare.musicxml",
+        "sha256": "9c3149f4ac0a4a7cc9dcbca60cd0ce25be676f451c0cf1077b96b5571f07fbf8",
+        "size_bytes": 1084,
+        "musicxml_version": "4.0",
+        "profile": "sori-monophonic-v2",
+        "part_id": "P1",
+        "measure_count": 3,
+        "source_tempo_bpm": 96
+      }
+    },
+    "reference_display": {
+      "resource": "practice-reference-v2-66ccbe52a34194ba4d1e",
+      "renderer": "MuseScore Studio 4.6.3",
+      "layout_mode": "equal",
+      "geometry": {
+        "logical_width": 1330,
+        "logical_height": 574,
+        "systems": [
+          {
+            "index": 1,
+            "first_measure": 1,
+            "last_measure": 4,
+            "staff_line_y": [
+              164,
+              176,
+              188,
+              200,
+              212
+            ],
+            "barline_x": [
+              54,
+              424.4789597673796,
+              707.9738661952396,
+              991.4716523812001,
+              1276.0397486611125
+            ]
+          },
+          {
+            "index": 2,
+            "first_measure": 5,
+            "last_measure": 8,
+            "staff_line_y": [
+              340,
+              352,
+              364,
+              376,
+              388
+            ],
+            "barline_x": [
+              54,
+              425.6563474922005,
+              709.1187904967601,
+              992.5793136549073,
+              1276.0446364290854
+            ]
+          }
+        ]
+      },
+      "content_type": "image/png",
+      "sha256": "d10a29516ca2747a899d49f1b5020c64ba3ae7ef371d3a566f5c40b2e2bb3391",
+      "size_bytes": 40880,
+      "pixel_width": 2660,
+      "pixel_height": 1148
+    }
+  },
+  {
+    "id": "fc2a7f11-ada9-5e53-8178-42848b99375a",
+    "version": 3,
+    "title": "청음 문제 0070",
+    "source": "practice",
+    "collection": "practice_bank",
+    "difficulty": "beginner",
+    "practice_level": 1,
+    "difficulty_score": 5.899961922287839,
+    "difficulty_version": "practice-difficulty-1",
+    "key_signature": {
+      "tonic": "C",
+      "mode": "major",
+      "fifths": 0
+    },
+    "time_signature": {
+      "numerator": 4,
+      "denominator": 4
+    },
+    "measure_count": 8,
+    "recommended_duration_seconds": 456,
+    "description": "선율을 듣고 8마디를 적어보세요.",
+    "time_policy": "advisory",
+    "clef": "treble",
+    "sheet_layout": {
+      "id": "staff-8bars-4-4-key0-v6",
+      "logical_width": 1330,
+      "logical_height": 846,
+      "pixel_width": 2660,
+      "pixel_height": 1692,
+      "export_scale": 2,
+      "display_height": 574,
+      "systems": [
+        {
+          "index": 1,
+          "first_measure": 1,
+          "last_measure": 4,
+          "staff_line_y": [
+            164,
+            176,
+            188,
+            200,
+            212
+          ],
+          "barline_x": [
+            54,
+            425.695,
+            709.13,
+            992.565,
+            1276
+          ]
+        },
+        {
+          "index": 2,
+          "first_measure": 5,
+          "last_measure": 8,
+          "staff_line_y": [
+            340,
+            352,
+            364,
+            376,
+            388
+          ],
+          "barline_x": [
+            54,
+            425.695,
+            709.13,
+            992.565,
+            1276
+          ]
+        }
+      ],
+      "template_sha256": "4eecd46df7007aa4807547200622193b3b7957c542b57df6700d226448263333",
+      "template_png_url": "https://api.sori.example/assets/sheets/staff-8bars-4-4-key0-v6.png"
+    },
+    "content_policy": "client_readable_practice",
+    "score_visibility": "after_submission",
+    "score_assets": {
+      "main": {
+        "url": "https://api.sori.example/api/v1/questions/fc2a7f11-ada9-5e53-8178-42848b99375a/versions/3/scores/main/",
+        "content_type": "application/vnd.recordare.musicxml",
+        "sha256": "827452658c3a0a20532bd8d92935591f884b5a26912d906f832287badeeafaa1",
+        "size_bytes": 1235,
+        "musicxml_version": "4.0",
+        "profile": "sori-monophonic-v4",
+        "part_id": "P1",
+        "measure_count": 8,
+        "source_tempo_bpm": 96
+      },
+      "scale": {
+        "url": "https://api.sori.example/api/v1/questions/fc2a7f11-ada9-5e53-8178-42848b99375a/versions/3/scores/scale/",
+        "content_type": "application/vnd.recordare.musicxml",
+        "sha256": "62f0fcb38817db86b8ace040a34eaa681ba18d1051544608e9dcb455b184dc76",
+        "size_bytes": 1072,
+        "musicxml_version": "4.0",
+        "profile": "sori-monophonic-v4",
+        "part_id": "P1",
+        "measure_count": 2,
+        "source_tempo_bpm": 96
+      }
+    },
+    "tempo": {
+      "policy_id": "sori-tempo-1",
+      "beat_unit": "quarter",
+      "bpm": 80,
+      "minimum_bpm": 72,
+      "maximum_bpm": 96
+    },
+    "reference_display": {
+      "resource": "practice-reference-v2-827452658c3a0a20532b",
+      "renderer": "MuseScore Studio 4.6.3",
+      "layout_mode": "equal",
+      "geometry": {
+        "logical_width": 1330,
+        "logical_height": 574,
+        "systems": [
+          {
+            "index": 1,
+            "first_measure": 1,
+            "last_measure": 4,
+            "staff_line_y": [
+              164,
+              176,
+              188,
+              200,
+              212
+            ],
+            "barline_x": [
+              54,
+              424.33833158014727,
+              708.0794573255847,
+              991.6972334323918,
+              1276.0397486611125
+            ]
+          },
+          {
+            "index": 2,
+            "first_measure": 5,
+            "last_measure": 8,
+            "staff_line_y": [
+              340,
+              352,
+              364,
+              376,
+              388
+            ],
+            "barline_x": [
+              54,
+              425.6011519078473,
+              709.3539716822652,
+              992.992080633549,
+              1276.0446364290854
+            ]
+          }
+        ]
+      },
+      "content_type": "image/png",
+      "sha256": "f4156a744f7cfdde7f0c9e7cee56ce64b680761b33311f1cf90a5d6c2b82db81",
+      "size_bytes": 21703,
+      "pixel_width": 2660,
+      "pixel_height": 1148
+    }
+  },
+  {
+    "id": "a056175a-507d-5bc6-8823-c9d00d9f6946",
+    "version": 3,
+    "title": "청음 문제 0514",
+    "source": "practice",
+    "collection": "practice_bank",
+    "difficulty": "beginner",
+    "practice_level": 1,
+    "difficulty_score": 7.03048192779813,
+    "difficulty_version": "practice-difficulty-1",
+    "key_signature": {
+      "tonic": "C",
+      "mode": "major",
+      "fifths": 0
+    },
+    "time_signature": {
+      "numerator": 4,
+      "denominator": 4
+    },
+    "measure_count": 8,
+    "recommended_duration_seconds": 456,
+    "description": "선율을 듣고 8마디를 적어보세요.",
+    "time_policy": "advisory",
+    "clef": "treble",
+    "sheet_layout": {
+      "id": "staff-8bars-4-4-key0-v6",
+      "logical_width": 1330,
+      "logical_height": 846,
+      "pixel_width": 2660,
+      "pixel_height": 1692,
+      "export_scale": 2,
+      "display_height": 574,
+      "systems": [
+        {
+          "index": 1,
+          "first_measure": 1,
+          "last_measure": 4,
+          "staff_line_y": [
+            164,
+            176,
+            188,
+            200,
+            212
+          ],
+          "barline_x": [
+            54,
+            425.695,
+            709.13,
+            992.565,
+            1276
+          ]
+        },
+        {
+          "index": 2,
+          "first_measure": 5,
+          "last_measure": 8,
+          "staff_line_y": [
+            340,
+            352,
+            364,
+            376,
+            388
+          ],
+          "barline_x": [
+            54,
+            425.695,
+            709.13,
+            992.565,
+            1276
+          ]
+        }
+      ],
+      "template_sha256": "4eecd46df7007aa4807547200622193b3b7957c542b57df6700d226448263333",
+      "template_png_url": "https://api.sori.example/assets/sheets/staff-8bars-4-4-key0-v6.png"
+    },
+    "content_policy": "client_readable_practice",
+    "score_visibility": "after_submission",
+    "score_assets": {
+      "main": {
+        "url": "https://api.sori.example/api/v1/questions/a056175a-507d-5bc6-8823-c9d00d9f6946/versions/3/scores/main/",
+        "content_type": "application/vnd.recordare.musicxml",
+        "sha256": "24dbbc07e91b7f0ad1896151e7b5b61012862bd1c45d6c712118198bfbbec4e7",
+        "size_bytes": 1221,
+        "musicxml_version": "4.0",
+        "profile": "sori-monophonic-v4",
+        "part_id": "P1",
+        "measure_count": 8,
+        "source_tempo_bpm": 96
+      },
+      "scale": {
+        "url": "https://api.sori.example/api/v1/questions/a056175a-507d-5bc6-8823-c9d00d9f6946/versions/3/scores/scale/",
+        "content_type": "application/vnd.recordare.musicxml",
+        "sha256": "62f0fcb38817db86b8ace040a34eaa681ba18d1051544608e9dcb455b184dc76",
+        "size_bytes": 1072,
+        "musicxml_version": "4.0",
+        "profile": "sori-monophonic-v4",
+        "part_id": "P1",
+        "measure_count": 2,
+        "source_tempo_bpm": 96
+      }
+    },
+    "tempo": {
+      "policy_id": "sori-tempo-1",
+      "beat_unit": "quarter",
+      "bpm": 80,
+      "minimum_bpm": 72,
+      "maximum_bpm": 96
+    },
+    "reference_display": {
+      "resource": "practice-reference-v2-24dbbc07e91b7f0ad189",
+      "renderer": "MuseScore Studio 4.6.3",
+      "layout_mode": "equal",
+      "geometry": {
+        "logical_width": 1330,
+        "logical_height": 574,
+        "systems": [
+          {
+            "index": 1,
+            "first_measure": 1,
+            "last_measure": 4,
+            "staff_line_y": [
+              164,
+              176,
+              188,
+              200,
+              212
+            ],
+            "barline_x": [
+              54,
+              425.0117150159387,
+              708.5546174121374,
+              992.0908003727686,
+              1276.0397486611125
+            ]
+          },
+          {
+            "index": 2,
+            "first_measure": 5,
+            "last_measure": 8,
+            "staff_line_y": [
+              340,
+              352,
+              364,
+              376,
+              388
+            ],
+            "barline_x": [
+              54,
+              425.6928245740339,
+              709.1619870410365,
+              992.6225101991837,
+              1276.0446364290854
+            ]
+          }
+        ]
+      },
+      "content_type": "image/png",
+      "sha256": "7c7c04472c76d28bdc084199833cc6074f102d6d85a2411d6242c56cfb4dd0c7",
+      "size_bytes": 21663,
+      "pixel_width": 2660,
+      "pixel_height": 1148
+    }
+  },
+  {
+    "id": "90fb15e7-c91d-5dcc-94b8-fb827be50579",
+    "version": 3,
+    "title": "청음 문제 1397",
+    "source": "practice",
+    "collection": "practice_bank",
+    "difficulty": "advanced",
+    "practice_level": 9,
+    "difficulty_score": 75.95330367978825,
+    "difficulty_version": "practice-difficulty-1",
+    "key_signature": {
+      "tonic": "D",
+      "mode": "minor",
+      "fifths": -1
+    },
+    "time_signature": {
+      "numerator": 12,
+      "denominator": 8
+    },
+    "measure_count": 8,
+    "recommended_duration_seconds": 516,
+    "description": "선율을 듣고 8마디를 적어보세요.",
+    "time_policy": "advisory",
+    "clef": "treble",
+    "sheet_layout": {
+      "id": "staff-8bars-12-8-key-1-v6",
+      "logical_width": 1330,
+      "logical_height": 846,
+      "pixel_width": 2660,
+      "pixel_height": 1692,
+      "export_scale": 2,
+      "display_height": 574,
+      "systems": [
+        {
+          "index": 1,
+          "first_measure": 1,
+          "last_measure": 4,
+          "staff_line_y": [
+            164,
+            176,
+            188,
+            200,
+            212
+          ],
+          "barline_x": [
+            54,
+            450.012,
+            725.341,
+            1000.671,
+            1276
+          ]
+        },
+        {
+          "index": 2,
+          "first_measure": 5,
+          "last_measure": 8,
+          "staff_line_y": [
+            340,
+            352,
+            364,
+            376,
+            388
+          ],
+          "barline_x": [
+            54,
+            450.012,
+            725.341,
+            1000.671,
+            1276
+          ]
+        }
+      ],
+      "template_sha256": "e72161131de77040a47058278580753a10817f2b7566eaef510019fbe2681bdb",
+      "template_png_url": "https://api.sori.example/assets/sheets/staff-8bars-12-8-key-1-v6.png"
+    },
+    "content_policy": "client_readable_practice",
+    "score_visibility": "after_submission",
+    "score_assets": {
+      "main": {
+        "url": "https://api.sori.example/api/v1/questions/90fb15e7-c91d-5dcc-94b8-fb827be50579/versions/3/scores/main/",
+        "content_type": "application/vnd.recordare.musicxml",
+        "sha256": "7fb9dc57434bc222dd0fb87ea0038e3e19c1dcfddccae96aa39718a5cee80a66",
+        "size_bytes": 1833,
+        "musicxml_version": "4.0",
+        "profile": "sori-monophonic-v4",
+        "part_id": "P1",
+        "measure_count": 8,
+        "source_tempo_bpm": 96
+      },
+      "scale": {
+        "url": "https://api.sori.example/api/v1/questions/90fb15e7-c91d-5dcc-94b8-fb827be50579/versions/3/scores/scale/",
+        "content_type": "application/vnd.recordare.musicxml",
+        "sha256": "491a7a27f6f4d5383377068e36c4ab594abc1dae392cff69994378513fbccda6",
+        "size_bytes": 1147,
+        "musicxml_version": "4.0",
+        "profile": "sori-monophonic-v4",
+        "part_id": "P1",
+        "measure_count": 2,
+        "source_tempo_bpm": 96
+      }
+    },
+    "tempo": {
+      "policy_id": "sori-tempo-1",
+      "beat_unit": "dotted_quarter",
+      "bpm": 55,
+      "minimum_bpm": 48,
+      "maximum_bpm": 66
+    },
+    "reference_display": {
+      "resource": "practice-reference-v2-7fb9dc57434bc222dd0f",
+      "renderer": "MuseScore Studio 4.6.3",
+      "layout_mode": "natural",
+      "geometry": {
+        "logical_width": 1330,
+        "logical_height": 574,
+        "systems": [
+          {
+            "index": 1,
+            "first_measure": 1,
+            "last_measure": 4,
+            "staff_line_y": [
+              164,
+              176,
+              188,
+              200,
+              212
+            ],
+            "barline_x": [
+              54,
+              374.4100455561733,
+              688.6410901484276,
+              972.9788057803146,
+              1276.0397486611125
+            ]
+          },
+          {
+            "index": 2,
+            "first_measure": 5,
+            "last_measure": 8,
+            "staff_line_y": [
+              340,
+              352,
+              364,
+              376,
+              388
+            ],
+            "barline_x": [
+              54,
+              472.9104871610269,
+              781.4394048476119,
+              1059.716342692584,
+              1276.0446364290854
+            ]
+          }
+        ]
+      },
+      "content_type": "image/png",
+      "sha256": "20b3a0d8949ce65727d431a742a00d41a9bd5f5b37567a6f2650344bf1fff968",
+      "size_bytes": 61102,
+      "pixel_width": 2660,
+      "pixel_height": 1148
+    }
+  }
+]

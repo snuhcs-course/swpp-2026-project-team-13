@@ -10,6 +10,7 @@ def absolute(request, path):
 
 def question_json(request, metadata):
     result = copy.deepcopy(metadata)
+    result.pop("reference_display", None)  # Asset filename is an authoring detail.
     question_id, version = result["id"], result["version"]
     result["sheet_layout"]["template_png_url"] = absolute(request, f'/assets/sheets/{result["sheet_layout"]["id"]}.png')
     for kind, asset in result["score_assets"].items():

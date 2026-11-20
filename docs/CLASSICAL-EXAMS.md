@@ -48,7 +48,7 @@ MusicXML 파서는 고정 조표 −7…+7, 장·단조를 지원하며 중간 �
 
 기본 그랜드 피아노는 일반 청음·클래식·미니게임 모두 미니게임의 YDP Grand Piano를 사용한다. `ClassicalPiano.load()`가 같은 SoundFont, 프로그램·뱅크, velocity 76, gain −3 dB와 해시를 적용한다. 기존 음색 선택의 그랜드 피아노 ID를 유지하므로 저장된 기본 설정에도 적용된다. 다른 악기 선택과 예비박은 유지된다. 서버 응시의 기존 재생 계약·시간표는 바꾸지 않는다.
 
-작곡가 선택은 큰 격자 카드이며 초상화를 흑백·낮은 불투명도로 배경에 배치한다. 출처는 화면의 정보 버튼과 `Resources/composer-portraits.json`에 있다. 6개 역사적 초상화 축소본은 번들에 저장했다. 사티의 [Studio Hamelle 초상화](https://commons.wikimedia.org/wiki/File:Erik_Satie_portrait.jpg)는 CC0 원본의 크기와 SHA-1을 고정하고 CI에서 다운로드해 이미지 번들에 포함한다. 다운로드 전 소스 실행에서는 같은 원본으로 온라인 미리보기를 표시하며, 그림을 읽지 못해도 문제 응시에는 영향이 없다.
+작곡가 선택은 큰 격자 카드이며 초상화를 흑백·낮은 불투명도로 배경에 배치한다. 출처는 화면의 정보 버튼과 `Resources/composer-portraits.json`에 있다. 8개 역사적 초상화 축소본은 번들에 저장했다. 사티의 [Studio Hamelle 초상화](https://commons.wikimedia.org/wiki/File:Erik_Satie_portrait.jpg)는 기존 앱의 온라인 미리보기를 사용한다. 선택적으로 원본 JPEG를 `composer-satie.imageset`에 넣으면 번들을 우선 사용하며, 이 경우에도 고정된 크기와 SHA-1을 검증한다. CI에서는 외부 사진을 다운로드하지 않으므로 Wikimedia 요청 제한 때문에 앱 빌드가 중단되지 않는다. 그림을 읽지 못해도 문제 응시에는 영향이 없다.
 
 ## 실행과 검증
 
@@ -66,7 +66,8 @@ docker compose --env-file backend/.env up -d --build --wait api worker
 ```powershell
 cd C:\Users\123wh\Desktop\solfege\sori-github
 python -m unittest discover -s scripts -p "test_*.py"
-python scripts/fetch_composer_portraits.py
+python scripts/fetch_composer_portraits.py --check
+python scripts/test_composer_portraits.py
 ```
 
 재생성은 클래식 전용 스크립트만 사용한다. 기존 62문제는 재생성하지 않는다.

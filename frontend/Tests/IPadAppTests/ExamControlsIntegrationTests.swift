@@ -148,19 +148,19 @@ import ImageIO
         XCTAssertNil(model.error); XCTAssertEqual(model.screen,.result)
         XCTAssertEqual(model.resultLibraryScreen,.classical)
     }
-    func testScaleNoticeUsesActualScaleKeyAndRendersBeforePlayback() async throws {
+    func testScaleProgressUsesActualKeyAndKeepsTheHeaderLayout() async throws {
         let model = AppModel(demoScope:demoScope); model.demo = true
         await model.connect(); await model.loadClassical()
         let q = try XCTUnwrap(model.classicalQuestions.first(where: { $0.composer == "브람스" && $0.keySignature.mode == "minor" }))
         await model.choose(q.id,mode:.practice); await model.begin()
-        XCTAssertNil(model.error); XCTAssertTrue(model.player.showsScaleNotice)
+        XCTAssertNil(model.error); XCTAssertEqual(model.player.cursor.progressIndex,0)
         XCTAssertEqual(model.player.scaleKey,q.keySignature)
         XCTAssertEqual(model.player.scaleKey?.mode,"minor")
         let renderer = ImageRenderer(content:ExamView(model:model,drawing:model.drawing,player:model.player).frame(width:1194,height:834))
         renderer.scale = 2
-        let attachment = XCTAttachment(image:try XCTUnwrap(renderer.uiImage)); attachment.name = "exam-scale-notice"; attachment.lifetime = .keepAlways; add(attachment)
+        let attachment = XCTAttachment(image:try XCTUnwrap(renderer.uiImage)); attachment.name = "exam-scale-progress"; attachment.lifetime = .keepAlways; add(attachment)
         model.player.restore(PlaybackCursor(index:1,phase:"segment"))
-        XCTAssertFalse(model.player.showsScaleNotice)
+        XCTAssertEqual(model.player.cursor.progressIndex,1)
     }
     func testDemoToggleAppliesImmediatelyAndPersistsAcrossTabsAndAppModels() async throws {
         let defaults = UserDefaults.standard

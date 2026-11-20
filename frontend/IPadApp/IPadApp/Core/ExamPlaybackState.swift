@@ -14,6 +14,8 @@ struct PlaybackCursor: Codable, Equatable {
         return shortenedGap != true || index < 10
     }
     var nextSegmentIndex: Int? { phase == "gap" && shortenedGap == true ? index + 1 : nil }
+    // The progress indicator follows the requested target during its lead-in.
+    var progressIndex: Int { min(12,max(0,nextSegmentIndex ?? index)) }
     @discardableResult mutating func skipForward() -> Bool {
         guard canSkipForward else { return false }
         // A gap cursor belongs to the preceding segment. Further taps move the
@@ -23,5 +25,26 @@ struct PlaybackCursor: Codable, Equatable {
         phase = "gap"; shortenedGap = true; segmentOffsetMs = nil
         remainingWaitMs = min(remaining ?? Self.nextSegmentLeadMs,Self.nextSegmentLeadMs)
         return true
+    }
+}
+
+struct WritingTimerState: Equatable {
+    var text: String
+    var caption: String
+    var urgent: Bool
+    init(cursor: PlaybackCursor, plan: PlaybackPlan?, isPlaying: Bool) {
+        urgent = false
+        guard cursor.index <= 11 else { text = "0:00"; caption = "필기 시간 종료"; return }
+        guard cursor.index > 0, cursor.phase == "gap", cursor.shortenedGap != true else {
+            text = "—:—"
+            caption = !isPlaying ? (cursor.phase == "initial" ? "재생 대기" : "일시정지") : cursor.shortenedGap == true ? "다음 구간 준비" : "재생 중"
+            return
+        }
+        let limit = plan.flatMap { $0.steps.indices.contains(cursor.index-1) ? $0.steps[cursor.index-1].pauseAfterMs : nil }
+            ?? (cursor.index == 11 ? 120_000 : 20_000)
+        let seconds = max(0,((cursor.remainingWaitMs ?? limit)+999)/1000)
+        text = String(format:"%d:%02d",seconds/60,seconds%60)
+        caption = isPlaying ? "필기 남은 시간" : "일시정지"
+        urgent = isPlaying && (1...5).contains(seconds)
     }
 }

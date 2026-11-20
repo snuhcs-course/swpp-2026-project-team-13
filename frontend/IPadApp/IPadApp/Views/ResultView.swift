@@ -1,21 +1,22 @@
 import SwiftUI
 
-private struct PracticeMeasureSelection: Identifiable { let id: Int }
-
 struct ResultView: View {
     @ObservedObject var model: AppModel
     @State private var selectedAnnotation: String?
     @State private var showOriginal = false
-    @State private var selectedMeasure: PracticeMeasureSelection?
     var body: some View {
+        Group {
+            if model.session?.attempt.studyMode == .practice { PracticeResultView(model:model) }
+            else { examResult }
+        }
+    }
+    private var examResult: some View {
         ScrollViewReader { scroll in
             ScrollView {
                 VStack(alignment:.leading,spacing:24) {
                     SectionCaption(eyebrow:"YOUR LISTENING, IN NOTES",title:title,subtitle:model.session?.attempt.question.title ?? "")
                     if model.demo { DemoBadge() }
-                    if model.session?.attempt.studyMode == .practice {
-                        practiceResult
-                    } else if let grading = model.session?.grading {
+                    if let grading = model.session?.grading {
                         Text("AI가 제공하는 학습 참고용 평가입니다. 실제 필기와 정답 악보도 함께 확인해 주세요.").font(.footnote).foregroundStyle(.secondary)
                         switch grading.status {
                         case "queued", "processing": pending(grading)
@@ -63,21 +64,7 @@ struct ResultView: View {
                 }.padding(24).frame(maxWidth:1100,alignment:.leading).frame(maxWidth:.infinity)
             }
             .task(id:model.pollGeneration) { await model.poll() }
-            .onChange(of:model.session?.id) { _, _ in selectedAnnotation = nil; selectedMeasure = nil }
-            .popover(item:$selectedMeasure) { selection in
-                VStack(alignment:.leading,spacing:16) {
-                    Text("\(selection.id)마디").font(.headline)
-                    Text("여러 항목을 함께 선택할 수 있어요.").font(.caption).foregroundStyle(.secondary)
-                    ForEach(SelfAssessmentErrorType.allCases) { type in
-                        let checked = model.practiceErrors.first(where: { $0.measure == selection.id })?.types.contains(type.rawValue) == true
-                        Button { model.togglePracticeError(measure:selection.id,type:type) } label: {
-                            HStack { Text(type.title); Spacer(); Image(systemName:checked ? "checkmark.square.fill" : "square") }
-                        }.buttonStyle(.bordered).accessibilityIdentifier("self-assess-type-\(type.rawValue)")
-                    }
-                    Button("닫기") { selectedMeasure = nil }.frame(maxWidth:.infinity)
-                }.padding(20).frame(width:260).disabled(model.busy || model.session?.selfAssessmentSave != nil || model.practiceHasConflict)
-                    .presentationCompactAdaptation(.popover)
-            }
+            .onChange(of:model.session?.id) { _, _ in selectedAnnotation = nil }
             .sheet(isPresented:$showOriginal) {
                 NavigationStack {
                     ScrollView { if let image = model.submittedImage { Image(uiImage:image).resizable().scaledToFit().padding() } }
@@ -85,45 +72,6 @@ struct ResultView: View {
                         .toolbar { ToolbarItem(placement:.confirmationAction) { Button("닫기") { showOriginal = false } } }
                 }
             }
-        }
-    }
-    private var practiceResult: some View {
-        VStack(alignment:.leading,spacing:20) {
-            Text("정답과 내 악보를 비교하고, 내 악보에서 틀린 마디를 눌러 주세요.").font(.subheadline).foregroundStyle(.secondary)
-            if let review = model.session?.selfAssessment {
-                Card { VStack(alignment:.leading,spacing:10) {
-                    Label(review.isCompleted && model.session?.practiceEdits == nil && model.session?.selfAssessmentSave == nil ? "자기채점 완료" : "마디별 자기채점",systemImage:"checkmark.square").font(.headline)
-                    Text("오류를 표시한 마디 \(model.practiceErrors.count) / \(model.session?.attempt.question.measureCount ?? 8)").font(.subheadline)
-                    if model.session?.practiceEdits != nil { Text("수정한 표시는 이 iPad에 보관되어 있어요. 저장 버튼으로 기록을 반영해 주세요.").font(.caption).foregroundStyle(.secondary) }
-                } }
-            }
-            comparison(nil).id("score-comparison")
-            if model.session?.selfAssessmentSave != nil {
-                messageCard("저장 응답을 확인하지 못했어요",detail:"입력한 표시는 보관되어 있어요. 같은 내용으로 저장을 복구해 주세요.",icon:"arrow.clockwise")
-                Button("자기채점 저장 복구") { Task { await model.savePracticeAssessment(completed:model.session?.selfAssessmentSave?.request.completed ?? false) } }.buttonStyle(PrimaryButton())
-            } else if model.practiceHasConflict {
-                messageCard("채점 기록이 변경됐어요",detail:"현재 iPad의 표시를 유지하거나 서버에 저장된 표시를 적용할 수 있어요.",icon:"arrow.triangle.2.circlepath")
-                HStack {
-                    Button("서버 표시 적용") { model.useServerPracticeAssessment() }.buttonStyle(.bordered)
-                    Button("내 표시를 유지하고 다시 검토") { model.keepLocalPracticeEdits() }.buttonStyle(.bordered)
-                }
-            } else if let review = model.session?.selfAssessment {
-                Text("표시하지 않은 마디는 오류를 발견하지 않은 마디로 저장돼요. 음정·리듬·기타는 중복 선택할 수 있어요.").font(.footnote).foregroundStyle(.secondary)
-                HStack {
-                    Button("임시 저장") { Task { await model.savePracticeAssessment(completed:false) } }.buttonStyle(.bordered)
-                        .disabled(model.busy || model.session?.practiceEdits == nil || !model.practiceComparisonReady)
-                    Button(model.practiceErrors.isEmpty ? "오류 표시 없이 채점 완료" : "채점 완료") { Task { await model.savePracticeAssessment(completed:true) } }.buttonStyle(PrimaryButton())
-                        .disabled(model.busy || !model.practiceComparisonReady || (review.isCompleted && model.session?.practiceEdits == nil))
-                }
-                if let item = model.dailyPracticeItem {
-                    // Daily Training moves on only when the user asks, once grading is saved as complete.
-                    if review.isCompleted && model.session?.practiceEdits == nil {
-                        DailyNextButton(nextTitle:model.dailyNextTitle(after:item.id)) { model.advanceDaily() }.disabled(model.busy)
-                    }
-                } else {
-                    Button { if let id = model.session?.attempt.question.id { Task { await model.choose(id,mode:.practice) } } } label: { Label("새 Practice 시작하기",systemImage:"arrow.clockwise") }.buttonStyle(.bordered)
-                }
-            } else { Text("자기채점 기록을 불러오지 못했어요. 결과 새로고침으로 다시 시도해 주세요.").font(.subheadline) }
         }
     }
     private func comparison(_ grading: Grading?) -> some View {
@@ -142,9 +90,7 @@ struct ResultView: View {
             }
             if let image = model.submittedImage, let layout = model.session?.attempt.question.sheetLayout {
                 CompactAnswerView(image:image,layout:layout,annotation:grading?.annotations.first(where: { $0.id == selectedAnnotation }),
-                    measureErrors:model.practiceErrors,reviewMode:model.session?.attempt.studyMode == .practice,
-                    selectedMeasure:selectedMeasure?.id,
-                    onMeasureTap:model.session?.attempt.studyMode == .practice && model.session?.selfAssessment != nil && model.session?.selfAssessmentSave == nil && !model.practiceHasConflict ? { measure in selectedMeasure = PracticeMeasureSelection(id:measure) } : nil)
+                    measureErrors:[])
                     .clipShape(RoundedRectangle(cornerRadius:12))
             } else { Text("제출 이미지를 불러오는 중이에요.").font(.subheadline).foregroundStyle(.secondary) }
         }

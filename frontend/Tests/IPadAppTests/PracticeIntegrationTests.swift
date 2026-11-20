@@ -3,6 +3,35 @@ import SwiftUI
 @testable import IPadApp
 
 @MainActor final class PracticeIntegrationTests: XCTestCase {
+    func testCompleteReviewSavesThenReturnsToPracticeAndDoesNotSaveTwice() async throws {
+        let model = AppModel(demoScope:"practice-finish-"+UUID().uuidString); model.demo = true
+        await model.connect(); await model.choose(try XCTUnwrap(model.questions.first?.id),mode:.practice)
+        await model.begin(); await model.start(); model.player.pause(); await model.submit()
+        XCTAssertNil(model.error)
+        model.togglePracticeError(measure:8,type:.rhythm)
+        let cursor = model.session?.cursor
+        let completed = await model.finishPracticeAssessment()
+        XCTAssertTrue(completed); XCTAssertNil(model.error); XCTAssertEqual(model.screen,.home)
+        XCTAssertEqual(model.session?.selfAssessment?.errors,[MeasureError(measure:8,types:["rhythm"])])
+        XCTAssertEqual(model.session?.selfAssessment?.isCompleted,true)
+        XCTAssertEqual(model.session?.cursor,cursor)
+        let revision = model.session?.selfAssessment?.revision
+        let again = await model.finishPracticeAssessment()
+        XCTAssertTrue(again); XCTAssertEqual(model.session?.selfAssessment?.revision,revision)
+    }
+    func testCompleteReviewFirstReconcilesPendingTemporarySave() async throws {
+        let model = AppModel(demoScope:"practice-finish-retry-"+UUID().uuidString); model.demo = true
+        await model.connect(); await model.choose(try XCTUnwrap(model.questions.first?.id),mode:.practice)
+        await model.begin(); await model.start(); model.player.pause(); await model.submit()
+        XCTAssertNil(model.error)
+        let revision = try XCTUnwrap(model.session?.selfAssessment?.revision)
+        model.session?.selfAssessmentSave = PendingSelfAssessment(key:UUID(),request:SelfAssessmentWrite(expectedRevision:revision,errors:[],completed:false))
+        let result = await model.finishPracticeAssessment()
+        XCTAssertTrue(result); XCTAssertNil(model.error)
+        XCTAssertEqual(model.session?.selfAssessment?.revision,revision+2)
+        XCTAssertEqual(model.session?.selfAssessment?.isCompleted,true)
+        XCTAssertNil(model.session?.selfAssessmentSave); XCTAssertEqual(model.screen,.home)
+    }
     func testOnlyStartedPracticeReplacesTheSlotAndCompletionDoesNotRestoreAnOlderOne() async throws {
         let scope = "practice-slot-" + UUID().uuidString
         let model = AppModel(demoScope: scope); model.demo = true

@@ -195,7 +195,7 @@ class FlowTests(TestCase):
         self.assertEqual(attempt.question_snapshot,snapshot);self.assertEqual(attempt.playback_plan,plan)
         self.assertEqual(plan["tempo_bpm"],80)
         current=self.client.get(f'/api/v1/questions/{old.question_id}/').data
-        self.assertEqual(current["version"],3);self.assertEqual(current["tempo"]["bpm"],100)
+        self.assertEqual(current["version"],4);self.assertEqual(current["tempo"]["bpm"],100)
         order=json.loads((settings.CONTENT_ROOT/"classical-question-order.json").read_text(encoding="utf-8"))
         self.assertEqual(old.question.order,1001+order.index(str(old.question_id)))
 
@@ -213,7 +213,7 @@ class FlowTests(TestCase):
         attempt=Attempt.objects.create(user=self.user,question_version=old,question_snapshot=snapshot,playback_plan=legacy)
         call_command("seed_questions",verbosity=0)
         current.question.refresh_from_db();old.refresh_from_db()
-        self.assertEqual(current.question.current_version,4)
+        self.assertEqual(current.question.current_version,5)
         self.assertEqual(old.metadata,old_item["metadata"])
         response=self.client.get(f"/api/v1/attempts/{attempt.id}/")
         self.assertEqual(response.data["playback_plan"],legacy)
@@ -233,9 +233,9 @@ class FlowTests(TestCase):
         old_answer=self.upload(restored)
         self.assertEqual(old_answer.status_code,201,old_answer.data)
         current=self.client.get(f"/api/v1/questions/{original.question_id}/").data
-        # v4 (compact) and then v5 (aligned barlines) were published on top of version 2.
-        self.assertEqual(current["version"],4)
-        self.assertTrue(current["sheet_layout"]["id"].endswith("-v5"))
+        # The v4, v5 and MuseScore v6 sheets are new versions on top of version 2.
+        self.assertEqual(current["version"],5)
+        self.assertTrue(current["sheet_layout"]["id"].endswith("-v6"))
         self.assertEqual(current["sheet_layout"]["display_height"],574)
         self.assertEqual(current["sheet_layout"]["systems"][1]["staff_line_y"][0],340)
         self.assertEqual(current["sheet_layout"]["systems"][0]["barline_x"],current["sheet_layout"]["systems"][1]["barline_x"])

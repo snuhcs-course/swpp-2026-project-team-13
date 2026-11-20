@@ -1,0 +1,51 @@
+{
+  "id": "staff-8bars-9-8-key5-v6",
+  "logical_width": 1330,
+  "logical_height": 846,
+  "pixel_width": 2660,
+  "pixel_height": 1692,
+  "export_scale": 2,
+  "display_height": 574,
+  "systems": [
+    {
+      "index": 1,
+      "first_measure": 1,
+      "last_measure": 4,
+      "staff_line_y": [
+        164,
+        176,
+        188,
+        200,
+        212
+      ],
+      "barline_x": [
+        54,
+        478.867,
+        744.578,
+        1010.289,
+        1276
+      ]
+    },
+    {
+      "index": 2,
+      "first_measure": 5,
+      "last_measure": 8,
+      "staff_line_y": [
+        340,
+        352,
+        364,
+        376,
+        388
+      ],
+      "barline_x": [
+        54,
+        478.867,
+        744.578,
+        1010.289,
+        1276
+      ]
+    }
+  ],
+  "template_sha256": "07fb0bead762a0ec790b5f9d82785ecf40dd69a573a1ee8f2840c4efeb23841a",
+  "template_png_url": "https://api.sori.example/assets/sheets/staff-8bars-9-8-key5-v6.png"
+}

@@ -2,7 +2,7 @@
   "openapi": "3.0.3",
   "info": {
     "title": "solfège iPad Exam API",
-    "version": "0.13.0",
+    "version": "0.14.0",
     "description": "solfège iPad practice and exam API. Practice uses immediate measure-level self-assessment without an AI job; Exam retains asynchronous OpenRouter grading and Korean feedback. Attempt snapshots pin the problem, playback plan and Feature v1 analysis. API-CONTRACT.md defines invariants; legacy requests without mode remain Exam. Password login uses one persistent, revocable DRF bearer token per user and shared PostgreSQL login limits. Signup, signup availability and account deletion from API contract v0.8.0 are implemented. Items marked x-status: planned (grading quotas) are defined by contract v0.8.0 and are not implemented yet. From contract v0.8.0, absolute URLs in responses (asset urls, image_url, template_png_url, next/previous, Location) use the public origin that received the request, including behind an HTTPS proxy. A proxy in front of the server may return non-contract error responses (HTML body, no X-Request-ID) when the server is unavailable or the request is blocked; clients treat an undecodable error other than 401 as a server connection problem, do not branch on error.code, and never change authentication state for it. Server 401 responses always use the contract format. Version 0.9.0 adds authenticated, idempotent Rhythm Puzzle drill observations with server-side sounding-time regrading; all authentication and Practice/Exam contracts are retained. Version 0.10.0 makes learning_goal optional at signup: an omitted goal is stored and returned as null until PATCH /me/ sets one, and null means not chosen yet, unlike other. Version 0.11.0 adds POST /auth/username-check/, an advisory public username availability check with its own per-IP limit; signup 409 USERNAME_TAKEN stays authoritative."
   },
   "servers": [
@@ -2870,6 +2870,78 @@
           }
         }
       }
+    },
+    "/content/manifest/": {
+      "get": {
+        "operationId": "getContentManifest",
+        "tags": [
+          "Content"
+        ],
+        "summary": "Get authenticated, immutable minigame assets",
+        "responses": {
+          "200": {
+            "description": "Filename to same-origin hash-pinned descriptor. No server storage paths or user files.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ContentManifest"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Error401"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error404"
+          }
+        }
+      }
+    },
+    "/content/assets/{sha256}/": {
+      "get": {
+        "operationId": "getContentAsset",
+        "tags": [
+          "Content"
+        ],
+        "summary": "Download a published minigame asset by SHA-256",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "sha256",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[a-f0-9]{64}$"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Immutable bytes. SHA-256 ETag; private, max-age=31536000, immutable. Exact size and hash must match the manifest.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              },
+              "application/xml": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Error401"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error404"
+          }
+        }
+      }
     }
   },
   "components": {
@@ -3120,6 +3192,10 @@
             },
             "minItems": 2,
             "maxItems": 2
+          },
+          "display_height": {
+            "type": "integer",
+            "minimum": 1
           }
         },
         "required": [
@@ -4960,6 +5036,16 @@
           },
           "renderer": {
             "type": "string"
+          },
+          "geometry": {
+            "$ref": "#/components/schemas/PracticeReviewGeometry"
+          },
+          "layout_mode": {
+            "type": "string",
+            "enum": [
+              "equal",
+              "natural"
+            ]
           }
         },
         "required": [
@@ -5511,6 +5597,88 @@
         "description": "Clients ignore unknown fields; more fields may be added.",
         "example": {
           "available": true
+        }
+      },
+      "PracticeReviewGeometry": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "logical_width": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 4096
+          },
+          "logical_height": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 2048
+          },
+          "systems": {
+            "type": "array",
+            "minItems": 2,
+            "maxItems": 2,
+            "items": {
+              "$ref": "#/components/schemas/SheetSystem"
+            }
+          }
+        },
+        "required": [
+          "logical_width",
+          "logical_height",
+          "systems"
+        ]
+      },
+      "ContentAsset": {
+        "type": "object",
+        "required": [
+          "url",
+          "sha256",
+          "size_bytes",
+          "content_type"
+        ],
+        "properties": {
+          "url": {
+            "type": "string",
+            "format": "uri"
+          },
+          "sha256": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{64}$"
+          },
+          "size_bytes": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 8388608
+          },
+          "content_type": {
+            "type": "string",
+            "enum": [
+              "application/json",
+              "application/xml"
+            ]
+          }
+        }
+      },
+      "ContentManifest": {
+        "type": "object",
+        "required": [
+          "version",
+          "assets"
+        ],
+        "properties": {
+          "version": {
+            "type": "integer",
+            "enum": [
+              1
+            ]
+          },
+          "assets": {
+            "type": "object",
+            "maxProperties": 5000,
+            "additionalProperties": {
+              "$ref": "#/components/schemas/ContentAsset"
+            }
+          }
         }
       }
     },

@@ -29,11 +29,11 @@ extension AppModel {
               let id = selectedQuestion?.id ?? session?.attempt.question.id, item.questionId == id else { return nil }
         return item
     }
-    // Memory run is bundled. Rhythm puzzle and Practice need the server, except in the local demo.
+    // Live catalogs are server-owned. The local demo uses its bundled sample pack.
     func dailyAvailable(_ item: DailyItem) -> Bool {
         let reachable = demo || NetworkStatus.shared.online
         switch item.kind {
-        case .memoryRun: return true
+        case .memoryRun: return rhythmConnection != nil && reachable
         case .rhythmPuzzle: return rhythmConnection != nil && reachable
         case .practice: return connected && reachable && item.questionId != nil
         }

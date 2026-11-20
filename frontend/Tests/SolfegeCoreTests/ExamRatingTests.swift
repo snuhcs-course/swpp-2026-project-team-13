@@ -10,6 +10,41 @@ final class ExamRatingTests: XCTestCase {
         }
         var vectors: [Row]
     }
+    private struct Seeded: RandomNumberGenerator {
+        var value: UInt64
+        mutating func next() -> UInt64 { value = value &* 6364136223846793005 &+ 1442695040888963407; return value }
+    }
+    func testSmallDemoPreservesAllThreeChoicesForEveryDraw() throws {
+        let catalog = try ContractJSON.decoder().decode([Question].self,from:Data(contentsOf:resources.appendingPathComponent("small-demo-catalog.json")))
+        let pools = try ContractJSON.decoder().decode(QuestionPoolManifest.self,from:Data(contentsOf:resources.appendingPathComponent("small-demo-pools.json")))
+        let difficulty = try ContractJSON.decoder().decode(PracticeDifficultyManifest.self,from:Data(contentsOf:resources.appendingPathComponent("small-demo-difficulty.json")))
+        let candidates = catalog.filter { pools.contains($0.id,in:"exam") }.map { difficulty.annotating($0) }
+        XCTAssertEqual(candidates.count,3)
+        for seed in 0..<64 {
+            var rng = Seeded(value:UInt64(seed))
+            let choices = ExamRatingModel.choices(rating:7,questions:candidates,using:&rng)
+            XCTAssertEqual(Set(choices.compactMap(\.questionId)),Set(candidates.map(\.id)),"Seed \(seed)")
+            try ExamOffer(id:UUID(),poolVersion:pools.version,rating:ExamRatingState(),choices:choices).validate()
+        }
+    }
+    func testSparseBanksKeepTheRemainingDirectionalChoice() throws {
+        let catalog = try ContractJSON.decoder().decode([Question].self,from:Data(contentsOf:resources.appendingPathComponent("small-demo-catalog.json")))
+        let base = try XCTUnwrap(catalog.first)
+        for (scores,missing) in [([6.0,6.1],"challenge"),([7.1,7.2],"easy")] {
+            let candidates: [Question] = scores.enumerated().map { index,score in
+                var question = base
+                question.id = UUID(uuidString:String(format:"00000000-0000-0000-0000-%012d",index+1))!
+                question.difficultyScore = score
+                return question
+            }
+            for seed in 0..<32 {
+                var rng = Seeded(value:UInt64(seed))
+                let choices = ExamRatingModel.choices(rating:7,questions:candidates,using:&rng)
+                XCTAssertEqual(choices.filter { $0.questionId == nil }.map(\.category),[missing],"Seed \(seed)")
+                XCTAssertEqual(Set(choices.compactMap(\.questionId)).count,2)
+            }
+        }
+    }
     func testServerAndDemoNumericalParityAcrossAllScaleBoundaries() throws {
         let file = resources.appendingPathComponent("exam-rating-vectors.json")
         let data = try ContractJSON.decoder().decode(Vectors.self,from:Data(contentsOf:file))

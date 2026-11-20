@@ -10,6 +10,7 @@ final class ExamPlaybackStateTests: XCTestCase {
             XCTAssertEqual(cursor.index,index); XCTAssertEqual(cursor.phase,"gap")
             XCTAssertEqual(cursor.remainingWaitMs,1500); XCTAssertEqual(cursor.shortenedGap,true)
             XCTAssertEqual(cursor.nextSegmentIndex,index+1)
+            XCTAssertEqual(cursor.progressIndex,index+1,"The progress bar moves before the audio lead completes")
             let restored = try ContractJSON.decoder().decode(PlaybackCursor.self,from:ContractJSON.encoder().encode(cursor))
             XCTAssertEqual(restored,cursor)
         }
@@ -54,5 +55,22 @@ final class ExamPlaybackStateTests: XCTestCase {
         XCTAssertNil(legacy.segmentOffsetMs)
         XCTAssertTrue(cursor.skipForward())
         XCTAssertNil(cursor.segmentOffsetMs)
+    }
+    func testTimerShowsOnlyWritingTimeAndDoesNotInventTimeWhileListening() {
+        for index in 0...11 {
+            let listening = WritingTimerState(cursor:PlaybackCursor(index:index,phase:"segment"),plan:nil,isPlaying:true)
+            XCTAssertEqual(listening.text,"—:—"); XCTAssertFalse(listening.urgent)
+        }
+        var cursor = PlaybackCursor(index:3,phase:"gap",remainingWaitMs:18001)
+        XCTAssertEqual(WritingTimerState(cursor:cursor,plan:nil,isPlaying:true).text,"0:19")
+        cursor.remainingWaitMs = 5000
+        XCTAssertTrue(WritingTimerState(cursor:cursor,plan:nil,isPlaying:true).urgent)
+        let paused = WritingTimerState(cursor:cursor,plan:nil,isPlaying:false)
+        XCTAssertEqual(paused.text,"0:05"); XCTAssertEqual(paused.caption,"일시정지"); XCTAssertFalse(paused.urgent)
+        cursor.shortenedGap = true
+        let next = WritingTimerState(cursor:cursor,plan:nil,isPlaying:true)
+        XCTAssertEqual(next.text,"—:—"); XCTAssertEqual(next.caption,"다음 구간 준비")
+        XCTAssertEqual(WritingTimerState(cursor:PlaybackCursor(index:11,phase:"gap"),plan:nil,isPlaying:true).text,"2:00")
+        XCTAssertEqual(WritingTimerState(cursor:PlaybackCursor(index:12,phase:"gap"),plan:nil,isPlaying:true).caption,"필기 시간 종료")
     }
 }

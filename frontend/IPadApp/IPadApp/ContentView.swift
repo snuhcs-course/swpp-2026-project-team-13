@@ -72,7 +72,7 @@ struct ContentView: View {
                     }
                 }
             }
-            .toolbar([.main,.home,.practiceLevels,.practiceQuestions,.recommendingExam,.examSelection].contains(model.screen) ? .hidden : .automatic, for: .navigationBar)
+            .toolbar([.main,.home,.practiceLevels,.practiceQuestions,.recommendingExam,.examSelection].contains(model.screen) || (model.screen == .result && model.session?.attempt.studyMode == .practice) ? .hidden : .automatic, for: .navigationBar)
             .toolbarBackground(SolfegeTheme.background, for: .navigationBar)
             .overlay { if model.screen != .recommendingExam { busyOverlay } }
         }

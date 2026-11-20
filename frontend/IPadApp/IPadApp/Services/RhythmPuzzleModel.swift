@@ -18,7 +18,9 @@ import SwiftUI
     @Published var level = "beginner"
     @Published private(set) var selectedTiePiece: RhythmPlacement?
     @Published private(set) var completedSetCount = 5
-    private(set) var engraving: RhythmEngraving?
+    @Published private(set) var engraving: RhythmEngraving?
+    @Published private(set) var contentLoading = false
+    private var contentProvider: TrainingContentProvider?
     @Published var exportURL: URL?
     let audio = RhythmPuzzleAudio()
     let connection: RhythmConnection?
@@ -60,30 +62,50 @@ import SwiftUI
     init(connection: RhythmConnection?) {
         self.connection = connection
         do {
-            let data = try Bundled.data("rhythm-puzzle-v3",ext:"json")
+            if let connection, !connection.demo { contentProvider = try TrainingContentProvider(connection:connection) }
+            else {
+                let data = try DemoContent.data("rhythm-puzzle-v3")
+                let ink = try DemoContent.data("rhythm-engraving-v3")
+                let legacy: [Data]
+                if DemoContent.hasFullBank { legacy = try ["rhythm-puzzle-v1","rhythm-puzzle-v2"].map { try Bundled.data($0,ext:"json") } }
+                else { legacy = [] }
+                try installCatalog(data,ink:ink,legacy:legacy)
+            }
+            guard let connection else { return }
+            let root = try LocalStore(scope:connection.scope).root
+            let local = try RhythmPuzzleStore(root:root)
+            store = local; journal = try local.load()
+        } catch { self.error = error.localizedDescription }
+    }
+    private func installCatalog(_ data: Data, ink: Data, legacy: [Data]) throws {
             var bank = try ContractJSON.decoder().decode(RhythmCatalog.self,from:data)
             try bank.validate(); catalogHash = data.sha256
             currentRoundIds = Set(bank.rounds.map(\.id)); catalogVersions[catalogHash] = bank.version
-            let ink: RhythmEngraving = try Bundled.decode("rhythm-engraving-v3")
-            guard ink.catalogSha256 == catalogHash, bank.tiles.allSatisfy({ ink.tiles[$0.id]?.symbolXs.count == $0.symbols.count }) else {
+            let drawing = try ContractJSON.decoder().decode(RhythmEngraving.self,from:ink)
+            guard drawing.catalogSha256 == catalogHash, bank.tiles.allSatisfy({ drawing.tiles[$0.id]?.symbolXs.count == $0.symbols.count }) else {
                 throw SolfegeError.invalidScore("리듬 악보와 문제 버전이 다릅니다.")
             }
-            engraving = ink
-            for name in ["rhythm-puzzle-v1", "rhythm-puzzle-v2"] {
-                let legacyData = try Bundled.data(name,ext:"json")
+            engraving = drawing
+            for legacyData in legacy {
                 let legacy = try ContractJSON.decoder().decode(RhythmCatalog.self,from:legacyData)
                 catalogVersions[legacyData.sha256] = legacy.version
                 bank.rounds += legacy.rounds
             }
             catalog = bank; tiles = bank.tileMap
-            guard let connection else { return }
-            let root = try LocalStore(scope:connection.scope).root
-            let local = try RhythmPuzzleStore(root:root)
-            store = local; journal = try local.load()
             if let draft, catalogVersions[draft.record.catalogSha256] == nil {
                 message = "저장된 진행은 이전 문제 버전이에요. 기록은 보관되며 새 세트를 시작할 수 있어요."
             }
-        } catch { self.error = error.localizedDescription }
+    }
+    func prepareContent() async {
+        guard catalog == nil, !contentLoading, let contentProvider else { return }
+        contentLoading = true; defer { contentLoading = false }
+        do {
+            let data = try await contentProvider.data("rhythm-puzzle-v3.json")
+            let ink = try await contentProvider.data("rhythm-engraving-v3.json")
+            var legacy: [Data] = []
+            for name in ["rhythm-puzzle-v1.json","rhythm-puzzle-v2.json"] { legacy.append(try await contentProvider.data(name)) }
+            try Task.checkCancellation(); try installCatalog(data,ink:ink,legacy:legacy)
+        } catch { if !Task.isCancelled { self.error = error.localizedDescription } }
     }
     private func save() {
         do {

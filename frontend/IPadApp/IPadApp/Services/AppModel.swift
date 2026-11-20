@@ -120,7 +120,7 @@ import PencilKit
         return base != current
     }
     var practiceComparisonReady: Bool {
-        submittedImage != nil && (correctScoreImage != nil || (session?.attempt.question.correctScore == nil && mainScore != nil))
+        submittedImage != nil && (correctScoreImage != nil || (demo && session.map { PracticeReferenceAssets.reference(for:$0.attempt.question) != nil } == true) || (session?.attempt.question.correctScore == nil && mainScore != nil))
     }
 
     init(httpSession: URLSession? = nil, demoScope: String? = nil) {
@@ -357,7 +357,7 @@ import PencilKit
     func logout() async {
         guard let base = URL(string: server), Origin(base) != nil, let token = authentication.token else { return }
         if !isLocked { saveDrawing(drawing.canvas.drawing) }
-        player.pause(); drawing.freeze(true)
+        player.invalidateAudio(); drawing.freeze(true)
         operationGeneration = UUID(); busy = false; pollGeneration = UUID()
         logoutNeedsConfirmation = false; logoutFailure = nil; pendingLocalLogout = nil
         let ticket = authentication.begin(base: base)
@@ -390,7 +390,7 @@ import PencilKit
     func deleteAccount() async {
         guard let base = URL(string: server), Origin(base) != nil, let token = authentication.token else { return }
         let local = store
-        player.pause(); drawing.freeze(true)
+        player.invalidateAudio(); drawing.freeze(true)
         operationGeneration = UUID(); busy = false; pollGeneration = UUID()
         logoutNeedsConfirmation = false; logoutFailure = nil; pendingLocalLogout = nil
         let ticket = authentication.begin(base: base)
@@ -665,9 +665,16 @@ import PencilKit
     }
     private func cached(_ name: String, url: URL, authenticated: Bool, sha: String, limit: Int, id: UUID) async throws -> Data {
         guard let store, let api else { throw SolfegeError.storage("저장소가 준비되지 않았습니다.") }
-        if store.exists(name, id: id) { let data = try store.read(name, id: id); if data.sha256 == sha { return data } }
-        let data = try await api.asset(url, authenticated: authenticated, limit: limit)
+        let shared = try? ImmutableContentCache(scope:api.scope)
+        if store.exists(name, id: id) {
+            let data = try store.read(name, id: id)
+            if data.count <= limit, data.sha256 == sha { try? shared?.store(data,sha:sha); return data }
+        }
+        let data: Data
+        if let shared, let hit = try? shared.read(sha:sha,limit:limit) { data = hit }
+        else { data = try await api.asset(url, authenticated: authenticated, limit: limit) }
         guard data.sha256 == sha else { throw SolfegeError.invalidScore("SCORE_HASH_MISMATCH: \(name) 파일의 해시가 다릅니다.") }
+        try? shared?.store(data,sha:sha)
         try store.write(data, name: name, id: id); return data
     }
     private func prepareAssets() async throws {
@@ -719,7 +726,7 @@ import PencilKit
     func submit() async {
         await run("답안을 안전하게 제출하는 중") {
             guard let api = self.api, let store = self.store, var record = self.session else { return }
-            self.player.pause(); self.drawing.freeze(true)
+            self.player.invalidateAudio(); self.drawing.freeze(true)
             // Reconcile before any write: a timed-out submit may already have committed.
             record.attempt = try await api.attempt(record.id); try self.persist(record)
             if record.attempt.status == "submitted" { self.screen = .result; try await self.loadResult(); return }
@@ -814,6 +821,7 @@ import PencilKit
         do {
             guard asset.contentType == "image/png", asset.sizeBytes > 0, asset.sizeBytes <= 2_097_152,
                   asset.pixelWidth > 0, asset.pixelWidth <= 4096, asset.pixelHeight > 0, asset.pixelHeight <= 2048 else { throw SolfegeError.invalidScore("정답 이미지 규격을 확인해 주세요.") }
+            if let geometry = asset.geometry, !geometry.isValid { throw SolfegeError.invalidScore("정답 악보의 마디 위치를 확인해 주세요.") }
             let data = try await cached("correct-score.png", url:asset.url, authenticated:true, sha:asset.sha256, limit:2_097_152, id:record.id)
             guard data.count == asset.sizeBytes, let image = UIImage(data:data), image.cgImage?.width == asset.pixelWidth,
                   image.cgImage?.height == asset.pixelHeight else { throw SolfegeError.invalidScore("정답 이미지의 크기가 일치하지 않습니다.") }
@@ -897,12 +905,38 @@ import PencilKit
         record.practiceEdits = nil; record.practiceBaseRevision = nil
         do { try persist(record) } catch { report(error) }
     }
+    @discardableResult func finishPracticeAssessment() async -> Bool {
+        guard !busy, let id = session?.id, session?.attempt.studyMode == .practice, !practiceHasConflict else { return false }
+        let dailyIndex = dailyPracticeItem?.id
+        if session?.selfAssessment?.isCompleted != true || session?.practiceEdits != nil || session?.selfAssessmentSave != nil {
+            await savePracticeAssessment(completed:true)
+            // First reconcile an interrupted temporary-save operation using its
+            // original key and body, then issue a separate completion request.
+            if session?.id == id, session?.selfAssessment?.isCompleted != true,
+               session?.selfAssessmentSave == nil, !practiceHasConflict, error == nil {
+                await savePracticeAssessment(completed:true)
+            }
+        }
+        // S14 presents explicit keep-local/use-server actions for this state.
+        if practiceHasConflict { error = nil; return false }
+        guard session?.id == id, session?.selfAssessment?.isCompleted == true,
+              session?.practiceEdits == nil, session?.selfAssessmentSave == nil else { return false }
+        releaseCompletedContent()
+        if let dailyIndex { completeDailyItem(dailyIndex); exitDailyItem() }
+        else { navigate(.home) }
+        return true
+    }
+    func leavePracticeReview() {
+        releaseCompletedContent()
+        if dailyPracticeItem != nil { exitDailyItem() }
+        else { navigate(.home) }
+    }
     func keepLocalPracticeEdits() {
         guard !busy, var record = session, record.selfAssessmentSave == nil, let review = record.selfAssessment else { return }
         record.practiceBaseRevision = review.revision
         do { try persist(record) } catch { report(error) }
     }
-    func background() { foreground = false; player.pause(); if !isLocked { saveDrawing(drawing.canvas.drawing) } }
+    func background() { foreground = false; player.invalidateAudio(); if !isLocked { saveDrawing(drawing.canvas.drawing) } }
     func foregroundAgain() async {
         foreground = true; pollGeneration = UUID()
         guard !busy, let record = session, screen == .exam || screen == .result else { return }
@@ -910,7 +944,8 @@ import PencilKit
         await open(record)
     }
     func navigate(_ target: Screen) {
-        if target != .exam { player.pause() }
+        if screen == .result, target != .result { releaseCompletedContent() }
+        if target != .exam { player.invalidateAudio() }
         // Leaving for a library or home ends the Daily Training run; its progress stays saved.
         if [.main, .home, .practiceLevels, .practiceQuestions, .classical, .dailyTraining].contains(target) { daily.activeIndex = nil }
         if target == .examSelection {
@@ -918,5 +953,10 @@ import PencilKit
         }
         if [.home, .practiceLevels, .practiceQuestions, .classical].contains(target) { selectedMode = .practice }
         screen = target
+    }
+    private func releaseCompletedContent() {
+        guard let record = session, record.attempt.status == "submitted",
+              (record.attempt.studyMode == .practice ? record.selfAssessment?.isCompleted == true : record.grading?.status == "completed") else { return }
+        try? store?.releaseReproducibleAssets(record.id)
     }
 }

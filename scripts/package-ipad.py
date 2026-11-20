@@ -7,6 +7,7 @@ from pathlib import Path
 import plistlib
 import stat
 import zipfile
+from app_content_policy import verify_online
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -30,15 +31,7 @@ def package(app, output, commit):
     if not info.get("NSAppTransportSecurity", {}).get("NSAllowsArbitraryLoads"):
         raise ValueError("Expected the Debug app that supports the local HTTP server")
 
-    required = ["sori-piano-v1.sf2", "sori-piano-v2.sf2", "instrument-profile-v2.json", "sori-click-v1.wav", "practice-catalog.json", "GeneralUser-GS.sf2", "instrument-bank.json", "generaluser-license.txt", "instruments.json", "engraving-manifest.json"]
-    required += ["melody-classical-piano.sf2", "melody-piano-bank.json", "melody-piano-license.txt", "melody-piano-profile.json", "melody-catalog.json", "melody-source-license.txt"]
-    for number in (1, 2, 3):
-        required += [f"excerpt-{number}-v2-main.mxl", f"excerpt-{number}-v2-scale.mxl", f"excerpt-{number}-reference-v1.pngdata"]
-    for name in required:
-        bundled = app / name
-        canonical = ROOT / "frontend/IPadApp/IPadApp/Resources" / name
-        if not bundled.is_file() or bundled.read_bytes() != canonical.read_bytes():
-            raise ValueError(f"Missing or changed bundled resource: {name}")
+    content = verify_online(app)
 
     output = output.resolve()
     if output == app or app in output.parents:
@@ -82,6 +75,8 @@ def package(app, output, commit):
         "file": ipa.name,
         "bytes": ipa.stat().st_size,
         "sha256": digest,
+        "content_mode": content['mode'],
+        "bundled_resource_bytes": content['resource_bytes'],
     }
     (output / "build-info.json").write_text(json.dumps(manifest, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     (output / "SHA256SUMS.txt").write_text(f"{digest}  {ipa.name}\n", encoding="utf-8")

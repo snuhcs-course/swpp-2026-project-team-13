@@ -36,6 +36,34 @@ struct PrimaryButton: ButtonStyle {
             .foregroundStyle(.white).background(SolfegeTheme.violet.opacity(configuration.isPressed ? 0.7 : 1), in: RoundedRectangle(cornerRadius: 12))
     }
 }
+// Shared by answer submission and Practice completion, anchored above the action.
+struct AnswerConfirmation: View {
+    let title: String
+    let message: String
+    let confirmTitle: String
+    let cancelTitle: String
+    let confirmIdentifier: String
+    let confirm: () -> Void
+    let cancel: () -> Void
+    var body: some View {
+        VStack(alignment:.leading,spacing:10) {
+            Text(title).font(.system(size:18,weight:.bold)).foregroundStyle(SolfegeTheme.ink)
+            Text(message).font(.system(size:14)).foregroundStyle(SolfegeTheme.muted)
+                .fixedSize(horizontal:false,vertical:true)
+            Button(action:confirm) {
+                Text(confirmTitle).font(.system(size:15,weight:.bold)).foregroundStyle(.white)
+                    .frame(maxWidth:.infinity).padding(.vertical,12)
+                    .background(SolfegeTheme.violet,in:RoundedRectangle(cornerRadius:10))
+            }.buttonStyle(.plain).padding(.top,4).accessibilityIdentifier(confirmIdentifier)
+            Button(action:cancel) {
+                Text(cancelTitle).font(.system(size:15,weight:.bold)).foregroundStyle(SolfegeTheme.violet)
+                    .frame(maxWidth:.infinity).padding(.vertical,6)
+            }.buttonStyle(.plain)
+        }
+        .padding(.horizontal,24).padding(.top,22).padding(.bottom,14)
+        .frame(width:352)
+    }
+}
 struct Pill: View {
     let text: String; var icon: String? = nil
     var body: some View { HStack(spacing: 5) { if let icon { Image(systemName: icon) }; Text(text) }.font(.caption.weight(.medium)).padding(.horizontal, 10).padding(.vertical, 6).background(SolfegeTheme.background, in: Capsule()) }

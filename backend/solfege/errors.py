@@ -73,7 +73,7 @@ class RequestMiddleware:
         else:
             response = self.get_response(request)
         response["X-Request-ID"] = request.request_id
-        if request.path.startswith("/api/v1/"):
+        if request.path.startswith("/api/v1/") and not getattr(response,"immutable_content",False):
             response["Cache-Control"] = "private, no-store"
         return response
 

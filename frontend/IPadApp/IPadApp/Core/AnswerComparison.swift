@@ -5,13 +5,16 @@ struct AnswerSystemCrop: Identifiable, Equatable {
     var id: Int
     var bounds: BBox
     func measureRegions(layout: SheetLayout) -> [AnswerMeasureRegion] {
-        guard let system = layout.systems.first(where: { $0.index == id }),
+        measureRegions(logicalWidth:layout.logicalWidth,systems:layout.systems)
+    }
+    func measureRegions(logicalWidth: Int, systems: [SheetSystem]) -> [AnswerMeasureRegion] {
+        guard logicalWidth > 0, let system = systems.first(where: { $0.index == id }),
               system.lastMeasure >= system.firstMeasure,
               system.barlineX.count == system.lastMeasure-system.firstMeasure+2 else { return [] }
         return (system.firstMeasure...system.lastMeasure).compactMap { measure in
             let offset = measure-system.firstMeasure
-            let left = system.barlineX[offset]/Double(layout.logicalWidth)
-            let right = system.barlineX[offset+1]/Double(layout.logicalWidth)
+            let left = system.barlineX[offset]/Double(logicalWidth)
+            let right = system.barlineX[offset+1]/Double(logicalWidth)
             let original = BBox(x:left,y:bounds.y,width:right-left,height:bounds.height)
             guard let projected = project(original) else { return nil }
             return AnswerMeasureRegion(id:measure,bounds:projected)
