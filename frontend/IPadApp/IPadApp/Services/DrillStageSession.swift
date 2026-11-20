@@ -4,7 +4,7 @@ import SwiftUI
     @Published private(set) var attempt: DrillSetAttempt
     @Published private(set) var summary = false
     @Published private(set) var error: String?
-    let set: DrillStageSet
+    let stageSet: DrillStageSet
     let echoAudio = MelodyRunAudio()
     private let file: URL
     private var questionStarted = Date()
@@ -13,7 +13,7 @@ import SwiftUI
     private var history: [DrillSetAttempt] = []
     private struct Journal: Codable { var active: DrillSetAttempt; var history: [DrillSetAttempt] }
     init(set: DrillStageSet, version: String, root: URL) {
-        self.set=set; attempt=DrillSetAttempt(set:set,version:version)
+        self.stageSet=set; attempt=DrillSetAttempt(set:set,version:version)
         file=root.appendingPathComponent("drill-set-\(version)-\(set.number).json")
         do {
             if FileManager.default.fileExists(atPath:file.path) {
@@ -24,7 +24,7 @@ import SwiftUI
             }
         } catch { self.error="진행 기록을 읽지 못했어요. 기존 기록을 보관했어요." }
     }
-    var round: DrillStageQuestion { set.questions[attempt.index] }
+    var round: DrillStageQuestion { stageSet.questions[attempt.index] }
     func report(_ result: DrillRoundResult) {
         guard error == nil, attempt.results[attempt.index] == nil else { return }
         let elapsed=max(0,Date().timeIntervalSince(questionStarted)-pausedSeconds)
@@ -33,14 +33,14 @@ import SwiftUI
     }
     func next() {
         guard attempt.results[attempt.index] != nil, error == nil else { return }
-        if attempt.index+1 < set.questions.count { attempt.index+=1; resetClock() }
+        if attempt.index+1 < stageSet.questions.count { attempt.index+=1; resetClock() }
         else { summary=true }
         save()
     }
     func restart() {
         guard error == nil else { return }
         history.append(attempt)
-        attempt=DrillSetAttempt(set:set,version:attempt.courseVersion); summary=false; resetClock(); save()
+        attempt=DrillSetAttempt(set:stageSet,version:attempt.courseVersion); summary=false; resetClock(); save()
     }
     func active(_ active: Bool) {
         if active { if let pausedAt { pausedSeconds+=Date().timeIntervalSince(pausedAt); self.pausedAt=nil } }
