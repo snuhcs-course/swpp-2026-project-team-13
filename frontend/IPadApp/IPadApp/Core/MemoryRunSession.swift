@@ -6,9 +6,8 @@ enum MemoryDifficulty: String, Codable, CaseIterable, Identifiable {
     var title: String {
         switch self { case .beginner: return "초급"; case .intermediate: return "중급"; case .advanced: return "고급" }
     }
-    var barPlan: [Int] {
-        switch self { case .beginner: return [2,2,2,2]; case .intermediate: return [2,2,4,4]; case .advanced: return [4,4,4,4] }
-    }
+    // Difficulty changes the phrase and tempo, never the memory span.
+    var barPlan: [Int] { [2,2,2,2] }
     var quarterBpm: Double {
         switch self { case .beginner: return 60; case .intermediate: return 84; case .advanced: return 96 }
     }

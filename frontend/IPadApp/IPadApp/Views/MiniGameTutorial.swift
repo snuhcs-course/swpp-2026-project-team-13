@@ -79,7 +79,7 @@ struct MemoryTutorialView: View {
             "Memory는 선율 전체를 기억해서 건반으로 복원해요. Groove는 한 마디씩 듣고 바로 따라 쳐요. 첫 예비박 다음에는 준비 마디 없이 듣기와 입력이 이어져요.",
             "리듬과 쉼표는 이미 표시되어 있어요. 회색 점선 음표 자리를 건반으로 채우세요. 강조된 건반에서 시작하면 돼요.",
             "Memory에서는 ‘바로 듣기’ 또는 ‘예비박부터 듣기’로 다시 들을 수 있어요. 답은 유지돼요. 채운 마디를 선택하고 건반을 누르면 그 마디의 첫 음부터 다시 입력해요. 되돌리면 이전 답이 돌아와요.",
-            "위에는 정답 전체, 아래에는 내 답 전체가 같은 간격으로 보여요. 빈칸이 있어도 제출할 수 있어요. 초급은 2마디씩, 중급은 2·2·4·4마디, 고급은 4마디씩 네 문제를 풀어요."
+            "위에는 정답 전체, 아래에는 내 답 전체가 같은 간격으로 보여요. 빈칸이 있어도 제출할 수 있어요. 모든 난이도에서 2마디씩 네 문제를 풀어요."
         ],done:done) { step in
             VStack(spacing:12) {
                 if step == 0 { HStack(spacing:20) { Label("Memory",systemImage:"brain.head.profile"); Label("Groove",systemImage:"metronome") }.font(.title3.bold()).foregroundStyle(SolfegeTheme.violet).padding(.vertical,30) }

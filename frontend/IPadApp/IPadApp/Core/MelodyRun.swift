@@ -9,7 +9,7 @@ enum MelodyMode: String, CaseIterable, Identifiable {
 
 struct MelodySettings: Equatable {
     var mode: MelodyMode = .memory
-    var bars = 4
+    var bars = 2
     var startBar = 1
     var bpm = 96.0 // Quarter-note BPM, including compound meters.
     var gapMeasures = 1

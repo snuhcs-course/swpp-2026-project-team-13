@@ -68,7 +68,7 @@ struct MelodyRunView: View {
                     Picker("난이도",selection:$game.difficulty) { ForEach(MemoryDifficulty.allCases) { Text($0.title).tag($0) } }.pickerStyle(.segmented)
                     VStack(alignment:.leading,spacing:12) {
                         Text(difficultyTitle).font(.title3.bold())
-                        Text(game.difficulty == .beginner ? "2마디" : game.difficulty == .intermediate ? "2~4마디" : "4마디").foregroundStyle(.secondary)
+                        Text("2마디").foregroundStyle(.secondary)
                     }.padding(22).frame(maxWidth:.infinity,alignment:.leading).background(.white,in:RoundedRectangle(cornerRadius:18))
                     Button("\(game.difficulty.barPlan.count)문제 시작") { game.newSet() }.buttonStyle(PrimaryButton()).disabled(game.catalog == nil || game.working || showingTutorial)
                 }
@@ -88,7 +88,7 @@ struct MelodyRunView: View {
         if game.settings.mode == .groove {
             return game.difficulty == .beginner ? "차근차근 따라 치기" : game.difficulty == .intermediate ? "조금 더 빠르게" : "빠른 선율에 도전하기"
         }
-        return game.difficulty == .beginner ? "짧고 익숙한 선율부터" : game.difficulty == .intermediate ? "조금 더 길고 빠르게" : "네 마디를 한 번에"
+        return game.difficulty == .beginner ? "짧고 익숙한 선율부터" : game.difficulty == .intermediate ? "조금 더 다양한 선율로" : "복잡한 두 마디에 도전하기"
     }
     @ViewBuilder private var setProgress: some View {
         if let stage { DrillSetProgress(results:stage.results,index:stage.index) }
