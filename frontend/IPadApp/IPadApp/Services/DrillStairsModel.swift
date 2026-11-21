@@ -63,7 +63,10 @@ struct DrillStageContext {
     func state(_ stage: DrillStage) -> DrillStageState { shown.state(stage.number) }
     // Rhythm puzzle needs the server, as on the old Drill cards.
     func needsConnection(_ stage: DrillStage) -> Bool { stage.game == .rhythmPuzzle && !rhythmAvailable }
-    func canStart(_ stage: DrillStage) -> Bool { readable && course?.stages.contains(where:{ $0.number == stage.number }) == true && !needsConnection(stage) }
+    func canStart(_ stage: DrillStage) -> Bool {
+        if stage.game == .echoDragon { return readable && EchoIntervalStage.forStair(stage.number) != nil }
+        return readable && course?.stages.contains(where:{ $0.number == stage.number }) == true && !needsConnection(stage)
+    }
     func prepareCourse() async {
         guard course == nil, !loading else { return }
         loading=true; defer { loading=false }

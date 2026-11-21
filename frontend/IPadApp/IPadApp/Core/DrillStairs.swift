@@ -17,7 +17,8 @@ struct DrillStage: Identifiable, Equatable {
     static let letters = ["C","D","E","F","G","A","B"]
     let number: Int
     let game: DrillGame
-    // Echo Dragon level this stage opens; nil for the other games.
+    // Legacy standalone Echo level; the active interval game uses
+    // EchoIntervalStage.forStair instead. Nil for the other games.
     let echoLevel: Int?
     var id: Int { number }
     var letter: String { Self.letters[(number-1) % 7] }

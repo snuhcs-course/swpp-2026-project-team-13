@@ -82,7 +82,7 @@ struct DrillStairsView: View {
         return VStack(spacing:0) {
             ForEach(DrillStairs.stages.reversed()) { stage in
                 StageKey(stage:stage,state:stairs.state(stage),offline:stairs.needsConnection(stage),action:{ open(stage) })
-                    .opacity(stairs.course?.stages.contains(where:{ $0.number==stage.number }) == true ? 1 : 0.45)
+                    .opacity(stage.game == .echoDragon || stairs.course?.stages.contains(where:{ $0.number==stage.number }) == true ? 1 : 0.45)
                     .frame(width:DrillStairs.keySize.width,height:DrillStairs.keySize.height)
                     .modifier(Shake(phase:CGFloat(shakes[stage.number] ?? 0)))
                     .offset(x:DrillStairs.centerOffset(stage.number)*spread)
@@ -121,7 +121,9 @@ struct DrillStairsView: View {
     }
 
     @ViewBuilder private func game(_ stage: DrillStage) -> some View {
-        if let course=stairs.course, let set=course.stages.first(where:{ $0.number==stage.number }), let root=stairs.progressRoot {
+        if stage.game == .echoDragon {
+            EchoIntervalStageView(stage:stage,mastered:{ stairs.clear(stage.number) },exit:{ playing=nil })
+        } else if let course=stairs.course, let set=course.stages.first(where:{ $0.number==stage.number }), let root=stairs.progressRoot {
             DrillStageSetView(stage:stage,set:set,version:course.version,root:root,connection:connection,
                 mastered:{ stairs.clear(stage.number) },exit:{ playing=nil })
         }

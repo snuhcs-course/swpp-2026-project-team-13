@@ -50,7 +50,7 @@ struct DrillStageSetView: View {
         switch stage.game {
         case .memoryRun: MelodyRunView(connection:connection,stage:context,preparedGame:session.memoryGame)
         case .rhythmPuzzle: RhythmPuzzleView(connection:connection,stage:context,preparedGame:session.rhythmGame)
-        case .echoDragon: EchoFollowView(stage:context,audio:session.echoAudio).id(session.round.id)
+        case .echoDragon: EchoIntervalStageView(stage:stage,mastered:mastered,exit:exit)
         }
     }
     private var summary: some View {
