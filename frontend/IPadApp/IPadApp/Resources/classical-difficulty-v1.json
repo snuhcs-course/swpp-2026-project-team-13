@@ -1,0 +1,356 @@
+{
+  "asset_version": "classical-difficulty-1",
+  "version": "practice-difficulty-2",
+  "cutoffs": [
+    7.5,
+    9.5,
+    13.0,
+    30.0,
+    55.0,
+    62.0,
+    68.0,
+    74.0
+  ],
+  "records": {
+    "76006a58-d8d6-5459-bb52-eedb49632079": {
+      "main_sha256": "2ea00638832a100618ba8d590269e86c1ca3f565ba5b6c17f21de96e899f3c05",
+      "content_score": 83.11211296184143,
+      "key_correction": 0.0,
+      "score_floor": 0.0,
+      "reference_quarter_bpm": 80,
+      "quarter_bpm": 80,
+      "score": 83.11211296184143,
+      "level": 9
+    },
+    "875f5168-068a-5e58-be5a-54b9f25394d8": {
+      "main_sha256": "6177e7274889bd0b98e97baa2c5c59d12b69873496629d0d645747815070110f",
+      "content_score": 9.346561885881869,
+      "key_correction": 5.475,
+      "score_floor": 9.5,
+      "reference_quarter_bpm": 80,
+      "quarter_bpm": 80,
+      "score": 14.821561885881868,
+      "level": 4
+    },
+    "0f8cc9b3-c20a-58ac-98ee-08fb9bd24a88": {
+      "main_sha256": "c42ec5a10b687152b191d6204c94d4405d0f61d0dec7fb3e64f7b153a3514637",
+      "content_score": 9.01470228233294,
+      "key_correction": 9.100000000000001,
+      "score_floor": 9.5,
+      "reference_quarter_bpm": 80,
+      "quarter_bpm": 80,
+      "score": 18.114702282332942,
+      "level": 4
+    },
+    "0b353d96-a50d-5cb6-8a83-655526a4f616": {
+      "main_sha256": "0e5b8c47afabe3dd5c5a1a3e627ede0a0af5b90ef1b0c7d1a690cc08a87b02e6",
+      "content_score": 9.063782443646765,
+      "key_correction": 9.1,
+      "score_floor": 9.5,
+      "reference_quarter_bpm": 80,
+      "quarter_bpm": 80,
+      "score": 18.163782443646767,
+      "level": 4
+    },
+    "67dc7c81-cb27-5af6-ba8b-79741c476889": {
+      "main_sha256": "948242d1e864ff3e2cf17a5aaa9d17dcb66d1ad2d0e7b8ed7bd769a1b8f2da81",
+      "content_score": 7.857355031586545,
+      "key_correction": 5.324999999999999,
+      "score_floor": 9.5,
+      "reference_quarter_bpm": 80,
+      "quarter_bpm": 80,
+      "score": 13.182355031586544,
+      "level": 4
+    },
+    "674f4d3b-1121-5932-bdbc-00abb48d0f9a": {
+      "main_sha256": "e523ac3ec24e2e66091d52f0044258f38ce2ed14824e9e2ee5885cd2a6d8f2f2",
+      "content_score": 11.66120704535855,
+      "key_correction": 14.400000000000002,
+      "score_floor": 9.5,
+      "reference_quarter_bpm": 80,
+      "quarter_bpm": 80,
+      "score": 26.06120704535855,
+      "level": 4
+    },
+    "e50457cd-4da3-5f93-bda8-e916c7dd4fde": {
+      "main_sha256": "0a698f3d16470bf6518718897261c510183bbe8676c13137827b73abe2dc4f53",
+      "content_score": 11.355725610617665,
+      "key_correction": 2.0625,
+      "score_floor": 7.5,
+      "reference_quarter_bpm": 82.5,
+      "quarter_bpm": 82.5,
+      "score": 13.418225610617665,
+      "level": 4
+    },
+    "244e7301-ab54-500d-8745-676dbc5af60a": {
+      "main_sha256": "55c30e7e933f5f56147f31348c6349198359ef5d0953c13b950869fdab58995f",
+      "content_score": 9.481768608431366,
+      "key_correction": 2.1875,
+      "score_floor": 7.5,
+      "reference_quarter_bpm": 80,
+      "quarter_bpm": 80,
+      "score": 11.669268608431366,
+      "level": 3
+    },
+    "9e600680-6511-5dd0-b8cc-6102621f66a3": {
+      "main_sha256": "382449b3ce5dccd9867b6952caa72519d7edc90c1e97edf1d8b7b8150e97f33b",
+      "content_score": 7.002500306555448,
+      "key_correction": 5.175000000000002,
+      "score_floor": 9.5,
+      "reference_quarter_bpm": 80,
+      "quarter_bpm": 80,
+      "score": 12.17750030655545,
+      "level": 3
+    },
+    "e9dc82c3-e60e-5809-913d-26c8c766db37": {
+      "main_sha256": "aabc6e7c5b27c33aeb383c87ed0f35483f9b17168d7c4b8a3c35b15742c80925",
+      "content_score": 11.67011738964424,
+      "key_correction": 2.125,
+      "score_floor": 7.5,
+      "reference_quarter_bpm": 80,
+      "quarter_bpm": 80,
+      "score": 13.79511738964424,
+      "level": 4
+    },
+    "9d950dcb-f8e9-54f3-b7d5-4796ce3b0479": {
+      "main_sha256": "444dc06ff5b96cb4ba59f8b4e605e0a8dd09414c263647170da51ade7edff55e",
+      "content_score": 8.927112541238598,
+      "key_correction": 5.3999999999999995,
+      "score_floor": 9.5,
+      "reference_quarter_bpm": 80,
+      "quarter_bpm": 80,
+      "score": 14.327112541238598,
+      "level": 4
+    },
+    "6ab09e5a-be17-5ab0-ba82-e153cc7809da": {
+      "main_sha256": "28fc6b7f49bfdd41d5a2dc2f770625c441fb66ebe40943d9430a6bb20c922746",
+      "content_score": 8.78589115822263,
+      "key_correction": 5.175000000000002,
+      "score_floor": 9.5,
+      "reference_quarter_bpm": 80,
+      "quarter_bpm": 100,
+      "score": 17.45111394777829,
+      "level": 4
+    },
+    "1a84b97a-f446-553a-9f85-138edaaec3e2": {
+      "main_sha256": "93429ce30ee18a08ee9d45fedd7e1841907e055392934f32ec106b310f7f8c52",
+      "content_score": 10.712629778133177,
+      "key_correction": 5.4,
+      "score_floor": 9.5,
+      "reference_quarter_bpm": 80,
+      "quarter_bpm": 80,
+      "score": 16.112629778133176,
+      "level": 4
+    },
+    "6b850227-7816-5d5a-b325-2eae12bc4208": {
+      "main_sha256": "d04e96ddc3a9e00137ab08af516d306974a8018c8ba5154f7b81a4440e7d7122",
+      "content_score": 47.46385284090962,
+      "key_correction": 2.375,
+      "score_floor": 7.5,
+      "reference_quarter_bpm": 80,
+      "quarter_bpm": 128,
+      "score": 79.7421645454554,
+      "level": 9
+    },
+    "9b05b963-f37a-527e-ac03-4704f3450f7e": {
+      "main_sha256": "be3cf4b91a922be9111c7541f11976732be4e095d5cd199f0d3a44cc8246cebe",
+      "content_score": 87.95485334323367,
+      "key_correction": 2.4375,
+      "score_floor": 7.5,
+      "reference_quarter_bpm": 96,
+      "quarter_bpm": 64,
+      "score": 60.261568895489106,
+      "level": 6
+    },
+    "19052efc-b50b-5948-8a48-36c66da4a63c": {
+      "main_sha256": "3d43a75b72e5967262e383e5526ba8ef0ee83f996b045b6b20d4aa67ba232278",
+      "content_score": 45.988067655540505,
+      "key_correction": 14.500000000000002,
+      "score_floor": 9.5,
+      "reference_quarter_bpm": 82.5,
+      "quarter_bpm": 63.0,
+      "score": 46.190888027867295,
+      "level": 5
+    },
+    "8e31f5f1-2bc2-5edd-9997-46d5cfffbd26": {
+      "main_sha256": "73f5fc44a98652d6fd75830c2a3e28a37269121309f90e0fac4dfcc76fd2415a",
+      "content_score": 10.980213666719889,
+      "key_correction": 0.0,
+      "score_floor": 0.0,
+      "reference_quarter_bpm": 80,
+      "quarter_bpm": 120,
+      "score": 16.470320500079833,
+      "level": 4
+    },
+    "83cc55f0-40de-5300-ae74-d8392ed14e0c": {
+      "main_sha256": "bdee22d3517528b375b1597b4c743cfa32d27e607de5e4d2161045dab08afd7e",
+      "content_score": 8.349643027872967,
+      "key_correction": 5.100000000000001,
+      "score_floor": 9.5,
+      "reference_quarter_bpm": 80,
+      "quarter_bpm": 100,
+      "score": 16.81205378484121,
+      "level": 4
+    },
+    "95a25944-5c10-55b4-b9ed-935c449badcb": {
+      "main_sha256": "31dd22ae728abf7a97b2fb8d3c7d0657134d01511638fc09f8d81ff1b74efd65",
+      "content_score": 9.106753742439658,
+      "key_correction": 5.625,
+      "score_floor": 9.5,
+      "reference_quarter_bpm": 80,
+      "quarter_bpm": 200,
+      "score": 36.82938435609914,
+      "level": 5
+    },
+    "6da9eb15-170a-5b39-b90b-1601d4f23f59": {
+      "main_sha256": "8a0f8decbfcf1192004144bc1fdaabe3eea82724a4de633d55431590c6c99c0f",
+      "content_score": 9.508012776155315,
+      "key_correction": 0.0,
+      "score_floor": 0.0,
+      "reference_quarter_bpm": 80,
+      "quarter_bpm": 100,
+      "score": 11.885015970194143,
+      "level": 3
+    },
+    "fa447422-0bb6-5a52-aa9a-8a08abe0d806": {
+      "main_sha256": "4ae0808d783c7cda27c789983279c685187bef9423655bf5382d75d4e2c44af1",
+      "content_score": 44.91789370853086,
+      "key_correction": 2.1875,
+      "score_floor": 7.5,
+      "reference_quarter_bpm": 96,
+      "quarter_bpm": 150,
+      "score": 73.60217766957948,
+      "level": 8
+    },
+    "e200e8be-fe25-5122-ae62-42873b55b355": {
+      "main_sha256": "e278e1058818ae7ae4bfda69fe015bc28f4cdaf32917ef080640251802fda156",
+      "content_score": 30.944393244005504,
+      "key_correction": 0.0,
+      "score_floor": 0.0,
+      "reference_quarter_bpm": 80,
+      "quarter_bpm": 120,
+      "score": 46.41658986600825,
+      "level": 5
+    },
+    "7e17929b-1682-5ab1-bda0-84ac5a2eb280": {
+      "main_sha256": "c786b1cc9903a173b80a4cb883f3fe18a20bc3d13550c203fd40b929b1d5b0af",
+      "content_score": 17.971608123279637,
+      "key_correction": 2.375,
+      "score_floor": 7.5,
+      "reference_quarter_bpm": 80,
+      "quarter_bpm": 110,
+      "score": 27.976586169509503,
+      "level": 4
+    },
+    "16754978-8957-560f-96d7-5d1b46200fa0": {
+      "main_sha256": "6b274fe97625393bcc914e1a5c275276ee140557f861cff222a6507c5f758b4d",
+      "content_score": 9.418967724092585,
+      "key_correction": 0.0,
+      "score_floor": 0.0,
+      "reference_quarter_bpm": 80,
+      "quarter_bpm": 120,
+      "score": 14.128451586138878,
+      "level": 4
+    },
+    "d520a564-35d2-552b-a021-97b0d1fdd60f": {
+      "main_sha256": "4fab8cc073b815867de56dc8f8ab30f8de580c25843c8f3578b40d291004061a",
+      "content_score": 8.485620446717437,
+      "key_correction": 5.25,
+      "score_floor": 9.5,
+      "reference_quarter_bpm": 80,
+      "quarter_bpm": 180,
+      "score": 30.905146005114233,
+      "level": 5
+    },
+    "3f658055-1913-5558-93c7-153dc076c9e4": {
+      "main_sha256": "369ddd6846bc9f99bc3838ee3e1cd0e49a3eae491e803d792a6727f8eeb187c9",
+      "content_score": 7.2319213774560165,
+      "key_correction": 5.100000000000001,
+      "score_floor": 9.5,
+      "reference_quarter_bpm": 80,
+      "quarter_bpm": 160,
+      "score": 24.663842754912036,
+      "level": 4
+    },
+    "6312f829-25df-5d05-b9ad-be05ec105d39": {
+      "main_sha256": "dc1d8f13fea3f855edf98177dcdd5f9b5460f6b58c705becba3af551ed1950b0",
+      "content_score": 9.006172549196378,
+      "key_correction": 2.125,
+      "score_floor": 7.5,
+      "reference_quarter_bpm": 80,
+      "quarter_bpm": 90,
+      "score": 12.522569117845926,
+      "level": 3
+    },
+    "a711fae3-6e59-5d73-9ef6-b0ae56936bde": {
+      "main_sha256": "103fd68b092e898e771c9ff74e9432979c25d4ae2d9b673f4cf01bbaddf60eb3",
+      "content_score": 82.3078116946289,
+      "key_correction": 0.0,
+      "score_floor": 0.0,
+      "reference_quarter_bpm": 80,
+      "quarter_bpm": 80,
+      "score": 82.3078116946289,
+      "level": 9
+    },
+    "1482afb2-2476-58f1-bd19-dbb9f5cca7cc": {
+      "main_sha256": "3a44ed9ee90c9ab882f2fe2515f61ae8220d79acb8897628e7b9dcd470b1d647",
+      "content_score": 48.240302054974194,
+      "key_correction": 0.0,
+      "score_floor": 0.0,
+      "reference_quarter_bpm": 80,
+      "quarter_bpm": 120,
+      "score": 72.36045308246129,
+      "level": 8
+    },
+    "709c867a-22f4-537b-aaf0-a928687c4b41": {
+      "main_sha256": "0813c91d68cd7108c29b343dd90a8fcc3dd108e01208c793819d29dab18fce83",
+      "content_score": 9.611202091462365,
+      "key_correction": 5.025,
+      "score_floor": 9.5,
+      "reference_quarter_bpm": 80,
+      "quarter_bpm": 65,
+      "score": 11.891914199313172,
+      "level": 3
+    },
+    "072aca3f-1f7a-5341-9b9f-68a647093f58": {
+      "main_sha256": "aa2a440c2093fddb24739b1b1aefaf27597b528b500e365cd5c1426e8b7f2e5a",
+      "content_score": 8.723208989354896,
+      "key_correction": 0.0,
+      "score_floor": 0.0,
+      "reference_quarter_bpm": 80,
+      "quarter_bpm": 160,
+      "score": 17.446417978709793,
+      "level": 4
+    },
+    "1687ab99-f61c-55c6-b018-32b46a06fc32": {
+      "main_sha256": "3fbc9eedc57571d65fec1c848c1fde39ee1dc6a57f023ee55a267ee8f8297d4b",
+      "content_score": 87.92075179778922,
+      "key_correction": 2.125,
+      "score_floor": 7.5,
+      "reference_quarter_bpm": 80,
+      "quarter_bpm": 85,
+      "score": 95.67361128515105,
+      "level": 9
+    },
+    "ade92785-16f0-5332-bbe6-1fd888e4d4bd": {
+      "main_sha256": "9a60e9e838dd025c0160e9a38e8e727d7011f2569360e6def30dbe97974087b3",
+      "content_score": 9.029832145636252,
+      "key_correction": 0.0,
+      "score_floor": 0.0,
+      "reference_quarter_bpm": 80,
+      "quarter_bpm": 120,
+      "score": 13.544748218454378,
+      "level": 4
+    },
+    "cc0ee6f9-086a-5d8e-889c-24c59a085147": {
+      "main_sha256": "4e24b1ad86ded51eedffe83ede4c252a37a412595047610bc7b401c453288e73",
+      "content_score": 24.67014149003865,
+      "key_correction": 0.0,
+      "score_floor": 0.0,
+      "reference_quarter_bpm": 96,
+      "quarter_bpm": 200,
+      "score": 51.39612810424719,
+      "level": 5
+    }
+  }
+}

@@ -31,6 +31,7 @@ def publish_drills():
         shutil.copyfile(source,destination)
     paths=[CONTENT/f'rhythm-puzzle-v{i}.json' for i in (1,2,3)]+[target/name for name in names]
     if (CONTENT/'rhythm-puzzle-v4.json').exists(): paths.append(CONTENT/'rhythm-puzzle-v4.json')
+    if (CONTENT/'classical-difficulty-v1.json').exists(): paths.append(CONTENT/'classical-difficulty-v1.json')
     assets={};files={}
     for path in paths:
         data=path.read_bytes();digest=sha(data)

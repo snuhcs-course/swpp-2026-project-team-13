@@ -3,6 +3,31 @@ import SwiftUI
 @testable import IPadApp
 
 @MainActor final class ClassicalIntegrationTests: XCTestCase {
+    func testClassicalBankUsesTheSharedFiltersAndCompletedMarkersWithoutChangingPractice() async throws {
+        let model=AppModel(); model.demo=true
+        await model.connect(); await model.loadClassical()
+        XCTAssertNil(model.error)
+        let first=try XCTUnwrap(model.classicalQuestions.first)
+        model.selectedComposer=first.composer
+        let originalPractice=model.practiceFilter
+        let index=try XCTUnwrap(model.classicalQuestions.firstIndex { $0.id==first.id })
+        model.classicalQuestions[index].practiceCompleted=true
+        let selected=model.classicalQuestions.filter { $0.composer==first.composer }
+        XCTAssertTrue(model.completedPracticeQuestionIDs.contains(first.id))
+        XCTAssertFalse(model.classicalFilter.apply(to:selected,completedQuestionIDs:model.completedPracticeQuestionIDs).contains { $0.id==first.id })
+        model.classicalFilter.showCompleted=true; model.classicalFilter.meter=first.timeSignature
+        model.classicalFilter.keySelection = .individual([first.keySignature])
+        let visible=model.classicalFilter.apply(to:selected,completedQuestionIDs:model.completedPracticeQuestionIDs)
+        XCTAssertTrue(visible.contains { $0.id==first.id })
+        XCTAssertTrue(visible.allSatisfy { $0.timeSignature==first.timeSignature && $0.keySignature==first.keySignature })
+        XCTAssertEqual(model.practiceFilter,originalPractice)
+        for size in [CGSize(width:1024,height:768),CGSize(width:1194,height:834)] {
+            let renderer=ImageRenderer(content:ClassicalExamLibraryView(model:model).frame(width:size.width,height:size.height))
+            let attachment=XCTAttachment(image:try XCTUnwrap(renderer.uiImage));attachment.name="classical-filtered-bank-\(Int(size.width))";attachment.lifetime = .keepAlways;add(attachment)
+        }
+        model.selectedComposer=nil
+        XCTAssertEqual(model.classicalFilter,QuestionFilter())
+    }
     func testDemoClassicalAssetsAndReferencesUseTheExistingRoutes() async throws {
         let api = try DemoExamAPI(outcome:"completed")
         let practice = try await api.questions(page:1)
@@ -14,6 +39,9 @@ import SwiftUI
         XCTAssertEqual(classical.results.map(\.id),order)
         for summary in classical.results {
             let q = try await api.question(summary.id); try q.validate()
+            XCTAssertNotNil(summary.difficultyScore)
+            XCTAssertEqual(summary.difficultyScore,q.difficultyScore)
+            XCTAssertNil(q.practiceLevelNumber,"Classical must remain outside the nine-level Practice bank")
             if q.composer == "말러" || q.composer == "브람스" {
                 XCTAssertEqual(q.tempo?.policyId,"sori-score-tempo-1")
                 let attempt = try await api.createAttempt(question:q,mode:.practice,key:UUID())

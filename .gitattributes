@@ -56,3 +56,5 @@ frontend/IPadApp/IPadApp/Resources/memory-run-v*.json text eol=lf
 frontend/IPadApp/IPadApp/Resources/memory-groove-v*.json text eol=lf
 frontend/IPadApp/IPadApp/Resources/drill-stage-sets-v*.json text eol=lf
 docs/memory-import-report.json text eol=lf
+backend/content/classical-difficulty-v1.json text eol=lf
+frontend/IPadApp/IPadApp/Resources/classical-difficulty-v1.json text eol=lf

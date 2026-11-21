@@ -26,13 +26,12 @@ struct PracticeDifficultyManifest: Codable {
         else { throw SolfegeError.configuration("문제 난이도 기준을 확인해 주세요.") }
     }
     func annotating(_ source: Question) -> Question {
-        guard source.collection != "classical",
-              let entry = records[source.id.uuidString.lowercased()],
+        guard let entry = records[source.id.uuidString.lowercased()],
               entry.mainSha256 == source.scoreAssets.main.sha256 else { return source }
         var q = source
         let tempo = q.tempo ?? TempoDefaults.setting(for:q.timeSignature)
         let score = max((entry.contentScore + entry.keyCorrection) * tempo.quarterBpm / entry.referenceQuarterBpm,entry.scoreFloor)
-        q.practiceLevelNumber = 1 + cutoffs.filter { score >= $0 }.count
+        if source.collection != "classical" { q.practiceLevelNumber = 1 + cutoffs.filter { score >= $0 }.count }
         q.difficultyScore = score; q.difficultyVersion = version
         return q
     }

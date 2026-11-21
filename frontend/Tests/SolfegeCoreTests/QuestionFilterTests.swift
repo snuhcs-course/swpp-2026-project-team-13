@@ -38,8 +38,8 @@ final class QuestionFilterTests: XCTestCase {
     func testOptionsAreUniqueAndOrdered() {
         let questions = [question(noKey,sixEight),question(dMinor,threeFour),question(gMajor,twoTwo),question(fMajor,threeFour),question(gMajor,sixEight)]
         XCTAssertEqual(QuestionFilter.keyOptions(in:questions),[fMajor,gMajor,dMinor,noKey])
-        XCTAssertEqual(QuestionFilter.meterOptions(in:questions),[twoTwo,threeFour,sixEight])
-        XCTAssertEqual(QuestionFilter.meterOptions(in:questions).map(\.label),["2/2","3/4","6/8"])
+        XCTAssertEqual(QuestionFilter.meterOptions(in:questions),[threeFour,sixEight,twoTwo])
+        XCTAssertEqual(QuestionFilter.meterOptions(in:questions).map(\.label),["3/4","6/8","2/2"])
         XCTAssertEqual(QuestionFilter.keyOptions(in:[]),[])
     }
 

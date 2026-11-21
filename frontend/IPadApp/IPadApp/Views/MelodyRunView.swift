@@ -68,7 +68,7 @@ struct MelodyRunView: View {
             .onDisappear { game.stop() }
     }
     private var setup: some View {
-        ScrollView {
+        ScrollView(.vertical,showsIndicators:true) {
             VStack(alignment:.leading,spacing:26) {
                 if !choosingDifficulty {
                     Text("게임 선택").font(.title2.bold()).padding(.top,28)
@@ -138,7 +138,7 @@ struct MelodyRunView: View {
                     }
                 }
                 if game.page == .playing && game.phase != .input { ProgressView(value:min(1,max(0,game.progress))).tint(SolfegeTheme.violet) }
-                ScrollView {
+                ScrollView(.vertical,showsIndicators:true) {
                     if let round = game.round, let answers = game.answers {
                         MemoryPhraseView(round:round,answers:answers.pitches,reveal:game.answerRevealed,markErrors:game.submissionCount>=2,selectedBar:game.page == .playing ? game.measure : nil,selectBar:game.page == .playing ? game.selectBar : nil)
                             .padding(.horizontal,12).background(.white,in:RoundedRectangle(cornerRadius:16))
@@ -200,7 +200,7 @@ struct MelodyRunView: View {
         }
     }
     private var result: some View {
-        ScrollView {
+        ScrollView(.vertical,showsIndicators:true) {
             if let round = game.round, let answers = game.answers {
                 VStack(alignment:.leading,spacing:20) {
                     setProgress
@@ -236,7 +236,7 @@ struct MelodyRunView: View {
         }
     }
     private var summary: some View {
-        ScrollView {
+        ScrollView(.vertical,showsIndicators:true) {
             VStack(alignment:.leading,spacing:24) {
                 Text("\(game.setCount)문제를 모두 풀었어요").font(.largeTitle.bold()).padding(.top,28)
                 ForEach(0..<game.setCount,id:\.self) { i in

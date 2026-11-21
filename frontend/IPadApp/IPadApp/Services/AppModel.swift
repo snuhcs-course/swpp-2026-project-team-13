@@ -9,8 +9,9 @@ import PencilKit
     // Each level has its own keys and meters, so a filter never carries over to another level.
     @Published var selectedPracticeLevel: PracticeLevel? { didSet { if oldValue != selectedPracticeLevel { practiceFilter = QuestionFilter() } } }
     @Published var practiceFilter = QuestionFilter()
+    @Published var classicalFilter = QuestionFilter()
     var completedPracticeQuestionIDs: Set<UUID> {
-        Set(questions.filter { $0.practiceCompleted == true }.map(\.id)).union(history.filter {
+        Set((questions+classicalQuestions).filter { $0.practiceCompleted == true }.map(\.id)).union(history.filter {
             $0.attempt.studyMode == .practice && $0.attempt.status == "submitted" && $0.selfAssessment?.isCompleted == true
         }.map { $0.attempt.question.id })
     }
@@ -21,7 +22,7 @@ import PencilKit
     @Published var classicalLoaded = false
     @Published var classicalHasNextPage = false
     private var classicalPage = 0
-    @Published var selectedComposer: String?
+    @Published var selectedComposer: String? { didSet { if oldValue != selectedComposer { classicalFilter=QuestionFilter() } } }
     @Published var selectedQuestion: Question?
     @Published var selectedMode: StudyMode = .practice
     @Published var session: SessionRecord?
@@ -458,11 +459,17 @@ import PencilKit
         await run("클래식 문제를 불러오는 중") {
             guard let api = self.api else { return }
             if self.classicalLoaded && !self.classicalHasNextPage && !reset { return }
-            let number = reset ? 1 : self.classicalPage+1
-            let value = try await api.classicalQuestions(page:number)
-            if reset { self.classicalQuestions = [] }
-            self.classicalQuestions.append(contentsOf:value.results.filter { q in !self.classicalQuestions.contains(where: { $0.id == q.id }) })
-            self.classicalPage = number; self.classicalHasNextPage = value.next != nil; self.classicalLoaded = true
+            var number = reset ? 1 : self.classicalPage+1
+            var collected = reset ? [] : self.classicalQuestions
+            while true {
+                let value=try await api.classicalQuestions(page:number)
+                collected.append(contentsOf:value.results.filter { q in !collected.contains(where: { $0.id == q.id }) })
+                if value.next == nil { break }
+                guard number<100 else { throw SolfegeError.configuration("클래식 문제 목록을 다시 불러와 주세요.") }
+                number+=1
+            }
+            self.classicalQuestions=collected
+            self.classicalPage=number; self.classicalHasNextPage=false; self.classicalLoaded=true
         }
     }
     func updateGoal(_ goal: String) async {
@@ -933,13 +940,13 @@ import PencilKit
               session?.practiceEdits == nil, session?.selfAssessmentSave == nil else { return false }
         releaseCompletedContent()
         if let dailyIndex { completeDailyItem(dailyIndex); exitDailyItem() }
-        else { navigate(.home) }
+        else { navigate(resultLibraryScreen) }
         return true
     }
     func leavePracticeReview() {
         releaseCompletedContent()
         if dailyPracticeItem != nil { exitDailyItem() }
-        else { navigate(.home) }
+        else { navigate(resultLibraryScreen) }
     }
     func keepLocalPracticeEdits() {
         guard !busy, var record = session, record.selfAssessmentSave == nil, let review = record.selfAssessment else { return }

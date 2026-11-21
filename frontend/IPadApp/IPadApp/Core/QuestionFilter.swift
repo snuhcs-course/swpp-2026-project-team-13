@@ -9,7 +9,7 @@ struct QuestionFilter: Equatable {
         var label: String {
             switch self {
             case .all: return "전체"
-            case .maximumAccidentals(0): return "다장조·가단조만"
+            case .maximumAccidentals(0): return "조표 없음"
             case .maximumAccidentals(let count): return "조표 \(count)개까지"
             case .individual(let keys): return keys.count == 1 ? keys.first!.label : "\(keys.count)개 조성"
             }
@@ -25,9 +25,15 @@ struct QuestionFilter: Equatable {
         }
     }
     enum SortOrder: String, CaseIterable, Identifiable {
-        case ascending, descending
+        case ascending, descending, questionNumber
         var id: String { rawValue }
-        var label: String { self == .ascending ? "낮은순" : "높은순" }
+        var label: String {
+            switch self {
+            case .ascending: return "난이도 낮은순"
+            case .descending: return "난이도 높은순"
+            case .questionNumber: return "문제번호순"
+            }
+        }
     }
     struct KeyGroup: Identifiable {
         let fifths: Int
@@ -56,6 +62,7 @@ struct QuestionFilter: Equatable {
             keySelection.includes(q.keySignature) && (meter == nil || q.timeSignature == meter) &&
                 (showCompleted || (q.practiceCompleted != true && !completedQuestionIDs.contains(q.id)))
         }.sorted { lhs, rhs in
+            if sortOrder == .questionNumber { return lhs.offset < rhs.offset }
             let a = lhs.element.difficultyScore.flatMap { $0.isFinite ? $0 : nil }
             let b = rhs.element.difficultyScore.flatMap { $0.isFinite ? $0 : nil }
             // Unknown scores stay last in both directions; ties keep catalog order.
@@ -74,7 +81,12 @@ struct QuestionFilter: Equatable {
         }
     }
     static func meterOptions(in questions: [QuestionSummary]) -> [TimeSignature] {
-        Set(questions.map(\.timeSignature)).sorted { $0.denominator == $1.denominator ? $0.numerator < $1.numerator : $0.denominator < $1.denominator }
+        let common=[TimeSignature(numerator:4,denominator:4),TimeSignature(numerator:3,denominator:4),TimeSignature(numerator:6,denominator:8)]
+        return Set(questions.map(\.timeSignature)).sorted {
+            let a=common.firstIndex(of:$0) ?? common.count, b=common.firstIndex(of:$1) ?? common.count
+            if a != b { return a<b }
+            return $0.denominator == $1.denominator ? $0.numerator < $1.numerator : $0.denominator < $1.denominator
+        }
     }
     static func keyGroups(in questions: [QuestionSummary]) -> [KeyGroup] {
         let keys: [KeySignature] = keyOptions(in: questions)

@@ -10,6 +10,7 @@ import xml.etree.ElementTree as ET
 import zipfile
 
 import build_classical_questions as build
+from test_classical_difficulty import ClassicalDifficultyTests
 
 ROOT = Path(__file__).resolve().parents[1]
 CONTENT = ROOT/"backend/content"

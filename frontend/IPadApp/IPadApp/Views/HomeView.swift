@@ -2,13 +2,16 @@ import SwiftUI
 
 struct HomeView: View {
     @ObservedObject var model: AppModel
+    var classical = false
     @State private var showKeys = false
+    private var filter: Binding<QuestionFilter> { classical ? $model.classicalFilter : $model.practiceFilter }
     private var levelQuestions: [QuestionSummary] {
+        if classical { return model.classicalQuestions.filter { $0.composer == model.selectedComposer } }
         guard let level = model.selectedPracticeLevel else { return [] }
         return model.questions.filter { $0.practiceLevel == level }
     }
     private var visibleQuestions: [QuestionSummary] {
-        model.practiceFilter.apply(to: levelQuestions, completedQuestionIDs: model.completedPracticeQuestionIDs)
+        filter.wrappedValue.apply(to: levelQuestions, completedQuestionIDs: model.completedPracticeQuestionIDs)
     }
     var body: some View {
         GeometryReader { geometry in
@@ -25,13 +28,13 @@ struct HomeView: View {
                     if !model.connected {
                         ContentUnavailableView("학습 공간에 연결해 주세요", systemImage: "network")
                         Button("연결 설정") { model.navigate(.settings) }.buttonStyle(PrimaryButton())
-                    } else if model.selectedPracticeLevel == nil {
+                    } else if !classical && model.selectedPracticeLevel == nil {
                         ContentUnavailableView("난이도를 선택해 주세요", systemImage: "square.grid.3x3")
                         Button("난이도 선택") { model.navigate(.practiceLevels) }.buttonStyle(PrimaryButton())
                     } else {
                         VStack(spacing: 0) {
                             columnHeadings(width: width, compact: compact)
-                            ScrollView {
+                            ScrollView(.vertical,showsIndicators:true) {
                                 LazyVStack(spacing: 0) {
                                     ForEach(visibleQuestions) { question in
                                         Button { Task { await model.choose(question.id, mode: .practice) } } label: {
@@ -39,24 +42,27 @@ struct HomeView: View {
                                                 completed: model.completedPracticeQuestionIDs.contains(question.id),
                                                 width: width, compact: compact)
                                         }.buttonStyle(.plain)
-                                            .accessibilityIdentifier("practice-question-\(question.id.uuidString.lowercased())")
+                                            .accessibilityIdentifier("\(classical ? "classical" : "practice")-question-\(question.id.uuidString.lowercased())")
                                     }
                                     if visibleQuestions.isEmpty { emptyState.padding(.vertical, 48) }
                                 }
-                            }.refreshable { await model.refreshLibrary(destination: .practiceQuestions) }
+                            }.refreshable {
+                                if classical { await model.loadClassical(reset:true) }
+                                else { await model.refreshLibrary(destination:.practiceQuestions) }
+                            }
                         }
                     }
                 }.padding(.horizontal, margin).padding(.top, 24).padding(.bottom, 20).frame(maxHeight: .infinity, alignment: .top)
             }.frame(maxWidth: 1180).frame(maxWidth: .infinity).background(.white)
-        }.foregroundStyle(SolfegeTheme.ink).accessibilityIdentifier("practice-question-bank")
+        }.foregroundStyle(SolfegeTheme.ink).accessibilityIdentifier(classical ? "classical-question-bank" : "practice-question-bank")
     }
     private var navigation: some View {
         ZStack {
-            Text(model.selectedPracticeLevel.map { "Practice · \($0.title)" } ?? "Practice")
+            Text(classical ? "클래식 · \(model.selectedComposer ?? "전체")" : model.selectedPracticeLevel.map { "Practice · \($0.title)" } ?? "Practice")
                 .font(.system(size: 22, weight: .bold)).accessibilityAddTraits(.isHeader)
             HStack {
-                Button { model.navigate(.practiceLevels) } label: {
-                    HStack(spacing: 6) { Image(systemName: "chevron.left"); Text("난이도 선택") }.frame(minHeight: 44)
+                Button { if classical { model.selectedComposer=nil } else { model.navigate(.practiceLevels) } } label: {
+                    HStack(spacing: 6) { Image(systemName: "chevron.left"); Text(classical ? "작곡가 선택" : "난이도 선택") }.frame(minHeight: 44)
                 }.accessibilityIdentifier("practice-bank-back")
                 Spacer()
                 Button { } label: {
@@ -79,34 +85,34 @@ struct HomeView: View {
     private func filters(width: CGFloat, height: CGFloat) -> some View {
         HStack(spacing: 12) {
             Menu {
-                Picker("박자", selection: $model.practiceFilter.meter) {
+                Picker("박자", selection: filter.meter) {
                     Text("전체").tag(TimeSignature?.none)
                     ForEach(QuestionFilter.meterOptions(in: levelQuestions), id: \.self) { meter in
                         Text(meter.label).tag(TimeSignature?.some(meter))
                     }
                 }
-            } label: { PracticeFilterLabel(title: "박자", value: model.practiceFilter.meter?.label ?? "전체", active: model.practiceFilter.meter != nil) }
+            } label: { PracticeFilterLabel(title: "박자", value: filter.wrappedValue.meter?.label ?? "전체", active: filter.wrappedValue.meter != nil) }
                 .accessibilityIdentifier("practice-filter-meter")
             Button { showKeys = true } label: {
-                PracticeFilterLabel(title: "조성", value: model.practiceFilter.keySelection.label, active: model.practiceFilter.keySelection != .all)
+                PracticeFilterLabel(title: "조성", value: filter.wrappedValue.keySelection.label, active: filter.wrappedValue.keySelection != .all)
             }.buttonStyle(.plain).accessibilityIdentifier("practice-filter-key")
                 .popover(isPresented: $showKeys, arrowEdge: .top) {
-                    PracticeKeyFilterView(selection: $model.practiceFilter.keySelection, questions: levelQuestions,
+                    PracticeKeyFilterView(selection: filter.keySelection, questions: levelQuestions,
                         width: min(472, max(280, width)), height: height) { showKeys = false }
                         .presentationCompactAdaptation(.popover)
                 }
             Menu {
-                Picker("난이도 정렬", selection: $model.practiceFilter.sortOrder) {
+                Picker("정렬", selection: filter.sortOrder) {
                     ForEach(QuestionFilter.SortOrder.allCases) { order in
-                        Text(order == .ascending ? "난이도 낮은순" : "난이도 높은순").tag(order)
+                        Text(order.label).tag(order)
                     }
                 }
-            } label: { PracticeFilterLabel(title: "난이도", value: model.practiceFilter.sortOrder.label, active: false) }
+            } label: { PracticeFilterLabel(title: "정렬", value: filter.wrappedValue.sortOrder.label, active: false) }
                 .accessibilityIdentifier("practice-filter-sort")
         }.fixedSize(horizontal: true, vertical: false)
     }
     private var completedToggle: some View {
-        Toggle(isOn: $model.practiceFilter.showCompleted) { Text("완료된 문제 표시하기").font(.system(size: 14)) }
+        Toggle(isOn: filter.showCompleted) { Text("완료된 문제 표시하기").font(.system(size: 14)) }
             .toggleStyle(PracticeCheckboxStyle()).fixedSize()
             .accessibilityIdentifier("practice-show-completed")
     }
@@ -129,12 +135,12 @@ struct HomeView: View {
     @ViewBuilder private var emptyState: some View {
         if levelQuestions.isEmpty {
             ContentUnavailableView("등록된 문제가 없어요", systemImage: "music.note")
-        } else if !model.practiceFilter.showCompleted && levelQuestions.allSatisfy({ model.completedPracticeQuestionIDs.contains($0.id) }) {
-            ContentUnavailableView("이 레벨의 문제를 모두 풀었어요", systemImage: "checkmark.circle")
-            Button("완료된 문제 보기") { model.practiceFilter.showCompleted = true }.buttonStyle(.bordered)
+        } else if !filter.wrappedValue.showCompleted && levelQuestions.allSatisfy({ model.completedPracticeQuestionIDs.contains($0.id) }) {
+            ContentUnavailableView(classical ? "이 작곡가의 문제를 모두 풀었어요" : "이 레벨의 문제를 모두 풀었어요", systemImage: "checkmark.circle")
+            Button("완료된 문제 보기") { filter.wrappedValue.showCompleted = true }.buttonStyle(.bordered)
         } else {
             ContentUnavailableView("조건에 맞는 문제가 없어요", systemImage: "line.3.horizontal.decrease.circle")
-            Button("필터 초기화") { model.practiceFilter.keySelection = .all; model.practiceFilter.meter = nil }
+            Button("필터 초기화") { filter.wrappedValue.keySelection = .all; filter.wrappedValue.meter = nil }
                 .buttonStyle(.bordered).accessibilityIdentifier("practice-filter-reset")
         }
     }
@@ -266,7 +272,7 @@ private struct PracticeKeyFilterView: View {
                     if value == 1 { if case .individual = draft { } else { draft = .individual([]) } }
                     else { if case .individual = draft { draft = .all } }
                 }
-            ScrollView {
+            ScrollView(.vertical,showsIndicators:true) {
                 VStack(spacing: mode == 0 ? 2 : 8) {
                     if mode == 0 { signatureOptions }
                     else { individualOptions }
@@ -329,7 +335,7 @@ private struct PracticeKeyFilterView: View {
 struct HistoryView: View {
     @ObservedObject var model: AppModel
     var body: some View {
-        ScrollView { VStack(alignment: .leading, spacing: 24) {
+        ScrollView(.vertical,showsIndicators:true) { VStack(alignment: .leading, spacing: 24) {
             SectionCaption(eyebrow: "PRACTICE HISTORY", title: "연습 기록", subtitle: "이 iPad에 저장된 연습과 제출 결과를 확인하세요.")
             if model.history.isEmpty { ContentUnavailableView("첫 연습을 시작해 보세요", systemImage: "pencil.and.outline") }
             ForEach(model.history) { r in

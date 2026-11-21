@@ -10,10 +10,15 @@ struct ClassicalExamLibraryView: View {
     @State private var showCredits = false
     private let portraits: [ComposerPortrait] = (try? Bundled.decode("composer-portraits")) ?? []
     private var composers: [String] { Array(Set(model.classicalQuestions.compactMap(\.composer))).sorted() }
-    private var selected: [QuestionSummary] { model.classicalQuestions.filter { $0.composer == model.selectedComposer } }
     var body: some View {
+        Group {
+            if model.selectedComposer != nil { HomeView(model:model,classical:true) }
+            else { composersView }
+        }
+    }
+    private var composersView: some View {
         GeometryReader { geometry in
-            ScrollView {
+            ScrollView(.vertical,showsIndicators:true) {
                 VStack(alignment:.leading,spacing:26) {
                     HStack(alignment:.top) {
                         SectionCaption(eyebrow:"CLASSICAL DICTATION",title:model.selectedComposer ?? "클래식 청음",
@@ -30,21 +35,6 @@ struct ClassicalExamLibraryView: View {
                     } else if composers.isEmpty {
                         ContentUnavailableView("등록된 클래식 문제가 없어요",systemImage:"music.note.list",description:Text("서버에 클래식 문제를 등록한 뒤 다시 불러와 주세요."))
                         Button("다시 불러오기") { Task { await model.loadClassical(reset:true) } }.buttonStyle(.bordered)
-                    } else if let name = model.selectedComposer {
-                        Button { model.selectedComposer = nil } label: { Label("작곡가 선택",systemImage:"chevron.left") }.buttonStyle(.bordered)
-                        if let portrait = portraits.first(where: { $0.name == name }) { composerCard(portrait,count:selected.count,height:180) }
-                        ForEach(selected) { question in
-                            Button { Task { await model.choose(question.id,mode:.practice) } } label: {
-                                Card { HStack(spacing:20) {
-                                    Image(systemName:"music.note").font(.title2).foregroundStyle(SolfegeTheme.violet)
-                                    VStack(alignment:.leading,spacing:10) {
-                                        Text(question.title).font(.headline).foregroundStyle(SolfegeTheme.ink)
-                                        Text("\(question.keySignature.label) · \(question.timeSignature.numerator)/\(question.timeSignature.denominator) · 8마디").font(.subheadline).foregroundStyle(.secondary)
-                                    }
-                                    Spacer(minLength:8); Image(systemName:"arrow.up.right").foregroundStyle(SolfegeTheme.violet)
-                                } }
-                            }.buttonStyle(.plain).accessibilityIdentifier("classical-question-\(question.id.uuidString.lowercased())")
-                        }
                     } else {
                         let columns = geometry.size.width >= 950 ? 3 : geometry.size.width >= 580 ? 2 : 1
                         let rows = max(1,Int(ceil(Double(max(composers.count,1))/Double(columns))))
@@ -69,7 +59,7 @@ struct ClassicalExamLibraryView: View {
         .task(id:model.connected) { if model.connected && !model.classicalLoaded { await model.loadClassical() } }
         .sheet(isPresented:$showCredits) {
             NavigationStack {
-                ScrollView { VStack(alignment:.leading,spacing:22) {
+                ScrollView(.vertical,showsIndicators:true) { VStack(alignment:.leading,spacing:22) {
                     Text("악보: GTTM Database / musicparser 미러 · CC BY-NC-SA 4.0").font(.headline)
                     Link("악보 데이터베이스",destination:URL(string:"https://gttm.jp/gttm/database/")!)
                     Text("브람스: 사용자 제공 brahms.mscz의 8마디 발췌본 · 곡명은 함께 제공된 메모 기준").font(.subheadline)

@@ -4900,6 +4900,11 @@
       "sha256": "8c9a1fbbd017c0e51e20f064a1313e90196f59043c277fcf104f79402f491317",
       "size_bytes": 2984555,
       "content_type": "application/json"
+    },
+    "classical-difficulty-v1.json": {
+      "sha256": "6af23dae3055d5cabc033d45ebada1fd2242d92cb869121d690931789d3bc300",
+      "size_bytes": 12307,
+      "content_type": "application/json"
     }
   },
   "files": {
@@ -10781,6 +10786,12 @@
       "path": "rhythm-puzzle-v4.json",
       "sha256": "8c9a1fbbd017c0e51e20f064a1313e90196f59043c277fcf104f79402f491317",
       "size_bytes": 2984555,
+      "content_type": "application/json"
+    },
+    "6af23dae3055d5cabc033d45ebada1fd2242d92cb869121d690931789d3bc300": {
+      "path": "classical-difficulty-v1.json",
+      "sha256": "6af23dae3055d5cabc033d45ebada1fd2242d92cb869121d690931789d3bc300",
+      "size_bytes": 12307,
       "content_type": "application/json"
     }
   }
