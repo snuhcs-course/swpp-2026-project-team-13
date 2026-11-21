@@ -3,6 +3,20 @@ import SwiftUI
 @testable import IPadApp
 
 @MainActor final class ClassicalIntegrationTests: XCTestCase {
+    func testComposerBankLoadsWhenOpenedDirectlyFromHistory() async throws {
+        let model=AppModel();model.demo=true
+        await model.connect();XCTAssertNil(model.error)
+        XCTAssertFalse(model.classicalLoaded)
+        model.selectedComposer="브람스"
+        let host=UIHostingController(rootView:ClassicalExamLibraryView(model:model))
+        let window=UIWindow(frame:CGRect(x:0,y:0,width:1194,height:834))
+        window.rootViewController=host;window.makeKeyAndVisible()
+        defer { window.isHidden=true }
+        let deadline=ProcessInfo.processInfo.systemUptime+10
+        while !model.classicalLoaded && model.error == nil && ProcessInfo.processInfo.systemUptime<deadline { try await Task.sleep(for:.milliseconds(20)) }
+        XCTAssertNil(model.error);XCTAssertTrue(model.classicalLoaded)
+        XCTAssertEqual(model.classicalQuestions.count,34)
+    }
     func testClassicalBankUsesTheSharedFiltersAndCompletedMarkersWithoutChangingPractice() async throws {
         let model=AppModel(); model.demo=true
         await model.connect(); await model.loadClassical()

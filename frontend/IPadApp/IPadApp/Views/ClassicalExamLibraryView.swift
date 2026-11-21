@@ -14,7 +14,7 @@ struct ClassicalExamLibraryView: View {
         Group {
             if model.selectedComposer != nil { HomeView(model:model,classical:true) }
             else { composersView }
-        }
+        }.task(id:model.connected) { if model.connected && !model.classicalLoaded { await model.loadClassical() } }
     }
     private var composersView: some View {
         GeometryReader { geometry in
@@ -56,7 +56,6 @@ struct ClassicalExamLibraryView: View {
                 }.padding(28).frame(maxWidth:1400,alignment:.leading).frame(maxWidth:.infinity)
             }.refreshable { await model.loadClassical(reset:true) }
         }
-        .task(id:model.connected) { if model.connected && !model.classicalLoaded { await model.loadClassical() } }
         .sheet(isPresented:$showCredits) {
             NavigationStack {
                 ScrollView(.vertical,showsIndicators:true) { VStack(alignment:.leading,spacing:22) {

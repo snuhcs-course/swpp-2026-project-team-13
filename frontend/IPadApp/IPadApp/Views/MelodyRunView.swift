@@ -127,36 +127,53 @@ struct MelodyRunView: View {
         GeometryReader { geometry in
             VStack(spacing:14) {
                 setProgress
-                HStack(spacing:14) {
-                    if let meter = game.round?.score.timeSignature { Text("\(meter.numerator)/\(meter.denominator)").font(.system(size:32,weight:.bold,design:.rounded)) }
-                    Text(game.tempoLabel).font(.subheadline).foregroundStyle(.secondary)
-                    if let credit=game.classicalCredit { Text(credit).font(.caption).foregroundStyle(.secondary).lineLimit(1) }
-                    Spacer()
-                    Text(game.page == .result ? (game.replaying ?? "결과 확인") : game.label).font(.headline).foregroundStyle(SolfegeTheme.violet)
-                    if game.page == .playing {
-                        Button { game.paused ? game.resume() : game.pause() } label: { Image(systemName:game.paused ? "play.fill" : "pause.fill").frame(width:44,height:44) }.accessibilityLabel(game.paused ? "계속하기" : "일시 정지")
-                    }
-                }
+                playHeader
                 if game.page == .playing && game.phase != .input { ProgressView(value:min(1,max(0,game.progress))).tint(SolfegeTheme.violet) }
-                ScrollView(.vertical,showsIndicators:true) {
-                    if let round = game.round, let answers = game.answers {
-                        MemoryPhraseView(round:round,answers:answers.pitches,reveal:game.answerRevealed,markErrors:game.submissionCount>=2,selectedBar:game.page == .playing ? game.measure : nil,selectBar:game.page == .playing ? game.selectBar : nil)
-                            .padding(.horizontal,12).background(.white,in:RoundedRectangle(cornerRadius:16))
-                    }
-                }.frame(maxHeight:.infinity)
-                HStack {
-                    Text(playFeedback)
-                        .font(.subheadline).foregroundStyle(.secondary)
-                    Spacer()
-                    if let first = game.guidedPitch { Text("첫 음 \(MelodyRound.noteName(first)) ↓").font(.subheadline.bold()).foregroundStyle(SolfegeTheme.violet) }
-                }
-                MelodyPianoView(range:game.keyboardRange,enabled:game.canEnter,solfege:game.difficulty == .beginner,reference:game.guidedPitch,onDown:game.keyDown,onUp:game.keyUp)
-                    .frame(height:max(150,min(230,geometry.size.height*0.30))).frame(maxWidth:game.difficulty == .beginner ? 780 : .infinity)
+                ScrollView(.vertical,showsIndicators:true) { playNotation }.frame(maxHeight:.infinity)
+                playFeedbackRow
+                playKeyboard(height:geometry.size.height)
                 playActions
-            }.overlay { if game.paused {
-                VStack(spacing:18) { Text("잠시 쉬는 중").font(.title3.bold()); Button("계속하기") { game.resume() }.buttonStyle(PrimaryButton()) }
-                    .frame(maxWidth:.infinity,maxHeight:.infinity).background(.regularMaterial,in:RoundedRectangle(cornerRadius:18))
-            } }
+            }.overlay { pauseLayer }
+        }
+    }
+    private var playHeader: some View {
+        HStack(spacing:14) {
+            if let meter=game.round?.score.timeSignature { Text("\(meter.numerator)/\(meter.denominator)").font(.system(size:32,weight:.bold,design:.rounded)) }
+            Text(game.tempoLabel).font(.subheadline).foregroundStyle(.secondary)
+            if let credit=game.classicalCredit { Text(credit).font(.caption).foregroundStyle(.secondary).lineLimit(1) }
+            Spacer()
+            Text(game.page == .result ? (game.replaying ?? "결과 확인") : game.label).font(.headline).foregroundStyle(SolfegeTheme.violet)
+            if game.page == .playing {
+                Button { game.paused ? game.resume() : game.pause() } label: { Image(systemName:game.paused ? "play.fill" : "pause.fill").frame(width:44,height:44) }.accessibilityLabel(game.paused ? "계속하기" : "일시 정지")
+            }
+        }
+    }
+    @ViewBuilder private var playNotation: some View {
+        if let round=game.round, let answers=game.answers {
+            Group {
+                if game.page == .playing {
+                    MemoryPhraseView(round:round,answers:answers.pitches,markErrors:game.submissionCount>=2,selectedBar:game.measure,selectBar:{ bar in game.selectBar(bar) })
+                } else {
+                    MemoryPhraseView(round:round,answers:answers.pitches,reveal:game.answerRevealed,markErrors:game.submissionCount>=2)
+                }
+            }.padding(.horizontal,12).background(.white,in:RoundedRectangle(cornerRadius:16))
+        }
+    }
+    private var playFeedbackRow: some View {
+        HStack {
+            Text(playFeedback).font(.subheadline).foregroundStyle(game.page == .result && !game.answerRevealed ? SolfegeTheme.green : SolfegeTheme.ink)
+            Spacer()
+            if let first=game.guidedPitch, game.page == .playing { Text("첫 음 \(MelodyRound.noteName(first)) ↓").font(.subheadline.bold()).foregroundStyle(SolfegeTheme.violet) }
+        }
+    }
+    private func playKeyboard(height: CGFloat) -> some View {
+        MelodyPianoView(range:game.keyboardRange,enabled:game.canEnter,solfege:game.difficulty == .beginner,reference:game.guidedPitch,onDown:game.keyDown,onUp:game.keyUp)
+            .frame(height:max(150,min(230,height*0.30))).frame(maxWidth:game.difficulty == .beginner ? 780 : .infinity)
+    }
+    @ViewBuilder private var pauseLayer: some View {
+        if game.paused {
+            VStack(spacing:18) { Text("잠시 쉬는 중").font(.title3.bold()); Button("계속하기") { game.resume() }.buttonStyle(PrimaryButton()) }
+                .frame(maxWidth:.infinity,maxHeight:.infinity).background(.regularMaterial,in:RoundedRectangle(cornerRadius:18))
         }
     }
     private var playFeedback: String {
