@@ -1,10 +1,12 @@
 import AVFoundation
 
 @MainActor final class RhythmPuzzleAudio {
-    private let graph = PianoAudioGraph()
-    private var sequencer: AVAudioSequencer?
+    private let graph: PianoAudioGraph
+    private var transport: PianoSequenceTransport?
+    private var sequencer: AVAudioSequencer? { transport?.sequencer }
     private var ready = false
     private var profile: ClassicalPiano?
+    init(graph: PianoAudioGraph = PianoAudioGraph()) { self.graph=graph }
     private(set) var endTick = 0
     var tick: Int { Int(((sequencer?.currentPositionInBeats ?? 0)*480).rounded(.down)) }
     var running: Bool { graph.engine.isRunning }
@@ -14,9 +16,11 @@ import AVFoundation
         try session.setCategory(.playback,mode:.default,options:[]); try session.setActive(true)
         let selected = try profile ?? ClassicalPiano.load()
         profile = selected
-        if !ready {
+        if !ready || !graph.engine.isRunning {
+            invalidate()
             guard let click = Bundle.main.url(forResource:"sori-click-v1",withExtension:"wav") else { throw SolfegeError.invalidScore("예비박 음원이 없어요.") }
             try graph.rebuild(bank:selected.url,program:selected.program,bankMSB:selected.bankMsb,bankLSB:selected.bankLsb,clickURL:click,gain:pow(10,selected.gainDb/20))
+            transport=PianoSequenceTransport(graph:graph)
             try graph.engine.start(); ready = true
         }
     }
@@ -33,21 +37,21 @@ import AVFoundation
         }
         guard let total = round.totalDuration.ticks else { throw SolfegeError.invalidScore("리듬 길이를 확인해 주세요.") }
         let countIn = includeCountIn && !reference
-        let data = countIn
-            ? MIDIFile.withCountIn(events:events,totalTicks:total,tempo:round.tempoBpm,countIn:count,velocity:Int(selected.noteVelocity))
-            : MIDIFile.make(events:events,totalTicks:total,tempo:round.tempoBpm,velocity:Int(selected.noteVelocity))
-        graph.engine.stop(); sequencer = nil
-        let seq = AVAudioSequencer(audioEngine:graph.engine)
-        try seq.load(from:data,options:[])
-        guard seq.tracks.count == (countIn ? 2 : 1) else { throw SolfegeError.invalidScore("리듬 재생 트랙을 확인해 주세요.") }
-        for (i,track) in seq.tracks.enumerated() { track.destinationAudioUnit = i == 0 ? graph.piano : graph.click }
-        endTick = (countIn ? count.totalTicks : 0)+total
-        sequencer = seq; try graph.engine.start(); seq.currentPositionInBeats = 0; seq.prepareToPlay(); try seq.start()
+        let prefix=countIn ? count.totalTicks : 0
+        let shifted=events.map { MusicEvent(midi:$0.midi,onset:$0.onset+prefix,duration:$0.duration) }
+        let clicks: [MusicEvent] = countIn ? (0..<(count.measures*count.beatsPerMeasure)).map {
+            MusicEvent(midi:60,onset:$0*count.ticksPerBeat,duration:min(40,count.ticksPerBeat))
+        } : []
+        guard let transport else { throw SolfegeError.invalidScore("리듬 재생기를 준비하지 못했어요.") }
+        endTick=prefix+total
+        try transport.configure(piano:shifted,clicks:clicks,totalTicks:endTick,bpm:round.tempoBpm,
+                                pianoVelocity:selected.noteVelocity,clickVelocity:UInt8(count.velocity),accentVelocity:UInt8(count.accentVelocity))
+        try transport.start()
     }
     func stop() {
         sequencer?.stop()
         for unit in [graph.piano,graph.click] { unit.sendController(120,withValue:0,onChannel:0); unit.sendController(123,withValue:0,onChannel:0) }
     }
-    func invalidate() { stop(); graph.engine.stop(); sequencer = nil; ready = false }
+    func invalidate() { stop(); graph.engine.stop(); transport = nil; ready = false }
     func shutdown() { invalidate() }
 }

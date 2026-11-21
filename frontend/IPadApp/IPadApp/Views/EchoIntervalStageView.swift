@@ -91,7 +91,7 @@ struct EchoIntervalStageView: View {
                     game.suspend()
                     if game.run.complete || game.run.failed { exit() } else { confirmingExit=true }
                 } label: { Image(systemName:"xmark").font(.title3).frame(width:44,height:44) }
-                    .accessibilityLabel("계단으로 돌아가기")
+                    .accessibilityLabel("완료하기")
             }
         }.frame(height:58)
     }
@@ -124,7 +124,7 @@ struct EchoIntervalStageView: View {
             }
             Spacer()
             if game.run.failed || game.run.complete {
-                Button("계단으로 돌아가기") { game.suspend(); exit() }.buttonStyle(PrimaryButton())
+                Button("완료하기") { game.suspend(); exit() }.buttonStyle(PrimaryButton())
             } else if game.phase == .happy {
                 Button("다음") { game.next() }.buttonStyle(PrimaryButton()).accessibilityIdentifier("echo-next")
             } else {

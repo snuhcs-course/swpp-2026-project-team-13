@@ -56,6 +56,11 @@
       "size_bytes": 61939,
       "content_type": "application/json"
     },
+    "drill-stage-sets-v3.json": {
+      "sha256": "e64d93c43c1302233198358eb9eb5b198d1f3c5cc25c22844be73c077b91687a",
+      "size_bytes": 63793,
+      "content_type": "application/json"
+    },
     "melody--Batchellor-Charmbury-1884a_1-1-018.xml": {
       "sha256": "17e6aee8267aed584bd9af3015d88226b9ca0c30f82604466657367565339bc6",
       "size_bytes": 4474,
@@ -4962,6 +4967,12 @@
       "path": "drills/drill-stage-sets-v2.json",
       "sha256": "1b37451b62d2960926f42b61f670007d768fbd9ef808404413b66cce2d8be223",
       "size_bytes": 61939,
+      "content_type": "application/json"
+    },
+    "e64d93c43c1302233198358eb9eb5b198d1f3c5cc25c22844be73c077b91687a": {
+      "path": "drills/drill-stage-sets-v3.json",
+      "sha256": "e64d93c43c1302233198358eb9eb5b198d1f3c5cc25c22844be73c077b91687a",
+      "size_bytes": 63793,
       "content_type": "application/json"
     },
     "17e6aee8267aed584bd9af3015d88226b9ca0c30f82604466657367565339bc6": {

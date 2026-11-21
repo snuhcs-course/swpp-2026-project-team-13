@@ -20,7 +20,7 @@ def publish_drills():
     target=CONTENT/'drills';target.mkdir(exist_ok=True)
     names=['memory-run-v2.json','memory-groove-v1.json','rhythm-engraving-v3.json']
     if (RES/'drill-stage-sets-v1.json').exists(): names.append('drill-stage-sets-v1.json')
-    names += [n for n in ['memory-run-v3.json','memory-groove-v2.json','rhythm-engraving-v4.json','drill-stage-sets-v2.json'] if (RES/n).exists()]
+    names += [n for n in ['memory-run-v3.json','memory-groove-v2.json','rhythm-engraving-v4.json','drill-stage-sets-v2.json','drill-stage-sets-v3.json'] if (RES/n).exists()]
     memory=read(RES/'memory-run-v2.json')
     names += sorted({s['file'] for s in memory['sources']})
     for name in names:
@@ -122,6 +122,9 @@ def small_demo():
         ink=read(RES/'rhythm-engraving-v4.json')
         ink['catalog_sha256']=sha((json.dumps(bank,ensure_ascii=False,indent=2)+'\n').encode('utf-8'))
         ink['tiles']={k:v for k,v in ink['tiles'].items() if k in ids};payloads['rhythm-engraving-v4']=ink
+    if (RES/'drill-stage-sets-v3.json').exists():
+        course=read(RES/'drill-stage-sets-v3.json')
+        payloads['drill-stage-sets-v3']={**course,'stages':[s for s in course['stages'] if s['rank']<=2]}
     for name,value in payloads.items():
         filename='small-demo-'+name+'.json';write(RES/filename,value);keep.add(filename);index[name]=filename
     write(RES/'small-demo-index.json',{'version':1,'files':index,'required_files':sorted(keep),'question_count':len(questions)})

@@ -31,7 +31,7 @@ struct DrillStageSetView: View {
     }
     var body: some View {
         ZStack {
-            if session.error != nil { VStack(spacing:20) { Text(session.error ?? ""); Button("계단으로",action:exit) } }
+            if session.error != nil { VStack(spacing:20) { Text(session.error ?? ""); Button("완료하기",action:exit) } }
             else if session.summary { summary }
             else if !session.prepared { VStack(spacing:20) { ProgressView("스테이지를 준비하고 있어요"); Button("취소",action:exit) } }
             else { question }
@@ -55,14 +55,14 @@ struct DrillStageSetView: View {
     }
     private var summary: some View {
         VStack(spacing:28) {
-            HStack { Text(stage.game.title).font(.title2.bold()); StageChip(stage:stage); Spacer(); Button(action:exit) { Image(systemName:"xmark").frame(width:44,height:44) }.accessibilityLabel("계단으로") }
+            HStack { Text(stage.game.title).font(.title2.bold()); StageChip(stage:stage); Spacer(); Button(action:exit) { Image(systemName:"xmark").frame(width:44,height:44) }.accessibilityLabel("완료하기") }
             DrillSetProgress(results:session.attempt.results,index:session.attempt.index)
             Spacer()
             Text(session.attempt.mastered ? "스테이지 클리어!" : "끝까지 풀었어요").font(.largeTitle.bold())
             Text("\(session.attempt.results.filter { $0?.correct == true }.count)/\(session.attempt.results.count)문제 정답").font(.title3).foregroundStyle(SolfegeTheme.muted)
-            if !session.attempt.mastered { Text("붉은 칸의 문제를 다시 연습해 보세요.").foregroundStyle(SolfegeTheme.muted) }
+            if !session.attempt.mastered { Text("틀린 문제를 다시 연습해 보세요.").foregroundStyle(SolfegeTheme.muted) }
             Spacer()
-            HStack(spacing:16) { Button("다시 도전") { session.restart() }.buttonStyle(.bordered); Button("계단으로",action:exit).buttonStyle(PrimaryButton()) }
+            HStack(spacing:16) { Button("다시 도전") { session.restart() }.buttonStyle(.bordered); Button("완료하기",action:exit).buttonStyle(PrimaryButton()) }
         }.padding(28).background(SolfegeTheme.background)
     }
 }

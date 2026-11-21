@@ -4,6 +4,38 @@ import AVFoundation
 @testable import IPadApp
 
 @MainActor final class MelodyRunIntegrationTests: XCTestCase {
+    func testWrongSubmissionsStayOnTheBoardUntilThirdAttemptRevealsAnswer() async throws {
+        let game=makeGame(mode:.memory)
+        defer { game.stop() }
+        await game.start(); try await waitUntil({game.canEnter})
+        game.submit()
+        XCTAssertEqual(game.page,.playing); XCTAssertEqual(game.submissionCount,1)
+        XCTAssertFalse(game.answerRevealed)
+        XCTAssertEqual(game.message,"음정이 일치하지 않아요. 다시 들어보세요.")
+        game.submit()
+        XCTAssertEqual(game.page,.playing); XCTAssertEqual(game.submissionCount,2)
+        XCTAssertFalse(game.answerRevealed)
+        game.submit()
+        XCTAssertEqual(game.page,.result); XCTAssertTrue(game.answerRevealed)
+        await game.start()
+        XCTAssertEqual(game.submissionCount,0); XCTAssertFalse(game.answerRevealed)
+    }
+    func testCorrectingAnAnswerFinishesWithoutRevealingIt() async throws {
+        let game=makeGame(mode:.memory)
+        defer { game.stop() }
+        await game.start(); try await waitUntil({game.canEnter})
+        game.submit()
+        let round=try XCTUnwrap(game.round)
+        for _ in round.targets {
+            if let target=game.answers?.next(in:game.measure) {
+                game.keyDown(round.targets[target].midi); game.keyUp(round.targets[target].midi)
+            }
+        }
+        XCTAssertTrue(game.allEntered)
+        game.submit()
+        XCTAssertEqual(game.page,.result); XCTAssertEqual(game.answers?.result.accuracy,100)
+        XCTAssertFalse(game.answerRevealed)
+    }
     private func makeGame(mode: MelodyMode, early: Bool = false) -> MelodyRunModel {
         let game = MelodyRunModel()
         game.selection = "Batchellor-Charmbury-1884a_1-1-018"
@@ -197,7 +229,7 @@ import AVFoundation
         }
     }
     func testReferencePhraseUsesThePianoSamplerAfterCountIn() async throws {
-        let graph = PianoAudioGraph(), piano = MelodyAudioProbe(), click = MelodyAudioProbe()
+        let graph = PianoAudioGraph(), piano = PianoTimbreProbe(), click = PianoTimbreProbe()
         let audio = MelodyRunAudio(graph:graph)
         try audio.prepare()
         defer { audio.stop() }
@@ -217,10 +249,31 @@ import AVFoundation
         let count = Int(format.sampleRate*0.3)
         let reference = Array(piano.snapshot().suffix(count)), afterCountIn = Array(click.snapshot().suffix(count))
         XCTAssertEqual(reference.count,count)
-        XCTAssertGreaterThan(MelodyAudioProbe.rms(reference),0.0001,"The reference must reach the SF2 piano, not the click instrument")
-        XCTAssertLessThan(MelodyAudioProbe.rms(afterCountIn),0.0001,"The count-in sampler must be silent during the melody")
-        XCTAssertGreaterThan(MelodyAudioProbe.power(reference,hz:440,rate:format.sampleRate),
-                             4*MelodyAudioProbe.power(reference,hz:420,rate:format.sampleRate),"Reference A4 must retain its piano pitch")
+        XCTAssertGreaterThan(PianoTimbreProbe.rms(reference),0.0001,"The reference must reach the SF2 piano, not the click instrument")
+        XCTAssertLessThan(PianoTimbreProbe.rms(afterCountIn),0.0001,"The count-in sampler must be silent during the melody")
+        XCTAssertGreaterThan(PianoTimbreProbe.power(reference,hz:440,rate:format.sampleRate),
+                             4*PianoTimbreProbe.power(reference,hz:420,rate:format.sampleRate),"Reference A4 must retain its piano pitch")
+        XCTAssertGreaterThan(PianoTimbreProbe.harmonicFraction(reference,rate:format.sampleRate),0.005,"A tuned sine wave is not the sampled piano")
+        let engine=graph.engine, sampler=graph.piano
+        for nextQuestion in [false,true] {
+            piano.reset()
+            if nextQuestion { try audio.start(timeline,round:round,settings:settings) }
+            else { try audio.replay(events:[MusicEvent(midi:69,onset:0,duration:1920)],ticks:1920,bpm:120) }
+            try await Task.sleep(for:.milliseconds(nextQuestion ? 2300 : 700))
+            audio.stopClock()
+            XCTAssertTrue(graph.engine === engine && graph.piano === sampler,"Replays and next questions must retain the prepared sampler graph")
+            let replayed=Array(piano.snapshot().suffix(count))
+            XCTAssertEqual(replayed.count,count)
+            XCTAssertGreaterThan(PianoTimbreProbe.rms(replayed),0.0001)
+            XCTAssertGreaterThan(PianoTimbreProbe.harmonicFraction(replayed,rate:format.sampleRate),0.005,"Replay/next question must not revert to a sine wave")
+        }
+    }
+    func testTimbreRegressionRejectsAPureSineWave() {
+        let rate=48000.0
+        let sine=(0..<12000).map { Float(sin(2*Double.pi*440*Double($0)/rate)) }
+        let rich=sine.enumerated().map { index,value in value+Float(0.3*sin(2*Double.pi*880*Double(index)/rate)) }
+        XCTAssertLessThan(PianoTimbreProbe.harmonicFraction(sine,rate:rate),0.005)
+        XCTAssertGreaterThan(PianoTimbreProbe.harmonicFraction(rich,rate:rate),0.02)
     }
     func testLandscapeKeyboardAndBothClefsRender() async throws {
         let game = makeGame(mode:.memory)
@@ -241,28 +294,5 @@ import AVFoundation
         keyboard.layer.displayIfNeeded()
         let piano = UIGraphicsImageRenderer(size:keyboard.bounds.size).image { keyboard.layer.render(in:$0.cgContext) }
         let keys = XCTAttachment(image:piano); keys.name = "melody-run-multitouch-keyboard"; keys.lifetime = .keepAlways; add(keys)
-    }
-}
-
-private final class MelodyAudioProbe: @unchecked Sendable {
-    private let lock = NSLock()
-    private var samples: [Float] = []
-    func append(_ buffer: AVAudioPCMBuffer) {
-        guard let channel = buffer.floatChannelData?[0] else { return }
-        let values = Array(UnsafeBufferPointer(start:channel,count:Int(buffer.frameLength)))
-        lock.lock(); defer { lock.unlock() }
-        if samples.count < 480000 { samples.append(contentsOf:values) }
-    }
-    func snapshot() -> [Float] { lock.lock(); defer { lock.unlock() }; return samples }
-    static func rms(_ values: [Float]) -> Double {
-        sqrt(values.reduce(0) { $0+Double($1)*Double($1) }/Double(max(1,values.count)))
-    }
-    static func power(_ values: [Float], hz: Double, rate: Double) -> Double {
-        var real = 0.0, imaginary = 0.0
-        for (index,value) in values.enumerated() {
-            let phase = 2*Double.pi*hz*Double(index)/rate
-            real += Double(value)*cos(phase); imaginary += Double(value)*sin(phase)
-        }
-        return real*real+imaginary*imaginary
     }
 }

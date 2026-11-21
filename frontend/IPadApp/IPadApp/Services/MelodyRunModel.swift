@@ -56,6 +56,13 @@ import SwiftUI
     @Published var importMessage: String?
     @Published private(set) var message = ""
     @Published private(set) var replacementMeasure: Int?
+    @Published private(set) var submissionCount = 0
+    @Published private(set) var answerRevealed = false
+    var classicalCredit: String? {
+        guard let question, question.collection == "classical" else { return nil }
+        let title = question.sourceLabel?.isEmpty == false ? question.sourceLabel! : question.title
+        return title.hasSuffix("中") ? title : title+" 中"
+    }
     var guidedPitch: Int? {
         guard let answers, answers.guideFirst, (answers.pitches.first ?? nil) == nil else { return nil }
         return round?.targets.first?.midi
@@ -281,7 +288,7 @@ import SwiftUI
             runner?.cancel()
             if stageMode { audio.stopClock(); audio.releaseKeys() } else { audio.stop() }
             round = value; answers = MelodyAnswers(round:value,guideFirst:true); measure = 1; freeRecall = false
-            replacementMeasure = nil; message = ""
+            replacementMeasure = nil; message = ""; submissionCount=0; answerRevealed=false
             try audio.prepare()
             page = .playing; paused = false
             beginObservation()
@@ -403,6 +410,20 @@ import SwiftUI
         replacementMeasure = round.targetIndices(measure:bar).contains(where:{ answers?.pitches[$0] != nil }) ? bar : nil
         message = replacementMeasure == nil ? "" : "건반을 누르면 \(bar)마디를 첫 음부터 다시 입력해요."
     }
+    func submit() {
+        guard canEnter, let result=answers?.result else { return }
+        submissionCount+=1
+        if result.accuracy == 100 { finish(); return }
+        if submissionCount < 3 {
+            message = submissionCount == 1 ? "음정이 일치하지 않아요. 다시 들어보세요." : "표시된 음을 다시 들어보세요."
+            return
+        }
+        revealAnswer()
+    }
+    func revealAnswer() {
+        guard canEnter else { return }
+        answerRevealed=true; finish()
+    }
     func finish() {
         guard page == .playing else { return }
         runner?.cancel(); runner = nil; audio.stopClock(); audio.releaseKeys(); page = .result; paused = false
@@ -480,7 +501,7 @@ import SwiftUI
         catch { storageFailed = true; self.error = "게임 기록을 기기에 저장하지 못했어요. 저장 공간을 확인해 주세요." }
     }
     func retryStorage() { persist(export:true) }
-    func replay(user: Bool, measure: Int? = nil) {
+    func replay(user: Bool, measure: Int? = nil, includeCountIn: Bool = false) {
         guard let round, let answers, page == .result else { return }
         stopReplay()
         do {
@@ -496,7 +517,15 @@ import SwiftUI
             guard events.contains(where: { $0.midi != nil }) else {
                 error = "이 구간에는 재생할 음이 없어요."; return
             }
-            try audio.replay(events:events,ticks:ticks,bpm:settings.bpm)
+            var clicks: [MusicEvent] = []
+            if includeCountIn {
+                let meter=round.score.timeSignature
+                let count=CountInPlayback(measures:1,beforeStepOrders:[1],beatsPerMeasure:meter.numerator,beatUnit:meter.denominator,accentVelocity:105,velocity:75,profileId:"sori-click-v1")
+                events=events.map { MusicEvent(midi:$0.midi,onset:$0.onset+count.totalTicks,duration:$0.duration) }
+                clicks=(0..<count.beatsPerMeasure).map { MusicEvent(midi:60,onset:$0*count.ticksPerBeat,duration:min(40,count.ticksPerBeat)) }
+                ticks+=count.totalTicks
+            }
+            try audio.replay(events:events,ticks:ticks,bpm:settings.bpm,clicks:clicks)
             replaying = user ? "내 연주" : "원본 선율"
             runner = Task { [weak self] in
                 while !Task.isCancelled {

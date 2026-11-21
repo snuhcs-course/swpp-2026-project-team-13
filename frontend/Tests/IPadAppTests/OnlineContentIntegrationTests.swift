@@ -93,10 +93,12 @@ final class DeliveryAppProtocol: URLProtocol {
         var descriptions = assets; descriptions[source.file]?.contentType = "application/xml"
         let manifest = try ContractJSON.encoder().encode(ContentManifest(version:1,assets:descriptions))
         var requests = 0
+        var downloadedHashes = Set<String>()
         DeliveryAppProtocol.respond = { request in
             requests += 1
             XCTAssertEqual(request.value(forHTTPHeaderField:"Authorization"),"Bearer learner")
             if request.url?.lastPathComponent == "manifest" { return ("application/json",manifest) }
+            downloadedHashes.insert(request.url!.lastPathComponent)
             let data = try XCTUnwrap(files.values.first { $0.sha256 == request.url?.lastPathComponent })
             return (request.value(forHTTPHeaderField:"Accept")!,data)
         }
@@ -106,6 +108,18 @@ final class DeliveryAppProtocol: URLProtocol {
         let rhythm = RhythmPuzzleModel(connection:connection)
         XCTAssertNil(rhythm.catalog)
         await rhythm.prepareContent(); XCTAssertNil(rhythm.error); XCTAssertNotNil(rhythm.engraving)
+        let oldData=try XCTUnwrap(files["rhythm-puzzle-v3.json"])
+        XCTAssertFalse(downloadedHashes.contains(oldData.sha256),"A fresh player should not download historical banks")
+        let oldBank=try ContractJSON.decoder().decode(RhythmCatalog.self,from:oldData)
+        let oldRound=try XCTUnwrap(oldBank.rounds.first)
+        var oldRecord=RhythmPlayRecord(catalogSha256:oldData.sha256,roundId:oldRound.id,choiceOrder:oldRound.choices,startedAt:Date(),finishedAt:Date())
+        oldRecord.gameVersion=oldBank.version
+        let store=try RhythmPuzzleStore(root:storage.root)
+        try store.save(RhythmJournal(draft:RhythmDraft(setIds:[oldRound.id],index:0,record:oldRecord)))
+        let recovered=RhythmPuzzleModel(connection:connection)
+        await recovered.prepareContent(); XCTAssertNil(recovered.error)
+        XCTAssertTrue(recovered.canResume,"An old unfinished answer must still load its own immutable bank")
+        XCTAssertTrue(downloadedHashes.contains(oldData.sha256))
         let provider = try TrainingContentProvider(connection:connection)
         let xml = try await provider.data(source.file); XCTAssertEqual(xml.sha256,source.sha256)
         _ = try MelodyXMLParser.parse(xml)

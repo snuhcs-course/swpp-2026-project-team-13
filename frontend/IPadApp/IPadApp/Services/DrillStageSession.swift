@@ -26,7 +26,9 @@ import SwiftUI
                 let saved=try JSONDecoder().decode(Journal.self,from:Data(contentsOf:file))
                 guard saved.active.matches(set:set,version:version) else { throw SolfegeError.storage("저장된 스테이지와 문제 버전이 달라요.") }
                 history=saved.history
-                if saved.active.complete { attempt=saved.active; summary=true }
+                // Reopening a stage always starts a new challenge. Keep completed
+                // attempts as history; the stairs own the permanent clear marker.
+                if saved.active.complete { history.append(saved.active) }
             }
         } catch { self.error="진행 기록을 읽지 못했어요. 기존 기록을 보관했어요." }
     }

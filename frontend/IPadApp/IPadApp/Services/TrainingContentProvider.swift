@@ -50,7 +50,7 @@ enum DemoContent {
         guard let asset = current.assets[name] else { throw SolfegeError.configuration("서버의 문제 자료를 업데이트해 주세요: \(name)") }
         let isCatalog = ["memory-run-v2.json","memory-groove-v1.json","rhythm-puzzle-v1.json",
                          "rhythm-puzzle-v2.json","rhythm-puzzle-v3.json","rhythm-engraving-v3.json","drill-stage-sets-v1.json",
-                         "memory-run-v3.json","memory-groove-v2.json","rhythm-puzzle-v4.json","rhythm-engraving-v4.json","drill-stage-sets-v2.json"].contains(name)
+                         "memory-run-v3.json","memory-groove-v2.json","rhythm-puzzle-v4.json","rhythm-engraving-v4.json","drill-stage-sets-v2.json","drill-stage-sets-v3.json"].contains(name)
         // A resumed Rhythm draft needs its catalog even after the LRU cache is trimmed.
         let pin = pinned.appendingPathComponent(name)
         if isCatalog, let data = try? Data(contentsOf:pin), data.sha256 == asset.sha256, data.count == asset.sizeBytes { return data }

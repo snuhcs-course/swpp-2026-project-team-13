@@ -14,7 +14,8 @@
     "memory-run-v3": "small-demo-memory-run-v3.json",
     "memory-groove-v2": "small-demo-memory-groove-v2.json",
     "rhythm-puzzle-v4": "small-demo-rhythm-puzzle-v4.json",
-    "rhythm-engraving-v4": "small-demo-rhythm-engraving-v4.json"
+    "rhythm-engraving-v4": "small-demo-rhythm-engraving-v4.json",
+    "drill-stage-sets-v3": "small-demo-drill-stage-sets-v3.json"
   },
   "required_files": [
     "excerpt-1-v2-main.mxl",
@@ -61,6 +62,7 @@
     "small-demo-difficulty.json",
     "small-demo-drill-stage-sets-v1.json",
     "small-demo-drill-stage-sets-v2.json",
+    "small-demo-drill-stage-sets-v3.json",
     "small-demo-engraving.json",
     "small-demo-memory-groove-v1.json",
     "small-demo-memory-groove-v2.json",

@@ -22,14 +22,14 @@ struct DrillStageCourse: Codable {
     let version: String
     let stages: [DrillStageSet]
     func validate() throws {
-        guard ["drill-stage-sets-1","drill-stage-sets-2"].contains(version), Set(stages.map(\.number)).count == stages.count else { throw invalid }
+        guard ["drill-stage-sets-1","drill-stage-sets-2","drill-stage-sets-3"].contains(version), Set(stages.map(\.number)).count == stages.count else { throw invalid }
         for set in stages {
             guard let stage = DrillStairs.stage(set.number), stage.game == set.game,
                   set.questions.count == (set.game == .memoryRun ? 4 : set.game == .rhythmPuzzle ? 5 : 6),
                   Set(set.questions.map(\.id)).count == set.questions.count else { throw invalid }
             for q in set.questions {
                 guard !q.id.isEmpty, q.sourceSha256.count == 64, (40...240).contains(q.bpm), q.firstMeasure>=1 else { throw invalid }
-                if version == "drill-stage-sets-2", set.game == .memoryRun {
+                if version != "drill-stage-sets-1", set.game == .memoryRun {
                     guard let fifths=q.keyFifths, let cap=DrillMemoryPolicy.maximumFifths(stair:set.number), abs(fifths)<=cap else { throw invalid }
                 }
                 if set.game == .echoDragon {

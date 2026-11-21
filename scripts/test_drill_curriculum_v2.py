@@ -7,6 +7,7 @@ import unittest
 import tempfile
 import build_drill_curriculum_v2 as b
 import build_drill_curriculum_review as review
+from test_drill_curriculum_v3 import RecallCourseTests
 from solfege.rhythm import grade
 
 class CurriculumTests(unittest.TestCase):

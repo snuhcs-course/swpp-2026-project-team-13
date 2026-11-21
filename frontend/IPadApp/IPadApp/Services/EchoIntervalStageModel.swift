@@ -47,6 +47,7 @@ enum EchoIntervalPhase: Equatable {
     var canSubmit: Bool { canEnter && inputs.count == 2 }
     func listen() {
         guard canListen else { return }
+        inputs=[]; startReminder=false
         play(run.question.call,answer:false)
     }
     func keyDown(_ midi: Int) {

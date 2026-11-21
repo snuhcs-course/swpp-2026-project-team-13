@@ -17,7 +17,7 @@ struct EchoFollowView: View {
             HStack {
                 Text("Echo Dragon").font(.title2.bold()); StageChip(stage:stage.stage); Spacer()
                 Button { game.stop(); help=true } label: { Image(systemName:"questionmark.circle").frame(width:44,height:44) }.accessibilityLabel("게임 방법")
-                Button { game.suspend(); confirmingExit=true } label: { Image(systemName:"xmark").frame(width:44,height:44) }.accessibilityLabel("계단으로")
+                Button { game.suspend(); confirmingExit=true } label: { Image(systemName:"xmark").frame(width:44,height:44) }.accessibilityLabel("뒤로가기")
             }
             DrillSetProgress(results:stage.results,index:stage.index)
             HStack(spacing:28) {

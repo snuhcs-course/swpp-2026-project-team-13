@@ -174,7 +174,7 @@ import AVFoundation
                 .frame(height:180)
             HStack(spacing:14) {
                 if game.result == .correct, let stage {
-                    Button { game.stop(); stage.exit() } label: { Label("계단으로",systemImage:"arrow.right") }
+                    Button { game.stop(); stage.exit() } label: { Label("완료하기",systemImage:"arrow.right") }
                         .buttonStyle(PrimaryButton()).accessibilityIdentifier("drill-stage-exit")
                     Button("정답 대답 다시 듣기") { game.replayAnswer() }.disabled(game.isPlaying || game.interrupted)
                 } else if game.result == .correct {

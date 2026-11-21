@@ -52,7 +52,8 @@ import XCTest
         }
         XCTAssertTrue(resumed.summary);XCTAssertTrue(resumed.attempt.complete);XCTAssertFalse(resumed.attempt.mastered)
         let finished=DrillStageSession(set:set,version:course.version,root:root)
-        XCTAssertTrue(finished.summary); XCTAssertFalse(finished.attempt.mastered)
+        XCTAssertFalse(finished.summary); XCTAssertFalse(finished.attempt.complete)
+        XCTAssertEqual(finished.attempt.index,0); XCTAssertTrue(finished.attempt.results.allSatisfy { $0 == nil })
         resumed.restart();XCTAssertEqual(resumed.attempt.index,0);XCTAssertTrue(resumed.attempt.results.allSatisfy { $0 == nil })
     }
     func testMemoryStageStartsThePinnedExcerptAndTempoInsteadOfRandomSampling() throws {
@@ -65,6 +66,18 @@ import XCTest
         XCTAssertNil(game.error);XCTAssertEqual(game.excerpt?.id,q.catalogId);XCTAssertEqual(game.excerpt?.bars,2)
         game.stop();game.newStageRound(q)
         XCTAssertEqual(game.excerpt?.id,q.catalogId)
+    }
+    func testCompletedRhythmStageReopensAtItsFirstQuestion() throws {
+        try FileManager.default.createDirectory(at:root,withIntermediateDirectories:true)
+        let course: DrillStageCourse=try DemoContent.decode("drill-stage-sets-v3")
+        let set=try XCTUnwrap(course.stages.first { $0.game == .rhythmPuzzle })
+        let game=DrillStageSession(set:set,version:course.version,root:root)
+        for _ in set.questions { game.report(DrillRoundResult(accuracy:100,revealed:false,elapsedMs:0)); game.next() }
+        XCTAssertTrue(game.summary)
+        let reopened=DrillStageSession(set:set,version:course.version,root:root)
+        XCTAssertNil(reopened.error); XCTAssertFalse(reopened.summary)
+        XCTAssertEqual(reopened.round.id,set.questions[0].id)
+        XCTAssertTrue(reopened.attempt.results.allSatisfy { $0 == nil })
     }
     func testRhythmStageDoesNotPersistPartialPlayBeforeStageCommit() throws {
         let course: DrillStageCourse = try DemoContent.decode("drill-stage-sets-v2")

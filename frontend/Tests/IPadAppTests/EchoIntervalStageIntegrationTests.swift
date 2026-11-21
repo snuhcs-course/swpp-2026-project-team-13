@@ -44,8 +44,20 @@ import SwiftUI
         game.submit(); try await intervalSettled(game)
         XCTAssertEqual(game.phase,.idle); XCTAssertEqual(game.run.hearts,3); XCTAssertFalse(game.run.solved[0])
         audio.onNote=nil; game.resume(); try await intervalSettled(game)
-        XCTAssertEqual(game.inputs,answer); game.submit(); try await intervalSettled(game)
+        XCTAssertTrue(game.inputs.isEmpty,"Replaying the call clears the previous answer")
+        enter(answer,into:game); game.submit(); try await intervalSettled(game)
         XCTAssertEqual(game.phase,.happy)
+    }
+    func testListeningAgainClearsBothSelectedNotesWithoutConsumingHearts() async throws {
+        let game=EchoIntervalStageModel(stage:EchoIntervalStage(2),audio:IntervalTestPiano(),noteDuration:.milliseconds(1),gapDuration:.milliseconds(1))
+        defer { game.suspend() }
+        game.listen(); try await intervalSettled(game)
+        enter(game.run.question.answer,into:game)
+        XCTAssertEqual(game.inputs.count,2)
+        game.listen()
+        XCTAssertTrue(game.inputs.isEmpty); XCTAssertEqual(game.phase,.singing)
+        try await intervalSettled(game)
+        XCTAssertTrue(game.inputs.isEmpty); XCTAssertFalse(game.canSubmit); XCTAssertEqual(game.run.hearts,3)
     }
     func testWrongStartIsOnlyACueAndThirdWrongIntervalEndsStage() async throws {
         let audio=IntervalTestPiano()

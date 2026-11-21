@@ -111,7 +111,12 @@ import SwiftUI
             let data = try await contentProvider.data("rhythm-puzzle-v4.json")
             let ink = try await contentProvider.data("rhythm-engraving-v4.json")
             var legacy: [Data] = []
-            for name in ["rhythm-puzzle-v1.json","rhythm-puzzle-v2.json","rhythm-puzzle-v3.json"] { legacy.append(try await contentProvider.data(name)) }
+            // A new stage never needs three entire historical banks. Retain
+            // old data only when a standalone draft/history references it.
+            let needed = stageMode ? Set<String>() : Set(journal.records.map(\.gameVersion) + [journal.draft?.record.gameVersion].compactMap { $0 })
+            for version in ["rhythm-puzzle-v1","rhythm-puzzle-v2","rhythm-puzzle-v3"] where needed.contains(version) {
+                legacy.append(try await contentProvider.data(version+".json"))
+            }
             try Task.checkCancellation(); try installCatalog(data,ink:ink,legacy:legacy)
         } catch { if !Task.isCancelled { self.error = error.localizedDescription } }
     }
