@@ -26,7 +26,7 @@ def validate_record(payload, catalog, catalog_sha256):
     if not isinstance(order, list) or len(order) != 12 or any(not isinstance(k, str) for k in order) or sorted(order) != sorted(r["choices"]):
         raise ValueError("invalid_choice_order")
     visible = payload.get("visible_choice_order")
-    if visible is not None:
+    if "visible_choice_order" in payload:
         if (not isinstance(visible, list) or not visible or any(not isinstance(k,str) for k in visible)
                 or len(set(visible)) != len(visible) or not set(visible) <= set(order)
                 or not {p['tile_id'] for p in r['solution']} <= set(visible)):

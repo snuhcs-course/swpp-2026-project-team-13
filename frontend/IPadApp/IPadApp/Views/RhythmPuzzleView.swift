@@ -117,11 +117,9 @@ struct RhythmPuzzleView: View {
             }
             RhythmPuzzleBoardView(game:game,round:round,compact:compact)
                 .padding(.horizontal,14).background(.white,in:RoundedRectangle(cornerRadius:18))
-            if !game.feedback.isEmpty || !game.message.isEmpty {
-                Text(game.message.isEmpty ? game.feedback : game.message).font(.subheadline)
-                    .foregroundStyle(draft.finished && draft.record.outcome == "correct" ? SolfegeTheme.green : SolfegeTheme.ink)
-                    .frame(maxWidth:.infinity,minHeight:28,alignment:.leading)
-            }
+            Text(game.message.isEmpty ? game.feedback : game.message).font(.subheadline)
+                .foregroundStyle(draft.finished && draft.record.outcome == "correct" ? SolfegeTheme.green : SolfegeTheme.ink)
+                .frame(maxWidth:.infinity,minHeight:28,alignment:.leading)
             if draft.finished && ["revealed","skipped"].contains(draft.record.outcome) {
                 VStack(spacing:4) {
                     HStack { Text("정답").foregroundStyle(SolfegeTheme.green); Spacer(); Button { game.listen(reason:"reference",includeCountIn:false) } label: { Image(systemName:"speaker.wave.2") }.disabled(game.playing || game.waitingToPlay).accessibilityLabel("원본 선율 듣기") }
@@ -222,7 +220,7 @@ struct RhythmPuzzleView: View {
         }.frame(maxWidth:.infinity).padding(.vertical,80)
     }
     private func back() {
-        if stage != nil || game.page == .playing { game.pause(); confirmingExit=true; return }
+        if stage != nil || (game.page == .playing && !(daily != nil && game.draft?.finished == true)) { game.pause(); confirmingExit=true; return }
         leave()
     }
     private func leave() {

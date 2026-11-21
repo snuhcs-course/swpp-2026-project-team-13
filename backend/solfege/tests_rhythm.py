@@ -36,6 +36,8 @@ class RhythmTests(unittest.TestCase):
         validate_record(payload,self.catalog,self.sha)
         payload['visible_choice_order']=payload['visible_choice_order'][1:]
         with self.assertRaises(ValueError): validate_record(payload,self.catalog,self.sha)
+        payload['visible_choice_order']=None
+        with self.assertRaises(ValueError): validate_record(payload,self.catalog,self.sha)
 
     def test_skip_is_distinct_from_wrong_answer_and_abandonment(self):
         payload = record_for(self.catalog, self.sha)

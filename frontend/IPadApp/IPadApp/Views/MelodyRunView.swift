@@ -212,7 +212,7 @@ struct MelodyRunView: View {
         }
     }
     private func back() {
-        if stage != nil || game.page == .playing || game.page == .result || game.working {
+        if stage != nil || game.page == .playing || (game.page == .result && daily == nil) || game.working {
             game.pause(); confirmingExit=true; return
         }
         leave()
