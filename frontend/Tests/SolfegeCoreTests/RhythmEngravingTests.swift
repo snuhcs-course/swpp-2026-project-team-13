@@ -27,8 +27,8 @@ final class RhythmEngravingTests: XCTestCase {
                 for segment in layout.segments {
                     guard let p = segment.placement else { continue }
                     let drawing = try XCTUnwrap(ink.tiles[p.tileId])
-                    XCTAssertEqual(layout.firstHead(p),segment.x+segment.drawingInset+drawing.symbolXs[0]*segment.drawingScale)
-                    XCTAssertEqual(layout.lastHead(p),segment.x+segment.drawingInset+drawing.symbolXs[drawing.symbolXs.count-1]*segment.drawingScale)
+                    XCTAssertEqual(try XCTUnwrap(layout.firstHead(p)),segment.x+segment.drawingInset+drawing.symbolXs[0]*segment.drawingScale,accuracy:0.000001)
+                    XCTAssertEqual(try XCTUnwrap(layout.lastHead(p)),segment.x+segment.drawingInset+drawing.symbolXs[drawing.symbolXs.count-1]*segment.drawingScale,accuracy:0.000001)
                     XCTAssertEqual(layout.nearestTime(to:segment.x+segment.width/2,tiles:catalog.tileMap),p.start)
                 }
             }
