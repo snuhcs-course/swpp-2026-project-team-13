@@ -10,12 +10,13 @@ struct RhythmEngraving: Decodable {
     let renderer: String; let catalogSha256: String; let tiles: [String:RhythmDrawing]
 }
 
-// Engraved widths are intrinsic. Empty regions reserve modest space per pulse;
-// neither note spacing nor noteheads expand to fill a wide iPad display.
+// Every position belongs to musical time, including while the board is empty.
 struct RhythmBarLayout {
     struct Segment {
         let placement: RhythmPlacement?; let start: RhythmTime; let duration: RhythmTime
         let x: Double; let width: Double; let symbolXs: [Double]
+        var drawingScale = 1.0
+        var drawingInset = 0.0
     }
     let segments: [Segment]
     let width: Double
@@ -23,31 +24,37 @@ struct RhythmBarLayout {
     let round: RhythmRound
     init(round: RhythmRound, bar: Int, board: RhythmBoard, tiles: [String:RhythmTile], drawings: [String:RhythmDrawing]) {
         self.round = round; let beginning = round.measureDuration*bar; self.beginning = beginning
-        var parts: [Segment] = [], cursor = beginning, x = bar == 0 ? 62.0 : 18.0
+        var parts: [Segment] = [], cursor = beginning
+        let leading = bar == 0 ? 62.0 : 18.0
+        let pulseWidth = 100.0
+        func position(_ t: RhythmTime) -> Double { leading+((t-beginning)/round.pulse).value*pulseWidth }
         let end = beginning+round.measureDuration
         let placed = board.placements.filter { beginning <= $0.start && $0.start < end }.sorted { $0.start < $1.start }
         func gap(until limit: RhythmTime) {
             while cursor < limit {
                 let next = min(limit,beginning+round.pulse*((((cursor-beginning)/round.pulse).floor)+1))
-                let duration = next-cursor, w = max(12,48*(duration/round.pulse).value)
-                parts.append(Segment(placement:nil,start:cursor,duration:duration,x:x,width:w,symbolXs:[]))
-                x += w; cursor = next
+                let duration = next-cursor, w = pulseWidth*(duration/round.pulse).value
+                parts.append(Segment(placement:nil,start:cursor,duration:duration,x:position(cursor),width:w,symbolXs:[]))
+                cursor = next
             }
         }
         for p in placed {
             gap(until:p.start)
             guard let tile = tiles[p.tileId] else { continue }
             let drawing = drawings[p.tileId]
-            let spacing = min(90,36*sqrt((tile.duration/round.pulse).value))
-            let w = max(spacing,drawing?.width ?? 44)
-            parts.append(Segment(placement:p,start:p.start,duration:tile.duration,x:x,width:w,symbolXs:drawing?.symbolXs ?? []))
-            x += w+4; cursor = p.start+tile.duration
+            let w = pulseWidth*(tile.duration/round.pulse).value
+            let glyphScale = min(1,max(0.05,(w-8)/(drawing?.width ?? 44)))
+            let inset = max(4,(w-(drawing?.width ?? 44)*glyphScale)/2)
+            let heads = (drawing?.symbolXs ?? []).map { inset+$0*glyphScale }
+            parts.append(Segment(placement:p,start:p.start,duration:tile.duration,x:position(p.start),width:w,
+                                 symbolXs:heads,drawingScale:glyphScale,drawingInset:inset))
+            cursor = p.start+tile.duration
         }
         gap(until:end)
-        segments = parts; width = x+16
+        segments = parts; width = position(end)+16
     }
     func x(at time: RhythmTime) -> Double {
-        if time >= beginning+round.measureDuration { return width-12 }
+        if time >= beginning+round.measureDuration { return width-16 }
         guard let part = segments.first(where: { $0.start <= time && time < $0.start+$0.duration }) else { return 18 }
         return part.x+(time-part.start).value/part.duration.value*part.width
     }

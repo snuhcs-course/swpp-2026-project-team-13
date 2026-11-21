@@ -7,7 +7,7 @@ from .rhythm import grade
 def validate_record(payload, catalog, catalog_sha256):
     required = {"client_play_id", "catalog_sha256", "round_id", "game_version", "choice_order", "started_at", "finished_at",
                 "outcome", "active_ms", "submissions", "listens", "interruptions", "prior_exposures", "prior_pattern_exposures"}
-    if not isinstance(payload, dict) or not required <= set(payload) or set(payload) - required - {"skipped"}:
+    if not isinstance(payload, dict) or not required <= set(payload) or set(payload) - required - {"skipped", "visible_choice_order"}:
         raise ValueError("invalid_record_fields")
     skipped = payload.get("skipped", False)
     if type(skipped) is not bool:
@@ -25,6 +25,12 @@ def validate_record(payload, catalog, catalog_sha256):
     order = payload["choice_order"]
     if not isinstance(order, list) or len(order) != 12 or any(not isinstance(k, str) for k in order) or sorted(order) != sorted(r["choices"]):
         raise ValueError("invalid_choice_order")
+    visible = payload.get("visible_choice_order")
+    if visible is not None:
+        if (not isinstance(visible, list) or not visible or any(not isinstance(k,str) for k in visible)
+                or len(set(visible)) != len(visible) or not set(visible) <= set(order)
+                or not {p['tile_id'] for p in r['solution']} <= set(visible)):
+            raise ValueError("invalid_visible_choice_order")
     for key, cap in (("active_ms", 86_400_000), ("interruptions", 10000), ("prior_exposures", 1_000_000), ("prior_pattern_exposures", 1_000_000)):
         if type(payload[key]) is not int or not 0 <= payload[key] <= cap:
             raise ValueError("invalid_telemetry")

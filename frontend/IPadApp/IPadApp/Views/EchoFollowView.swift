@@ -7,6 +7,7 @@ struct EchoFollowView: View {
     @Environment(\.scenePhase) private var phase
     @State private var help = false
     @State private var visible = false
+    @State private var confirmingExit = false
     @AppStorage("echo-follow-tutorial-v1") private var tutorialSeen = false
     init(stage: DrillStageContext,audio: MelodyRunAudio) {
         self.stage=stage; _game=StateObject(wrappedValue:EchoFollowModel(question:stage.question,audio:audio))
@@ -16,7 +17,7 @@ struct EchoFollowView: View {
             HStack {
                 Text("Echo Dragon").font(.title2.bold()); StageChip(stage:stage.stage); Spacer()
                 Button { game.stop(); help=true } label: { Image(systemName:"questionmark.circle").frame(width:44,height:44) }.accessibilityLabel("게임 방법")
-                Button { game.stop(); stage.exit() } label: { Image(systemName:"xmark").frame(width:44,height:44) }.accessibilityLabel("계단으로")
+                Button { game.suspend(); confirmingExit=true } label: { Image(systemName:"xmark").frame(width:44,height:44) }.accessibilityLabel("계단으로")
             }
             DrillSetProgress(results:stage.results,index:stage.index)
             HStack(spacing:28) {
@@ -62,6 +63,10 @@ struct EchoFollowView: View {
                    AVAudioSession.RouteChangeReason(rawValue:raw) == .oldDeviceUnavailable { game.stop() }
             }
             .onDisappear { visible=false; game.stop() }
+            .alert("정말 종료하시겠습니까?",isPresented:$confirmingExit) {
+                Button("계속하기",role:.cancel) { if game.result == nil { game.listen() } }
+                Button("종료",role:.destructive) { game.stop(); stage.exit() }
+            } message: { Text("진행 상황이 저장되지 않습니다. 정말 종료하시겠습니까?") }
             .sheet(isPresented:$help,onDismiss:{ tutorialSeen=true; if visible && phase == .active && !game.heard && game.result == nil { game.listen() } }) {
                 VStack(spacing:24) {
                     Text("들은 두 음을 그대로 따라 해요").font(.title2.bold())

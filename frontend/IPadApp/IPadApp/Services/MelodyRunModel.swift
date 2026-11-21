@@ -13,8 +13,11 @@ import SwiftUI
     private var contentProvider: TrainingContentProvider?
     private var catalogHash = ""
     private var fixedStageBpm: Double?
+    private let stageMode: Bool
+    private var stagedSources: [String:MelodySource] = [:]
     private var setId = UUID()
     private var records: [MemoryPlayRecord] = []
+    private var committedRecords: [MemoryPlayRecord] = []
     private var currentRecordId: UUID?
     private var store: MemoryRunStore?
     private var transition: Task<Void,Never>?
@@ -88,16 +91,18 @@ import SwiftUI
         }
     }
 
-    init(connection: RhythmConnection? = nil) {
+    init(connection: RhythmConnection? = nil, stageMode: Bool = false) {
+        self.stageMode = stageMode
         do {
             if let connection, !connection.demo { contentProvider = try TrainingContentProvider(connection:connection) }
             else { try installCatalog(DemoContent.data("memory-run-v2"),groove:DemoContent.data("memory-groove-v1")) }
             let root = try LocalStore(scope:connection?.scope ?? "memory-run-guest").root
             let storage = try MemoryRunStore(root:root)
             records = try storage.load(); store = storage
+            committedRecords=records
             // A prior app termination is an interrupted observation, not an incorrect answer.
             for i in records.indices where records[i].outcome == "in_progress" { records[i].outcome = "interrupted" }
-            try storage.save(records); exportURL = try storage.csv(records)
+            if !stageMode { try storage.save(records); exportURL = try storage.csv(records) }
             try loadLocalQuestions()
             selection = questions.first?.id ?? ""
         } catch { self.error = error.localizedDescription }
@@ -118,6 +123,38 @@ import SwiftUI
             let groove = try await contentProvider.data("memory-groove-v1.json")
             try Task.checkCancellation(); try installCatalog(data,groove:groove)
         } catch { if !Task.isCancelled { self.error = error.localizedDescription } }
+    }
+    func prepareStage(_ questions: [DrillStageQuestion]) async throws {
+        await prepareContent()
+        guard let catalog else { throw SolfegeError.invalidScore(error ?? "스테이지 문제를 준비하지 못했어요.") }
+        for question in questions {
+            guard let e = catalog.excerpts.first(where:{ $0.id == question.catalogId }),
+                  let s = catalog.sources.first(where:{ $0.id == e.sourceId }), s.sha256 == question.sourceSha256 else {
+                throw SolfegeError.invalidScore("스테이지 악보 버전을 확인해 주세요.")
+            }
+            _ = try await source(s)
+        }
+        try audio.prepare()
+    }
+    private func source(_ question: MelodyQuestion) async throws -> MelodySource {
+        if let cached = stagedSources[question.id] { return cached }
+        let data: Data
+        if let url = localURLs[question.id] { data = try Data(contentsOf:url) }
+        else if let contentProvider { data = try await contentProvider.data(question.file) }
+        else if let url = Bundle.main.url(forResource:question.file,withExtension:nil) { data = try Data(contentsOf:url) }
+        else { throw SolfegeError.invalidScore("문제 XML을 찾지 못했어요.") }
+        try Task.checkCancellation()
+        if let expected = question.sha256, data.sha256 != expected { throw SolfegeError.invalidScore("선율 파일이 변경됐어요.") }
+        let result = try MelodyXMLParser.parse(data)
+        if stageMode { stagedSources[question.id] = result }
+        return result
+    }
+    func commitStage() throws {
+        if stageMode, let store { try store.save(records); committedRecords=records }
+    }
+    func discardStage() {
+        stop(); records=committedRecords; currentRecordId=nil
+        setExcerpts=[]; setScores=[]; setIndex=0; page = .setup
     }
     private func localDirectory() throws -> URL {
         let documents = try FileManager.default.url(for:.documentDirectory,in:.userDomainMask,appropriateFor:nil,create:true)
@@ -192,14 +229,14 @@ import SwiftUI
         }
         endObservation(outcome:"abandoned"); fixedStageBpm=q.bpm
         settings.mode = .memory; setExcerpts=[excerpt]; setIndex=0; setScores=[nil]; setId=UUID()
-        queueStart()
+        queueStart(afterDelay:false)
     }
-    private func queueStart() {
+    private func queueStart(afterDelay: Bool = true) {
         transition?.cancel()
         stopReplay()
         transitionPending = true
         transition = Task { [weak self] in
-            await self?.start(afterDelay:true)
+            await self?.start(afterDelay:afterDelay)
             self?.transitionPending = false
         }
     }
@@ -224,19 +261,13 @@ import SwiftUI
         guard !Task.isCancelled else { return }
         do {
             try settings.validate()
-            let data: Data
-            if let url = localURLs[question.id] { data = try Data(contentsOf:url) }
-            else if let contentProvider { data = try await contentProvider.data(question.file) }
-            else if let url = Bundle.main.url(forResource:question.file,withExtension:nil) { data = try Data(contentsOf:url) }
-            else { throw SolfegeError.invalidScore("문제 XML을 찾지 못했어요.") }
-            try Task.checkCancellation()
-            if let expected = question.sha256, data.sha256 != expected { throw SolfegeError.invalidScore("선율 파일이 변경됐어요. 최신 앱을 설치해 주세요.") }
-            let source = try MelodyXMLParser.parse(data)
+            let source = try await self.source(question)
             guard settings.mode != .groove || source.supportsGroove(start:settings.startBar,bars:settings.bars) else {
                 throw SolfegeError.invalidScore("이 선율은 마디를 잇는 붙임줄이 있어 Groove에서 사용할 수 없어요.")
             }
             let value = try MelodyRound(source:source,start:settings.startBar,bars:settings.bars)
-            runner?.cancel(); audio.stop()
+            runner?.cancel()
+            if stageMode { audio.stopClock(); audio.releaseKeys() } else { audio.stop() }
             round = value; answers = MelodyAnswers(round:value,guideFirst:true); measure = 1; freeRecall = false
             replacementMeasure = nil; message = ""
             try audio.prepare()
@@ -431,6 +462,7 @@ import SwiftUI
         persist(export:true)
     }
     private func persist(export: Bool = false) {
+        guard !stageMode else { return }
         guard let store else { return }
         do { try store.save(records); if export { exportURL = try store.csv(records) }; storageFailed = false }
         catch { storageFailed = true; self.error = "게임 기록을 기기에 저장하지 못했어요. 저장 공간을 확인해 주세요." }

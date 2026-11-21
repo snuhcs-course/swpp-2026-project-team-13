@@ -37,19 +37,22 @@ import XCTest
         XCTAssertTrue(stairs.needsConnection(rhythm)); XCTAssertFalse(stairs.canStart(rhythm))
         XCTAssertFalse(stairs.needsConnection(try XCTUnwrap(DrillStairs.stage(2))))
     }
-    func testFixedSetResumesAtNextUnansweredQuestionAndPreservesRedResults() throws {
+    func testUnfinishedStageIsDiscardedAndOnlyCompletedSetIsSaved() throws {
         try FileManager.default.createDirectory(at:root,withIntermediateDirectories:true)
         let course: DrillStageCourse = try DemoContent.decode("drill-stage-sets-v1")
         let set=try XCTUnwrap(course.stages.first { $0.game == .memoryRun })
         let game=DrillStageSession(set:set,version:course.version,root:root)
         game.report(DrillRoundResult(accuracy:50,revealed:false,elapsedMs:0))
         let resumed=DrillStageSession(set:set,version:course.version,root:root)
-        XCTAssertNil(resumed.error);XCTAssertEqual(resumed.attempt.index,1)
-        XCTAssertFalse(try XCTUnwrap(resumed.attempt.results[0]).correct)
+        XCTAssertNil(resumed.error);XCTAssertEqual(resumed.attempt.index,0)
+        XCTAssertTrue(resumed.attempt.results.allSatisfy { $0 == nil })
+        resumed.report(DrillRoundResult(accuracy:50,revealed:false,elapsedMs:0));resumed.next()
         for _ in 1..<set.questions.count {
-            resumed.report(DrillRoundResult(accuracy:100,revealed:false,elapsedMs:0));resumed.next()
+            resumed.report(DrillRoundResult(accuracy:100,revealed:false,elapsedMs:0)); resumed.next()
         }
         XCTAssertTrue(resumed.summary);XCTAssertTrue(resumed.attempt.complete);XCTAssertFalse(resumed.attempt.mastered)
+        let finished=DrillStageSession(set:set,version:course.version,root:root)
+        XCTAssertTrue(finished.summary); XCTAssertFalse(finished.attempt.mastered)
         resumed.restart();XCTAssertEqual(resumed.attempt.index,0);XCTAssertTrue(resumed.attempt.results.allSatisfy { $0 == nil })
     }
     func testMemoryStageStartsThePinnedExcerptAndTempoInsteadOfRandomSampling() throws {
@@ -62,6 +65,22 @@ import XCTest
         XCTAssertNil(game.error);XCTAssertEqual(game.excerpt?.id,q.catalogId);XCTAssertEqual(game.excerpt?.bars,2)
         game.stop();game.newStageRound(q)
         XCTAssertEqual(game.excerpt?.id,q.catalogId)
+    }
+    func testRhythmStageDoesNotPersistPartialPlayBeforeStageCommit() throws {
+        let course: DrillStageCourse = try DemoContent.decode("drill-stage-sets-v1")
+        let q=try XCTUnwrap(course.stages.first { $0.game == .rhythmPuzzle }?.questions.first)
+        let api=try DemoExamAPI(outcome:"completed",storageScope:UUID().uuidString)
+        let connection=RhythmConnection(api:api,profileId:UUID(),demo:true,generation:UUID())
+        let folder=try LocalStore(scope:connection.scope).root
+        defer { try? FileManager.default.removeItem(at:folder) }
+        let game=RhythmPuzzleModel(connection:connection,stageMode:true)
+        defer { game.close() }
+        let store=try RhythmPuzzleStore(root:folder)
+        game.newStageRound(q); game.revealAndSkip(); game.close()
+        XCTAssertFalse(FileManager.default.fileExists(atPath:store.file.path))
+        try game.commitStage()
+        let saved=try store.load()
+        XCTAssertNil(saved.draft); XCTAssertEqual(saved.records.count,1)
     }
     func testEchoRequiresBothLiteralNotesAndDoesNotAutoFillTheGivenStart() async throws {
         let course: DrillStageCourse = try DemoContent.decode("drill-stage-sets-v1")

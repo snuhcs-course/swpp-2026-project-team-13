@@ -27,27 +27,30 @@ struct DrillStageSetView: View {
     @Environment(\.scenePhase) private var phase
     init(stage: DrillStage,set: DrillStageSet,version: String,root: URL,connection: RhythmConnection?,mastered: @escaping () -> Void,exit: @escaping () -> Void) {
         self.stage=stage; self.connection=connection; self.mastered=mastered; self.exit=exit
-        _session=StateObject(wrappedValue:DrillStageSession(set:set,version:version,root:root))
+        _session=StateObject(wrappedValue:DrillStageSession(set:set,version:version,root:root,connection:connection))
     }
     var body: some View {
         ZStack {
             if session.error != nil { VStack(spacing:20) { Text(session.error ?? ""); Button("계단으로",action:exit) } }
             else if session.summary { summary }
-            else { question.id(session.attempt.index) }
+            else if !session.prepared { VStack(spacing:20) { ProgressView("스테이지를 준비하고 있어요"); Button("취소",action:exit) } }
+            else { question }
         }.onChange(of:session.summary) { _, value in if value && session.attempt.mastered { mastered() } }
             .onAppear { if session.summary && session.attempt.mastered { mastered() } }
+            .task(id:session.summary) { if !session.summary { await session.prepare() } }
             .onChange(of:phase) { _, value in session.active(value == .active) }
-            .onDisappear { session.echoAudio.stop() }
+            .onDisappear { session.echoAudio.stop(); session.memoryGame?.stop(); session.rhythmGame?.close() }
     }
     private var context: DrillStageContext {
         DrillStageContext(stage:stage,question:session.round,index:session.attempt.index,results:session.attempt.results,
-            report:session.report,next:session.next,exit:exit)
+            report:session.report,next:session.next,exit:exit,revealAcknowledged:session.revealAcknowledged,
+            acknowledgeReveal:{ session.revealAcknowledged=true })
     }
     @ViewBuilder private var question: some View {
         switch stage.game {
-        case .memoryRun: MelodyRunView(connection:connection,stage:context)
-        case .rhythmPuzzle: RhythmPuzzleView(connection:connection,stage:context)
-        case .echoDragon: EchoFollowView(stage:context,audio:session.echoAudio)
+        case .memoryRun: MelodyRunView(connection:connection,stage:context,preparedGame:session.memoryGame)
+        case .rhythmPuzzle: RhythmPuzzleView(connection:connection,stage:context,preparedGame:session.rhythmGame)
+        case .echoDragon: EchoFollowView(stage:context,audio:session.echoAudio).id(session.round.id)
         }
     }
     private var summary: some View {

@@ -29,6 +29,14 @@ class RhythmTests(unittest.TestCase):
         cls.catalog, cls.sha = json.loads(data), digest_bytes(data)
         cls.tiles = {t["id"]: t for t in cls.catalog["tiles"]}
 
+    def test_displayed_choices_can_hide_distractors_without_omitting_answers(self):
+        r=self.catalog['rounds'][0]
+        payload=record_for(self.catalog,self.sha,r)
+        payload['visible_choice_order']=list(dict.fromkeys(p['tile_id'] for p in r['solution']))
+        validate_record(payload,self.catalog,self.sha)
+        payload['visible_choice_order']=payload['visible_choice_order'][1:]
+        with self.assertRaises(ValueError): validate_record(payload,self.catalog,self.sha)
+
     def test_skip_is_distinct_from_wrong_answer_and_abandonment(self):
         payload = record_for(self.catalog, self.sha)
         payload.update(submissions=[], listens=[], skipped=True, outcome="skipped")

@@ -8,10 +8,11 @@ struct MelodyRunView: View {
     @AppStorage("memory-run-tutorial-v3") private var tutorialSeen = false
     @State private var showingTutorial = false
     @State private var choosingDifficulty = false
+    @State private var confirmingExit = false
     private let daily: DailyGameContext?
     private let stage: DrillStageContext?
-    init(connection: RhythmConnection? = nil, daily: DailyGameContext? = nil, stage: DrillStageContext? = nil) {
-        _game = StateObject(wrappedValue:MelodyRunModel(connection:connection)); self.daily = daily; self.stage = stage
+    init(connection: RhythmConnection? = nil, daily: DailyGameContext? = nil, stage: DrillStageContext? = nil, preparedGame: MelodyRunModel? = nil) {
+        _game = StateObject(wrappedValue:preparedGame ?? MelodyRunModel(connection:connection,stageMode:true)); self.daily = daily; self.stage = stage
     }
     var body: some View {
         VStack(spacing:16) {
@@ -33,19 +34,25 @@ struct MelodyRunView: View {
             }
         }.padding(24).frame(maxWidth:1100).frame(maxWidth:.infinity)
             .background(SolfegeTheme.background.ignoresSafeArea()).tint(SolfegeTheme.violet).preferredColorScheme(.light)
-            .overlay { if game.working { ProgressView("잠시 후 시작해요").padding(24).background(.regularMaterial,in:RoundedRectangle(cornerRadius:18)).allowsHitTesting(false) } }
+            .overlay { if game.working && stage == nil { ProgressView("잠시 후 시작해요").padding(24).background(.regularMaterial,in:RoundedRectangle(cornerRadius:18)).allowsHitTesting(false) } }
             .overlay { if game.contentLoading { ProgressView("문제를 준비하고 있어요").padding(24).background(.regularMaterial,in:RoundedRectangle(cornerRadius:18)) } }
             .task { await game.prepareContent(); guard !Task.isCancelled else { return }; if !tutorialSeen { showingTutorial = true } else { startDaily() } }
             .sheet(isPresented:$showingTutorial) { MemoryTutorialView { tutorialSeen = true; showingTutorial = false; startDaily() } }
+            .onChange(of:stage?.question.id) { _, _ in if let stage { game.newStageRound(stage.question) } }
             .onChange(of:game.page) { _, page in if page == .result {
-                daily?.finished()
+                if let daily { do { try game.commitStage(); daily.finished() } catch { game.error=error.localizedDescription } }
                 stage?.report(DrillRoundResult(accuracy:game.answers?.result.accuracy ?? 0,revealed:false,elapsedMs:0))
-            } }
-            .alert("확인이 필요해요",isPresented:Binding(get:{game.error != nil},set:{if !$0 {game.error = nil}})) {
-                if game.catalog == nil { Button("다시 시도") { Task { await game.prepareContent(); startDaily() } } }
-                if game.storageFailed { Button("저장 다시 시도") { game.retryStorage() } }
-                Button("확인") { game.error = nil }
-            } message: { Text(game.error ?? "") }
+            } else if page == .summary && stage == nil { do { try game.commitStage() } catch { game.error=error.localizedDescription } } }
+            .alert(confirmingExit ? "게임 종료" : "확인이 필요해요",isPresented:Binding(get:{confirmingExit || game.error != nil},set:{if !$0 { confirmingExit=false; game.error=nil }})) {
+                if confirmingExit {
+                    Button("계속하기",role:.cancel) { if game.page == .setup { startDaily() } else { game.resume() } }
+                    Button("종료",role:.destructive) { game.discardStage(); leave() }
+                } else {
+                    if game.catalog == nil { Button("다시 시도") { Task { await game.prepareContent(); startDaily() } } }
+                    if game.storageFailed { Button("저장 다시 시도") { game.retryStorage() } }
+                    Button("확인") { game.error=nil }
+                }
+            } message: { Text(confirmingExit ? "진행 상황이 저장되지 않습니다. 정말 종료하시겠습니까?" : game.error ?? "") }
             .onChange(of:scenePhase) { _, phase in if phase != .active { game.pause() } }
             .onReceive(NotificationCenter.default.publisher(for:AVAudioSession.interruptionNotification).receive(on:RunLoop.main)) { _ in game.pause() }
             .onReceive(NotificationCenter.default.publisher(for:AVAudioSession.mediaServicesWereResetNotification).receive(on:RunLoop.main)) { _ in game.pause() }
@@ -171,7 +178,7 @@ struct MelodyRunView: View {
                         if let daily {
                             DailyNextButton(nextTitle:daily.nextTitle) { game.stop(); daily.next() }.disabled(game.working)
                         } else if let stage {
-                            Button(stage.nextTitle) { game.stop(); stage.next() }.buttonStyle(PrimaryButton(compact:true)).disabled(game.working)
+                            Button(stage.nextTitle) { game.stopReplay(); stage.next() }.buttonStyle(PrimaryButton(compact:true)).disabled(game.working)
                                 .accessibilityIdentifier("drill-stage-next")
                         } else {
                             Button("다시 풀기") { game.retry() }.buttonStyle(.bordered).disabled(game.working)
@@ -205,6 +212,12 @@ struct MelodyRunView: View {
         }
     }
     private func back() {
+        if stage != nil || game.page == .playing || game.page == .result || game.working {
+            game.pause(); confirmingExit=true; return
+        }
+        leave()
+    }
+    private func leave() {
         if let daily { game.stop(); daily.exit(); return }
         if let stage { game.stop(); stage.exit(); return }
         if game.page == .playing || game.page == .result || game.working {

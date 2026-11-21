@@ -29,6 +29,8 @@ struct DrillStageContext {
     let next: () -> Void
     // Back to the stairs, from the result or from ✕.
     let exit: () -> Void
+    var revealAcknowledged = false
+    var acknowledgeReveal: () -> Void = {}
     var nextTitle: String { index+1==results.count ? "결과 보기" : "다음" }
 }
 

@@ -143,6 +143,26 @@ struct RhythmBoard: Codable, Equatable {
         if !ties.contains(right.start) { ties.append(right.start); ties.sort() }
         return true
     }
+    func connectionIssue(_ a: RhythmPlacement, _ b: RhythmPlacement, tiles: [String:RhythmTile]) -> String? {
+        guard a != b else { return "서로 다른 두 조각을 연결해 주세요." }
+        guard placements.contains(a), placements.contains(b) else { return "연결할 조각을 다시 선택해 주세요." }
+        let left = min(a.start,b.start) == a.start ? a : b, right = a.start < b.start ? b : a
+        guard end(left,tiles:tiles) == right.start else { return "빈칸 없이 이웃한 조각끼리 연결해 주세요." }
+        guard tiles[left.tileId]?.symbols.last?.rest == false else { return "앞 조각의 마지막이 쉼표라 연결할 수 없어요." }
+        guard tiles[right.tileId]?.symbols.first?.rest == false else { return "뒤 조각의 시작이 쉼표라 연결할 수 없어요." }
+        return nil
+    }
+    @discardableResult mutating func move(_ placement: RhythmPlacement, to start: RhythmTime, round: RhythmRound, tiles: [String:RhythmTile]) -> Bool {
+        guard placements.contains(placement) else { return false }
+        if start == placement.start { return true }
+        var candidate = self
+        candidate.remove(placement,tiles:tiles)
+        guard let tile = tiles[placement.tileId], candidate.placements.allSatisfy({
+            start+tile.duration <= $0.start || candidate.end($0,tiles:tiles) <= start
+        }), candidate.place(placement.tileId,at:start,round:round,tiles:tiles) else { return false }
+        self = candidate
+        return true
+    }
     func validBoundaries(tiles: [String:RhythmTile]) -> [RhythmTime] {
         let sorted = placements.sorted { $0.start < $1.start }
         return zip(sorted,sorted.dropFirst()).compactMap { a,b in
@@ -217,7 +237,20 @@ struct RhythmPlayRecord: Codable, Identifiable {
     var choiceOrder: [String]; var startedAt: Date; var finishedAt: Date
     var outcome = "abandoned"; var activeMs = 0; var submissions: [RhythmSubmission] = []; var listens: [RhythmListen] = []
     var skipped: Bool? = nil
+    var visibleChoiceOrder: [String]? = nil
     var interruptions = 0; var priorExposures = 0; var priorPatternExposures = 0
+}
+
+enum RhythmChoiceDisplay {
+    static func order(round: RhythmRound, tiles: [String:RhythmTile], shuffled: [String]) -> [String] {
+        let required = Set(round.solution.map(\.tileId))
+        let special = shuffled.filter { tiles[$0]?.duration != round.pulse }
+        let essential = special.filter { required.contains($0) }
+        // Never hide a required answer. More than two required special shapes
+        // is the explicit exception; it must remain possible to solve the round.
+        let allowed = Set(essential + (essential.isEmpty ? [] : Array(special.filter { !required.contains($0) }.prefix(max(0,2-essential.count)))))
+        return shuffled.filter { tiles[$0]?.duration == round.pulse || allowed.contains($0) }
+    }
 }
 struct RhythmReceipt: Codable { var id: UUID; var clientPlayId: UUID; var roundId: String; var catalogSha256: String }
 struct RhythmDraft: Codable {

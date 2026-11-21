@@ -50,7 +50,7 @@ import SwiftUI
     func undo() { guard canEnter else { return }; audio.releaseKeys(); if !inputs.isEmpty { inputs.removeLast() }; message="" }
     func submit() {
         guard canEnter, inputs.count==2 else { return }
-        attempts+=1; audio.releaseKeys()
+        attempts+=1; audio.releaseKeys(); sounding=false
         if inputs==notes { result=DrillRoundResult(accuracy:100,revealed:false,elapsedMs:0); message="정확해요!" }
         else if attempts>=3 { reveal() }
         else {

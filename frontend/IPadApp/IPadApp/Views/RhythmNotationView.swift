@@ -78,7 +78,7 @@ struct RhythmNotationView: View {
     var body: some View {
         Canvas { context,size in
             guard let drawing = (engraving?.tiles ?? RhythmInk.drawings)[tile.id] else { return }
-            let scale = min(1.12,(size.width-16)/CGFloat(drawing.width))
+            let scale = min(1,(size.width-8)/CGFloat(drawing.width))
             let x = (size.width-CGFloat(drawing.width)*scale)/2
             let y = (size.height-CGFloat(drawing.height)*scale)/2
             RhythmInk.staff(in:context,from:8,to:size.width-8,baseline:y+58*scale,scale:scale)

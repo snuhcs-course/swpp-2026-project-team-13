@@ -15,6 +15,7 @@ import AVFoundation
     var isRunning: Bool { graph.engine.isRunning }
 
     func prepare() throws {
+        if ready && graph.engine.isRunning { stopClock(); releaseKeys(); return }
         stop(); ready = false
         let profile = try ClassicalPiano.load()
         let bank = profile.url
