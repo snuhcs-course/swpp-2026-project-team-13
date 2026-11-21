@@ -27,6 +27,10 @@ import SwiftUI
     var setCount: Int { setExcerpts.isEmpty ? difficulty.barPlan.count : setExcerpts.count }
     var isLastRound: Bool { setIndex+1 >= setCount }
     var tempoLabel: String {
+        if let q=question, q.collection == "classical", let bpm=q.tempoDisplayBpm, let unit=q.tempoBeatUnit {
+            let symbol=unit == "dotted_half" ? "𝅗𝅥." : unit == "dotted_quarter" ? "♩." : unit == "half" ? "𝅗𝅥" : "♩"
+            return "\(symbol) = \(Int(bpm))"
+        }
         let meter = round?.score.timeSignature ?? TimeSignature(numerator:4,denominator:4)
         if meter.denominator == 8 && [6,9,12].contains(meter.numerator) { return "♩. = \(Int((settings.bpm/1.5).rounded()))" }
         if meter.denominator == 2 { return "𝅗𝅥 = \(Int((settings.bpm/2).rounded()))" }
@@ -95,7 +99,7 @@ import SwiftUI
         self.stageMode = stageMode
         do {
             if let connection, !connection.demo { contentProvider = try TrainingContentProvider(connection:connection) }
-            else { try installCatalog(DemoContent.data("memory-run-v2"),groove:DemoContent.data("memory-groove-v1")) }
+            else { try installCatalog(DemoContent.data("memory-run-v3"),groove:DemoContent.data("memory-groove-v2")) }
             let root = try LocalStore(scope:connection?.scope ?? "memory-run-guest").root
             let storage = try MemoryRunStore(root:root)
             records = try storage.load(); store = storage
@@ -119,8 +123,8 @@ import SwiftUI
         guard catalog == nil, !contentLoading, let contentProvider else { return }
         contentLoading = true; defer { contentLoading = false }
         do {
-            let data = try await contentProvider.data("memory-run-v2.json")
-            let groove = try await contentProvider.data("memory-groove-v1.json")
+            let data = try await contentProvider.data("memory-run-v3.json")
+            let groove = try await contentProvider.data("memory-groove-v2.json")
             try Task.checkCancellation(); try installCatalog(data,groove:groove)
         } catch { if !Task.isCancelled { self.error = error.localizedDescription } }
     }
@@ -132,7 +136,13 @@ import SwiftUI
                   let s = catalog.sources.first(where:{ $0.id == e.sourceId }), s.sha256 == question.sourceSha256 else {
                 throw SolfegeError.invalidScore("스테이지 악보 버전을 확인해 주세요.")
             }
-            _ = try await source(s)
+            let parsed = try await source(s)
+            if let fifths=question.keyFifths, parsed.fifths != fifths {
+                throw SolfegeError.invalidScore("스테이지의 조표를 확인해 주세요.")
+            }
+            if s.collection == "classical", let bpm=s.quarterBpm, abs(bpm-question.bpm)>0.001 {
+                throw SolfegeError.invalidScore("클래식의 지정 템포가 일치하지 않아요.")
+            }
         }
         try audio.prepare()
     }
@@ -249,8 +259,10 @@ import SwiftUI
     func start(afterDelay: Bool = false) async {
         if let excerpt {
             selection = excerpt.sourceId; settings.startBar = excerpt.first; settings.bars = excerpt.bars
-            settings.bpm = fixedStageBpm ?? difficulty.quarterBpm; settings.inputBars = 2; settings.advanceEarly = true
+            settings.bpm = fixedStageBpm ?? difficulty.quarterBpm
+            settings.inputBars = 2; settings.advanceEarly = true
         }
+        if let q=question, q.collection == "classical", let bpm=q.quarterBpm { settings.bpm=bpm }
         guard !working, let question else { return }
         working = true; defer { working = false }
         if afterDelay {

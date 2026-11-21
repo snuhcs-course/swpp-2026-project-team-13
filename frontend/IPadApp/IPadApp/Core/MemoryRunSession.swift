@@ -52,7 +52,7 @@ struct MemoryCatalog: Codable {
     var excerpts: [MemoryExcerpt]
     mutating func applyGroovePolicy(_ policy: MemoryGroovePolicy, catalogSha256: String) throws {
         let excluded = Set(policy.excludedExcerptIds)
-        guard policy.version == "memory-groove-v1", policy.catalogSha256 == catalogSha256,
+        guard policy.version == (version == "memory-run-v3" ? "memory-groove-v2" : "memory-groove-v1"), policy.catalogSha256 == catalogSha256,
               excluded.count == policy.excludedExcerptIds.count,
               excluded.isSubset(of:Set(excerpts.map(\.id))) else {
             throw SolfegeError.invalidScore("Groove 문제 목록의 버전을 확인해 주세요.")
@@ -100,9 +100,12 @@ struct MemoryCatalog: Codable {
     }
     func validate() throws {
         let ids = Set(sources.map(\.id))
-        guard version == "memory-run-v2", difficultyVersion == "memory-burden-v1",
+        guard ((version == "memory-run-v2" && difficultyVersion == "memory-burden-v1") ||
+               (version == "memory-run-v3" && difficultyVersion == "memory-performance-v2")),
               ids.count == sources.count, Set(excerpts.map(\.id)).count == excerpts.count,
               sources.allSatisfy({ ["library","intermediate","classical"].contains($0.collection ?? "") && $0.sha256?.count == 64 }),
+              sources.allSatisfy({ version != "memory-run-v3" || $0.collection != "classical" ||
+                  (($0.quarterBpm.map { (40...240).contains($0) } ?? false) && $0.tempoBeatUnit != nil && $0.tempoDisplayBpm != nil) }),
               excerpts.allSatisfy({ ids.contains($0.sourceId) && [2,4].contains($0.bars) && $0.first >= 1 && $0.first+$0.bars <= 9 && $0.attacks >= 2 && (0...100).contains($0.score) }) else {
             throw SolfegeError.invalidScore("Memory run 문제 파일을 확인해 주세요.")
         }

@@ -17,7 +17,7 @@ struct MelodySettings: Equatable {
     var advanceEarly = false
     func validate() throws {
         guard [2,4,8].contains(bars), (1...(9-bars)).contains(startBar),
-              (40...180).contains(bpm), (1...4).contains(gapMeasures), (1...4).contains(inputBars) else {
+              (40...240).contains(bpm), (1...4).contains(gapMeasures), (1...4).contains(inputBars) else {
             throw SolfegeError.invalidScore("멜로디 런 설정을 확인해 주세요.")
         }
     }
@@ -40,6 +40,9 @@ struct MelodyQuestion: Codable, Identifiable, Equatable {
     var sourceLabel: String? = nil
     var sha256: String? = nil
     var analysisKey: String? = nil
+    var quarterBpm: Double? = nil
+    var tempoBeatUnit: String? = nil
+    var tempoDisplayBpm: Double? = nil
     var isDemoEligible: Bool {
         if let fifths, let mode { return fifths == 0 && ["major","minor"].contains(mode) }
         return ["C major","A minor"].contains(key)

@@ -20,6 +20,7 @@ def publish_drills():
     target=CONTENT/'drills';target.mkdir(exist_ok=True)
     names=['memory-run-v2.json','memory-groove-v1.json','rhythm-engraving-v3.json']
     if (RES/'drill-stage-sets-v1.json').exists(): names.append('drill-stage-sets-v1.json')
+    names += [n for n in ['memory-run-v3.json','memory-groove-v2.json','rhythm-engraving-v4.json','drill-stage-sets-v2.json'] if (RES/n).exists()]
     memory=read(RES/'memory-run-v2.json')
     names += sorted({s['file'] for s in memory['sources']})
     for name in names:
@@ -29,6 +30,7 @@ def publish_drills():
             raise ValueError('Published drill content is immutable: '+name)
         shutil.copyfile(source,destination)
     paths=[CONTENT/f'rhythm-puzzle-v{i}.json' for i in (1,2,3)]+[target/name for name in names]
+    if (CONTENT/'rhythm-puzzle-v4.json').exists(): paths.append(CONTENT/'rhythm-puzzle-v4.json')
     assets={};files={}
     for path in paths:
         data=path.read_bytes();digest=sha(data)
@@ -94,6 +96,32 @@ def small_demo():
     payloads['rhythm-puzzle-v3']=rhythm
     raw=(json.dumps(rhythm,ensure_ascii=False,indent=2)+'\n').encode('utf-8')
     ink=read(RES/'rhythm-engraving-v3.json');ink['catalog_sha256']=sha(raw);ink['tiles']={k:v for k,v in ink['tiles'].items() if k in tileids};payloads['rhythm-engraving-v3']=ink
+    if (RES/'drill-stage-sets-v2.json').exists():
+        # A bounded sample of the new course, alongside the immutable legacy
+        # fixtures needed by recovery tests. The full 20 sets stay on the server.
+        course=read(RES/'drill-stage-sets-v2.json')
+        demo_course={**course,'stages':[s for s in course['stages'] if s['rank']<=2]}
+        payloads['drill-stage-sets-v2']=demo_course
+        bank=read(RES/'memory-run-v3.json')
+        needed={e['id'] for e in chosen}|{q['catalog_id'] for s in demo_course['stages'] if s['game']=='memoryRun' for q in s['questions']}
+        excerpts=[e for e in bank['excerpts'] if e['id'] in needed]
+        source_ids={e['sourceId'] for e in excerpts}
+        bank={**bank,'excerpts':excerpts,'sources':[s for s in bank['sources'] if s['id'] in source_ids]}
+        for s in bank['sources']:keep.add(s['file'])
+        payloads['memory-run-v3']=bank
+        policy=read(RES/'memory-groove-v2.json')
+        payloads['memory-groove-v2']={**policy,'catalogSha256':sha((json.dumps(bank,ensure_ascii=False,indent=2)+'\n').encode('utf-8')),
+                                    'excludedExcerptIds':[x for x in policy['excludedExcerptIds'] if x in needed]}
+        bank=read(RES/'rhythm-puzzle-v4.json')
+        needed={q['catalog_id'] for s in demo_course['stages'] if s['game']=='rhythmPuzzle' for q in s['questions']}
+        selected=[r for level in ['beginner','intermediate','advanced'] for r in [x for x in bank['rounds'] if x['level']==level][:8]]
+        selected += [r for r in bank['rounds'] if r['id'] in needed and r['id'] not in {s['id'] for s in selected}]
+        ids={t for r in selected for t in r['choices']}
+        bank={**bank,'rounds':selected,'tiles':[t for t in bank['tiles'] if t['id'] in ids],'exceptions':[],'source_count':len({r['question_id'] for r in selected})}
+        payloads['rhythm-puzzle-v4']=bank
+        ink=read(RES/'rhythm-engraving-v4.json')
+        ink['catalog_sha256']=sha((json.dumps(bank,ensure_ascii=False,indent=2)+'\n').encode('utf-8'))
+        ink['tiles']={k:v for k,v in ink['tiles'].items() if k in ids};payloads['rhythm-engraving-v4']=ink
     for name,value in payloads.items():
         filename='small-demo-'+name+'.json';write(RES/filename,value);keep.add(filename);index[name]=filename
     write(RES/'small-demo-index.json',{'version':1,'files':index,'required_files':sorted(keep),'question_count':len(questions)})

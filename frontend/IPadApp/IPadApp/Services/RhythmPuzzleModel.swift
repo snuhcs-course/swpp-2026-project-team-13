@@ -70,10 +70,10 @@ import SwiftUI
         do {
             if let connection, !connection.demo { contentProvider = try TrainingContentProvider(connection:connection) }
             else {
-                let data = try DemoContent.data("rhythm-puzzle-v3")
-                let ink = try DemoContent.data("rhythm-engraving-v3")
+                let data = try DemoContent.data("rhythm-puzzle-v4")
+                let ink = try DemoContent.data("rhythm-engraving-v4")
                 let legacy: [Data]
-                if !stageMode && DemoContent.hasFullBank { legacy = try ["rhythm-puzzle-v1","rhythm-puzzle-v2"].map { try Bundled.data($0,ext:"json") } }
+                if !stageMode && DemoContent.hasFullBank { legacy = try ["rhythm-puzzle-v1","rhythm-puzzle-v2","rhythm-puzzle-v3"].map { try Bundled.data($0,ext:"json") } }
                 else { legacy = [] }
                 try installCatalog(data,ink:ink,legacy:legacy)
             }
@@ -108,10 +108,10 @@ import SwiftUI
         guard catalog == nil, !contentLoading, let contentProvider else { return }
         contentLoading = true; defer { contentLoading = false }
         do {
-            let data = try await contentProvider.data("rhythm-puzzle-v3.json")
-            let ink = try await contentProvider.data("rhythm-engraving-v3.json")
+            let data = try await contentProvider.data("rhythm-puzzle-v4.json")
+            let ink = try await contentProvider.data("rhythm-engraving-v4.json")
             var legacy: [Data] = []
-            for name in ["rhythm-puzzle-v1.json","rhythm-puzzle-v2.json"] { legacy.append(try await contentProvider.data(name)) }
+            for name in ["rhythm-puzzle-v1.json","rhythm-puzzle-v2.json","rhythm-puzzle-v3.json"] { legacy.append(try await contentProvider.data(name)) }
             try Task.checkCancellation(); try installCatalog(data,ink:ink,legacy:legacy)
         } catch { if !Task.isCancelled { self.error = error.localizedDescription } }
     }

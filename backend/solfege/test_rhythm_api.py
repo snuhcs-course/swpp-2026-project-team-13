@@ -95,6 +95,18 @@ class RhythmAPITests(TestCase):
         self.payload["interruptions"] = 1
         self.assertEqual(self.send(key=str(uuid.uuid4())).status_code, 409)
 
+    def test_v4_tempo_aware_classical_record_and_v3_history_can_both_save(self):
+        for name in ["rhythm-puzzle-v3", "rhythm-puzzle-v4"]:
+            data=(settings.CONTENT_ROOT / (name+".json")).read_bytes()
+            catalog=json.loads(data)
+            round_=next(r for r in catalog["rounds"] if r.get("collection")=="classical")
+            self.payload=record_for(catalog,digest_bytes(data),round_)
+            response=self.send()
+            self.assertEqual(response.status_code,201,response.data)
+            row=RhythmPlay.objects.get(client_play_id=self.payload["client_play_id"])
+            self.assertEqual(row.payload["game_version"],name)
+        self.assertEqual(RhythmPlay.objects.count(),2)
+
     def test_only_the_owner_sees_a_record_and_authentication_is_required(self):
         self.assertEqual(self.send().status_code, 201)
         self.assertEqual(self.client.get(self.url).data["count"], 1)

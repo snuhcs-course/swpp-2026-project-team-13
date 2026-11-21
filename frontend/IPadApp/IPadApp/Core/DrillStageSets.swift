@@ -10,6 +10,7 @@ struct DrillStageQuestion: Codable, Identifiable, Equatable {
     let firstMeasure: Int
     var bars: Int?
     var notes: [Int]?
+    var keyFifths: Int? = nil
 }
 struct DrillStageSet: Codable, Identifiable, Equatable {
     let number: Int
@@ -21,13 +22,16 @@ struct DrillStageCourse: Codable {
     let version: String
     let stages: [DrillStageSet]
     func validate() throws {
-        guard version == "drill-stage-sets-1", Set(stages.map(\.number)).count == stages.count else { throw invalid }
+        guard ["drill-stage-sets-1","drill-stage-sets-2"].contains(version), Set(stages.map(\.number)).count == stages.count else { throw invalid }
         for set in stages {
             guard let stage = DrillStairs.stage(set.number), stage.game == set.game,
                   set.questions.count == (set.game == .memoryRun ? 4 : set.game == .rhythmPuzzle ? 5 : 6),
                   Set(set.questions.map(\.id)).count == set.questions.count else { throw invalid }
             for q in set.questions {
-                guard !q.id.isEmpty, q.sourceSha256.count == 64, (40...180).contains(q.bpm), q.firstMeasure>=1 else { throw invalid }
+                guard !q.id.isEmpty, q.sourceSha256.count == 64, (40...240).contains(q.bpm), q.firstMeasure>=1 else { throw invalid }
+                if version == "drill-stage-sets-2", set.game == .memoryRun {
+                    guard let fifths=q.keyFifths, let cap=DrillMemoryPolicy.maximumFifths(stair:set.number), abs(fifths)<=cap else { throw invalid }
+                }
                 if set.game == .echoDragon {
                     guard let notes=q.notes, notes.count==2, notes.allSatisfy({ (21...108).contains($0) }) else { throw invalid }
                 } else {
@@ -37,6 +41,12 @@ struct DrillStageCourse: Codable {
         }
     }
     private var invalid: SolfegeError { .invalidScore("스테이지 문제 구성을 확인해 주세요.") }
+}
+enum DrillMemoryPolicy {
+    static func maximumFifths(stair: Int) -> Int? {
+        guard let index=DrillStairs.stages.filter({ $0.game == .memoryRun }).firstIndex(where:{ $0.number == stair }) else { return nil }
+        return [0,0,1,1,2,2,3,3,7,7][index]
+    }
 }
 struct DrillRoundResult: Codable, Equatable {
     let accuracy: Int

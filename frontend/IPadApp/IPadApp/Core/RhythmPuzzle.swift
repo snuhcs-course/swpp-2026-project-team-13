@@ -65,7 +65,7 @@ struct RhythmCatalog: Decodable {
     var version: String; var difficultyVersion: String; var tiles: [RhythmTile]; var rounds: [RhythmRound]
     var tileMap: [String:RhythmTile] { Dictionary(uniqueKeysWithValues:tiles.map { ($0.id,$0) }) }
     func validate() throws {
-        guard ["rhythm-puzzle-v1", "rhythm-puzzle-v2", "rhythm-puzzle-v3"].contains(version), !rounds.isEmpty, Set(tiles.map(\.id)).count == tiles.count else { throw SolfegeError.invalidScore("리듬 문제 버전을 확인해 주세요.") }
+        guard ["rhythm-puzzle-v1", "rhythm-puzzle-v2", "rhythm-puzzle-v3", "rhythm-puzzle-v4"].contains(version), !rounds.isEmpty, Set(tiles.map(\.id)).count == tiles.count else { throw SolfegeError.invalidScore("리듬 문제 버전을 확인해 주세요.") }
         let map = tileMap
         for t in tiles {
             guard !t.symbols.isEmpty, t.duration > .zero, t.symbols.reduce(.zero, { $0+$1.duration }) == t.duration,
@@ -75,7 +75,7 @@ struct RhythmCatalog: Decodable {
             guard r.choices.count == 12, Set(r.choices).count == 12, r.choices.allSatisfy({ map[$0] != nil }),
                   r.totalDuration == r.measureDuration*2, r.measureDuration > .zero, r.pulse > .zero,
                   (r.measureDuration/r.pulse).denominator == 1, r.meter.supported,
-                  (0...100).contains(r.difficulty.score), (40...200).contains(r.tempoBpm),
+                  (0...100).contains(r.difficulty.score), (40...240).contains(r.tempoBpm),
                   r.audio.allSatisfy({ $0.onset.ticks != nil && $0.duration.ticks != nil && (0...127).contains($0.midi) }) else { throw SolfegeError.invalidScore("리듬 문제 구성을 확인해 주세요.") }
             let answer = RhythmBoard(placements:r.solution,ties:r.solutionTies)
             guard try answer.sounds(round:r,tiles:map) == r.rhythm,

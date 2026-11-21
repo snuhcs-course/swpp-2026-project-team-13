@@ -24,7 +24,7 @@ final class DeliveryAppProtocol: URLProtocol {
         XCTAssertEqual(marker.mode,"online")
         XCTAssertFalse(DemoContent.hasFullBank)
         XCTAssertNil(Bundle.main.url(forResource:"practice-layout-v2",withExtension:"json"))
-        XCTAssertNil(Bundle.main.url(forResource:"memory-run-v2",withExtension:"json"))
+        XCTAssertNil(Bundle.main.url(forResource:"memory-run-v3",withExtension:"json"))
         _ = try ClassicalPiano.load()
     }
     func testSmallDemoPreparesEveryQuestionAndAllMinigameLevels() async throws {
@@ -48,9 +48,9 @@ final class DeliveryAppProtocol: URLProtocol {
             let bytes = try await api.asset(image.url,authenticated:true,limit:2_097_152)
             XCTAssertEqual(bytes.sha256,image.sha256)
         }
-        let data = try DemoContent.data("memory-run-v2",forceSmall:true)
+        let data = try DemoContent.data("memory-run-v3",forceSmall:true)
         var memory = try JSONDecoder().decode(MemoryCatalog.self,from:data)
-        let groove: MemoryGroovePolicy = try DemoContent.decode("memory-groove-v1",forceSmall:true)
+        let groove: MemoryGroovePolicy = try DemoContent.decode("memory-groove-v2",forceSmall:true)
         try memory.applyGroovePolicy(groove,catalogSha256:data.sha256); try memory.validate()
         var rng = SystemRandomNumberGenerator()
         for level in MemoryDifficulty.allCases {
@@ -59,10 +59,10 @@ final class DeliveryAppProtocol: URLProtocol {
                 XCTAssertEqual(set.map(\.bars),level.barPlan)
             }
         }
-        let rhythm: RhythmCatalog = try DemoContent.decode("rhythm-puzzle-v3",forceSmall:true)
+        let rhythm: RhythmCatalog = try DemoContent.decode("rhythm-puzzle-v4",forceSmall:true)
         try rhythm.validate()
-        let ink: RhythmEngraving = try DemoContent.decode("rhythm-engraving-v3",forceSmall:true)
-        XCTAssertEqual(ink.catalogSha256,try DemoContent.data("rhythm-puzzle-v3",forceSmall:true).sha256)
+        let ink: RhythmEngraving = try DemoContent.decode("rhythm-engraving-v4",forceSmall:true)
+        XCTAssertEqual(ink.catalogSha256,try DemoContent.data("rhythm-puzzle-v4",forceSmall:true).sha256)
     }
 
     func testLiveModelsDownloadTheirCatalogsAndReuseVerifiedFiles() async throws {
@@ -79,13 +79,14 @@ final class DeliveryAppProtocol: URLProtocol {
             try? FileManager.default.removeItem(at:cache.root)
         }
         var files: [String:Data] = [:]
-        for name in ["memory-run-v2","memory-groove-v1","rhythm-puzzle-v3","rhythm-engraving-v3"] {
+        for name in ["memory-run-v3","memory-groove-v2","rhythm-puzzle-v4","rhythm-engraving-v4"] {
             files[name+".json"] = try DemoContent.data(name,forceSmall:true)
         }
         // Legacy versions remain downloadable for journals from an older app.
-        files["rhythm-puzzle-v1.json"] = files["rhythm-puzzle-v3.json"]
-        files["rhythm-puzzle-v2.json"] = files["rhythm-puzzle-v3.json"]
-        let memory = try JSONDecoder().decode(MemoryCatalog.self,from:try XCTUnwrap(files["memory-run-v2.json"]))
+        files["rhythm-puzzle-v1.json"] = files["rhythm-puzzle-v4.json"]
+        files["rhythm-puzzle-v2.json"] = files["rhythm-puzzle-v4.json"]
+        files["rhythm-puzzle-v3.json"] = try DemoContent.data("rhythm-puzzle-v3",forceSmall:true)
+        let memory = try JSONDecoder().decode(MemoryCatalog.self,from:try XCTUnwrap(files["memory-run-v3.json"]))
         let source = try XCTUnwrap(memory.sources.first)
         files[source.file] = try Data(contentsOf:XCTUnwrap(Bundle.main.url(forResource:source.file,withExtension:nil)))
         let assets = files.mapValues { bytes in ContentAsset(url:base.appendingPathComponent("content/assets/\(bytes.sha256)/"),sha256:bytes.sha256,sizeBytes:bytes.count,contentType:"application/json") }
@@ -110,7 +111,7 @@ final class DeliveryAppProtocol: URLProtocol {
         _ = try MelodyXMLParser.parse(xml)
         let count = requests
         let next = try TrainingContentProvider(connection:connection)
-        _ = try await next.data(source.file); _ = try await next.data("memory-run-v2.json")
+        _ = try await next.data(source.file); _ = try await next.data("memory-run-v3.json")
         XCTAssertEqual(requests,count,"Verified content should survive reopening a game without new requests")
     }
 

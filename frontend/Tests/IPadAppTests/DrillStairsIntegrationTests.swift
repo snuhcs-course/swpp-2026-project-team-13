@@ -67,7 +67,7 @@ import XCTest
         XCTAssertEqual(game.excerpt?.id,q.catalogId)
     }
     func testRhythmStageDoesNotPersistPartialPlayBeforeStageCommit() throws {
-        let course: DrillStageCourse = try DemoContent.decode("drill-stage-sets-v1")
+        let course: DrillStageCourse = try DemoContent.decode("drill-stage-sets-v2")
         let q=try XCTUnwrap(course.stages.first { $0.game == .rhythmPuzzle }?.questions.first)
         let api=try DemoExamAPI(outcome:"completed",storageScope:UUID().uuidString)
         let connection=RhythmConnection(api:api,profileId:UUID(),demo:true,generation:UUID())
@@ -106,6 +106,28 @@ import XCTest
         XCTAssertNotNil(stairs.error)
         stairs.clear(1)
         XCTAssertEqual(try Data(contentsOf:file),Data("broken".utf8))
+    }
+    func testCurrentClassicalMemoryUsesPublishedTempoInsteadOfStagePreset() async throws {
+        let course: DrillStageCourse = try DemoContent.decode("drill-stage-sets-v2")
+        let q=try XCTUnwrap(course.stages.filter { $0.game == .memoryRun }.flatMap(\.questions).first { $0.collection == "classical" })
+        let game=MelodyRunModel(stageMode:true); defer { game.stop() }
+        let altered=DrillStageQuestion(id:q.id,catalogId:q.catalogId,bpm:40,questionId:q.questionId,
+            sourceSha256:q.sourceSha256,collection:q.collection,firstMeasure:q.firstMeasure,bars:2)
+        game.newStageRound(altered)
+        let deadline=ProcessInfo.processInfo.systemUptime+15
+        while game.round == nil && game.error == nil && ProcessInfo.processInfo.systemUptime<deadline { try await Task.sleep(for:.milliseconds(10)) }
+        XCTAssertNil(game.error); XCTAssertNotNil(game.round)
+        XCTAssertEqual(game.settings.bpm,q.bpm)
+    }
+    func testCorrectedRhythmStageUsesCurrentCatalogAndExactPinnedTempo() throws {
+        let course: DrillStageCourse = try DemoContent.decode("drill-stage-sets-v2")
+        let q=try XCTUnwrap(course.stages.first { $0.game == .rhythmPuzzle }?.questions.first)
+        let api=try DemoExamAPI(outcome:"completed",storageScope:UUID().uuidString)
+        let connection=RhythmConnection(api:api,profileId:UUID(),demo:true,generation:UUID())
+        let game=RhythmPuzzleModel(connection:connection,stageMode:true); defer { game.close() }
+        game.newStageRound(q)
+        XCTAssertNil(game.error); XCTAssertEqual(game.round?.tempoBpm,q.bpm)
+        XCTAssertEqual(game.draft?.record.gameVersion,"rhythm-puzzle-v4")
     }
     func testEchoStageOpensItsLevelWithoutTouchingTheLevelMap() async throws {
         let defaults = try XCTUnwrap(UserDefaults(suiteName:suite))

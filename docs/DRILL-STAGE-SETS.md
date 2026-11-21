@@ -1,8 +1,9 @@
 # Drill 고정 세트 시제품
 
-기준은 main `435e40e`의 건반 계단이다. Memory run과 Rhythm puzzle은 아래 시제품
-구성을 유지한다. Echo Dragon은 아래의 새 음정 과정 10개 칸으로 교체했다.
-기존 계단 디자인과 자유로운 칸 선택을 유지한다. 나머지 Memory/Rhythm 칸은 준비 중이다.
+기준은 main `435e40e`의 건반 계단이다. 온라인 버전은 Memory run 10세트(40문제),
+Rhythm puzzle 10세트(50문제), 별도 Echo 음정 과정 10세트로 연결된다.
+작은 오프라인 데모에는 Memory/Rhythm 각각 첫 2세트만 넣는다.
+기존 계단 디자인과 자유로운 칸 선택을 유지한다. 아래는 처음 6칸의 구성이다.
 
 | 칸 | 게임 | 문제 수 |
 |---|---|---:|
@@ -24,6 +25,9 @@
   버리고, 다시 진입할 때 첫 문제부터 시작한다. 이전에 완료한 세트와 클리어 기록은 유지한다.
   세트를 끝까지 마쳤을 때만 세트 결과와 학습 기록을 확정 저장한다.
 - Memory는 2마디 이하 선율을 건반으로 복원한다. 이 시제품은 모두 2마디다.
+- Memory의 단계는 전체 계단 번호가 아닌 Memory 칸만 센 1–10단계다.
+  조표 상한은 1–2단계 0개, 3–4단계 1개, 5–6단계 2개, 7–8단계 3개,
+  9–10단계 제한 없음이다. 장·단조 모두 샤프/플랫 개수의 절댓값을 사용한다.
 - Rhythm은 기존 조각·타이 입력과 첫 오답/두 번째 힌트/세 번째 정답 공개를 유지한다.
 - 입장 때 해당 스테이지의 메타데이터·그림·악보를 미리 준비하고 게임 모델과 오디오를
   문제 사이에 재사용한다. 다음 문제로 갈 때 카탈로그를 다시 내려받거나 해독하지 않는다.
@@ -78,15 +82,29 @@ Memory/Rhythm의 화면·모델·문제 카탈로그·오디오·세트 저장 �
 ## 문제와 저장 위치
 
 - 원본은 기존 Practice 문제은행 및 클래식 선율이다. Exam 전용 문제는 배제한다.
-- 서버: `backend/content/drills/drill-stage-sets-v1.json`.
+- 서버: `backend/content/drills/drill-stage-sets-v2.json`.
+  기존 v1과 그때 사용한 카탈로그는 변경하지 않고 보관한다.
+- 현재 Memory는 `memory-run-v3.json`/`memory-groove-v2.json`, Rhythm은
+  `rhythm-puzzle-v4.json`/`rhythm-engraving-v4.json`에 고정된다.
+- 클래식은 공통 지정 템포로 재생한다. 명시된 문제 메타데이터를 우선하고,
+  해당 값이 없는 기존 11곡은 공개 XML의 `sound tempo=96`을 사용한다.
+  이것을 원곡의 연주 템포로 추정하지 않는다. 2분음표·점음표 템포는 4분음표 BPM으로
+  정확히 환산하여 재생하고 원래 단위로 표시한다. 단계 프리셋으로 덮어쓰지 않는다.
+- 새 난이도는 기존 구조 지표에 `sqrt(quarterBpm/80)`을 곱하고 초당 발음 수와
+  짧은 음의 속도 부담을 더한다. 동일한 곡이라도 실제 재생 속도에 맞춰 계산한다.
+  교정 전후 원시 지표와 초당 음 수는 `docs/drill-curriculum-v2-audit.json` 및 새 JSON에 남긴다.
+  학습자 성과로 검증한 척도는 아니며 사용자 테스트로 추후 보정한다.
+- Rhythm에서는 거의 한 음만 유지하는 구간 2개, 지나치게 빠른 구간 31개(클래식 6개 포함)를 새 출제에서 제외했다.
+  긴 지속음 기준: 발음 3개 미만이며 한 음이 한 마디 이상 지속.
+  속도 기준: 평균 초당 발음 수가 5개 초과 또는 인접 발음 간격의 역수가 초당 8개 초과.
+  원본 음표·타이는 수정하지 않는다. 제외 사유는 위 감사 JSON에 남긴다.
 - 문제 ID, 원본 해시, 구간, 템포를 고정한다. 공개한 v1을 덮어쓰지 말고 새 버전으로
   발행한다. 신규 JSON은 client-content-manifest의 해시 검증과 캐시를 사용한다.
-- 앱에는 동일한 6개 시제품 세트를 작은 오프라인 데모에 포함한다. 전체 문제은행은
-  서버에 유지한다. 기존 작은 데모 악보·리듬 구간을 재사용하고 코스 설정만 추가했다.
+- 전체 문제은행은 서버에 유지한다. 앱에는 해시가 고정된 작은 데모만 포함한다.
 - 진행과 세트별 정답률·정답 공개·문제별 전경 경과 시간은 계정별 기기 저장 공간에
   기록한다. 기존 무작위 한 문제 진행 파일은 보관하고 새 파일로 분리한다.
   기기 간 진행 동기화와 학습자 약점 분석은 후속 범위다.
-- 문제 개수 4/5/6이 실제 소요 시간의 동등성을 뜻하지는 않는다. 기록된 elapsedMs를
+- 문제 개수 4/5/10이 실제 소요 시간의 동등성을 뜻하지는 않는다. 기록된 elapsedMs를
   게임별로 비교하고, 직접 풀어본 뒤 문제 구성·개수를 조정한다. 시간을 맞추기 위한
   강제 대기는 추가하지 않는다.
 
@@ -94,14 +112,17 @@ Memory/Rhythm의 화면·모델·문제 카탈로그·오디오·세트 저장 �
 
 ```powershell
 python scripts/build_drill_stage_sets.py
+python scripts/build_drill_curriculum_v2.py
 python scripts/build_content_delivery.py
 python scripts/test_drill_stage_sets.py
+python scripts/test_drill_curriculum_v2.py
 python scripts/test_content_delivery.py
 ```
 
 Core의 DrillStageSetTests, iOS의 DrillStairsIntegrationTests에서 고정 문제 선택,
 두 음 필수 입력, 정답 공개와 클리어 구분, 완료 문제 보관을 검증한다.
 Windows에서는 iOS 테스트를 실행할 수 없으므로 GitHub macOS CI 결과를 확인한다.
+새 코스의 검토용 MusicXML은 `python scripts/build_drill_curriculum_review.py`로 생성한다.
 
 서버에도 새 문제 구성이 필요하다. 이 브랜치의 코드를 받은 뒤 API와 worker를
 재빌드하고 새 IPA를 설치한다. 기존 DB·답안 볼륨을 삭제할 필요는 없다.

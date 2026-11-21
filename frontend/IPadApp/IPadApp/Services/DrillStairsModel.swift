@@ -72,8 +72,8 @@ struct DrillStageContext {
         loading=true; defer { loading=false }
         do {
             let data: Data
-            if let connection, !connection.demo { data = try await TrainingContentProvider(connection:connection).data("drill-stage-sets-v1.json") }
-            else { data = try DemoContent.data("drill-stage-sets-v1") }
+            if let connection, !connection.demo { data = try await TrainingContentProvider(connection:connection).data("drill-stage-sets-v2.json") }
+            else { data = try DemoContent.data("drill-stage-sets-v2") }
             let value = try ContractJSON.decoder().decode(DrillStageCourse.self,from:data)
             try value.validate(); try Task.checkCancellation(); course=value
         } catch { if !Task.isCancelled { self.error=error.localizedDescription } }
