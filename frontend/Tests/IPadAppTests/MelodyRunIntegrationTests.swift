@@ -1,5 +1,6 @@
 import XCTest
 import SwiftUI
+import AVFoundation
 @testable import IPadApp
 
 @MainActor final class MelodyRunIntegrationTests: XCTestCase {
@@ -195,6 +196,32 @@ import SwiftUI
             XCTAssertFalse(game.audio.isRunning)
         }
     }
+    func testReferencePhraseUsesThePianoSamplerAfterCountIn() async throws {
+        let graph = PianoAudioGraph(), piano = MelodyAudioProbe(), click = MelodyAudioProbe()
+        let audio = MelodyRunAudio(graph:graph)
+        try audio.prepare()
+        defer { audio.stop() }
+        let format = graph.piano.outputFormat(forBus:0)
+        graph.piano.installTap(onBus:0,bufferSize:1024,format:nil) { buffer,_ in piano.append(buffer) }
+        graph.click.installTap(onBus:0,bufferSize:1024,format:nil) { buffer,_ in click.append(buffer) }
+        defer { graph.piano.removeTap(onBus:0); graph.click.removeTap(onBus:0) }
+        let score = MusicScore(tempo:180,measures:2,events:[
+            MusicEvent(midi:69,onset:0,duration:1920),MusicEvent(midi:69,onset:1920,duration:1920)
+        ],symbols:[])
+        let round = try MelodyRound(source:MelodySource(score:score,fifths:0,mode:"major",clef:"G"),start:1,bars:2)
+        var settings = MelodySettings(); settings.bpm = 180; settings.bars = 2
+        let timeline = MelodyTimeline(round:round,settings:settings)
+        try audio.start(timeline,round:round,settings:settings)
+        try await Task.sleep(for:.milliseconds(2300))
+        audio.stopClock()
+        let count = Int(format.sampleRate*0.3)
+        let reference = Array(piano.snapshot().suffix(count)), afterCountIn = Array(click.snapshot().suffix(count))
+        XCTAssertEqual(reference.count,count)
+        XCTAssertGreaterThan(MelodyAudioProbe.rms(reference),0.0001,"The reference must reach the SF2 piano, not the click instrument")
+        XCTAssertLessThan(MelodyAudioProbe.rms(afterCountIn),0.0001,"The count-in sampler must be silent during the melody")
+        XCTAssertGreaterThan(MelodyAudioProbe.power(reference,hz:440,rate:format.sampleRate),
+                             4*MelodyAudioProbe.power(reference,hz:420,rate:format.sampleRate),"Reference A4 must retain its piano pitch")
+    }
     func testLandscapeKeyboardAndBothClefsRender() async throws {
         let game = makeGame(mode:.memory)
         await game.start(); XCTAssertNil(game.error)
@@ -214,5 +241,28 @@ import SwiftUI
         keyboard.layer.displayIfNeeded()
         let piano = UIGraphicsImageRenderer(size:keyboard.bounds.size).image { keyboard.layer.render(in:$0.cgContext) }
         let keys = XCTAttachment(image:piano); keys.name = "melody-run-multitouch-keyboard"; keys.lifetime = .keepAlways; add(keys)
+    }
+}
+
+private final class MelodyAudioProbe: @unchecked Sendable {
+    private let lock = NSLock()
+    private var samples: [Float] = []
+    func append(_ buffer: AVAudioPCMBuffer) {
+        guard let channel = buffer.floatChannelData?[0] else { return }
+        let values = Array(UnsafeBufferPointer(start:channel,count:Int(buffer.frameLength)))
+        lock.lock(); defer { lock.unlock() }
+        if samples.count < 480000 { samples.append(contentsOf:values) }
+    }
+    func snapshot() -> [Float] { lock.lock(); defer { lock.unlock() }; return samples }
+    static func rms(_ values: [Float]) -> Double {
+        sqrt(values.reduce(0) { $0+Double($1)*Double($1) }/Double(max(1,values.count)))
+    }
+    static func power(_ values: [Float], hz: Double, rate: Double) -> Double {
+        var real = 0.0, imaginary = 0.0
+        for (index,value) in values.enumerated() {
+            let phase = 2*Double.pi*hz*Double(index)/rate
+            real += Double(value)*cos(phase); imaginary += Double(value)*sin(phase)
+        }
+        return real*real+imaginary*imaginary
     }
 }

@@ -46,6 +46,15 @@ final class MelodyRunTests: XCTestCase {
         XCTAssertTrue(timeline.clickEvents().allSatisfy { $0.onset < round.score.ticksPerMeasure })
         for pair in zip(timeline.windows,timeline.windows.dropFirst()) { XCTAssertEqual(pair.0.end,pair.1.start) }
     }
+    func testPianoAndCountInMIDIRetainSeparateTracksAndChannels() {
+        let piano = MIDIFile.make(events:[MusicEvent(midi:69,onset:480,duration:480)],totalTicks:960,tempo:80)
+        let clicks = MIDIFile.make(events:[MusicEvent(midi:60,onset:0,duration:30)],totalTicks:960,tempo:80,channel:1)
+        let data = MIDIFile.combining([piano,clicks])
+        XCTAssertEqual(Array(data.prefix(14)),[0x4d,0x54,0x68,0x64,0,0,0,6,0,1,0,2,1,0xe0])
+        XCTAssertNotNil(data.range(of:Data([0x90,69,80])))
+        XCTAssertNotNil(data.range(of:Data([0x91,60,80])))
+        XCTAssertNil(data.range(of:Data([0x90,60,80])))
+    }
     func testGrooveEarlyCompletionKeepsClockAndNextBeatWithoutOverlappingWindows() throws {
         let round = try MelodyRound(source:source(),start:1,bars:2)
         var settings = MelodySettings(); settings.mode = .groove; settings.inputBars = 2

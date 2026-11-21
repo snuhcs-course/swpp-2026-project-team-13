@@ -1,7 +1,7 @@
 import AVFoundation
 
 @MainActor final class MelodyRunAudio {
-    private let graph = PianoAudioGraph()
+    private let graph: PianoAudioGraph
     private var livePiano = AVAudioUnitSampler()
     private var sequencer: AVAudioSequencer?
     private var referenceTrack: AVMusicTrack?
@@ -10,6 +10,7 @@ import AVFoundation
     private var transportLeadTicks = 0
     private var noteVelocity: UInt8 = 76
     private(set) var ready = false
+    init(graph: PianoAudioGraph = PianoAudioGraph()) { self.graph = graph }
     var tick: Int { Int(((sequencer?.currentPositionInBeats ?? 0)*480).rounded(.down))-transportLeadTicks }
     var isRunning: Bool { graph.engine.isRunning }
 
@@ -39,26 +40,30 @@ import AVFoundation
         stopClock()
         discardSequence()
         transportLeadTicks = MelodyTimeline.ticks(milliseconds:MelodyTimeline.audioLeadMilliseconds,bpm:settings.bpm)
-        let seq = AVAudioSequencer(audioEngine:graph.engine)
-        try seq.load(from:timeline.midi(tempo:settings.bpm,leadTicks:transportLeadTicks),options:[])
-        // A direct replay legitimately has only a tempo track. Core Audio may
-        // omit that empty track; the piano track is explicitly appended below.
-        guard timeline.clickEvents().isEmpty || !seq.tracks.isEmpty else { throw SolfegeError.invalidScore("게임 오디오 준비 실패") }
-        for track in seq.tracks { track.destinationAudioUnit = graph.click }
-        let reference = seq.createAndAppendTrack()
-        reference.destinationAudioUnit = graph.piano
-        reference.lengthInBeats = Double(timeline.end+transportLeadTicks)/480
-        referenceTrack = reference
-        sequencer = seq
-        if settings.mode == .memory {
-            // One contiguous phrase preserves note-offs and ties across bars.
-            if let first = timeline.windows.first(where: { $0.phase == .listen }) {
-                let events = try round.score.segment(from:first.measure,through:round.score.measures)
-                try schedule(events,at:first.start)
-            }
-        } else if let first = timeline.windows.first(where: { $0.phase == .listen }) {
-            try schedule(first,round:round)
+        guard let first = timeline.windows.first(where: { $0.phase == .listen }) else {
+            throw SolfegeError.invalidScore("게임 오디오 준비 실패")
         }
+        let through = settings.mode == .memory ? round.score.measures : first.measure
+        let events = try round.score.segment(from:first.measure,through:through).map {
+            MusicEvent(midi:$0.midi,onset:$0.onset+first.start+transportLeadTicks,duration:$0.duration)
+        }
+        let length = timeline.end+transportLeadTicks
+        let piano = MIDIFile.make(events:events,totalTicks:length,tempo:settings.bpm,velocity:Int(noteVelocity))
+        let clicks = timeline.clickEvents(leadTicks:transportLeadTicks)
+        var tracks = [piano]
+        if !clicks.isEmpty {
+            tracks.append(MIDIFile.make(events:clicks,totalTicks:length,tempo:settings.bpm,
+                                        velocity:75,firstNoteVelocity:105,channel:1))
+        }
+        let seq = AVAudioSequencer(audioEngine:graph.engine)
+        try seq.load(from:tracks.count == 1 ? piano : MIDIFile.combining(tracks),options:[])
+        guard seq.tracks.count == tracks.count else { throw SolfegeError.invalidScore("게임 오디오 준비 실패") }
+        // Piano is always track/channel 0; count-in is a separate track/channel.
+        // Do not route every imported track to the click sampler, then append
+        // a second channel-0 track: the audible reference must use the SF2 piano.
+        seq.tracks[0].destinationAudioUnit = graph.piano
+        if seq.tracks.count == 2 { seq.tracks[1].destinationAudioUnit = graph.click }
+        referenceTrack = seq.tracks[0]; sequencer = seq
         graph.engine.prepare(); try graph.engine.start()
         seq.currentPositionInBeats = 0; seq.prepareToPlay(); try seq.start()
     }
