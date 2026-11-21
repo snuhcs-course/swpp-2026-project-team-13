@@ -42,6 +42,13 @@ final class QuestionFilterTests: XCTestCase {
         XCTAssertEqual(QuestionFilter.meterOptions(in:questions).map(\.label),["3/4","6/8","2/2"])
         XCTAssertEqual(QuestionFilter.keyOptions(in:[]),[])
     }
+    func testQuestionNumbersKeepOriginalExercisesBeforeTheNumberedBank() {
+        var bank=question(noKey,threeFour);bank.title="1";bank.collection="practice_bank"
+        var ten=question(noKey,threeFour);ten.title="Original 10"
+        var two=question(noKey,threeFour);two.title="Original 2"
+        var filter=QuestionFilter();filter.sortOrder = .questionNumber
+        XCTAssertEqual(filter.apply(to:[bank,ten,two]).map(\.title),["Original 2","Original 10","1"])
+    }
 
     func testSignatureLimitIncludesRelativeMajorMinorAndBothSignsCumulatively() {
         let cMajor = KeySignature(tonic:"C",mode:"major",fifths:0)

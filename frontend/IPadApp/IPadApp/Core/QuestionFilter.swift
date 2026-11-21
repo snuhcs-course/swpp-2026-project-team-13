@@ -62,7 +62,12 @@ struct QuestionFilter: Equatable {
             keySelection.includes(q.keySignature) && (meter == nil || q.timeSignature == meter) &&
                 (showCompleted || (q.practiceCompleted != true && !completedQuestionIDs.contains(q.id)))
         }.sorted { lhs, rhs in
-            if sortOrder == .questionNumber { return lhs.offset < rhs.offset }
+            if sortOrder == .questionNumber {
+                let aBank=lhs.element.collection == "practice_bank", bBank=rhs.element.collection == "practice_bank"
+                if aBank != bBank { return !aBank }
+                let order=lhs.element.title.compare(rhs.element.title,options:[.numeric,.caseInsensitive])
+                return order == .orderedSame ? lhs.offset < rhs.offset : order == .orderedAscending
+            }
             let a = lhs.element.difficultyScore.flatMap { $0.isFinite ? $0 : nil }
             let b = rhs.element.difficultyScore.flatMap { $0.isFinite ? $0 : nil }
             // Unknown scores stay last in both directions; ties keep catalog order.
