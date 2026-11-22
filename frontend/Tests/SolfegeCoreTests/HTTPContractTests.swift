@@ -72,7 +72,7 @@ final class StubProtocol:URLProtocol {
             return (status,"application/json",try Data(contentsOf:fixtureRoot.appendingPathComponent("examples/\(name).json")))
         }
         defer {StubProtocol.handler=nil}
-        _=try await api.profile();_=try await api.updateGoal("college_entrance");_=try await api.questions(page:1)
+        _=try await api.profile();_=try await api.questions(page:1)
         _=try await api.question(question.id);_=try await api.createAttempt(question:question,key:key)
         _=try await api.attempt(attempt);_=try await api.start(attempt)
         let png=try Data(contentsOf:root.appendingPathComponent("assets/staff-8bars-v1.png"))
@@ -80,8 +80,8 @@ final class StubProtocol:URLProtocol {
         _=try await api.answerImage(uploaded);_=try await api.submit(attempt,answerId:answer,key:key)
         _=try await api.result(attempt);_=try await api.retryGrading(attempt,key:key)
         let mxl=try await api.asset(question.scoreAssets.main.url,authenticated:true,limit:1_048_576)
-        XCTAssertEqual(mxl.sha256,question.scoreAssets.main.sha256);XCTAssertEqual(calls.count,13)
-        XCTAssertTrue(calls.contains("GET questions/?page=1&page_size=50"));XCTAssertTrue(calls.contains("PATCH me/"))
+        XCTAssertEqual(mxl.sha256,question.scoreAssets.main.sha256);XCTAssertEqual(calls.count,12)
+        XCTAssertTrue(calls.contains("GET questions/?page=1&page_size=50"));XCTAssertFalse(calls.contains { $0.hasPrefix("PATCH") })
     }
     func testClassicalFilterDoesNotChangePracticePagination() async throws {
         let config=URLSessionConfiguration.ephemeral;config.protocolClasses=[StubProtocol.self]

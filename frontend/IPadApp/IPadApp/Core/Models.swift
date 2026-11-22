@@ -7,8 +7,6 @@ import Darwin
 struct UserProfile: Codable, Identifiable, Equatable {
     var id: UUID
     var displayName: String
-    // nil until a signed-up user picks a goal on the onboarding screen.
-    var learningGoal: String?
     // nil on servers older than contract v0.12.0.
     var username: String? = nil
 }

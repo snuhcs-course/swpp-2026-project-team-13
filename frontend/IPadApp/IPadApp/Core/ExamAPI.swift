@@ -10,7 +10,6 @@ import FoundationNetworking
     func contentAsset(_ asset: ContentAsset) async throws -> Data
     func saveRhythmPlay(_ record: RhythmPlayRecord) async throws -> RhythmReceipt
     func profile() async throws -> UserProfile
-    func updateGoal(_ goal: String) async throws -> UserProfile
     func usernameCheck(_ username: String) async throws -> UsernameCheck
     func questions(page: Int) async throws -> QuestionPage
     func classicalQuestions(page: Int) async throws -> QuestionPage
@@ -200,7 +199,6 @@ final class NoRedirectDelegate: NSObject, URLSessionTaskDelegate, @unchecked Sen
         r.timeoutInterval = 3
         return try ContractJSON.decoder().decode(UsernameCheck.self, from: await execute(r, limit: 256 * 1024, retry: false))
     }
-    // The goal is chosen on the next screen and saved with updateGoal.
     func signup(username: String, displayName: String, password: String) async throws -> LoginResponse {
         let body = try JSONSerialization.data(withJSONObject: ["username": username, "display_name": displayName, "password": password])
         return try await credentialResponse("auth/signup/", body: body)
@@ -217,7 +215,6 @@ final class NoRedirectDelegate: NSObject, URLSessionTaskDelegate, @unchecked Sen
     func deleteAccount() async throws {
         _ = try await execute(request(endpoint("me/"), method: "DELETE"), limit: 256 * 1024, retry: false, expectsNoContent: true)
     }
-    func updateGoal(_ goal: String) async throws -> UserProfile { try await json("me/", method: "PATCH", body: JSONSerialization.data(withJSONObject: ["learning_goal": goal])) }
     func questions(page: Int) async throws -> QuestionPage {
         try await questionPage(page:page)
     }

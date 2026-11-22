@@ -17,10 +17,10 @@ final class DelayedAuthProtocol: URLProtocol {
 
 @MainActor final class AuthenticationTests: XCTestCase {
     let base = URL(string: "https://api.sori.example/api/v1/")!
-    let user = UserProfile(id: UUID(), displayName: "학습자", learningGoal: "other")
+    let user = UserProfile(id: UUID(), displayName: "학습자")
     func testProfileUsernameIsOptionalForOlderServers() throws {
         let id = "11111111-1111-4111-8111-111111111111"
-        let current = #"{"id":"\#(id)","username":"student01","display_name":"학습자","learning_goal":"other"}"#
+        let current = #"{"id":"\#(id)","username":"student01","display_name":"학습자"}"#
         let older = #"{"id":"\#(id)","display_name":"학습자","learning_goal":"other"}"#
         XCTAssertEqual(try ContractJSON.decoder().decode(UserProfile.self, from: Data(current.utf8)).username, "student01")
         XCTAssertNil(try ContractJSON.decoder().decode(UserProfile.self, from: Data(older.utf8)).username)
@@ -273,9 +273,11 @@ final class DelayedAuthProtocol: URLProtocol {
         // The two checks must agree, or a "valid" hint could sit beside a closed form.
         for (value, issue) in cases { XCTAssertEqual(SignupRules.usernameIsValid(value), issue == .none, value) }
     }
-    func testProfileDecodesAnUnchosenGoalFromNullOrAbsence() throws {
-        for body in ["{\"id\":\"11111111-1111-4111-8111-111111111111\",\"display_name\":\"x\",\"learning_goal\":null}", "{\"id\":\"11111111-1111-4111-8111-111111111111\",\"display_name\":\"x\"}"] {
-            XCTAssertNil(try ContractJSON.decoder().decode(UserProfile.self, from: Data(body.utf8)).learningGoal, body)
+    // Servers before contract v0.15.0 still send learning_goal; the app ignores it.
+    func testProfileFromAnOlderServerWithALearningGoalStillDecodes() throws {
+        for goal in ["null", "\"other\""] {
+            let body = "{\"id\":\"11111111-1111-4111-8111-111111111111\",\"display_name\":\"x\",\"learning_goal\":\(goal)}"
+            XCTAssertEqual(try ContractJSON.decoder().decode(UserProfile.self, from: Data(body.utf8)).displayName, "x", body)
         }
     }
     func testLogoutAccepts204WithoutBodyOrContentType() async throws {

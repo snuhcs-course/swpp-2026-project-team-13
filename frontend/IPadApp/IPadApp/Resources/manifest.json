@@ -6,10 +6,6 @@
       "schema": "UserProfile"
     },
     {
-      "file": "me-patch-request.json",
-      "schema": "UserProfilePatch"
-    },
-    {
       "file": "questions.json",
       "schema": "QuestionPage"
     },
