@@ -306,7 +306,7 @@ import SwiftUI
             try audio.prepare()
             awaitingStart = false; manualStartRequired = false; paused = false
             beginObservation(); try beginClock(from: 1)
-        } catch { audio.stop(); paused = true; self.error = error.localizedDescription }
+        } catch { audio.stop(); paused = !awaitingStart; self.error = error.localizedDescription }
     }
     func suspendForTutorial() {
         tutorialSuspended = true

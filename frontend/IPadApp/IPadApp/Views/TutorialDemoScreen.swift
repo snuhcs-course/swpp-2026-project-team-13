@@ -178,7 +178,7 @@ struct TutorialDemoScreen: View {
                 }
             Text(message).font(.subheadline).frame(height: 24)
             LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 10), count: 4), spacing: 10) {
-                ForEach(Array(round.choices.prefix(12)), id: \.self) { id in
+                ForEach(RhythmChoiceDisplay.order(round: round, tiles: bank.tileMap, shuffled: round.choices), id: \.self) { id in
                     if let tile = bank.tileMap[id] {
                         RhythmTileFace(tile: tile, pulse: round.pulse).frame(height: 98).scaleEffect(tileHeight/98)
                             .frame(height: tileHeight).clipped().contentShape(Rectangle())

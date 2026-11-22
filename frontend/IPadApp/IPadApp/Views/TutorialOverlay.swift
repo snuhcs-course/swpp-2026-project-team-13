@@ -187,7 +187,7 @@ struct TutorialWalkthrough: View {
         .foregroundStyle(SolfegeTheme.ink)
     }
     private func move(_ offset: Int) {
-        withAnimation(reduceMotion ? nil : .easeInOut(duration: 0.18)) { page += offset }
+        withAnimation(reduceMotion ? nil : .easeInOut(duration: 0.18)) { page = min(kind.steps.count, max(0, page+offset)) }
     }
     private func finish() { TutorialHistory.finish(kind, scope: scope); done() }
 }
