@@ -197,7 +197,16 @@ import SwiftUI
             model.closeWritingTutorial()
             XCTAssertTrue(model.player.isPlaying)
             XCTAssertTrue(model.drawing.canvas.isUserInteractionEnabled)
-            try await Task.sleep(for: .milliseconds(100))
+            // Resuming first yields to SwiftUI and may reactivate the audio graph.
+            // Observe actual countdown progress, rather than assuming this has
+            // finished within 100ms on a loaded simulator.
+            let resumeDeadline = ProcessInfo.processInfo.systemUptime+3
+            while model.player.isPlaying &&
+                    (model.player.cursor.remainingWaitMs ?? 5000) >= (frozen.remainingWaitMs ?? 5000) &&
+                    ProcessInfo.processInfo.systemUptime < resumeDeadline {
+                try await Task.sleep(for: .milliseconds(25))
+            }
+            XCTAssertNil(model.error)
             model.player.pause()
             XCTAssertLessThan(model.player.cursor.remainingWaitMs ?? 5000, frozen.remainingWaitMs ?? 5000)
             model.openWritingTutorial(); model.closeWritingTutorial()
