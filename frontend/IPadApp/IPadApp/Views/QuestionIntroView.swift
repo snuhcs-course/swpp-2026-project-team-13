@@ -27,11 +27,10 @@ struct QuestionIntroView: View {
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
-                    if exam { TutorialHelpButton(label: "시험 모드 안내") { showHelp = true } }
+                    TutorialHelpButton(label: "시험 모드 안내") { showHelp = true }
                 }
             }
-            .toolbar(showHelp ? .hidden : .automatic, for: .navigationBar)
-            .overlay { if showHelp { TutorialWalkthrough(kind: .exam) { showHelp = false } } }
+            .fullScreenCover(isPresented: $showHelp) { WritingTutorialPreview(mode: model.selectedMode) { showHelp = false } }
         }
     }
 

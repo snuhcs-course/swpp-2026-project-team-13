@@ -11,6 +11,7 @@ struct HomeView: View {
     @ObservedObject var model: AppModel
     var classical = false
     @State private var showKeys = false
+    @State private var showTutorial = false
     private var filter: Binding<QuestionFilter> { classical ? $model.classicalFilter : $model.practiceFilter }
     private var levelQuestions: [QuestionSummary] {
         if classical { return model.classicalQuestions.filter { $0.composer == model.selectedComposer } }
@@ -84,6 +85,7 @@ struct HomeView: View {
             }
         }
         .onDisappear { showKeys = false }
+        .fullScreenCover(isPresented: $showTutorial) { WritingTutorialPreview(mode: .practice) { showTutorial = false } }
         .foregroundStyle(SolfegeTheme.ink).accessibilityIdentifier(classical ? "classical-question-bank" : "practice-question-bank")
     }
     private var navigation: some View {
@@ -95,7 +97,7 @@ struct HomeView: View {
                     HStack(spacing: 6) { Image(systemName: "chevron.left"); Text(classical ? "작곡가 선택" : "난이도 선택") }.frame(minHeight: 44)
                 }.accessibilityIdentifier("practice-bank-back")
                 Spacer()
-                TutorialHelpButton(label: "튜토리얼 준비 중", action: {}).accessibilityIdentifier("practice-bank-help")
+                TutorialHelpButton(label: "시험 모드 안내") { showTutorial = true }.accessibilityIdentifier("practice-bank-help")
             }.font(.system(size: 16)).foregroundStyle(SolfegeTheme.violet)
         }.padding(.horizontal, 28).frame(height: 72)
     }

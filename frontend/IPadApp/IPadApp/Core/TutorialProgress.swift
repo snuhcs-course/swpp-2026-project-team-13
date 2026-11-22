@@ -8,7 +8,7 @@ enum TutorialKind: String, CaseIterable, Codable {
         case .echoDragon: return "Echo Dragon"
         case .memoryRun: return "Memory run"
         case .rhythmPuzzle: return "Rhythm puzzle"
-        case .exam: return "Exam"
+        case .exam: return "시험 모드"
         }
     }
 }
@@ -18,7 +18,7 @@ enum TutorialHint: String { case rhythmSpecialLengths }
 // makes account deletion remove tutorial history, without retaining a user ID.
 struct TutorialProgressStore {
     let root: URL
-    private var file: URL { root.appendingPathComponent("tutorial-overlays-v1.json") }
+    private var file: URL { root.appendingPathComponent("tutorial-overlays-v2.json") }
     func hasSeen(_ kind: TutorialKind) -> Bool {
         (try? load().contains(kind.rawValue)) ?? false
     }
@@ -36,6 +36,26 @@ struct TutorialProgressStore {
     private func load() throws -> Set<String> {
         guard FileManager.default.fileExists(atPath: file.path) else { return [] }
         return try JSONDecoder().decode(Set<String>.self, from: Data(contentsOf: file))
+    }
+}
+
+// Minigame instructions have their own space. Neither the score nor the keys
+// can end up beneath a floating bubble while a learner is trying an action.
+struct MiniTutorialLayout {
+    let game: CGRect
+    let coach: CGRect
+    init(viewport: CGSize, largeText: Bool = false) {
+        let margin: CGFloat = 16, gap: CGFloat = 16
+        if viewport.width >= 900 {
+            let width: CGFloat = largeText ? 360 : 320
+            let height = min(largeText ? 440 : 340, max(0, viewport.height-2*margin))
+            game = CGRect(x: margin, y: margin, width: max(0, viewport.width-width-2*margin-gap), height: max(0, viewport.height-2*margin))
+            coach = CGRect(x: viewport.width-margin-width, y: (viewport.height-height)/2, width: width, height: height)
+        } else {
+            let height = min(largeText ? 270 : 210, max(0, viewport.height*0.36))
+            coach = CGRect(x: margin, y: margin, width: max(0, viewport.width-2*margin), height: height)
+            game = CGRect(x: margin, y: margin+height+gap, width: max(0, viewport.width-2*margin), height: max(0, viewport.height-height-2*margin-gap))
+        }
     }
 }
 

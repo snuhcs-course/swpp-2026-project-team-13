@@ -46,9 +46,7 @@ struct ExamSelectionView: View {
                 }.padding(.horizontal,40).padding(.top,40).padding(.bottom,42)
             }.background(.white).foregroundStyle(SolfegeTheme.ink)
         }
-        .overlay {
-            if showHelp { TutorialWalkthrough(kind: .exam) { showHelp = false } }
-        }
+        .fullScreenCover(isPresented: $showHelp) { WritingTutorialPreview(mode: .exam) { showHelp = false } }
         .task { if !TutorialHistory.hasSeen(.exam, scope: tutorialScope) { showHelp = true } }
         .accessibilityIdentifier("exam-selection")
     }

@@ -102,5 +102,6 @@ struct ContentView: View {
     }
     private func back(_ title: String, to screen: AppModel.Screen) -> some View {
         Button { model.navigate(screen) } label: { HStack(spacing: 4) { Image(systemName:"chevron.left"); Text(title) } }
+            .disabled(model.writingTutorialOpen)
     }
 }

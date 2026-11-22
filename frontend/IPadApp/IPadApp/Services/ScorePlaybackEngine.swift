@@ -37,6 +37,7 @@ import AudioToolbox
     private var segmentAnchor: (uptime: TimeInterval, offset: TimeInterval)?
     private var graphNeedsRebuild = true
     private var playbackGeneration = UUID()
+    private(set) var tutorialSuspended = false
     private var instrumentURL: URL?
     private var clickURL: URL?
     private var instrumentProgram: UInt8 = 0
@@ -64,7 +65,7 @@ import AudioToolbox
 
     // Practice only: replay one of the 11 segments from its beginning, then continue in order.
     func jump(to index: Int) {
-        guard prepared, (0...11).contains(index) else { return }
+        guard !tutorialSuspended, prepared, (0...11).contains(index) else { return }
         playbackGeneration = UUID(); runner?.cancel(); runner = nil
         waitAnchor = nil; segmentAnchor = nil; silence(); isPlaying = false; scaleStartedAt = nil
         cursor = PlaybackCursor(index: index, phase: "segment")
@@ -191,7 +192,7 @@ import AudioToolbox
         waitAnchor = nil; cursor.remainingWaitMs = nil
     }
     func resume() {
-        guard prepared, !isPlaying, cursor.index <= 11 else { return }
+        guard !tutorialSuspended, prepared, !isPlaying, cursor.index <= 11 else { return }
         let generation = UUID(); playbackGeneration = generation
         isPlaying = true
         runner = Task { [weak self] in
@@ -259,6 +260,16 @@ import AudioToolbox
             unit.sendController(120,withValue:0,onChannel:0)
             unit.sendController(123,withValue:0,onChannel:0)
         }
+    }
+    func suspendForTutorial() {
+        guard !tutorialSuspended else { return }
+        tutorialSuspended = true
+        pause()
+    }
+    func finishTutorial(resumePlayback: Bool) {
+        guard tutorialSuspended else { return }
+        tutorialSuspended = false
+        if resumePlayback { resume() }
     }
     func pause() {
         let wasPlaying = isPlaying

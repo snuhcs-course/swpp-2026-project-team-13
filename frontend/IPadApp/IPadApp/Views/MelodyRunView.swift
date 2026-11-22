@@ -46,6 +46,7 @@ struct MelodyRunView: View {
             .onChange(of: game.awaitingStart) { _, ready in
                 if ready && !TutorialHistory.hasSeen(.memoryRun, scope: tutorialScope) { openTutorial() }
             }
+            .allowsHitTesting(!showingTutorial)
             .overlay {
                 if showingTutorial {
                     TutorialWalkthrough(kind: .memoryRun) {

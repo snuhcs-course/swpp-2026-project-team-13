@@ -78,6 +78,7 @@ struct RhythmPuzzleView: View {
         } }
         .onChange(of:game.page) { _, page in if page == .summary && stage == nil { do { try game.commitStage() } catch { game.error=error.localizedDescription } } }
         .onChange(of:stage?.question.id) { _, _ in if let stage { game.newStageRound(stage.question) } }
+        .allowsHitTesting(!showingTutorial)
         .overlay {
             if showingTutorial {
                 TutorialWalkthrough(kind: .rhythmPuzzle) {

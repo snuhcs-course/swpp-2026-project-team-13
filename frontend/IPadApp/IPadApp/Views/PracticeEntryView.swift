@@ -4,6 +4,7 @@ import SwiftUI
 struct PracticeEntryView: View {
     @ObservedObject var model: AppModel
     @State private var showHelp = false
+    @Environment(\.tutorialScope) private var tutorialScope
     var body: some View {
         GeometryReader { geometry in
             let margin: CGFloat = geometry.size.width >= 700 ? 48 : 24
@@ -50,7 +51,8 @@ struct PracticeEntryView: View {
             }.frame(maxWidth: 1180).frame(maxWidth: .infinity).background(.white)
         }
         .foregroundStyle(SolfegeTheme.ink)
-        .sheet(isPresented: $showHelp) { PracticeTutorialView { showHelp = false } }
+        .fullScreenCover(isPresented: $showHelp) { PracticeTutorialView { showHelp = false } }
+        .task { if !TutorialHistory.hasSeen(.exam, scope: tutorialScope) { showHelp = true } }
         .accessibilityIdentifier("practice-entry")
     }
     private func resume(_ record: SessionRecord) -> some View {
@@ -109,7 +111,7 @@ struct PracticeLevelSelectionView: View {
             }.frame(maxWidth: 1180).frame(maxWidth: .infinity).background(.white)
         }
         .foregroundStyle(SolfegeTheme.ink)
-        .sheet(isPresented: $showHelp) { PracticeTutorialView { showHelp = false } }
+        .fullScreenCover(isPresented: $showHelp) { PracticeTutorialView { showHelp = false } }
         .accessibilityIdentifier("practice-level-selection")
     }
 }
@@ -149,15 +151,6 @@ private struct PracticeCardStyle: ButtonStyle {
 struct PracticeTutorialView: View {
     let done: () -> Void
     var body: some View {
-        VStack(alignment: .leading, spacing: 24) {
-            HStack { Text("연습 모드").font(.title2.bold()); Spacer(); Button("닫기", action: done) }
-            Label("난이도를 고르고 문제를 선택하세요.", systemImage: "square.grid.3x3")
-            Label("선율을 듣고 Apple Pencil로 악보를 적으세요.", systemImage: "pencil.tip")
-            Label("정답과 비교하며 틀린 마디를 직접 표시하세요.", systemImage: "checkmark.square")
-            Text("풀던 문제는 하나만 이어서 할 수 있어요. 새 연습을 시작하면 이전 문제를 대신해요.")
-                .font(.subheadline).foregroundStyle(SolfegeTheme.muted)
-            Button("확인", action: done).buttonStyle(PrimaryButton()).frame(maxWidth: .infinity, alignment: .trailing)
-        }.padding(32).foregroundStyle(SolfegeTheme.ink)
-            .presentationDetents([.medium, .large]).presentationDragIndicator(.visible)
+        WritingTutorialPreview(mode: .practice, done: done)
     }
 }

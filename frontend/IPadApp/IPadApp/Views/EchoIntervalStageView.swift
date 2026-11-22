@@ -68,6 +68,7 @@ struct EchoIntervalStageView: View {
         .alert("소리를 재생하지 못했어요",isPresented:Binding(get:{game.error != nil},set:{if !$0 {game.error=nil}})) {
             Button("다시 시도") { game.error=nil; game.resume() }
         } message: { Text(game.error ?? "") }
+        .allowsHitTesting(!help)
         .overlay {
             if help { TutorialWalkthrough(kind: .echoDragon) { game.finishTutorial(); help=false } }
             else if continueAfterHelp {
