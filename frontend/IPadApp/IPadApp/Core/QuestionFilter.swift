@@ -63,9 +63,14 @@ struct QuestionFilter: Equatable {
                 (showCompleted || (q.practiceCompleted != true && !completedQuestionIDs.contains(q.id)))
         }.sorted { lhs, rhs in
             if sortOrder == .questionNumber {
-                let aBank=lhs.element.collection == "practice_bank", bBank=rhs.element.collection == "practice_bank"
+                // Imported/original named exercises come before the numbered bank.
+                // collection is supplied by the server; a title is not proof of AI origin.
+                let aBank = lhs.element.collection == "practice_bank"
+                let bBank = rhs.element.collection == "practice_bank"
                 if aBank != bBank { return !aBank }
-                let order=lhs.element.title.compare(rhs.element.title,options:[.numeric,.caseInsensitive])
+                // Titles contain the published question number. Numeric comparison
+                // keeps 2 before 10, including older titles without zero padding.
+                let order = lhs.element.title.compare(rhs.element.title, options: [.numeric, .caseInsensitive])
                 return order == .orderedSame ? lhs.offset < rhs.offset : order == .orderedAscending
             }
             let a = lhs.element.difficultyScore.flatMap { $0.isFinite ? $0 : nil }
@@ -86,10 +91,13 @@ struct QuestionFilter: Equatable {
         }
     }
     static func meterOptions(in questions: [QuestionSummary]) -> [TimeSignature] {
-        let common=[TimeSignature(numerator:4,denominator:4),TimeSignature(numerator:3,denominator:4),TimeSignature(numerator:6,denominator:8)]
+        // A fixed menu order, independent of this level's question counts.
+        let common = [(4,4),(3,4),(6,8),(2,4),(2,2),(3,8),(9,8),(12,8)]
+            .map { TimeSignature(numerator:$0.0,denominator:$0.1) }
+        let priority = Dictionary(uniqueKeysWithValues:common.enumerated().map { ($0.element,$0.offset) })
         return Set(questions.map(\.timeSignature)).sorted {
-            let a=common.firstIndex(of:$0) ?? common.count, b=common.firstIndex(of:$1) ?? common.count
-            if a != b { return a<b }
+            let a = priority[$0] ?? common.count, b = priority[$1] ?? common.count
+            if a != b { return a < b }
             return $0.denominator == $1.denominator ? $0.numerator < $1.numerator : $0.denominator < $1.denominator
         }
     }

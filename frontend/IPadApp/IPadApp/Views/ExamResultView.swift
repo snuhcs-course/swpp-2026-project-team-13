@@ -1,6 +1,15 @@
 import SwiftUI
 import AVFoundation
 
+private struct ExamReplayControlAnchors: PreferenceKey {
+    static var defaultValue: [Anchor<CGRect>] = []
+    static func reduce(value: inout [Anchor<CGRect>], nextValue: () -> [Anchor<CGRect>]) { value.append(contentsOf:nextValue()) }
+}
+private struct ExamReplayControlFrames: PreferenceKey {
+    static var defaultValue: [CGRect] = []
+    static func reduce(value: inout [CGRect], nextValue: () -> [CGRect]) { value.append(contentsOf:nextValue()) }
+}
+
 /// Two scores on the left, one compact score/coaching card on the right.
 struct ExamResultView: View {
     @ObservedObject var model: AppModel
@@ -10,6 +19,7 @@ struct ExamResultView: View {
     @State private var playbackTask: Task<Void,Never>?
     @State private var selectedAnnotation: String?
     @State private var showingFeedback = false
+    @State private var replayControlFrames: [CGRect] = []
 
     private var grading: Grading? { model.session?.grading }
     private var reference: (UIImage,PracticeReviewGeometry?)? {
@@ -31,7 +41,7 @@ struct ExamResultView: View {
             VStack(spacing:20) {
                 header
                 if proxy.size.width >= 840 && !dynamicTypeSize.isAccessibilitySize {
-                    HStack(spacing:24) {
+                    HStack(alignment:.top,spacing:24) {
                         comparison.frame(maxWidth:.infinity,maxHeight:.infinity)
                         resultCard.frame(width:min(320,proxy.size.width*0.28))
                     }.frame(maxHeight:.infinity)
@@ -41,6 +51,22 @@ struct ExamResultView: View {
             }.padding(24)
         }
         .background(SolfegeTheme.background)
+        .overlayPreferenceValue(ExamReplayControlAnchors.self) { anchors in
+            GeometryReader { proxy in
+                Color.clear.preference(key:ExamReplayControlFrames.self,value:anchors.map { proxy[$0] })
+                    .allowsHitTesting(false)
+            }
+        }
+        .onPreferenceChange(ExamReplayControlFrames.self) { replayControlFrames = $0 }
+        .coordinateSpace(name:"exam-review-surface")
+        .contentShape(Rectangle())
+        .simultaneousGesture(SpatialTapGesture(coordinateSpace:.named("exam-review-surface")).onEnded { event in
+            // Replay controls perform their own play/stop action. A parent tap
+            // must not cancel the clip that a reference measure just started.
+            guard audio.isPlaying || playbackTask != nil,
+                  !replayControlFrames.contains(where:{ $0.contains(event.location) }) else { return }
+            stop()
+        })
         .task(id:model.pollGeneration) { await model.poll() }
         .onChange(of:model.session?.id) { _,_ in stop(release:true); selectedAnnotation = nil }
         .onChange(of:scenePhase) { _,phase in if phase != .active { stop(release:true) } }
@@ -78,6 +104,7 @@ struct ExamResultView: View {
                     Label(playing ? "정지" : "전체 다시듣기",systemImage:playing ? "stop.fill" : "arrow.clockwise").font(.subheadline)
                 }.buttonStyle(.bordered).disabled(model.mainScore == nil)
                     .accessibilityIdentifier("exam-review-replay")
+                    .anchorPreference(key:ExamReplayControlAnchors.self,value:.bounds) { [$0] }
             }
             referenceScore.frame(maxHeight:.infinity)
             Divider().padding(.vertical,6)
@@ -89,7 +116,7 @@ struct ExamResultView: View {
     @ViewBuilder private var referenceScore: some View {
         if let (image,geometry) = reference {
             if let geometry, geometry.isValid {
-                ExamScoreImage(image:image,geometry:geometry,marks:marks,selectedMeasure:audio.measure,selectedAnnotation:$selectedAnnotation,onMeasureTap:{ play(measure:$0) })
+                ExamScoreImage(image:image,geometry:geometry,marks:marks,selectedMeasure:audio.measure,selectedAnnotation:$selectedAnnotation,onMeasureTap:{ play(measure:$0) },onAnnotationTap:{ stop() })
             } else { Image(uiImage:image).resizable().scaledToFit() }
         } else if model.session?.attempt.question.correctScore == nil, let score = model.mainScore {
             ScoreView(score:score)
@@ -98,7 +125,7 @@ struct ExamResultView: View {
     @ViewBuilder private var submittedScore: some View {
         if let image = model.submittedImage, let sheet = model.session?.attempt.question.sheetLayout {
             // Preserve the student's original handwriting; only crop the whitespace.
-            ExamScoreImage(image:image,geometry:PracticeReviewGeometry(sheet:sheet),marks:[],selectedMeasure:selectedMeasure,selectedAnnotation:$selectedAnnotation,onMeasureTap:nil)
+            ExamScoreImage(image:image,geometry:PracticeReviewGeometry(sheet:sheet),marks:[],selectedMeasure:selectedMeasure,selectedAnnotation:$selectedAnnotation,onMeasureTap:nil,onAnnotationTap:{ stop() })
         } else { loadingScore(nil) }
     }
     private func loadingScore(_ message: String?) -> some View {
@@ -140,13 +167,11 @@ struct ExamResultView: View {
                         FeedbackRatingButton(model:model,grading:grading)
                     }
                 case "queued", "processing":
-                    ProgressView()
                     Text(grading.stage == "feedback" ? "피드백을 정리하고 있어요" : "답안을 살펴보고 있어요").font(.headline)
-                    Text("홈으로 가도 채점은 계속돼요.").font(.subheadline).foregroundStyle(SolfegeTheme.muted)
+                    Text("채점이 끝나면 새 레이팅에 맞춰 문제를 추천해요.").font(.subheadline).foregroundStyle(SolfegeTheme.muted)
                 case "failed":
                     Text("채점을 완료하지 못했어요").font(.headline)
                     Text(grading.failure?.message ?? "결과를 다시 확인해 주세요.").font(.subheadline)
-                    if grading.canRetry { Button("같은 답안으로 재시도") { Task { await model.retryGrading() } }.buttonStyle(.bordered) }
                 default:
                     Text(grading.feedback?.summary ?? "결과를 다시 확인해 주세요.").font(.subheadline)
                 }
@@ -154,15 +179,33 @@ struct ExamResultView: View {
                 Text("결과를 불러오지 못했어요").font(.headline)
                 Button("다시 불러오기") { Task { await model.refreshResult() } }.buttonStyle(.bordered)
             }
-            VStack(spacing:12) {
-                Button { stop(release:true); Task { await model.startRecommendedExam() } } label: { Text("다음 시험 고르기").frame(maxWidth:.infinity) }
-                    .buttonStyle(PrimaryButton()).disabled(model.busy || !model.canChooseNextExam)
-                    .accessibilityIdentifier("next-exam")
-                Button("홈으로") { stop(release:true); model.navigate(.main) }.font(.subheadline).frame(maxWidth:.infinity,minHeight:44)
-            }.padding(.top,12)
+            nextAction.padding(.top,12)
         }.padding(24).foregroundStyle(SolfegeTheme.ink)
             .frame(maxWidth:.infinity,alignment:.leading)
             .background(SolfegeTheme.soft,in:RoundedRectangle(cornerRadius:18))
+    }
+    @ViewBuilder private var nextAction: some View {
+        if grading?.canRetry == true {
+            Button { stop(release:true); Task { await model.retryGrading() } } label: {
+                Text("채점 다시 시도").frame(maxWidth:.infinity)
+            }.buttonStyle(ExamResultActionStyle()).disabled(model.busy)
+                .accessibilityIdentifier("exam-retry-grading")
+        } else {
+            Button {
+                guard model.canChooseNextExam, !model.busy else { return }
+                stop(release:true); Task { await model.startRecommendedExam() }
+            } label: {
+                HStack(spacing:8) {
+                    if grading?.isPending == true {
+                        ProgressView().controlSize(.small).tint(SolfegeTheme.muted)
+                            .accessibilityHidden(true)
+                    }
+                    Text(grading?.isPending == true ? "채점 중" : "다음 시험 고르기")
+                }.frame(maxWidth:.infinity)
+            }.buttonStyle(ExamResultActionStyle()).disabled(model.busy || !model.canChooseNextExam)
+                .accessibilityHint(grading?.isPending == true ? "채점과 레이팅 반영이 끝나면 새 시험을 고를 수 있어요." : "")
+                .accessibilityIdentifier("next-exam")
+        }
     }
     private func play(measure: Int? = nil) {
         guard let score = model.mainScore, let attempt = model.session?.attempt, scenePhase == .active else { return }
@@ -183,6 +226,16 @@ struct ExamResultView: View {
     }
 }
 
+private struct ExamResultActionStyle: ButtonStyle {
+    @Environment(\.isEnabled) private var isEnabled
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label.font(.system(size:16,weight:.semibold))
+            .padding(.horizontal,24).padding(.vertical,16)
+            .foregroundStyle(isEnabled ? Color.white : SolfegeTheme.muted)
+            .background(isEnabled ? SolfegeTheme.violet.opacity(configuration.isPressed ? 0.7 : 1) : Color.gray.opacity(0.16),in:RoundedRectangle(cornerRadius:12))
+    }
+}
+
 private struct ExamScoreImage: View {
     let image: UIImage
     let geometry: PracticeReviewGeometry
@@ -190,6 +243,7 @@ private struct ExamScoreImage: View {
     let selectedMeasure: Int?
     @Binding var selectedAnnotation: String?
     let onMeasureTap: ((Int) -> Void)?
+    let onAnnotationTap: () -> Void
 
     var body: some View {
         GeometryReader { proxy in
@@ -214,6 +268,7 @@ private struct ExamScoreImage: View {
                 Button { onMeasureTap?(region.id) } label: {
                     Rectangle().fill(SolfegeTheme.violet.opacity(selectedMeasure == region.id ? 0.07 : 0.001))
                 }.buttonStyle(.plain).disabled(onMeasureTap == nil)
+                    .anchorPreference(key:ExamReplayControlAnchors.self,value:.bounds) { onMeasureTap == nil ? [] : [$0] }
                     .frame(width:CGFloat(region.bounds.width)*proxy.size.width,height:proxy.size.height)
                     .position(x:CGFloat(region.bounds.x+region.bounds.width/2)*proxy.size.width,y:proxy.size.height/2)
                     .accessibilityLabel("\(region.id)마디 재생").accessibilityIdentifier("reference-measure-\(region.id)")
@@ -245,7 +300,7 @@ private struct ExamScoreImage: View {
                 }
             }.allowsHitTesting(false)
             let target = targetBox(mark,crop:crop) ?? box
-            Button { selectedAnnotation = mark.id; if mark.style == "measure" { onMeasureTap?(mark.measure) } } label: { Color.clear.contentShape(Rectangle()) }
+            Button { onAnnotationTap(); selectedAnnotation = mark.id; if mark.style == "measure" { onMeasureTap?(mark.measure) } } label: { Color.clear.contentShape(Rectangle()) }
                 .buttonStyle(.plain)
                 .frame(width:max(24,CGFloat(target.width)*size.width),height:max(28,CGFloat(target.height)*size.height))
                 .position(x:CGFloat(target.x+target.width/2)*size.width,y:CGFloat(target.y+target.height/2)*size.height)

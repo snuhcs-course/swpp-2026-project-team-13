@@ -101,4 +101,34 @@ final class QuestionFilterTests: XCTestCase {
         filter.showCompleted = true
         XCTAssertEqual(filter.apply(to:[high,low],completedQuestionIDs:[high.id]),[high,low])
     }
+
+    func testCommonMetersStayFirstEvenWhenAnUncommonMeterIsMoreFrequent() {
+        let fourFour = TimeSignature(numerator:4,denominator:4)
+        let questions = Array(repeating:question(gMajor,twoTwo),count:20) +
+            [question(gMajor,sixEight),question(gMajor,threeFour),question(gMajor,fourFour)]
+        XCTAssertEqual(QuestionFilter.meterOptions(in:questions),[fourFour,threeFour,sixEight,twoTwo])
+    }
+
+    func testQuestionNumberSortIgnoresDifficultyAndKeepsCompletionFilter() {
+        var one = question(gMajor,threeFour), two = question(gMajor,threeFour), ten = question(gMajor,threeFour)
+        one.title = "청음 문제 1"; one.difficultyScore = 90
+        two.title = "청음 문제 2"; two.difficultyScore = 20
+        ten.title = "청음 문제 10"; ten.difficultyScore = 1
+        var filter = QuestionFilter(); filter.sortOrder = .questionNumber
+        XCTAssertEqual(filter.apply(to:[ten,two,one]),[one,two,ten])
+        XCTAssertEqual(filter.apply(to:[ten,two,one],completedQuestionIDs:[two.id]),[one,ten])
+    }
+
+    func testOriginalExercisesPrecedeNumberedBankRegardlessOfTitleOrDifficulty() {
+        var originalTwo = question(gMajor,threeFour), originalTen = question(gMajor,threeFour)
+        var bankOne = question(gMajor,threeFour), bankTwo = question(gMajor,threeFour)
+        originalTwo.title = "피아노 청음 2"; originalTwo.difficultyScore = 99
+        originalTen.title = "피아노 청음 10"; originalTen.difficultyScore = 98
+        bankOne.title = "청음 문제 0001"; bankOne.collection = "practice_bank"; bankOne.difficultyScore = 1
+        bankTwo.title = "청음 문제 0002"; bankTwo.collection = "practice_bank"; bankTwo.difficultyScore = 2
+        var filter = QuestionFilter(); filter.sortOrder = .questionNumber
+        XCTAssertEqual(filter.apply(to:[bankTwo,originalTen,bankOne,originalTwo]),[originalTwo,originalTen,bankOne,bankTwo])
+        filter.sortOrder = .ascending
+        XCTAssertEqual(filter.apply(to:[bankTwo,originalTen,bankOne,originalTwo]),[bankOne,bankTwo,originalTen,originalTwo])
+    }
 }

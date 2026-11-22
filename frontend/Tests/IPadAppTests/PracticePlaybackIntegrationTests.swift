@@ -72,7 +72,7 @@ import SwiftUI
         player.jump(to:0)
         XCTAssertEqual(player.cursor.index,0); XCTAssertTrue(player.isPlaying)
     }
-    func testTimerProgressAndMarkedReviewRenderOnBothIPadSizes() async throws {
+    func testTimerProgressAndMarkedReviewRenderAcrossIPadSizes() async throws {
         let api = try DemoExamAPI(outcome:"completed",storageScope:UUID().uuidString,smallContent:true)
         defer { try? api.store.removeAll() }
         let list = try await api.questions(page:1)
@@ -88,7 +88,7 @@ import SwiftUI
         model.session = record; model.screen = .result
         model.submittedImage = try XCTUnwrap(UIImage(data:paper))
         model.correctScoreImage = try XCTUnwrap(UIImage(data:referenceData)); model.mainScore = score()
-        for (width,height) in [(1024.0,768.0),(1194.0,834.0)] {
+        for (width,height) in [(744.0,600.0),(1024.0,768.0),(1194.0,834.0)] {
             let renderer = ImageRenderer(content:PracticeResultView(model:model).frame(width:width,height:height))
             renderer.scale = 1
             let attachment = XCTAttachment(image:try XCTUnwrap(renderer.uiImage))

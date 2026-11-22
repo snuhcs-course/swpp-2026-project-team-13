@@ -1,5 +1,12 @@
 import SwiftUI
 
+private struct PracticeKeyFilterAnchor: PreferenceKey {
+    static var defaultValue: Anchor<CGRect>?
+    static func reduce(value: inout Anchor<CGRect>?, nextValue: () -> Anchor<CGRect>?) {
+        if let next = nextValue() { value = next }
+    }
+}
+
 struct HomeView: View {
     @ObservedObject var model: AppModel
     var classical = false
@@ -21,7 +28,7 @@ struct HomeView: View {
             VStack(spacing: 0) {
                 navigation
                 VStack(spacing: 24) {
-                    filterBar(width: width, popoverHeight: min(600, max(320, geometry.size.height - 100)))
+                    filterBar
                     if model.pendingPracticeCreation {
                         Button("준비하던 문제 다시 열기") { Task { await model.recoverPending() } }.font(.subheadline)
                     }
@@ -54,7 +61,30 @@ struct HomeView: View {
                     }
                 }.padding(.horizontal, margin).padding(.top, 24).padding(.bottom, 20).frame(maxHeight: .infinity, alignment: .top)
             }.frame(maxWidth: 1180).frame(maxWidth: .infinity).background(.white)
-        }.foregroundStyle(SolfegeTheme.ink).accessibilityIdentifier(classical ? "classical-question-bank" : "practice-question-bank")
+                .accessibilityHidden(showKeys)
+        }
+        .overlayPreferenceValue(PracticeKeyFilterAnchor.self) { anchor in
+            if showKeys, let anchor {
+                GeometryReader { proxy in
+                    let frame = keyPanelFrame(anchor:proxy[anchor],container:proxy.size)
+                    ZStack(alignment:.topLeading) {
+                        Color.black.opacity(0.001).contentShape(Rectangle())
+                            .onTapGesture { dismissKeys() }
+                            .accessibilityHidden(true)
+                        PracticeKeyFilterView(selection:filter.keySelection,questions:levelQuestions,
+                            width:frame.width,height:frame.height,done:dismissKeys)
+                            .clipShape(RoundedRectangle(cornerRadius:16))
+                            .overlay(RoundedRectangle(cornerRadius:16).stroke(SolfegeTheme.keyEdge.opacity(0.7)))
+                            .shadow(color:.black.opacity(0.12),radius:16,y:5)
+                            .accessibilityAddTraits(.isModal)
+                            .accessibilityAction(.escape) { dismissKeys() }
+                            .offset(x:frame.minX,y:frame.minY)
+                    }
+                }
+            }
+        }
+        .onDisappear { showKeys = false }
+        .foregroundStyle(SolfegeTheme.ink).accessibilityIdentifier(classical ? "classical-question-bank" : "practice-question-bank")
     }
     private var navigation: some View {
         ZStack {
@@ -73,16 +103,16 @@ struct HomeView: View {
             }.font(.system(size: 16)).foregroundStyle(SolfegeTheme.violet)
         }.padding(.horizontal, 28).frame(height: 72)
     }
-    private func filterBar(width: CGFloat, popoverHeight: CGFloat) -> some View {
+    private var filterBar: some View {
         ViewThatFits(in: .horizontal) {
-            HStack(spacing: 12) { filters(width: width, height: popoverHeight); Spacer(minLength: 24); completedToggle }
+            HStack(spacing: 12) { filters; Spacer(minLength: 24); completedToggle }
             VStack(alignment: .leading, spacing: 12) {
-                ScrollView(.horizontal, showsIndicators: false) { filters(width: width, height: popoverHeight) }
+                ScrollView(.horizontal, showsIndicators: false) { filters }
                 HStack { Spacer(); completedToggle }
             }
         }
     }
-    private func filters(width: CGFloat, height: CGFloat) -> some View {
+    private var filters: some View {
         HStack(spacing: 12) {
             Menu {
                 Picker("박자", selection: filter.meter) {
@@ -96,11 +126,7 @@ struct HomeView: View {
             Button { showKeys = true } label: {
                 PracticeFilterLabel(title: "조성", value: filter.wrappedValue.keySelection.label, active: filter.wrappedValue.keySelection != .all)
             }.buttonStyle(.plain).accessibilityIdentifier("practice-filter-key")
-                .popover(isPresented: $showKeys, arrowEdge: .top) {
-                    PracticeKeyFilterView(selection: filter.keySelection, questions: levelQuestions,
-                        width: min(472, max(280, width)), height: height) { showKeys = false }
-                        .presentationCompactAdaptation(.popover)
-                }
+                .anchorPreference(key:PracticeKeyFilterAnchor.self,value:.bounds) { $0 }
             Menu {
                 Picker("정렬", selection: filter.sortOrder) {
                     ForEach(QuestionFilter.SortOrder.allCases) { order in
@@ -110,6 +136,21 @@ struct HomeView: View {
             } label: { PracticeFilterLabel(title: "정렬", value: filter.wrappedValue.sortOrder.label, active: false) }
                 .accessibilityIdentifier("practice-filter-sort")
         }.fixedSize(horizontal: true, vertical: false)
+    }
+    private func dismissKeys() {
+        // Match a menu's immediate outside-tap response without UIKit's popover
+        // dismissal transition or waiting for a filtered-list relayout animation.
+        var transaction = Transaction(); transaction.disablesAnimations = true
+        withTransaction(transaction) { showKeys = false }
+    }
+    private func keyPanelFrame(anchor: CGRect, container: CGSize) -> CGRect {
+        let margin: CGFloat = 12, gap: CGFloat = 8
+        let width = min(472,max(0,container.width-2*margin))
+        let below = max(0,container.height-anchor.maxY-gap-margin)
+        let above = max(0,anchor.minY-gap-margin)
+        let height = min(600,max(below,above))
+        let y = below >= height ? anchor.maxY+gap : max(margin,anchor.minY-gap-height)
+        return CGRect(x:max(margin,min(anchor.minX,container.width-margin-width)),y:y,width:width,height:height)
     }
     private var completedToggle: some View {
         Toggle(isOn: filter.showCompleted) { Text("완료된 문제 표시하기").font(.system(size: 14)) }
@@ -252,11 +293,20 @@ private struct PracticeTempoMark: View {
 
 private struct PracticeKeyFilterView: View {
     @Binding var selection: QuestionFilter.KeySelection
-    let questions: [QuestionSummary]; let width: CGFloat; let height: CGFloat; let done: () -> Void
+    let width: CGFloat; let height: CGFloat; let done: () -> Void
+    private let maximumSignatures: Int
+    private let availableSignatureCounts: Set<Int>
+    private let keyGroups: [QuestionFilter.KeyGroup]
     @State private var mode: Int
     @State private var draft: QuestionFilter.KeySelection
     init(selection: Binding<QuestionFilter.KeySelection>, questions: [QuestionSummary], width: CGFloat, height: CGFloat, done: @escaping () -> Void) {
-        _selection = selection; self.questions = questions; self.width = width; self.height = height; self.done = done
+        _selection = selection; self.width = width; self.height = height; self.done = done
+        let maximum = min(7,questions.map { abs($0.keySignature.fifths) }.max() ?? 0)
+        maximumSignatures = maximum
+        availableSignatureCounts = Set((0...maximum).filter { count in
+            questions.contains { QuestionFilter.KeySelection.maximumAccidentals(count).includes($0.keySignature) }
+        })
+        keyGroups = QuestionFilter.keyGroups(in:questions)
         _draft = State(initialValue: selection.wrappedValue)
         if case .individual = selection.wrappedValue { _mode = State(initialValue: 1) }
         else { _mode = State(initialValue: 0) }
@@ -291,10 +341,9 @@ private struct PracticeKeyFilterView: View {
     private var signatureOptions: some View {
         VStack(spacing: 2) {
             signatureOption("전체", value: .all)
-            let maximum = min(7, questions.map { abs($0.keySignature.fifths) }.max() ?? 0)
-            ForEach(0...maximum, id: \.self) { count in
-                signatureOption(count == 0 ? "다장조 · 가단조만" : "조표 \(count)개까지", value: .maximumAccidentals(count))
-                    .disabled(!questions.contains { QuestionFilter.KeySelection.maximumAccidentals(count).includes($0.keySignature) })
+            ForEach(0...maximumSignatures, id: \.self) { count in
+                signatureOption(QuestionFilter.KeySelection.maximumAccidentals(count).label, value: .maximumAccidentals(count))
+                    .disabled(!availableSignatureCounts.contains(count))
             }
         }
     }
@@ -311,7 +360,7 @@ private struct PracticeKeyFilterView: View {
     }
     private var individualOptions: some View {
         VStack(spacing: 8) {
-            ForEach(QuestionFilter.keyGroups(in: questions)) { group in
+            ForEach(keyGroups) { group in
                 HStack(spacing: 10) {
                     Text(group.label).font(.caption).foregroundStyle(SolfegeTheme.muted).frame(width: width < 360 ? 60 : 82, alignment: .leading)
                     ForEach(group.keys, id: \.self) { key in

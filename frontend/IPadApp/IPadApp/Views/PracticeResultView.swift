@@ -8,6 +8,15 @@ private struct ReviewMeasureAnchors: PreferenceKey {
     }
 }
 
+private struct ReviewPlaybackTouchRegions: PreferenceKey {
+    static var defaultValue: [Anchor<CGRect>] = []
+    static func reduce(value: inout [Anchor<CGRect>], nextValue: () -> [Anchor<CGRect>]) { value.append(contentsOf:nextValue()) }
+}
+private struct ReviewPlaybackTouchFrames: PreferenceKey {
+    static var defaultValue: [CGRect] = []
+    static func reduce(value: inout [CGRect], nextValue: () -> [CGRect]) { value.append(contentsOf:nextValue()) }
+}
+
 struct PracticeResultView: View {
     @ObservedObject var model: AppModel
     @Environment(\.scenePhase) private var scenePhase
@@ -18,6 +27,8 @@ struct PracticeResultView: View {
     @State private var showingSaveRecovery = false
     @State private var confirmComplete = false
     @State private var playbackTask: Task<Void,Never>?
+    @State private var playbackTouchFrames: [CGRect] = []
+    @ScaledMetric(relativeTo:.title2) private var instructionFontSize: CGFloat = 26
 
     private var reference: (image: UIImage, geometry: PracticeReviewGeometry?)? {
         guard let q = model.session?.attempt.question else { return nil }
@@ -35,12 +46,6 @@ struct PracticeResultView: View {
         VStack(spacing:12) {
             header
             HStack(spacing:20) {
-                (Text("내 악보에서 ").foregroundColor(SolfegeTheme.ink)
-                 + Text("틀린 마디").foregroundColor(SolfegeTheme.deepViolet)
-                 + Text("를 선택해주세요.").foregroundColor(SolfegeTheme.ink))
-                    .font(.system(size:18,weight:.semibold))
-                    .fixedSize(horizontal:false,vertical:true)
-                    .accessibilityIdentifier("practice-review-instruction")
                 Spacer(minLength:0)
                 replayButton
             }.padding(.vertical,6)
@@ -57,7 +62,7 @@ struct PracticeResultView: View {
                     let rect = proxy[anchor]
                     let frame = PracticeReviewPopover.frame(anchor:BBox(x:Double(rect.minX),y:Double(rect.minY),width:Double(rect.width),height:Double(rect.height)),
                         width:228,height:248,containerWidth:Double(proxy.size.width),containerHeight:Double(proxy.size.height))
-                    Color.black.opacity(0.001).contentShape(Rectangle()).onTapGesture { self.selectedMeasure = nil }
+                    Color.black.opacity(0.001).contentShape(Rectangle()).onTapGesture { self.selectedMeasure = nil; stopListening() }
                     errorPicker(measure:selectedMeasure)
                         .frame(width:CGFloat(frame.width),height:CGFloat(frame.height))
                         .background(.white,in:RoundedRectangle(cornerRadius:14))
@@ -67,6 +72,21 @@ struct PracticeResultView: View {
                 }
             }
         }
+        .overlayPreferenceValue(ReviewPlaybackTouchRegions.self) { anchors in
+            GeometryReader { proxy in
+                Color.clear.preference(key:ReviewPlaybackTouchFrames.self,value:anchors.map { proxy[$0] })
+                    .allowsHitTesting(false)
+            }
+        }
+        .onPreferenceChange(ReviewPlaybackTouchFrames.self) { playbackTouchFrames = $0 }
+        .coordinateSpace(name:"practice-review-surface")
+        .simultaneousGesture(SpatialTapGesture(coordinateSpace:.named("practice-review-surface")).onEnded { event in
+            // Let the replay button and reference bars run their own actions.
+            // A parent tap must never cancel the new clip that a bar just started.
+            guard audio.isPlaying || playbackTask != nil,
+                  !playbackTouchFrames.contains(where:{ $0.contains(event.location) }) else { return }
+            stopListening()
+        })
         .task(id:"\(model.session?.id.uuidString ?? "")-\(ready)") {
             guard ready, let id = model.session?.id, autoplayAttempt != id, !manualPlayback, scenePhase == .active else { return }
             autoplayAttempt = id
@@ -88,16 +108,21 @@ struct PracticeResultView: View {
         .accessibilityIdentifier("practice-review-screen")
     }
     private var header: some View {
-        ZStack {
-            Text("정답과 비교하기").font(.system(size:22,weight:.bold)).foregroundStyle(SolfegeTheme.ink)
-            HStack {
-                Button { stopListening(release:true); selectedMeasure = nil; model.leavePracticeReview() } label: {
-                    Label(model.dailyPracticeItem == nil ? "Practice" : "오늘의 트레이닝",systemImage:"chevron.left").labelStyle(.titleAndIcon)
-                }.disabled(model.busy).accessibilityIdentifier("result-leave")
-                Spacer()
-                Text(model.session?.attempt.question.title ?? "").font(.subheadline).foregroundStyle(SolfegeTheme.muted).lineLimit(1).frame(maxWidth:260,alignment:.trailing)
-            }
-        }.frame(height:40)
+        HStack(spacing:12) {
+            Button { stopListening(release:true); selectedMeasure = nil; model.leavePracticeReview() } label: {
+                Label(model.dailyPracticeItem == nil ? "Practice" : "오늘의 트레이닝",systemImage:"chevron.left").labelStyle(.titleAndIcon)
+            }.disabled(model.busy).accessibilityIdentifier("result-leave")
+                .frame(width:154,alignment:.leading)
+            (Text("내 악보에서 ").foregroundColor(SolfegeTheme.ink)
+             + Text("틀린 마디").foregroundColor(SolfegeTheme.deepViolet)
+             + Text("를 선택해주세요.").foregroundColor(SolfegeTheme.ink))
+                .font(.system(size:instructionFontSize,weight:.bold))
+                .multilineTextAlignment(.center).fixedSize(horizontal:false,vertical:true)
+                .frame(maxWidth:.infinity).accessibilityAddTraits(.isHeader)
+                .accessibilityIdentifier("practice-review-instruction")
+            Text(model.session?.attempt.question.title ?? "").font(.subheadline)
+                .foregroundStyle(SolfegeTheme.muted).lineLimit(2).frame(width:154,alignment:.trailing)
+        }.frame(minHeight:48)
     }
     private func scorePanel(title: String, reference isReference: Bool) -> some View {
         VStack(alignment:.leading,spacing:3) {
@@ -119,6 +144,7 @@ struct PracticeResultView: View {
                 ScoreView(score:score).frame(maxWidth:.infinity,maxHeight:.infinity).clipped()
             } else if !isReference, let image = model.submittedImage, let sheet = model.session?.attempt.question.sheetLayout {
                 ReviewScoreImage(image:image,geometry:PracticeReviewGeometry(sheet:sheet),errors:model.practiceErrors,selected:selectedMeasure,review:true) { measure in
+                    stopListening()
                     guard editingEnabled else { return }
                     selectedMeasure = selectedMeasure == measure ? nil : measure
                 }
@@ -145,6 +171,7 @@ struct PracticeResultView: View {
                 .font(.subheadline)
         }.buttonStyle(.bordered).disabled(!ready)
             .accessibilityIdentifier("practice-review-replay")
+            .anchorPreference(key:ReviewPlaybackTouchRegions.self,value:.bounds) { [$0] }
     }
     private var footer: some View {
         VStack(spacing:12) {
@@ -283,5 +310,6 @@ private struct ReviewScoreImage: View {
             .transformAnchorPreference(key:ReviewMeasureAnchors.self,value:.bounds) { value,anchor in
                 if review { value[region.id] = anchor }
             }
+            .anchorPreference(key:ReviewPlaybackTouchRegions.self,value:.bounds) { review ? [] : [$0] }
     }
 }
