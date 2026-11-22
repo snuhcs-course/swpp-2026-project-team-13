@@ -106,13 +106,16 @@ import Foundation
         practiceEngraving = try Bundled.decode("practice-layout-v2")
         }
         try difficulty.validate(); difficultyManifest = difficulty
+        let classicalDifficulty: PracticeDifficultyManifest? = smallContent ? nil : try Bundled.decode("classical-difficulty-v1")
+        try classicalDifficulty?.validate()
         cachedEngraving = engraving; cachedPracticeEngraving = practiceEngraving
         let resolved: [Question] = values.map { source in
             var q = source
             if let image = (q.sheetLayout.id.hasSuffix("-v6") ? practiceEngraving : engraving).scores[q.scoreAssets.main.sha256] {
                 q.correctScore = ReferenceImage(url:q.scoreAssets.main.url.deletingLastPathComponent().deletingLastPathComponent().appendingPathComponent("display",isDirectory:true),contentType:image.contentType,sha256:image.sha256,sizeBytes:image.sizeBytes,pixelWidth:image.pixelWidth,pixelHeight:image.pixelHeight,renderer:image.renderer,geometry:image.geometry,layoutMode:image.layoutMode)
             }
-            q.tempo = q.tempo ?? TempoDefaults.setting(for:q.timeSignature); q.recommendedDurationSeconds = Int(ceil(PlaybackPlan.exam(meter:q.timeSignature,setting:q.tempo,scaleMeasures:q.scoreAssets.scale.measureCount).nominalDurationSeconds(meter:q.timeSignature))); return difficulty.annotating(q)
+            q.tempo = q.tempo ?? TempoDefaults.setting(for:q.timeSignature); q.recommendedDurationSeconds = Int(ceil(PlaybackPlan.exam(meter:q.timeSignature,setting:q.tempo,scaleMeasures:q.scoreAssets.scale.measureCount).nominalDurationSeconds(meter:q.timeSignature)))
+            return q.collection == "classical" ? classicalDifficulty?.annotating(q) ?? q : difficulty.annotating(q)
         }
         cachedCatalog = resolved; return resolved
     }
@@ -123,12 +126,13 @@ import Foundation
         return QuestionPage(count: values.count, next: nil, previous: nil, results: values.map { q in QuestionSummary(id:q.id,version:q.version,title:q.title,source:q.source,keySignature:q.keySignature,timeSignature:q.timeSignature,measureCount:q.measureCount,recommendedDurationSeconds:q.recommendedDurationSeconds,tempo:q.tempo,collection:q.collection,composer:q.composer,difficulty:q.difficulty,practiceLevelNumber:q.practiceLevelNumber,difficultyScore:q.difficultyScore,difficultyVersion:q.difficultyVersion,practiceCompleted:completed.contains(q.id)) })
     }
     func classicalQuestions(page: Int) async throws -> QuestionPage {
+        let completed=Set(try store.all().filter { $0.attempt.studyMode == .practice && $0.selfAssessment?.isCompleted == true }.map { $0.attempt.question.id })
         let order: [UUID]
         if smallContent { order = [] } else { order = try Bundled.decode("classical-question-order") }
         let ranks = Dictionary(uniqueKeysWithValues:order.enumerated().map { ($0.element,$0.offset) })
         let values = try catalog().filter { $0.collection == "classical" }.sorted { (ranks[$0.id] ?? Int.max) < (ranks[$1.id] ?? Int.max) }
         return QuestionPage(count:values.count,next:nil,previous:nil,results:values.map { q in
-            QuestionSummary(id:q.id,version:q.version,title:q.title,source:q.source,keySignature:q.keySignature,timeSignature:q.timeSignature,measureCount:q.measureCount,recommendedDurationSeconds:q.recommendedDurationSeconds,tempo:q.tempo,collection:q.collection,composer:q.composer)
+            QuestionSummary(id:q.id,version:q.version,title:q.title,source:q.source,keySignature:q.keySignature,timeSignature:q.timeSignature,measureCount:q.measureCount,recommendedDurationSeconds:q.recommendedDurationSeconds,tempo:q.tempo,collection:q.collection,composer:q.composer,difficultyScore:q.difficultyScore,difficultyVersion:q.difficultyVersion,practiceCompleted:completed.contains(q.id))
         })
     }
     func recommendedQuestion() async throws -> Question {

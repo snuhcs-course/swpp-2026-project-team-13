@@ -1,8 +1,32 @@
 import XCTest
 import SwiftUI
+import AVFoundation
 @testable import IPadApp
 
 @MainActor final class RhythmPuzzleIntegrationTests: XCTestCase {
+    func testSampledPianoSurvivesReplayAndTempoChanges() async throws {
+        let graph=PianoAudioGraph(), probe=PianoTimbreProbe()
+        let audio=RhythmPuzzleAudio(graph:graph)
+        try audio.prepare()
+        defer { audio.shutdown() }
+        let engine=graph.engine, sampler=graph.piano, rate=sampler.outputFormat(forBus:0).sampleRate
+        sampler.installTap(onBus:0,bufferSize:1024,format:nil) { buffer,_ in probe.append(buffer) }
+        defer { sampler.removeTap(onBus:0) }
+        let bank: RhythmCatalog=try Bundled.decode("rhythm-puzzle-v4")
+        var round=try XCTUnwrap(bank.rounds.first { $0.meter.numerator==4 && $0.meter.denominator==4 })
+        round.audio=[RhythmNote(onset:.zero,duration:round.totalDuration,midi:69)]
+        for (index,bpm) in [180.0,96,132].enumerated() {
+            probe.reset(); round.tempoBpm=bpm
+            try audio.play(round,reference:index==2,includeCountIn:index==0)
+            try await Task.sleep(for:.milliseconds(index==0 ? 2100 : 700))
+            audio.stop()
+            XCTAssertTrue(graph.engine === engine && graph.piano === sampler,"Listening must not rebuild the loaded instrument")
+            let rendered=Array(probe.snapshot().suffix(Int(rate*0.25)))
+            XCTAssertEqual(rendered.count,Int(rate*0.25))
+            XCTAssertGreaterThan(PianoTimbreProbe.rms(rendered),0.0001)
+            XCTAssertGreaterThan(PianoTimbreProbe.harmonicFraction(rendered,rate:rate),0.005,"First play, replay and answer playback must remain a sampled piano")
+        }
+    }
     func connection() throws -> RhythmConnection {
         RhythmConnection(api:try DemoExamAPI(outcome:"completed"),profileId:UUID(),demo:true,generation:UUID())
     }
@@ -173,7 +197,7 @@ import SwiftUI
     func testOneSecondStartAndReplayWaitAreCancelledOnPauseAndClose() async throws {
         let game = RhythmPuzzleModel(connection:try connection())
         game.newSet(); XCTAssertNil(game.error)
-        XCTAssertEqual(game.round?.level,"beginner"); XCTAssertEqual(game.draft?.record.gameVersion,"rhythm-puzzle-v3")
+        XCTAssertEqual(game.round?.level,"beginner"); XCTAssertEqual(game.draft?.record.gameVersion,"rhythm-puzzle-v4")
         XCTAssertTrue(game.waitingToPlay); XCTAssertFalse(game.playing)
         try await Task.sleep(for:.milliseconds(150))
         game.pause(); XCTAssertFalse(game.waitingToPlay)

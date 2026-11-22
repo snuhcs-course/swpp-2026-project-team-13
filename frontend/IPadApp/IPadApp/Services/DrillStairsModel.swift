@@ -4,7 +4,8 @@ import SwiftUI
 // deletion's LocalStore.removeAll also removes the climb.
 final class DrillStairsStore {
     let root: URL
-    var file: URL { root.appendingPathComponent("drill-stairs-v1.json") }
+    // Preserve the old random-round progress; it cannot prove a fixed set solved.
+    var file: URL { root.appendingPathComponent("drill-stage-set-progress-v1.json") }
     init(root: URL) throws {
         self.root = root
         try FileManager.default.createDirectory(at:root,withIntermediateDirectories:true)
@@ -21,10 +22,16 @@ final class DrillStairsStore {
 // What a minigame needs to run as one stage of the stairs.
 struct DrillStageContext {
     let stage: DrillStage
-    // Called once the stage's round is finished (scored, answered correctly or revealed).
-    let finished: () -> Void
+    let question: DrillStageQuestion
+    let index: Int
+    let results: [DrillRoundResult?]
+    let report: (DrillRoundResult) -> Void
+    let next: () -> Void
     // Back to the stairs, from the result or from ✕.
     let exit: () -> Void
+    var revealAcknowledged = false
+    var acknowledgeReveal: () -> Void = {}
+    var nextTitle: String { index+1==results.count ? "결과 보기" : "다음" }
 }
 
 @MainActor final class DrillStairsModel: ObservableObject {
@@ -32,12 +39,17 @@ struct DrillStageContext {
     // so the next key lights up while the user is looking.
     @Published private(set) var shown = DrillStairsProgress()
     @Published var error: String?
+    @Published private(set) var course: DrillStageCourse?
+    @Published private(set) var loading = false
     private(set) var progress = DrillStairsProgress()
     let rhythmAvailable: Bool
     private var store: DrillStairsStore?
     private var readable = true
+    private let connection: RhythmConnection?
+    var progressRoot: URL? { store?.root }
 
     init(connection: RhythmConnection?, root: URL? = nil) {
+        self.connection = connection
         rhythmAvailable = connection != nil
         do {
             let folder = try root ?? LocalStore(scope:connection?.scope ?? "drill-stairs-guest").root
@@ -51,7 +63,21 @@ struct DrillStageContext {
     func state(_ stage: DrillStage) -> DrillStageState { shown.state(stage.number) }
     // Rhythm puzzle needs the server, as on the old Drill cards.
     func needsConnection(_ stage: DrillStage) -> Bool { stage.game == .rhythmPuzzle && !rhythmAvailable }
-    func canStart(_ stage: DrillStage) -> Bool { !needsConnection(stage) }
+    func canStart(_ stage: DrillStage) -> Bool {
+        if stage.game == .echoDragon { return readable && EchoIntervalStage.forStair(stage.number) != nil }
+        return readable && course?.stages.contains(where:{ $0.number == stage.number }) == true && !needsConnection(stage)
+    }
+    func prepareCourse() async {
+        guard course == nil, !loading else { return }
+        loading=true; defer { loading=false }
+        do {
+            let data: Data
+            if let connection, !connection.demo { data = try await TrainingContentProvider(connection:connection).data("drill-stage-sets-v3.json") }
+            else { data = try DemoContent.data("drill-stage-sets-v3") }
+            let value = try ContractJSON.decoder().decode(DrillStageCourse.self,from:data)
+            try value.validate(); try Task.checkCancellation(); course=value
+        } catch { if !Task.isCancelled { self.error=error.localizedDescription } }
+    }
     func clear(_ number: Int) {
         guard progress.clear(number), readable, let store else { return }
         do { try store.save(progress) }

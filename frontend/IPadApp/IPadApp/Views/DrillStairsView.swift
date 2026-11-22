@@ -67,6 +67,8 @@ struct DrillStairsView: View {
         }
         .background(DrillPalette.background.ignoresSafeArea())
         .preferredColorScheme(.light)
+        .task { await stairs.prepareCourse() }
+        .overlay { if stairs.loading { ProgressView("문제를 준비하고 있어요").padding(24).background(.regularMaterial,in:RoundedRectangle(cornerRadius:16)) } }
         .sensoryFeedback(.success,trigger:stairs.shown.cleared.count)
         .sensoryFeedback(.impact(weight:.light),trigger:refusals)
         .alert("확인이 필요해요",isPresented:Binding(get:{ stairs.error != nil },set:{ if !$0 { stairs.error = nil } })) {
@@ -80,6 +82,7 @@ struct DrillStairsView: View {
         return VStack(spacing:0) {
             ForEach(DrillStairs.stages.reversed()) { stage in
                 StageKey(stage:stage,state:stairs.state(stage),offline:stairs.needsConnection(stage),action:{ open(stage) })
+                    .opacity(stage.game == .echoDragon || stairs.course?.stages.contains(where:{ $0.number==stage.number }) == true ? 1 : 0.45)
                     .frame(width:DrillStairs.keySize.width,height:DrillStairs.keySize.height)
                     .modifier(Shake(phase:CGFloat(shakes[stage.number] ?? 0)))
                     .offset(x:DrillStairs.centerOffset(stage.number)*spread)
@@ -107,6 +110,7 @@ struct DrillStairsView: View {
 
     private func open(_ stage: DrillStage) {
         if stairs.needsConnection(stage) { refuse(stage,"서버에 연결하면 Rhythm puzzle 칸을 풀 수 있어요.") }
+        else if !stairs.canStart(stage) { refuse(stage,stairs.loading ? "문제를 준비하고 있어요" : "이 스테이지는 준비 중이에요") }
         else { playing = stage }
     }
 
@@ -117,11 +121,11 @@ struct DrillStairsView: View {
     }
 
     @ViewBuilder private func game(_ stage: DrillStage) -> some View {
-        let context = DrillStageContext(stage:stage,finished:{ stairs.clear(stage.number) },exit:{ playing = nil })
-        switch stage.game {
-        case .echoDragon: EchoDragonView(stage:context)
-        case .memoryRun: MelodyRunView(connection:connection,stage:context)
-        case .rhythmPuzzle: RhythmPuzzleView(connection:connection,stage:context)
+        if stage.game == .echoDragon {
+            EchoIntervalStageView(stage:stage,mastered:{ stairs.clear(stage.number) },exit:{ playing=nil })
+        } else if let course=stairs.course, let set=course.stages.first(where:{ $0.number==stage.number }), let root=stairs.progressRoot {
+            DrillStageSetView(stage:stage,set:set,version:course.version,root:root,connection:connection,
+                mastered:{ stairs.clear(stage.number) },exit:{ playing=nil })
         }
     }
 

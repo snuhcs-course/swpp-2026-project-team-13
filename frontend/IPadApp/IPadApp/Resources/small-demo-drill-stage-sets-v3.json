@@ -1,0 +1,491 @@
+{
+  "version": "drill-stage-sets-3",
+  "memory_key_caps": [
+    0,
+    0,
+    1,
+    1,
+    2,
+    2,
+    3,
+    3,
+    7,
+    7
+  ],
+  "stages": [
+    {
+      "number": 2,
+      "game": "memoryRun",
+      "rank": 1,
+      "questions": [
+        {
+          "catalog_id": "Somervell-1911_055:v1:7:2",
+          "source_id": "Somervell-1911_055",
+          "question_id": "d13c6d8e-54dd-5bb4-9290-2ce4f4c30075",
+          "source_sha256": "f745370b222c5a84b27d558edb5c345287aa741b8089c5dbded3511a59275eb3",
+          "source_file": "drills/melody--Somervell-1911_055.xml",
+          "collection": "library",
+          "title": "Somervell-1911_055",
+          "first_measure": 7,
+          "bpm": 72,
+          "key_fifths": 0,
+          "difficulty_score": 0.31725488,
+          "performance": {
+            "raw": 0.31725488,
+            "baseRaw": 0.23502604,
+            "quarterBpm": 72,
+            "seconds": 6.666667,
+            "notesPerSecond": 0.45,
+            "peakNotesPerSecond": 0.6,
+            "tempoFactor": 0.948683
+          },
+          "fingerprint": "fdf84ef91fc7a361d0489e700ee002960d01c059623670e7a0683e592f14b578",
+          "id": "drill-stage-sets-3-S02-Q01",
+          "bars": 2
+        },
+        {
+          "catalog_id": "Cole-Lewis-1904_1-01-035:v1:1:2",
+          "source_id": "Cole-Lewis-1904_1-01-035",
+          "question_id": "09be3f8a-7e64-5076-80a9-ddeb3fbc36be",
+          "source_sha256": "e58ab9a959b3ee76f314ac7aecea816dbccd56551f87156f3d91ac261a42906d",
+          "source_file": "drills/melody--Cole-Lewis-1904_1-01-035.xml",
+          "collection": "library",
+          "title": "Cole-Lewis-1904_1-01-035",
+          "first_measure": 1,
+          "bpm": 72,
+          "key_fifths": 0,
+          "difficulty_score": 0.32796813,
+          "performance": {
+            "raw": 0.32796813,
+            "baseRaw": 0.20229167,
+            "quarterBpm": 72,
+            "seconds": 5.0,
+            "notesPerSecond": 0.6,
+            "peakNotesPerSecond": 1.2,
+            "tempoFactor": 0.948683
+          },
+          "fingerprint": "a04e992cf84bd3d49b0796b9b16a430eb0f0de801a9df2f86864d9e984c3f395",
+          "id": "drill-stage-sets-3-S02-Q02",
+          "bars": 2
+        },
+        {
+          "catalog_id": "Cole-Lewis-1904_1-01-028:v1:5:2",
+          "source_id": "Cole-Lewis-1904_1-01-028",
+          "question_id": "3c143c0f-3ff5-5e4a-8a9d-c3686f5f20eb",
+          "source_sha256": "1bef97a1a6e51390720d3e8f5df21b6d384488e9a86b05600929d468de0bc675",
+          "source_file": "drills/melody--Cole-Lewis-1904_1-01-028.xml",
+          "collection": "library",
+          "title": "Cole-Lewis-1904_1-01-028",
+          "first_measure": 5,
+          "bpm": 72,
+          "key_fifths": 0,
+          "difficulty_score": 0.34536065,
+          "performance": {
+            "raw": 0.34536065,
+            "baseRaw": 0.220625,
+            "quarterBpm": 72,
+            "seconds": 5.0,
+            "notesPerSecond": 0.6,
+            "peakNotesPerSecond": 1.2,
+            "tempoFactor": 0.948683
+          },
+          "fingerprint": "cab1e8c7d21b1b60dc7544fb73a58c4497b01e1e4506fd08e77d1397ec0ff7a0",
+          "id": "drill-stage-sets-3-S02-Q03",
+          "bars": 2
+        },
+        {
+          "catalog_id": "Cole-Lewis-1904_1-01-032:v1:1:2",
+          "source_id": "Cole-Lewis-1904_1-01-032",
+          "question_id": "c06897ba-8ec3-50d2-9b53-5853a1358bdc",
+          "source_sha256": "cf9d4ee3098ba56753c9351e7cdaaa0c43bd0d8ca943c7fc7232c226248b17bb",
+          "source_file": "drills/melody--Cole-Lewis-1904_1-01-032.xml",
+          "collection": "library",
+          "title": "Cole-Lewis-1904_1-01-032",
+          "first_measure": 1,
+          "bpm": 72,
+          "key_fifths": 0,
+          "difficulty_score": 0.34536065,
+          "performance": {
+            "raw": 0.34536065,
+            "baseRaw": 0.220625,
+            "quarterBpm": 72,
+            "seconds": 5.0,
+            "notesPerSecond": 0.6,
+            "peakNotesPerSecond": 1.2,
+            "tempoFactor": 0.948683
+          },
+          "fingerprint": "e3e89f46007eab82f1e010b29a2f82b0866a62f2aad6420c2044f607ed324c96",
+          "id": "drill-stage-sets-3-S02-Q04",
+          "bars": 2
+        }
+      ]
+    },
+    {
+      "number": 3,
+      "game": "rhythmPuzzle",
+      "rank": 1,
+      "questions": [
+        {
+          "catalog_id": "75a3022a441323710b8a9b02ef92d786654776d9c8b8799077206f76de9d1ba7",
+          "question_id": "ba3a5402-e116-5018-94ef-ee11834ef9e3",
+          "question_version": 2,
+          "source_file": "questions/trained-ear-Somervell-1911_334/v1/main.mxl",
+          "source_sha256": "02e8a909fa0be51972eb658d614f57ff3d6ebbbaa294b64f000bba4ab1bed8a8",
+          "collection": "dictation",
+          "title": "초급 청음 33 · 6/8",
+          "first_measure": 1,
+          "bpm": 82.5,
+          "difficulty_score": 0.55315312,
+          "performance": {
+            "raw": 0.55315312,
+            "baseRaw": 0.175,
+            "quarterBpm": 82.5,
+            "seconds": 4.363636,
+            "notesPerSecond": 0.916667,
+            "peakNotesPerSecond": 0.916667,
+            "tempoFactor": 1.015505
+          },
+          "id": "drill-stage-sets-3-S03-Q01",
+          "bars": 2
+        },
+        {
+          "catalog_id": "b96d3b0e8d81e5e29cc6afa25c87db45564530cc792dbe11ed88971037a73558",
+          "question_id": "969187fd-0578-5e49-a2e7-8c7278e3eb21",
+          "question_version": 2,
+          "source_file": "questions/trained-ear-Somervell-1911_221/v1/main.mxl",
+          "source_sha256": "ace5860181c26190186c5763e8b88207a866d9bf12637a8a54880e5caa0f1971",
+          "collection": "dictation",
+          "title": "초급 청음 14 · 3/4",
+          "first_measure": 7,
+          "bpm": 80,
+          "difficulty_score": 0.81274332,
+          "performance": {
+            "raw": 0.81274332,
+            "baseRaw": 0.4,
+            "quarterBpm": 80,
+            "seconds": 4.5,
+            "notesPerSecond": 0.888889,
+            "peakNotesPerSecond": 1.333333,
+            "tempoFactor": 1.0
+          },
+          "id": "drill-stage-sets-3-S03-Q02",
+          "bars": 2
+        },
+        {
+          "catalog_id": "43cfc477471c6fba063b986584528f66e529edc7a840aca04e27818a1c8cda31",
+          "question_id": "67dc7c81-cb27-5af6-ba8b-79741c476889",
+          "question_version": 2,
+          "source_file": "questions/classical-gttm-031/v1/main.mxl",
+          "source_sha256": "a0a574bb1bb100ff6da8a6e2c44a4870a794a49f45b1c21843748c6797722430",
+          "collection": "classical",
+          "title": "교향곡 9번: 환희의 송가 · Op.125 · 4악장",
+          "first_measure": 1,
+          "bpm": 96.0,
+          "difficulty_score": 1.02037571,
+          "performance": {
+            "raw": 1.02037571,
+            "baseRaw": 0.454464,
+            "quarterBpm": 96.0,
+            "seconds": 5.0,
+            "notesPerSecond": 1.4,
+            "peakNotesPerSecond": 1.6,
+            "tempoFactor": 1.095445
+          },
+          "id": "drill-stage-sets-3-S03-Q03",
+          "bars": 2
+        },
+        {
+          "catalog_id": "49005b97bdaa5aa57e56171b34cf9e45866da2489f35646954a3d4dc3e2244aa",
+          "question_id": "6ab09e5a-be17-5ab0-ba82-e153cc7809da",
+          "question_version": 2,
+          "source_file": "questions/brahms-user-01/v1/main.mxl",
+          "source_sha256": "b1a3d64233fa6a40bc89c98aaeda77396af3d1e036514e7696c6ca137fc61911",
+          "collection": "classical",
+          "title": "브람스 · 바이올린 협주곡 라장조 Op. 77, 제1악장",
+          "first_measure": 1,
+          "bpm": 100,
+          "difficulty_score": 1.15257665,
+          "performance": {
+            "raw": 1.15257665,
+            "baseRaw": 0.6,
+            "quarterBpm": 100,
+            "seconds": 3.6,
+            "notesPerSecond": 1.111111,
+            "peakNotesPerSecond": 1.666667,
+            "tempoFactor": 1.118034
+          },
+          "id": "drill-stage-sets-3-S03-Q04",
+          "bars": 2
+        },
+        {
+          "catalog_id": "896619dfb004983016d42905fa6de7fab0a2229a357b5bb543137c6b13f0f2e2",
+          "question_id": "35150db1-9a55-5fd0-abc7-5f8e9dd8d7a9",
+          "question_version": 2,
+          "source_file": "questions/trained-ear-Crowell-2004_200/v1/main.mxl",
+          "source_sha256": "926b14d0e6033c7c69cd3c907b8067dc4e058dbe7f628b8e11cb97d863137245",
+          "collection": "dictation",
+          "title": "초급 청음 20 · 4/4",
+          "first_measure": 5,
+          "bpm": 80,
+          "difficulty_score": 1.20444145,
+          "performance": {
+            "raw": 1.20444145,
+            "baseRaw": 0.547646,
+            "quarterBpm": 80,
+            "seconds": 6.0,
+            "notesPerSecond": 1.833333,
+            "peakNotesPerSecond": 2.666667,
+            "tempoFactor": 1.0
+          },
+          "id": "drill-stage-sets-3-S03-Q05",
+          "bars": 2
+        }
+      ]
+    },
+    {
+      "number": 5,
+      "game": "rhythmPuzzle",
+      "rank": 2,
+      "questions": [
+        {
+          "catalog_id": "82c292486409fc77aed80d780bcc17a8f41b456fc3822ac6896cb3c3a9f9c763",
+          "question_id": "c772514b-2e1a-57ad-b6e5-85136ea2c795",
+          "question_version": 2,
+          "source_file": "questions/trained-ear-Crowell-2004_203/v1/main.mxl",
+          "source_sha256": "c5c57efd6a031305ed7271a901483e7af7dde90c2e51fb6367c0b5cd26608b54",
+          "collection": "dictation",
+          "title": "초급 청음 13 · 3/4",
+          "first_measure": 7,
+          "bpm": 80,
+          "difficulty_score": 1.292338,
+          "performance": {
+            "raw": 1.292338,
+            "baseRaw": 0.741667,
+            "quarterBpm": 80,
+            "seconds": 4.5,
+            "notesPerSecond": 1.111111,
+            "peakNotesPerSecond": 2.666667,
+            "tempoFactor": 1.0
+          },
+          "id": "drill-stage-sets-3-S05-Q01",
+          "bars": 2
+        },
+        {
+          "catalog_id": "16cdb6003e70a5e3eca2a5b16080285f8246df05870624638287c6a494fdd288",
+          "question_id": "5ce30096-a49d-575a-b165-4df172880e96",
+          "question_version": 2,
+          "source_file": "questions/trained-ear-Hollis-1915_55-01/v1/main.mxl",
+          "source_sha256": "8512abac3307c7e5710e8802638b34b7a49fcc776566c73081131997be62b1f0",
+          "collection": "dictation",
+          "title": "초급 청음 19 · 3/4",
+          "first_measure": 5,
+          "bpm": 80,
+          "difficulty_score": 1.34548616,
+          "performance": {
+            "raw": 1.34548616,
+            "baseRaw": 0.695833,
+            "quarterBpm": 80,
+            "seconds": 4.5,
+            "notesPerSecond": 1.777778,
+            "peakNotesPerSecond": 2.666667,
+            "tempoFactor": 1.0
+          },
+          "id": "drill-stage-sets-3-S05-Q02",
+          "bars": 2
+        },
+        {
+          "catalog_id": "aae56f9199e8fe2f69689aa38cfb4b499a883c27dbe303e4403cf821f8e2f82c",
+          "question_id": "bebdd02b-4822-5795-aa7e-9630a6317ca4",
+          "question_version": 2,
+          "source_file": "questions/trained-ear-Crowell-2004_043/v1/main.mxl",
+          "source_sha256": "41a468db2aa0fbdd526ebb979e259716587390bab4b192f53a55a252be6bcb82",
+          "collection": "dictation",
+          "title": "초급 청음 36 · 6/8",
+          "first_measure": 3,
+          "bpm": 82.5,
+          "difficulty_score": 1.37581627,
+          "performance": {
+            "raw": 1.37581627,
+            "baseRaw": 0.65,
+            "quarterBpm": 82.5,
+            "seconds": 4.363636,
+            "notesPerSecond": 2.291667,
+            "peakNotesPerSecond": 2.75,
+            "tempoFactor": 1.015505
+          },
+          "id": "drill-stage-sets-3-S05-Q03",
+          "bars": 2
+        },
+        {
+          "catalog_id": "564f40ccc3cd13ad4e67f64fbf2d2ee4d7efe65637d4f2530910e8bf57d2bbbc",
+          "question_id": "32b528ba-0055-50d7-b6f1-a993641ff0da",
+          "question_version": 3,
+          "source_file": "questions/naver-016/v2/main.mxl",
+          "source_sha256": "f01ce5ee35e4f64d534ea8582b7bcfb035c59170ae23b461d0a31a5bf22a66db",
+          "collection": "dictation",
+          "title": "고난도 청음 16 · 4/4",
+          "first_measure": 5,
+          "bpm": 80,
+          "difficulty_score": 1.41927513,
+          "performance": {
+            "raw": 1.41927513,
+            "baseRaw": 0.666071,
+            "quarterBpm": 80,
+            "seconds": 6.0,
+            "notesPerSecond": 1.666667,
+            "peakNotesPerSecond": 5.333333,
+            "tempoFactor": 1.0
+          },
+          "id": "drill-stage-sets-3-S05-Q04",
+          "bars": 2
+        },
+        {
+          "catalog_id": "11522e9ff03137a2823b3b2040b4a3050a865cdcdf5502b3f7da552379cea07e",
+          "question_id": "1dae4725-4598-5351-bf6f-a180de024121",
+          "question_version": 2,
+          "source_file": "questions/trained-ear-Cringan-1901_059/v1/main.mxl",
+          "source_sha256": "acc56e053c10ddf82ee8497bca361791858dbeb4609b61aa7af3ecdc6f703dc7",
+          "collection": "dictation",
+          "title": "초급 청음 38 · 6/8",
+          "first_measure": 1,
+          "bpm": 82.5,
+          "difficulty_score": 1.48252472,
+          "performance": {
+            "raw": 1.48252472,
+            "baseRaw": 0.808333,
+            "quarterBpm": 82.5,
+            "seconds": 4.363636,
+            "notesPerSecond": 1.833333,
+            "peakNotesPerSecond": 2.75,
+            "tempoFactor": 1.015505
+          },
+          "id": "drill-stage-sets-3-S05-Q05",
+          "bars": 2
+        }
+      ]
+    },
+    {
+      "number": 6,
+      "game": "memoryRun",
+      "rank": 2,
+      "questions": [
+        {
+          "catalog_id": "Cole-Lewis-1904_1-01-094:v1:7:2",
+          "source_id": "Cole-Lewis-1904_1-01-094",
+          "question_id": "b6992863-05d0-5502-b749-584f76c2fe16",
+          "source_sha256": "0483dd319768ce9a4c74b12d69ef487c4f9e9e28f48c5355d2d1c03b36950993",
+          "source_file": "drills/melody--Cole-Lewis-1904_1-01-094.xml",
+          "collection": "library",
+          "title": "Cole-Lewis-1904_1-01-094",
+          "first_measure": 7,
+          "bpm": 74,
+          "key_fifths": 0,
+          "difficulty_score": 0.35104447,
+          "performance": {
+            "raw": 0.35104447,
+            "baseRaw": 0.220625,
+            "quarterBpm": 74,
+            "seconds": 4.864865,
+            "notesPerSecond": 0.616667,
+            "peakNotesPerSecond": 1.233333,
+            "tempoFactor": 0.961769
+          },
+          "fingerprint": "db28228b29ffac1e7b16df6dffa065f5e733368a985f5bca049e85959b9b4b95",
+          "id": "drill-stage-sets-3-S06-Q01",
+          "bars": 2
+        },
+        {
+          "catalog_id": "Cole-Lewis-1904_2-05-006:v1:3:2",
+          "source_id": "Cole-Lewis-1904_2-05-006",
+          "question_id": "d4efc53d-f7f7-52b6-906f-5cc014b9b93f",
+          "source_sha256": "b65cd9f0d60e7a02d1b5e22b4e6ff8273c6c1b7f12b0fea43235ecb2b4a658e0",
+          "source_file": "drills/melody--Cole-Lewis-1904_2-05-006.xml",
+          "collection": "library",
+          "title": "Cole-Lewis-1904_2-05-006",
+          "first_measure": 3,
+          "bpm": 74,
+          "key_fifths": 0,
+          "difficulty_score": 0.35104447,
+          "performance": {
+            "raw": 0.35104447,
+            "baseRaw": 0.220625,
+            "quarterBpm": 74,
+            "seconds": 4.864865,
+            "notesPerSecond": 0.616667,
+            "peakNotesPerSecond": 1.233333,
+            "tempoFactor": 0.961769
+          },
+          "fingerprint": "b166868ac6c0cea100d52a8de14760b2c429712940cc136496a09772358090b5",
+          "id": "drill-stage-sets-3-S06-Q02",
+          "bars": 2
+        },
+        {
+          "catalog_id": "Cole-Lewis-1904_1-01-029:v1:5:2",
+          "source_id": "Cole-Lewis-1904_1-01-029",
+          "question_id": "8351e14a-9fb8-589a-9345-4a795adccf73",
+          "source_sha256": "b044f7d035983f17f129d8c6cc6e2bddc9aedaa7d66c5583fe285e57ae180d72",
+          "source_file": "drills/melody--Cole-Lewis-1904_1-01-029.xml",
+          "collection": "library",
+          "title": "Cole-Lewis-1904_1-01-029",
+          "first_measure": 5,
+          "bpm": 74,
+          "key_fifths": 0,
+          "difficulty_score": 0.36270182,
+          "performance": {
+            "raw": 0.36270182,
+            "baseRaw": 0.21479167,
+            "quarterBpm": 74,
+            "seconds": 4.864865,
+            "notesPerSecond": 0.822222,
+            "peakNotesPerSecond": 1.233333,
+            "tempoFactor": 0.961769
+          },
+          "fingerprint": "0e65ed7383a31443d9983610c56accce5b236c64ec49d9ae8151b7148fb0dbb3",
+          "id": "drill-stage-sets-3-S06-Q03",
+          "bars": 2
+        },
+        {
+          "catalog_id": "Hollis-1915_24-01:v1:3:2",
+          "source_id": "Hollis-1915_24-01",
+          "question_id": "83a4f636-c0aa-5312-b7ae-1a353bcd0874",
+          "source_sha256": "3990743fa7adc6482e6fd61440e8eafe18cc7719b82c79eba52aefee7e23a561",
+          "source_file": "drills/melody--Hollis-1915_24-01.xml",
+          "collection": "library",
+          "title": "Hollis-1915_24-01",
+          "first_measure": 3,
+          "bpm": 74,
+          "key_fifths": 0,
+          "difficulty_score": 0.36395551,
+          "performance": {
+            "raw": 0.36395551,
+            "baseRaw": 0.20786458,
+            "quarterBpm": 74,
+            "seconds": 3.243243,
+            "notesPerSecond": 0.925,
+            "peakNotesPerSecond": 1.233333,
+            "tempoFactor": 0.961769
+          },
+          "fingerprint": "d9f276c42b291ff5d366138620ca780acf4780a3000f1d9fac0e5555a89ceb88",
+          "id": "drill-stage-sets-3-S06-Q04",
+          "bars": 2
+        }
+      ]
+    }
+  ],
+  "memory_note_caps": [
+    4,
+    4,
+    10,
+    10,
+    12,
+    12,
+    16,
+    16,
+    24,
+    24
+  ],
+  "memory_recall_policy": {
+    "neutral_attacks": 8,
+    "extra_attack_weight": 0.04
+  }
+}

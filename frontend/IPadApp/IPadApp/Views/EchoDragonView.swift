@@ -39,7 +39,7 @@ import AVFoundation
         .background(SolfegeTheme.background.ignoresSafeArea()).tint(SolfegeTheme.violet)
         .sheet(isPresented:$help,onDismiss:{ if stage != nil { stageHelpSeen = true } }) { instructions }
         .onAppear { openStage() }
-        .onChange(of:game.result) { _, result in if result == .correct { stage?.finished() } }
+        .onChange(of:game.result) { _, result in if result == .correct { stage?.report(DrillRoundResult(accuracy:100,revealed:false,elapsedMs:0)) } }
         .alert("확인이 필요해요",isPresented:Binding(get:{game.error != nil},set:{if !$0 { game.error = nil }})) {
             Button("확인") { game.error = nil }
         } message: { Text(game.error ?? "") }
@@ -174,7 +174,7 @@ import AVFoundation
                 .frame(height:180)
             HStack(spacing:14) {
                 if game.result == .correct, let stage {
-                    Button { game.stop(); stage.exit() } label: { Label("계단으로",systemImage:"arrow.right") }
+                    Button { game.stop(); stage.exit() } label: { Label("완료하기",systemImage:"arrow.right") }
                         .buttonStyle(PrimaryButton()).accessibilityIdentifier("drill-stage-exit")
                     Button("정답 대답 다시 듣기") { game.replayAnswer() }.disabled(game.isPlaying || game.interrupted)
                 } else if game.result == .correct {

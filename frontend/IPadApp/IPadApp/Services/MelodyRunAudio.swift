@@ -1,19 +1,22 @@
 import AVFoundation
 
 @MainActor final class MelodyRunAudio {
-    private let graph = PianoAudioGraph()
+    private let graph: PianoAudioGraph
     private var livePiano = AVAudioUnitSampler()
-    private var sequencer: AVAudioSequencer?
+    private var transport: PianoSequenceTransport?
+    private var sequencer: AVAudioSequencer? { transport?.sequencer }
     private var referenceTrack: AVMusicTrack?
     private var held: [Int:Int] = [:]
     private var previousBufferDuration: TimeInterval?
     private var transportLeadTicks = 0
     private var noteVelocity: UInt8 = 76
     private(set) var ready = false
+    init(graph: PianoAudioGraph = PianoAudioGraph()) { self.graph = graph }
     var tick: Int { Int(((sequencer?.currentPositionInBeats ?? 0)*480).rounded(.down))-transportLeadTicks }
     var isRunning: Bool { graph.engine.isRunning }
 
     func prepare() throws {
+        if ready && graph.engine.isRunning { stopClock(); releaseKeys(); return }
         stop(); ready = false
         let profile = try ClassicalPiano.load()
         let bank = profile.url
@@ -32,33 +35,27 @@ import AVFoundation
         graph.engine.attach(livePiano)
         graph.engine.connect(livePiano,to:graph.engine.mainMixerNode,format:nil)
         try livePiano.loadSoundBankInstrument(at:bank,program:profile.program,bankMSB:profile.bankMsb,bankLSB:profile.bankLsb)
+        transport=PianoSequenceTransport(graph:graph)
         graph.engine.prepare(); try graph.engine.start(); ready = true
     }
 
     func start(_ timeline: MelodyTimeline, round: MelodyRound, settings: MelodySettings) throws {
         stopClock()
+        if !ready || !graph.engine.isRunning { try prepare() }
         transportLeadTicks = MelodyTimeline.ticks(milliseconds:MelodyTimeline.audioLeadMilliseconds,bpm:settings.bpm)
-        let seq = AVAudioSequencer(audioEngine:graph.engine)
-        try seq.load(from:timeline.midi(tempo:settings.bpm,leadTicks:transportLeadTicks),options:[])
-        // A direct replay legitimately has only a tempo track. Core Audio may
-        // omit that empty track; the piano track is explicitly appended below.
-        guard timeline.clickEvents().isEmpty || !seq.tracks.isEmpty else { throw SolfegeError.invalidScore("게임 오디오 준비 실패") }
-        for track in seq.tracks { track.destinationAudioUnit = graph.click }
-        let reference = seq.createAndAppendTrack()
-        reference.destinationAudioUnit = graph.piano
-        reference.lengthInBeats = Double(timeline.end+transportLeadTicks)/480
-        referenceTrack = reference
-        sequencer = seq
-        if settings.mode == .memory {
-            // One contiguous phrase preserves note-offs and ties across bars.
-            if let first = timeline.windows.first(where: { $0.phase == .listen }) {
-                let events = try round.score.segment(from:first.measure,through:round.score.measures)
-                try schedule(events,at:first.start)
-            }
-        } else if let first = timeline.windows.first(where: { $0.phase == .listen }) {
-            try schedule(first,round:round)
+        guard let first = timeline.windows.first(where: { $0.phase == .listen }) else {
+            throw SolfegeError.invalidScore("게임 오디오 준비 실패")
         }
-        seq.currentPositionInBeats = 0; seq.prepareToPlay(); try seq.start()
+        let through = settings.mode == .memory ? round.score.measures : first.measure
+        let events = try round.score.segment(from:first.measure,through:through).map {
+            MusicEvent(midi:$0.midi,onset:$0.onset+first.start+transportLeadTicks,duration:$0.duration)
+        }
+        let length = timeline.end+transportLeadTicks
+        let clicks = timeline.clickEvents(leadTicks:transportLeadTicks)
+        guard let transport else { throw SolfegeError.invalidScore("게임 오디오가 준비되지 않았어요.") }
+        try transport.configure(piano:events,clicks:clicks,totalTicks:length,bpm:settings.bpm,pianoVelocity:noteVelocity)
+        referenceTrack=transport.pianoTrack
+        try transport.start()
     }
 
     func schedule(_ window: MelodyWindow, round: MelodyRound) throws {
@@ -90,14 +87,21 @@ import AVFoundation
         livePiano.sendController(123,withValue:0,onChannel:0)
     }
     func stopClock() {
-        sequencer?.stop(); sequencer = nil; referenceTrack = nil; transportLeadTicks = 0
+        // Recall and the next question share the prepared sampler graph.
+        sequencer?.stop()
         for unit in [graph.piano,graph.click] {
             unit.sendController(120,withValue:0,onChannel:0)
             unit.sendController(123,withValue:0,onChannel:0)
         }
     }
+    private func discardSequence() {
+        // AVAudioSequencer deinit detaches its MusicSequence from the engine.
+        // Never let that race the engine's render thread (including on replay).
+        graph.engine.stop()
+        referenceTrack = nil; transport = nil; transportLeadTicks = 0
+    }
     func stop() {
-        stopClock(); releaseKeys(); graph.engine.stop(); ready = false
+        stopClock(); releaseKeys(); discardSequence(); ready = false
         if let previous = previousBufferDuration, previous > 0 {
             try? AVAudioSession.sharedInstance().setPreferredIOBufferDuration(previous)
         }
@@ -107,14 +111,15 @@ import AVFoundation
         guard let engine = notification.object as? AVAudioEngine else { return false }
         return engine === graph.engine
     }
-    func replay(events: [MusicEvent], ticks: Int, bpm: Double) throws {
+    func replay(events: [MusicEvent], ticks: Int, bpm: Double, clicks: [MusicEvent] = []) throws {
         stopClock(); releaseKeys()
-        if !ready { try prepare() }
+        if !ready || !graph.engine.isRunning { try prepare() }
         transportLeadTicks = MelodyTimeline.ticks(milliseconds:MelodyTimeline.audioLeadMilliseconds,bpm:bpm)
-        let seq = AVAudioSequencer(audioEngine:graph.engine)
         let shifted = events.map { MusicEvent(midi:$0.midi,onset:$0.onset+transportLeadTicks,duration:$0.duration) }
-        try seq.load(from:MIDIFile.make(events:shifted,totalTicks:ticks+transportLeadTicks,tempo:bpm,velocity:Int(noteVelocity)),options:[])
-        for track in seq.tracks { track.destinationAudioUnit = graph.piano }
-        sequencer = seq; seq.currentPositionInBeats = 0; seq.prepareToPlay(); try seq.start()
+        guard let transport else { throw SolfegeError.invalidScore("게임 오디오가 준비되지 않았어요.") }
+        let shiftedClicks=clicks.map { MusicEvent(midi:$0.midi,onset:$0.onset+transportLeadTicks,duration:$0.duration) }
+        try transport.configure(piano:shifted,clicks:shiftedClicks,totalTicks:ticks+transportLeadTicks,bpm:bpm,pianoVelocity:noteVelocity)
+        referenceTrack=transport.pianoTrack
+        try transport.start()
     }
 }

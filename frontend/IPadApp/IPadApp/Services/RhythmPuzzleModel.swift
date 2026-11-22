@@ -35,6 +35,11 @@ import SwiftUI
     private var playbackId = UUID()
     private var catalogVersions: [String:String] = [:]
     private var currentRoundIds: Set<String> = []
+    private var closed = false
+    private let stageMode: Bool
+    private var stageCommitted = false
+    private var preservedDraft: RhythmDraft?
+    private var committedJournal = RhythmJournal()
     var draft: RhythmDraft? { journal.draft }
     var round: RhythmRound? { catalog?.rounds.first { $0.id == draft?.record.roundId } }
     var board: RhythmBoard { draft?.board ?? RhythmBoard() }
@@ -59,15 +64,16 @@ import SwiftUI
         }
         return ""
     }
-    init(connection: RhythmConnection?) {
+    init(connection: RhythmConnection?, stageMode: Bool = false) {
+        self.stageMode = stageMode
         self.connection = connection
         do {
             if let connection, !connection.demo { contentProvider = try TrainingContentProvider(connection:connection) }
             else {
-                let data = try DemoContent.data("rhythm-puzzle-v3")
-                let ink = try DemoContent.data("rhythm-engraving-v3")
+                let data = try DemoContent.data("rhythm-puzzle-v4")
+                let ink = try DemoContent.data("rhythm-engraving-v4")
                 let legacy: [Data]
-                if DemoContent.hasFullBank { legacy = try ["rhythm-puzzle-v1","rhythm-puzzle-v2"].map { try Bundled.data($0,ext:"json") } }
+                if !stageMode && DemoContent.hasFullBank { legacy = try ["rhythm-puzzle-v1","rhythm-puzzle-v2","rhythm-puzzle-v3"].map { try Bundled.data($0,ext:"json") } }
                 else { legacy = [] }
                 try installCatalog(data,ink:ink,legacy:legacy)
             }
@@ -75,6 +81,8 @@ import SwiftUI
             let root = try LocalStore(scope:connection.scope).root
             let local = try RhythmPuzzleStore(root:root)
             store = local; journal = try local.load()
+            if stageMode { preservedDraft=journal.draft; journal.draft=nil }
+            committedJournal=journal
         } catch { self.error = error.localizedDescription }
     }
     private func installCatalog(_ data: Data, ink: Data, legacy: [Data]) throws {
@@ -100,26 +108,65 @@ import SwiftUI
         guard catalog == nil, !contentLoading, let contentProvider else { return }
         contentLoading = true; defer { contentLoading = false }
         do {
-            let data = try await contentProvider.data("rhythm-puzzle-v3.json")
-            let ink = try await contentProvider.data("rhythm-engraving-v3.json")
+            let data = try await contentProvider.data("rhythm-puzzle-v4.json")
+            let ink = try await contentProvider.data("rhythm-engraving-v4.json")
             var legacy: [Data] = []
-            for name in ["rhythm-puzzle-v1.json","rhythm-puzzle-v2.json"] { legacy.append(try await contentProvider.data(name)) }
+            // A new stage never needs three entire historical banks. Retain
+            // old data only when a standalone draft/history references it.
+            let needed = stageMode ? Set<String>() : Set(journal.records.map(\.gameVersion) + [journal.draft?.record.gameVersion].compactMap { $0 })
+            for version in ["rhythm-puzzle-v1","rhythm-puzzle-v2","rhythm-puzzle-v3"] where needed.contains(version) {
+                legacy.append(try await contentProvider.data(version+".json"))
+            }
             try Task.checkCancellation(); try installCatalog(data,ink:ink,legacy:legacy)
         } catch { if !Task.isCancelled { self.error = error.localizedDescription } }
     }
+    func prepareStage(_ questions: [DrillStageQuestion]) async throws {
+        await prepareContent()
+        guard let catalog, questions.allSatisfy({ q in catalog.rounds.contains { $0.id==q.catalogId && $0.sourceXmlSha256==q.sourceSha256 } }) else {
+            throw SolfegeError.invalidScore(error ?? "스테이지 문제를 준비하지 못했어요.")
+        }
+        try audio.prepare()
+    }
     private func save() {
+        guard !stageMode || stageCommitted else { return }
         do {
             guard let store else { throw SolfegeError.storage("로그인한 학습 공간을 먼저 연결해 주세요.") }
-            try store.save(journal); storageFailed = false
+            var saved = journal
+            if stageMode { saved.draft=preservedDraft }
+            try store.save(saved); storageFailed = false
         } catch { storageFailed = true; self.error = "기기에 기록을 저장하지 못했어요. \(error.localizedDescription)" }
     }
     func retryStorage() { save() }
+    func commitStage() throws {
+        guard stageMode, let store else { return }
+        var completed = journal; completed.draft = preservedDraft
+        try store.save(completed)
+        committedJournal=journal; committedJournal.draft=nil
+        stageCommitted=true
+        sync()
+    }
+    func discardStage() {
+        close(); journal=committedJournal; stageCommitted=false
+        selectedTiePiece=nil; tieMode=false; message=""; missingPosition=nil; page = .setup
+    }
     // Daily Training plays the first round of a regular set.
     func newDailyRound(difficulty: MemoryDifficulty) {
         level = difficulty.rawValue
         newSet(limit:1)
     }
+    func newStageRound(_ q: DrillStageQuestion) {
+        stageCommitted=false
+        guard let catalog, connection != nil, !storageFailed,
+              let round=catalog.rounds.first(where:{ $0.id==q.catalogId }),
+              round.sourceXmlSha256==q.sourceSha256, round.firstMeasure==q.firstMeasure,
+              abs(round.tempoBpm-q.bpm)<0.001, currentRoundIds.contains(round.id) else {
+            error="고정된 스테이지 문제를 확인하지 못했어요."; return
+        }
+        if draft?.finished == false { abandon() }
+        begin(set:[round.id],index:0)
+    }
     func newSet(limit: Int? = nil) {
+        stageCommitted=false
         guard let catalog, connection != nil, !storageFailed else { return }
         if draft != nil && draft?.finished == false { abandon() }
         var bank = catalog; bank.rounds = bank.rounds.filter { currentRoundIds.contains($0.id) }
@@ -136,9 +183,11 @@ import SwiftUI
     }
     private func begin(set: [String], index: Int, hash: String? = nil) {
         guard let r = catalog?.rounds.first(where: { $0.id == set[index] }) else { return }
+        closed=false
         let now = Date()
         let hash = hash ?? catalogHash
         var record = RhythmPlayRecord(catalogSha256:hash,roundId:r.id,choiceOrder:r.choices.shuffled(),startedAt:now,finishedAt:now)
+        record.visibleChoiceOrder = RhythmChoiceDisplay.order(round:r,tiles:tiles,shuffled:record.choiceOrder)
         record.gameVersion = catalogVersions[hash] ?? "rhythm-puzzle-v3"
         let equivalent = Set(catalog?.rounds.filter { $0.questionId == r.questionId && $0.questionVersion == r.questionVersion && $0.firstMeasure == r.firstMeasure }.map(\.id) ?? [])
         record.priorExposures = journal.records.filter { equivalent.contains($0.roundId) }.count
@@ -174,6 +223,9 @@ import SwiftUI
     func listen(reason: String = "replay", includeCountIn: Bool = true) {
         guard round != nil, !storageFailed, !playing, !waitingToPlay, (draft?.record.listens.count ?? 0) < 200 else { return }
         if draft?.finished == true && reason != "reference" { return }
+        if reason == "reference" || (stageMode && reason == "initial") {
+            startListening(reason:reason,includeCountIn:reason != "reference" && includeCountIn); return
+        }
         checkpoint(); anchor = nil; waitingToPlay = true
         startTask = Task { [weak self] in
             do { try await Task.sleep(for:.seconds(1)) } catch { return }
@@ -235,7 +287,17 @@ import SwiftUI
     func remove(_ p: RhythmPlacement) {
         guard canEdit, var draft else { return }
         draft.undo.append(draft.board); draft.board.remove(p,tiles:tiles)
-        journal.draft = draft; checkpoint(); save()
+        journal.draft = draft; selectedTiePiece=nil; message=""; checkpoint(); save()
+    }
+    func move(_ p: RhythmPlacement, to time: RhythmTime) {
+        guard canEdit, var draft, let round else { return }
+        let before = draft.board
+        guard draft.board.move(p,to:time,round:round,tiles:tiles) else {
+            message = "조각이 겹치거나 마디를 넘어요. 들어갈 수 있는 빈칸에 놓아 주세요."; return
+        }
+        guard before != draft.board else { return }
+        draft.undo.append(before); journal.draft = draft
+        missingPosition = nil; message = ""; selectedTiePiece = nil; checkpoint(); save()
     }
     func toggleTie(_ t: RhythmTime) {
         guard canEdit, var draft else { return }
@@ -247,7 +309,8 @@ import SwiftUI
     func connect(_ first: RhythmPlacement, _ second: RhythmPlacement) {
         guard canEdit, var draft else { return }
         let before = draft.board
-        guard draft.board.connect(first,second,tiles:tiles) else { message = "서로 붙어 있는 음표 조각끼리 연결해 주세요. 쉼표는 연결할 수 없어요."; return }
+        if let issue = draft.board.connectionIssue(first,second,tiles:tiles) { message = issue; return }
+        guard draft.board.connect(first,second,tiles:tiles) else { return }
         if before != draft.board { draft.undo.append(before); journal.draft = draft; checkpoint(); save() }
         selectedTiePiece = nil; tieMode = false; message = ""
     }
@@ -259,7 +322,7 @@ import SwiftUI
         let a = min(first.start,p.start), b = max(first.start,p.start)
         guard let left = board.placements.first(where: { $0.start == a }), board.end(left,tiles:tiles) == b,
               board.validBoundaries(tiles:tiles).contains(b) else {
-            selectedTiePiece = p; message = "바로 이웃한 음표 조각끼리 연결해 주세요. 쉼표는 연결할 수 없어요."; return
+            selectedTiePiece = p; message = board.connectionIssue(first,p,tiles:tiles) ?? "연결할 두 음을 다시 선택해 주세요."; return
         }
         if let right = board.placements.first(where: { $0.start == b }) { connect(left,right) }
         selectedTiePiece = nil; tieMode = false
@@ -315,12 +378,13 @@ import SwiftUI
         journal.draft = nil; anchor = nil; save()
     }
     func close() {
+        guard !closed else { return }; closed=true
         // Keep the unfinished round resumable. Finalized records are immutable.
         checkpoint(); stopListening(completed:false); anchor = nil; audio.shutdown(); save()
-        syncTask?.cancel(); syncTask = nil
+        if !stageCommitted { syncTask?.cancel(); syncTask = nil }
     }
     func sync() {
-        guard !syncing, let connection else { return }
+        guard (!stageMode || stageCommitted), !syncing, let connection else { return }
         if connection.demo { syncMessage = "데모 기록은 이 기기에 저장돼요."; return }
         syncing = true; syncMessage = "서버에 기록 저장 중"
         syncTask = Task { [weak self] in
@@ -342,6 +406,7 @@ import SwiftUI
         }
     }
     func makeExport() {
+        guard !stageMode else { return }
         do { if let catalog, let store { exportURL = try store.csv(journal,catalog:catalog) } }
         catch { self.error = error.localizedDescription }
     }

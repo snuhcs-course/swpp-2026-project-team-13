@@ -27,8 +27,8 @@ final class RhythmEngravingTests: XCTestCase {
                 for segment in layout.segments {
                     guard let p = segment.placement else { continue }
                     let drawing = try XCTUnwrap(ink.tiles[p.tileId])
-                    XCTAssertEqual(layout.firstHead(p),segment.x+drawing.symbolXs[0])
-                    XCTAssertEqual(layout.lastHead(p),segment.x+drawing.symbolXs[drawing.symbolXs.count-1])
+                    XCTAssertEqual(try XCTUnwrap(layout.firstHead(p)),segment.x+segment.drawingInset+drawing.symbolXs[0]*segment.drawingScale,accuracy:0.000001)
+                    XCTAssertEqual(try XCTUnwrap(layout.lastHead(p)),segment.x+segment.drawingInset+drawing.symbolXs[drawing.symbolXs.count-1]*segment.drawingScale,accuracy:0.000001)
                     XCTAssertEqual(layout.nearestTime(to:segment.x+segment.width/2,tiles:catalog.tileMap),p.start)
                 }
             }
@@ -52,6 +52,21 @@ final class RhythmEngravingTests: XCTestCase {
         let remainder = try XCTUnwrap(layout.segments.first { $0.placement == nil })
         XCTAssertEqual(remainder.start,RhythmTime(3,2))
         XCTAssertEqual(layout.nearestTime(to:remainder.x+remainder.width/2,tiles:catalog.tileMap),RhythmTime(3,2))
+    }
+    func testBoardWidthAndEveryBeatRemainFixedAfterFillingAndRemoving() throws {
+        let catalog = try ContractJSON.decoder().decode(RhythmCatalog.self,from:Data(contentsOf:resources.appendingPathComponent("rhythm-puzzle-v3.json")))
+        for round in catalog.rounds {
+            for bar in 0..<2 {
+                let empty = RhythmBarLayout(round:round,bar:bar,board:RhythmBoard(),tiles:catalog.tileMap,drawings:[:])
+                let full = RhythmBarLayout(round:round,bar:bar,board:RhythmBoard(placements:round.solution,ties:round.solutionTies),tiles:catalog.tileMap,drawings:[:])
+                XCTAssertEqual(empty.width,full.width)
+                var time=round.measureDuration*bar
+                while time < round.measureDuration*(bar+1) {
+                    XCTAssertEqual(empty.x(at:time),full.x(at:time),accuracy:0.000001)
+                    time=time+round.pulse
+                }
+            }
+        }
     }
     func testClassicalPoolIncludesCreditsAndAllOlderPiecesRemainDrawable() throws {
         let raw = try Data(contentsOf:resources.appendingPathComponent("rhythm-puzzle-v3.json"))

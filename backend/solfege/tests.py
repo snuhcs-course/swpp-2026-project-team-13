@@ -101,6 +101,10 @@ class FlowTests(TestCase):
         for summary in results:
             self.assertEqual(summary["collection"],"classical")
             q = self.client.get(f'/api/v1/questions/{summary["id"]}/').data
+            self.assertGreaterEqual(summary['difficulty_score'],0)
+            self.assertEqual(summary['difficulty_score'],q['difficulty_score'])
+            self.assertEqual(summary['tempo'],q['tempo'])
+            self.assertNotIn('practice_level',q)
             self.assertEqual(q["key_signature"],summary["key_signature"])
             template = self.client.get(urlsplit(q["sheet_layout"]["template_png_url"]).path)
             self.assertEqual(template.status_code,200)

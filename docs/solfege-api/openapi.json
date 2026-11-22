@@ -5419,7 +5419,8 @@
             "enum": [
               "rhythm-puzzle-v1",
               "rhythm-puzzle-v2",
-              "rhythm-puzzle-v3"
+              "rhythm-puzzle-v3",
+              "rhythm-puzzle-v4"
             ]
           },
           "choice_order": {
@@ -5431,6 +5432,14 @@
               "type": "string",
               "pattern": "^[a-f0-9]{64}$"
             }
+          },
+          "visible_choice_order": {
+            "type": "array",
+            "description": "Actual displayed subset after hiding unnecessary non-pulse pieces; must retain every canonical solution piece.",
+            "minItems": 1,
+            "maxItems": 12,
+            "uniqueItems": true,
+            "items": { "type": "string", "pattern": "^[a-f0-9]{64}$" }
           },
           "started_at": {
             "type": "string",

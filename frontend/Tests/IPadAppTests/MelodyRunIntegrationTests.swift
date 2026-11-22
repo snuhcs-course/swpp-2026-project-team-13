@@ -1,8 +1,41 @@
 import XCTest
 import SwiftUI
+import AVFoundation
 @testable import IPadApp
 
 @MainActor final class MelodyRunIntegrationTests: XCTestCase {
+    func testWrongSubmissionsStayOnTheBoardUntilThirdAttemptRevealsAnswer() async throws {
+        let game=makeGame(mode:.memory)
+        defer { game.stop() }
+        await game.start(); try await waitUntil({game.canEnter})
+        game.submit()
+        XCTAssertEqual(game.page,.playing); XCTAssertEqual(game.submissionCount,1)
+        XCTAssertFalse(game.answerRevealed)
+        XCTAssertEqual(game.message,"음정이 일치하지 않아요. 다시 들어보세요.")
+        game.submit()
+        XCTAssertEqual(game.page,.playing); XCTAssertEqual(game.submissionCount,2)
+        XCTAssertFalse(game.answerRevealed)
+        game.submit()
+        XCTAssertEqual(game.page,.result); XCTAssertTrue(game.answerRevealed)
+        await game.start()
+        XCTAssertEqual(game.submissionCount,0); XCTAssertFalse(game.answerRevealed)
+    }
+    func testCorrectingAnAnswerFinishesWithoutRevealingIt() async throws {
+        let game=makeGame(mode:.memory)
+        defer { game.stop() }
+        await game.start(); try await waitUntil({game.canEnter})
+        game.submit()
+        let round=try XCTUnwrap(game.round)
+        for _ in round.targets {
+            if let target=game.answers?.next(in:game.measure) {
+                game.keyDown(round.targets[target].midi); game.keyUp(round.targets[target].midi)
+            }
+        }
+        XCTAssertTrue(game.allEntered)
+        game.submit()
+        XCTAssertEqual(game.page,.result); XCTAssertEqual(game.answers?.result.accuracy,100)
+        XCTAssertFalse(game.answerRevealed)
+    }
     private func makeGame(mode: MelodyMode, early: Bool = false) -> MelodyRunModel {
         let game = MelodyRunModel()
         game.selection = "Batchellor-Charmbury-1884a_1-1-018"
@@ -170,6 +203,77 @@ import SwiftUI
         XCTAssertEqual(exam.session?.id,id); XCTAssertEqual(exam.mainScore,score)
         exam.navigate(.exam); await exam.start(); exam.player.pause()
         XCTAssertNil(exam.error); XCTAssertEqual(exam.session?.attempt.status,"in_progress")
+    }
+    func testActiveAudioCanStopReplayAndRebuildWithoutLosingLiveKeys() async throws {
+        let game = makeGame(mode:.memory)
+        await game.start(); XCTAssertNil(game.error)
+        defer { game.stop() }
+        let round = try XCTUnwrap(game.round), settings = game.settings
+        game.stop()
+        let events = try round.score.segment(from:1,through:1)
+        let timeline = MelodyTimeline(round:round,settings:settings)
+        for _ in 0..<2 {
+            try game.audio.prepare()
+            try game.audio.start(timeline,round:round,settings:settings)
+            try await Task.sleep(for:.milliseconds(200))
+            game.audio.stopClock()
+            XCTAssertTrue(game.audio.isRunning,"Recall must retain the live piano engine")
+            game.audio.noteOn(60); game.audio.noteOff(60)
+            for _ in 0..<2 {
+                try game.audio.replay(events:events,ticks:round.score.timeSignature.ticksPerMeasure,bpm:settings.bpm)
+                try await Task.sleep(for:.milliseconds(200))
+                XCTAssertTrue(game.audio.isRunning)
+            }
+            game.audio.stop(); game.audio.stop()
+            XCTAssertFalse(game.audio.isRunning)
+        }
+    }
+    func testReferencePhraseUsesThePianoSamplerAfterCountIn() async throws {
+        let graph = PianoAudioGraph(), piano = PianoTimbreProbe(), click = PianoTimbreProbe()
+        let audio = MelodyRunAudio(graph:graph)
+        try audio.prepare()
+        defer { audio.stop() }
+        let format = graph.piano.outputFormat(forBus:0)
+        graph.piano.installTap(onBus:0,bufferSize:1024,format:nil) { buffer,_ in piano.append(buffer) }
+        graph.click.installTap(onBus:0,bufferSize:1024,format:nil) { buffer,_ in click.append(buffer) }
+        defer { graph.piano.removeTap(onBus:0); graph.click.removeTap(onBus:0) }
+        let score = MusicScore(tempo:180,measures:2,events:[
+            MusicEvent(midi:69,onset:0,duration:1920),MusicEvent(midi:69,onset:1920,duration:1920)
+        ],symbols:[])
+        let round = try MelodyRound(source:MelodySource(score:score,fifths:0,mode:"major",clef:"G"),start:1,bars:2)
+        var settings = MelodySettings(); settings.bpm = 180; settings.bars = 2
+        let timeline = MelodyTimeline(round:round,settings:settings)
+        try audio.start(timeline,round:round,settings:settings)
+        try await Task.sleep(for:.milliseconds(2300))
+        audio.stopClock()
+        let count = Int(format.sampleRate*0.3)
+        let reference = Array(piano.snapshot().suffix(count)), afterCountIn = Array(click.snapshot().suffix(count))
+        XCTAssertEqual(reference.count,count)
+        XCTAssertGreaterThan(PianoTimbreProbe.rms(reference),0.0001,"The reference must reach the SF2 piano, not the click instrument")
+        XCTAssertLessThan(PianoTimbreProbe.rms(afterCountIn),0.0001,"The count-in sampler must be silent during the melody")
+        XCTAssertGreaterThan(PianoTimbreProbe.power(reference,hz:440,rate:format.sampleRate),
+                             4*PianoTimbreProbe.power(reference,hz:420,rate:format.sampleRate),"Reference A4 must retain its piano pitch")
+        XCTAssertGreaterThan(PianoTimbreProbe.harmonicFraction(reference,rate:format.sampleRate),0.005,"A tuned sine wave is not the sampled piano")
+        let engine=graph.engine, sampler=graph.piano
+        for nextQuestion in [false,true] {
+            piano.reset()
+            if nextQuestion { try audio.start(timeline,round:round,settings:settings) }
+            else { try audio.replay(events:[MusicEvent(midi:69,onset:0,duration:1920)],ticks:1920,bpm:120) }
+            try await Task.sleep(for:.milliseconds(nextQuestion ? 2300 : 700))
+            audio.stopClock()
+            XCTAssertTrue(graph.engine === engine && graph.piano === sampler,"Replays and next questions must retain the prepared sampler graph")
+            let replayed=Array(piano.snapshot().suffix(count))
+            XCTAssertEqual(replayed.count,count)
+            XCTAssertGreaterThan(PianoTimbreProbe.rms(replayed),0.0001)
+            XCTAssertGreaterThan(PianoTimbreProbe.harmonicFraction(replayed,rate:format.sampleRate),0.005,"Replay/next question must not revert to a sine wave")
+        }
+    }
+    func testTimbreRegressionRejectsAPureSineWave() {
+        let rate=48000.0
+        let sine=(0..<12000).map { Float(sin(2*Double.pi*440*Double($0)/rate)) }
+        let rich=sine.enumerated().map { index,value in value+Float(0.3*sin(2*Double.pi*880*Double(index)/rate)) }
+        XCTAssertLessThan(PianoTimbreProbe.harmonicFraction(sine,rate:rate),0.005)
+        XCTAssertGreaterThan(PianoTimbreProbe.harmonicFraction(rich,rate:rate),0.02)
     }
     func testLandscapeKeyboardAndBothClefsRender() async throws {
         let game = makeGame(mode:.memory)

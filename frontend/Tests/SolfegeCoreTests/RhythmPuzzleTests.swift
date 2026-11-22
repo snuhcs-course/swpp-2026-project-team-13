@@ -25,6 +25,30 @@ final class RhythmPuzzleTests: XCTestCase {
         XCTAssertThrowsError(try ContractJSON.decoder().decode(RhythmTime.self,from:Data("\"1/0\"".utf8)))
         XCTAssertThrowsError(try ContractJSON.decoder().decode(RhythmTime.self,from:Data("\"2/4\"".utf8)))
     }
+    func testSpecialChoicesAreHiddenUnlessNeededAndRequiredAnswersAreNeverLost() throws {
+        let catalog = try bank()
+        for round in catalog.rounds {
+            let required=Set(round.solution.map(\.tileId))
+            let essential=required.filter { catalog.tileMap[$0]?.duration != round.pulse }
+            let visible=RhythmChoiceDisplay.order(round:round,tiles:catalog.tileMap,shuffled:round.choices)
+            XCTAssertTrue(required.isSubset(of:Set(visible)))
+            let specials=visible.filter { catalog.tileMap[$0]?.duration != round.pulse }
+            if essential.isEmpty { XCTAssertTrue(specials.isEmpty) }
+            else { XCTAssertLessThanOrEqual(specials.count,max(2,essential.count)) }
+        }
+    }
+    func testMovingAPlacedPieceIsAtomicAndRemovesItsOldTies() throws {
+        var round=try XCTUnwrap(try bank().rounds.first { $0.meter == TimeSignature(numerator:4,denominator:4) })
+        let tile=RhythmTile(id:"quarter",duration:RhythmTime(1),symbols:[note(RhythmTime(1),type:"quarter")])
+        round.choices=[tile.id]; let tiles=[tile.id:tile]
+        let a=RhythmPlacement(tileId:tile.id,start:.zero), b=RhythmPlacement(tileId:tile.id,start:RhythmTime(1))
+        var board=RhythmBoard(placements:[a,b],ties:[RhythmTime(1)])
+        XCTAssertNil(board.connectionIssue(a,b,tiles:tiles))
+        XCTAssertTrue(board.move(a,to:RhythmTime(2),round:round,tiles:tiles)); XCTAssertTrue(board.ties.isEmpty)
+        let moved=try XCTUnwrap(board.placements.first { $0.start == RhythmTime(2) }), before=board
+        XCTAssertFalse(board.move(moved,to:RhythmTime(1),round:round,tiles:tiles)); XCTAssertEqual(board,before)
+        XCTAssertFalse(try XCTUnwrap(board.connectionIssue(b,RhythmPlacement(tileId:tile.id,start:RhythmTime(3)),tiles:tiles)).contains("쉼표"))
+    }
     func testDottedQuarterFillsOneAndAHalfBeatsAndShortPieceCanStartTheAnswer() throws {
         let catalog = try bank(); var round = try XCTUnwrap(catalog.rounds.first { $0.meter == TimeSignature(numerator:4,denominator:4) })
         let dotted = RhythmTile(id:"dotted",duration:RhythmTime(3,2),symbols:[note(RhythmTime(3,2),type:"quarter")])

@@ -279,14 +279,14 @@ enum MIDIFile {
         var n = value, bytes = [UInt8(n & 127)]; n >>= 7
         while n > 0 { bytes.insert(UInt8(n & 127) | 128, at: 0); n >>= 7 }; return bytes
     }
-    static func make(events: [MusicEvent], totalTicks: Int, tempo: Double, velocity: Int = 80, firstNoteVelocity: Int? = nil) -> Data {
+    static func make(events: [MusicEvent], totalTicks: Int, tempo: Double, velocity: Int = 80, firstNoteVelocity: Int? = nil, channel: UInt8 = 0) -> Data {
         let firstOnset = events.filter { $0.midi != nil }.map(\.onset).min()
         let micros = Int((60_000_000 / tempo).rounded())
         var track: [UInt8] = [0,0xff,0x51,3, UInt8((micros >> 16) & 255), UInt8((micros >> 8) & 255), UInt8(micros & 255)]
         var messages: [(Int,Int,[UInt8])] = []
         for e in events { if let midi = e.midi {
-            messages.append((e.onset,1,[0x90,UInt8(midi),UInt8((e.onset == firstOnset ? firstNoteVelocity : nil) ?? velocity)]))
-            messages.append((e.onset+e.duration,0,[0x80,UInt8(midi),0]))
+            messages.append((e.onset,1,[0x90 | (channel & 15),UInt8(midi),UInt8((e.onset == firstOnset ? firstNoteVelocity : nil) ?? velocity)]))
+            messages.append((e.onset+e.duration,0,[0x80 | (channel & 15),UInt8(midi),0]))
         } }
         messages.sort { $0.0 == $1.0 ? $0.1 < $1.1 : $0.0 < $1.0 }
         var previous = 0
@@ -296,6 +296,16 @@ enum MIDIFile {
         var result = Data([0x4d,0x54,0x68,0x64,0,0,0,6,0,0,0,1,1,0xe0,0x4d,0x54,0x72,0x6b])
         result.append(contentsOf: [UInt8((length >> 24) & 255), UInt8((length >> 16) & 255),UInt8((length >> 8) & 255),UInt8(length & 255)])
         result.append(contentsOf: track); return result
+    }
+
+    // Preserve independent instrument tracks before AVAudioSequencer imports
+    // the file. Inputs are format-0 files made above, all at the same 480 PPQ.
+    static func combining(_ tracks: [Data]) -> Data {
+        precondition(!tracks.isEmpty && tracks.count < 65536)
+        let count = UInt16(tracks.count)
+        var result = Data([0x4d,0x54,0x68,0x64,0,0,0,6,0,1,UInt8(count >> 8),UInt8(count & 255),1,0xe0])
+        for track in tracks { result.append(contentsOf:track.dropFirst(14)) }
+        return result
     }
 
     // A single tempo clock schedules the count-in and first score onset; no separate audio starts.

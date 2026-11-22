@@ -1,0 +1,463 @@
+{
+  "version": "drill-stage-sets-1",
+  "stages": [
+    {
+      "number": 1,
+      "game": "echoDragon",
+      "questions": [
+        {
+          "id": "0b353d96-a50d-5cb6-8a83-655526a4f616:1:2",
+          "first_measure": 1,
+          "note_indices": [
+            2,
+            3
+          ],
+          "notes": [
+            67,
+            68
+          ],
+          "bpm": 80,
+          "source_id": "0b353d96-a50d-5cb6-8a83-655526a4f616",
+          "question_id": "0b353d96-a50d-5cb6-8a83-655526a4f616",
+          "source_file": "memory--0b353d96-a50d-5cb6-8a83-655526a4f616-v2.xml",
+          "source_sha256": "ed554a320ffa9b94a5010e06ba6007dec9a680138ce97b46e69ca5b1ef414ac0",
+          "collection": "classical"
+        },
+        {
+          "id": "10537bff-5960-5cbe-aa30-e306a8a9d3a3:2:5",
+          "first_measure": 2,
+          "note_indices": [
+            5,
+            6
+          ],
+          "notes": [
+            67,
+            66
+          ],
+          "bpm": 80,
+          "source_id": "10537bff-5960-5cbe-aa30-e306a8a9d3a3",
+          "question_id": "10537bff-5960-5cbe-aa30-e306a8a9d3a3",
+          "source_file": "memory--10537bff-5960-5cbe-aa30-e306a8a9d3a3-v2.xml",
+          "source_sha256": "84bcdecfbf3c62776c0bfc007664e37167c767ee7c054ab32542bb3390162643",
+          "collection": "intermediate"
+        },
+        {
+          "id": "1482afb2-2476-58f1-bd19-dbb9f5cca7cc:1:3",
+          "first_measure": 1,
+          "note_indices": [
+            3,
+            4
+          ],
+          "notes": [
+            74,
+            75
+          ],
+          "bpm": 80,
+          "source_id": "1482afb2-2476-58f1-bd19-dbb9f5cca7cc",
+          "question_id": "1482afb2-2476-58f1-bd19-dbb9f5cca7cc",
+          "source_file": "memory--1482afb2-2476-58f1-bd19-dbb9f5cca7cc-v1.xml",
+          "source_sha256": "102b77298f093d8fe722b539dbe30d32d1001b9af7832876b19db6b7a107a48c",
+          "collection": "classical"
+        },
+        {
+          "id": "1482afb2-2476-58f1-bd19-dbb9f5cca7cc:2:4",
+          "first_measure": 2,
+          "note_indices": [
+            4,
+            5
+          ],
+          "notes": [
+            72,
+            71
+          ],
+          "bpm": 80,
+          "source_id": "1482afb2-2476-58f1-bd19-dbb9f5cca7cc",
+          "question_id": "1482afb2-2476-58f1-bd19-dbb9f5cca7cc",
+          "source_file": "memory--1482afb2-2476-58f1-bd19-dbb9f5cca7cc-v1.xml",
+          "source_sha256": "102b77298f093d8fe722b539dbe30d32d1001b9af7832876b19db6b7a107a48c",
+          "collection": "classical"
+        },
+        {
+          "id": "1687ab99-f61c-55c6-b018-32b46a06fc32:2:5",
+          "first_measure": 2,
+          "note_indices": [
+            5,
+            6
+          ],
+          "notes": [
+            61,
+            62
+          ],
+          "bpm": 80,
+          "source_id": "1687ab99-f61c-55c6-b018-32b46a06fc32",
+          "question_id": "1687ab99-f61c-55c6-b018-32b46a06fc32",
+          "source_file": "memory--1687ab99-f61c-55c6-b018-32b46a06fc32-v1.xml",
+          "source_sha256": "1bd6aceb97bf3851f1200d119f0a98b493a985eea79f6d0c24f7925a8e06acf9",
+          "collection": "classical"
+        },
+        {
+          "id": "19052efc-b50b-5948-8a48-36c66da4a63c:1:3",
+          "first_measure": 1,
+          "note_indices": [
+            3,
+            4
+          ],
+          "notes": [
+            68,
+            69
+          ],
+          "bpm": 80,
+          "source_id": "19052efc-b50b-5948-8a48-36c66da4a63c",
+          "question_id": "19052efc-b50b-5948-8a48-36c66da4a63c",
+          "source_file": "memory--19052efc-b50b-5948-8a48-36c66da4a63c-v2.xml",
+          "source_sha256": "d330ad36b3d85457caeac32034e4c23fb027cf84e00522e86db1464f4b12a027",
+          "collection": "classical"
+        }
+      ]
+    },
+    {
+      "number": 2,
+      "game": "memoryRun",
+      "questions": [
+        {
+          "id": "Batchellor-Charmbury-1884b_2-2-012:v1:7:2",
+          "catalog_id": "Batchellor-Charmbury-1884b_2-2-012:v1:7:2",
+          "bpm": 72,
+          "first_measure": 7,
+          "bars": 2,
+          "source_id": "Batchellor-Charmbury-1884b_2-2-012",
+          "question_id": "ddaba68c-2224-58cf-a1cb-5322d60995c6",
+          "source_file": "melody--Batchellor-Charmbury-1884b_2-2-012.xml",
+          "source_sha256": "78db0ede99eab6ba780e0d8514acf69858a639e140ae640b1c41c606f3150b4f",
+          "collection": "library"
+        },
+        {
+          "id": "Hollis-1915_20-06:v1:7:2",
+          "catalog_id": "Hollis-1915_20-06:v1:7:2",
+          "bpm": 72,
+          "first_measure": 7,
+          "bars": 2,
+          "source_id": "Hollis-1915_20-06",
+          "question_id": "6e969053-2717-5444-aa58-1211b86df03b",
+          "source_file": "melody--Hollis-1915_20-06.xml",
+          "source_sha256": "cc6b10648c623a7505d0ba6969baa119d34825c10081f4405971dc0a4e81ee5f",
+          "collection": "library"
+        },
+        {
+          "id": "Somervell-1911_025:v1:1:2",
+          "catalog_id": "Somervell-1911_025:v1:1:2",
+          "bpm": 72,
+          "first_measure": 1,
+          "bars": 2,
+          "source_id": "Somervell-1911_025",
+          "question_id": "953002a3-90bd-561e-ae3d-a5f0e02f6090",
+          "source_file": "melody--Somervell-1911_025.xml",
+          "source_sha256": "1d21e275faf97cf039f4742b5243a7bf595d629368d547e3d9cc3672478acbb6",
+          "collection": "library"
+        },
+        {
+          "id": "Cole-Lewis-1904_1-01-035:v1:1:2",
+          "catalog_id": "Cole-Lewis-1904_1-01-035:v1:1:2",
+          "bpm": 72,
+          "first_measure": 1,
+          "bars": 2,
+          "source_id": "Cole-Lewis-1904_1-01-035",
+          "question_id": "09be3f8a-7e64-5076-80a9-ddeb3fbc36be",
+          "source_file": "melody--Cole-Lewis-1904_1-01-035.xml",
+          "source_sha256": "e58ab9a959b3ee76f314ac7aecea816dbccd56551f87156f3d91ac261a42906d",
+          "collection": "library"
+        }
+      ]
+    },
+    {
+      "number": 3,
+      "game": "rhythmPuzzle",
+      "questions": [
+        {
+          "id": "94de30897f71905bc38b964f7768e47a9005fb4115580c3ec9e0490e364f832a",
+          "catalog_id": "94de30897f71905bc38b964f7768e47a9005fb4115580c3ec9e0490e364f832a",
+          "question_id": "67dc7c81-cb27-5af6-ba8b-79741c476889",
+          "question_version": 2,
+          "first_measure": 5,
+          "bars": 2,
+          "source_sha256": "a0a574bb1bb100ff6da8a6e2c44a4870a794a49f45b1c21843748c6797722430",
+          "collection": "classical",
+          "bpm": 80
+        },
+        {
+          "id": "37c8043de6d551f2b0676d2141ddc3374efd9b6cabea821f85e8c43a67fc1c42",
+          "catalog_id": "37c8043de6d551f2b0676d2141ddc3374efd9b6cabea821f85e8c43a67fc1c42",
+          "question_id": "67dc7c81-cb27-5af6-ba8b-79741c476889",
+          "question_version": 2,
+          "first_measure": 3,
+          "bars": 2,
+          "source_sha256": "a0a574bb1bb100ff6da8a6e2c44a4870a794a49f45b1c21843748c6797722430",
+          "collection": "classical",
+          "bpm": 80
+        },
+        {
+          "id": "1b4e2e7bbe35c060850f799e502db86846631113524b5d53f7aa9e6182f08c3e",
+          "catalog_id": "1b4e2e7bbe35c060850f799e502db86846631113524b5d53f7aa9e6182f08c3e",
+          "question_id": "674f4d3b-1121-5932-bdbc-00abb48d0f9a",
+          "question_version": 2,
+          "first_measure": 1,
+          "bars": 2,
+          "source_sha256": "5924f233923bd7a6af3c5ac0af32c30bb4d3f2989eef5e2528660a0a69177156",
+          "collection": "classical",
+          "bpm": 80
+        },
+        {
+          "id": "41c7e31cbe93215be416e5bf4777441669eb1421d4f3950d4facbe8ebe7db9f1",
+          "catalog_id": "41c7e31cbe93215be416e5bf4777441669eb1421d4f3950d4facbe8ebe7db9f1",
+          "question_id": "e50457cd-4da3-5f93-bda8-e916c7dd4fde",
+          "question_version": 2,
+          "first_measure": 3,
+          "bars": 2,
+          "source_sha256": "c90c82d11235ab838eeefde8df25b553a4f2e3918729a27094cc4ea3ddec42d8",
+          "collection": "classical",
+          "bpm": 82.5
+        },
+        {
+          "id": "e029eda7c225b37c9dc80be42e2048f7b3001f384decd458941a0b692c27e558",
+          "catalog_id": "e029eda7c225b37c9dc80be42e2048f7b3001f384decd458941a0b692c27e558",
+          "question_id": "875f5168-068a-5e58-be5a-54b9f25394d8",
+          "question_version": 2,
+          "first_measure": 7,
+          "bars": 2,
+          "source_sha256": "1938a4271511208f895568cf4fdc82bf85baaa7bbd9d05190a7c804c9ec91cd2",
+          "collection": "classical",
+          "bpm": 80
+        }
+      ]
+    },
+    {
+      "number": 4,
+      "game": "echoDragon",
+      "questions": [
+        {
+          "id": "072aca3f-1f7a-5341-9b9f-68a647093f58:2:3",
+          "first_measure": 2,
+          "note_indices": [
+            3,
+            4
+          ],
+          "notes": [
+            64,
+            67
+          ],
+          "bpm": 80,
+          "source_id": "072aca3f-1f7a-5341-9b9f-68a647093f58",
+          "question_id": "072aca3f-1f7a-5341-9b9f-68a647093f58",
+          "source_file": "memory--072aca3f-1f7a-5341-9b9f-68a647093f58-v1.xml",
+          "source_sha256": "c0d966243cbf5ec3eeb19898480d40c2ba7230d2ac0cbb0729d0b41c5b3833a8",
+          "collection": "classical"
+        },
+        {
+          "id": "10537bff-5960-5cbe-aa30-e306a8a9d3a3:2:6",
+          "first_measure": 2,
+          "note_indices": [
+            6,
+            7
+          ],
+          "notes": [
+            66,
+            69
+          ],
+          "bpm": 80,
+          "source_id": "10537bff-5960-5cbe-aa30-e306a8a9d3a3",
+          "question_id": "10537bff-5960-5cbe-aa30-e306a8a9d3a3",
+          "source_file": "memory--10537bff-5960-5cbe-aa30-e306a8a9d3a3-v2.xml",
+          "source_sha256": "84bcdecfbf3c62776c0bfc007664e37167c767ee7c054ab32542bb3390162643",
+          "collection": "intermediate"
+        },
+        {
+          "id": "1482afb2-2476-58f1-bd19-dbb9f5cca7cc:1:2",
+          "first_measure": 1,
+          "note_indices": [
+            2,
+            3
+          ],
+          "notes": [
+            71,
+            74
+          ],
+          "bpm": 80,
+          "source_id": "1482afb2-2476-58f1-bd19-dbb9f5cca7cc",
+          "question_id": "1482afb2-2476-58f1-bd19-dbb9f5cca7cc",
+          "source_file": "memory--1482afb2-2476-58f1-bd19-dbb9f5cca7cc-v1.xml",
+          "source_sha256": "102b77298f093d8fe722b539dbe30d32d1001b9af7832876b19db6b7a107a48c",
+          "collection": "classical"
+        },
+        {
+          "id": "1687ab99-f61c-55c6-b018-32b46a06fc32:2:1",
+          "first_measure": 2,
+          "note_indices": [
+            1,
+            2
+          ],
+          "notes": [
+            65,
+            68
+          ],
+          "bpm": 80,
+          "source_id": "1687ab99-f61c-55c6-b018-32b46a06fc32",
+          "question_id": "1687ab99-f61c-55c6-b018-32b46a06fc32",
+          "source_file": "memory--1687ab99-f61c-55c6-b018-32b46a06fc32-v1.xml",
+          "source_sha256": "1bd6aceb97bf3851f1200d119f0a98b493a985eea79f6d0c24f7925a8e06acf9",
+          "collection": "classical"
+        },
+        {
+          "id": "1687ab99-f61c-55c6-b018-32b46a06fc32:2:6",
+          "first_measure": 2,
+          "note_indices": [
+            6,
+            7
+          ],
+          "notes": [
+            62,
+            65
+          ],
+          "bpm": 80,
+          "source_id": "1687ab99-f61c-55c6-b018-32b46a06fc32",
+          "question_id": "1687ab99-f61c-55c6-b018-32b46a06fc32",
+          "source_file": "memory--1687ab99-f61c-55c6-b018-32b46a06fc32-v1.xml",
+          "source_sha256": "1bd6aceb97bf3851f1200d119f0a98b493a985eea79f6d0c24f7925a8e06acf9",
+          "collection": "classical"
+        },
+        {
+          "id": "19052efc-b50b-5948-8a48-36c66da4a63c:2:1",
+          "first_measure": 2,
+          "note_indices": [
+            1,
+            2
+          ],
+          "notes": [
+            64,
+            61
+          ],
+          "bpm": 80,
+          "source_id": "19052efc-b50b-5948-8a48-36c66da4a63c",
+          "question_id": "19052efc-b50b-5948-8a48-36c66da4a63c",
+          "source_file": "memory--19052efc-b50b-5948-8a48-36c66da4a63c-v2.xml",
+          "source_sha256": "d330ad36b3d85457caeac32034e4c23fb027cf84e00522e86db1464f4b12a027",
+          "collection": "classical"
+        }
+      ]
+    },
+    {
+      "number": 5,
+      "game": "rhythmPuzzle",
+      "questions": [
+        {
+          "id": "d9c7481be0a3e3cbae240e6f9286424e00224ec8f77ae0358160e434d8d85d88",
+          "catalog_id": "d9c7481be0a3e3cbae240e6f9286424e00224ec8f77ae0358160e434d8d85d88",
+          "question_id": "67dc7c81-cb27-5af6-ba8b-79741c476889",
+          "question_version": 2,
+          "first_measure": 1,
+          "bars": 2,
+          "source_sha256": "a0a574bb1bb100ff6da8a6e2c44a4870a794a49f45b1c21843748c6797722430",
+          "collection": "classical",
+          "bpm": 80
+        },
+        {
+          "id": "61c0faaa807f162f9e19dcc0fe7887093ea5befb9b81e60f802377081536c9bf",
+          "catalog_id": "61c0faaa807f162f9e19dcc0fe7887093ea5befb9b81e60f802377081536c9bf",
+          "question_id": "67dc7c81-cb27-5af6-ba8b-79741c476889",
+          "question_version": 2,
+          "first_measure": 7,
+          "bars": 2,
+          "source_sha256": "a0a574bb1bb100ff6da8a6e2c44a4870a794a49f45b1c21843748c6797722430",
+          "collection": "classical",
+          "bpm": 80
+        },
+        {
+          "id": "91e2f43ccec433c012fa6b46852b41f0bfd91b4f0201f83525fd416c4866ccd5",
+          "catalog_id": "91e2f43ccec433c012fa6b46852b41f0bfd91b4f0201f83525fd416c4866ccd5",
+          "question_id": "e50457cd-4da3-5f93-bda8-e916c7dd4fde",
+          "question_version": 2,
+          "first_measure": 1,
+          "bars": 2,
+          "source_sha256": "c90c82d11235ab838eeefde8df25b553a4f2e3918729a27094cc4ea3ddec42d8",
+          "collection": "classical",
+          "bpm": 82.5
+        },
+        {
+          "id": "2cfdd03284ba707e7739868aac724bf759fbe5c4395699c96ec8c5801081e5dd",
+          "catalog_id": "2cfdd03284ba707e7739868aac724bf759fbe5c4395699c96ec8c5801081e5dd",
+          "question_id": "128f51a9-5498-50fd-a2a7-1a271883e72b",
+          "question_version": 3,
+          "first_measure": 7,
+          "bars": 2,
+          "source_sha256": "ebf36d701fcd90116316ff124ebe003a8c9d7a82871b84d49450cfbba28a4844",
+          "collection": "dictation",
+          "bpm": 82.5
+        },
+        {
+          "id": "e509ac1bc6abc45fbfd1b0b91e6acf586f8d620ce9587081f247b8d180163480",
+          "catalog_id": "e509ac1bc6abc45fbfd1b0b91e6acf586f8d620ce9587081f247b8d180163480",
+          "question_id": "128f51a9-5498-50fd-a2a7-1a271883e72b",
+          "question_version": 3,
+          "first_measure": 5,
+          "bars": 2,
+          "source_sha256": "ebf36d701fcd90116316ff124ebe003a8c9d7a82871b84d49450cfbba28a4844",
+          "collection": "dictation",
+          "bpm": 82.5
+        }
+      ]
+    },
+    {
+      "number": 6,
+      "game": "memoryRun",
+      "questions": [
+        {
+          "id": "Hollis-1915_24-01:v1:3:2",
+          "catalog_id": "Hollis-1915_24-01:v1:3:2",
+          "bpm": 80,
+          "first_measure": 3,
+          "bars": 2,
+          "source_id": "Hollis-1915_24-01",
+          "question_id": "83a4f636-c0aa-5312-b7ae-1a353bcd0874",
+          "source_file": "melody--Hollis-1915_24-01.xml",
+          "source_sha256": "3990743fa7adc6482e6fd61440e8eafe18cc7719b82c79eba52aefee7e23a561",
+          "collection": "library"
+        },
+        {
+          "id": "Cole-Lewis-1904_1-01-029:v1:5:2",
+          "catalog_id": "Cole-Lewis-1904_1-01-029:v1:5:2",
+          "bpm": 80,
+          "first_measure": 5,
+          "bars": 2,
+          "source_id": "Cole-Lewis-1904_1-01-029",
+          "question_id": "8351e14a-9fb8-589a-9345-4a795adccf73",
+          "source_file": "melody--Cole-Lewis-1904_1-01-029.xml",
+          "source_sha256": "b044f7d035983f17f129d8c6cc6e2bddc9aedaa7d66c5583fe285e57ae180d72",
+          "collection": "library"
+        },
+        {
+          "id": "Cole-Lewis-1904_1-01-028:v1:5:2",
+          "catalog_id": "Cole-Lewis-1904_1-01-028:v1:5:2",
+          "bpm": 80,
+          "first_measure": 5,
+          "bars": 2,
+          "source_id": "Cole-Lewis-1904_1-01-028",
+          "question_id": "3c143c0f-3ff5-5e4a-8a9d-c3686f5f20eb",
+          "source_file": "melody--Cole-Lewis-1904_1-01-028.xml",
+          "source_sha256": "1bef97a1a6e51390720d3e8f5df21b6d384488e9a86b05600929d468de0bc675",
+          "collection": "library"
+        },
+        {
+          "id": "Cole-Lewis-1904_1-01-032:v1:1:2",
+          "catalog_id": "Cole-Lewis-1904_1-01-032:v1:1:2",
+          "bpm": 80,
+          "first_measure": 1,
+          "bars": 2,
+          "source_id": "Cole-Lewis-1904_1-01-032",
+          "question_id": "c06897ba-8ec3-50d2-9b53-5853a1358bdc",
+          "source_file": "melody--Cole-Lewis-1904_1-01-032.xml",
+          "source_sha256": "cf9d4ee3098ba56753c9351e7cdaaa0c43bd0d8ca943c7fc7232c226248b17bb",
+          "collection": "library"
+        }
+      ]
+    }
+  ]
+}

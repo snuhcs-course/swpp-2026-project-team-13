@@ -31,6 +31,36 @@
       "size_bytes": 488715,
       "content_type": "application/json"
     },
+    "drill-stage-sets-v1.json": {
+      "sha256": "60320beff321d60776b8647ad7644106effd4d3eda117e66572c663e2276cbde",
+      "size_bytes": 16916,
+      "content_type": "application/json"
+    },
+    "memory-run-v3.json": {
+      "sha256": "e70abfdcb2b3c4c6354c076748acf152d1aa724cd1d415123a19d3ae20e3b209",
+      "size_bytes": 4179935,
+      "content_type": "application/json"
+    },
+    "memory-groove-v2.json": {
+      "sha256": "5883d69fe5f14053d5153fe983e0bd1788bf7a088d2c6b262c7691d8f19d9638",
+      "size_bytes": 3390,
+      "content_type": "application/json"
+    },
+    "rhythm-engraving-v4.json": {
+      "sha256": "596145c8f30515c75cdee010325e0aa0c6e9489a2fc415b922e75ee17ac2f864",
+      "size_bytes": 488715,
+      "content_type": "application/json"
+    },
+    "drill-stage-sets-v2.json": {
+      "sha256": "1b37451b62d2960926f42b61f670007d768fbd9ef808404413b66cce2d8be223",
+      "size_bytes": 61939,
+      "content_type": "application/json"
+    },
+    "drill-stage-sets-v3.json": {
+      "sha256": "e64d93c43c1302233198358eb9eb5b198d1f3c5cc25c22844be73c077b91687a",
+      "size_bytes": 63793,
+      "content_type": "application/json"
+    },
     "melody--Batchellor-Charmbury-1884a_1-1-018.xml": {
       "sha256": "17e6aee8267aed584bd9af3015d88226b9ca0c30f82604466657367565339bc6",
       "size_bytes": 4474,
@@ -4865,6 +4895,16 @@
       "sha256": "d442bd5baa263996020f64fea2f3c10049e602629fbbbb4d683c46c20ac0fc77",
       "size_bytes": 9561,
       "content_type": "application/xml"
+    },
+    "rhythm-puzzle-v4.json": {
+      "sha256": "8c9a1fbbd017c0e51e20f064a1313e90196f59043c277fcf104f79402f491317",
+      "size_bytes": 2984555,
+      "content_type": "application/json"
+    },
+    "classical-difficulty-v1.json": {
+      "sha256": "6af23dae3055d5cabc033d45ebada1fd2242d92cb869121d690931789d3bc300",
+      "size_bytes": 12307,
+      "content_type": "application/json"
     }
   },
   "files": {
@@ -4902,6 +4942,42 @@
       "path": "drills/rhythm-engraving-v3.json",
       "sha256": "2ea1a9451fdda564a04e9138db3214317344e1d7713717d4a3d1eb37c99bef79",
       "size_bytes": 488715,
+      "content_type": "application/json"
+    },
+    "60320beff321d60776b8647ad7644106effd4d3eda117e66572c663e2276cbde": {
+      "path": "drills/drill-stage-sets-v1.json",
+      "sha256": "60320beff321d60776b8647ad7644106effd4d3eda117e66572c663e2276cbde",
+      "size_bytes": 16916,
+      "content_type": "application/json"
+    },
+    "e70abfdcb2b3c4c6354c076748acf152d1aa724cd1d415123a19d3ae20e3b209": {
+      "path": "drills/memory-run-v3.json",
+      "sha256": "e70abfdcb2b3c4c6354c076748acf152d1aa724cd1d415123a19d3ae20e3b209",
+      "size_bytes": 4179935,
+      "content_type": "application/json"
+    },
+    "5883d69fe5f14053d5153fe983e0bd1788bf7a088d2c6b262c7691d8f19d9638": {
+      "path": "drills/memory-groove-v2.json",
+      "sha256": "5883d69fe5f14053d5153fe983e0bd1788bf7a088d2c6b262c7691d8f19d9638",
+      "size_bytes": 3390,
+      "content_type": "application/json"
+    },
+    "596145c8f30515c75cdee010325e0aa0c6e9489a2fc415b922e75ee17ac2f864": {
+      "path": "drills/rhythm-engraving-v4.json",
+      "sha256": "596145c8f30515c75cdee010325e0aa0c6e9489a2fc415b922e75ee17ac2f864",
+      "size_bytes": 488715,
+      "content_type": "application/json"
+    },
+    "1b37451b62d2960926f42b61f670007d768fbd9ef808404413b66cce2d8be223": {
+      "path": "drills/drill-stage-sets-v2.json",
+      "sha256": "1b37451b62d2960926f42b61f670007d768fbd9ef808404413b66cce2d8be223",
+      "size_bytes": 61939,
+      "content_type": "application/json"
+    },
+    "e64d93c43c1302233198358eb9eb5b198d1f3c5cc25c22844be73c077b91687a": {
+      "path": "drills/drill-stage-sets-v3.json",
+      "sha256": "e64d93c43c1302233198358eb9eb5b198d1f3c5cc25c22844be73c077b91687a",
+      "size_bytes": 63793,
       "content_type": "application/json"
     },
     "17e6aee8267aed584bd9af3015d88226b9ca0c30f82604466657367565339bc6": {
@@ -10705,6 +10781,18 @@
       "sha256": "d442bd5baa263996020f64fea2f3c10049e602629fbbbb4d683c46c20ac0fc77",
       "size_bytes": 9561,
       "content_type": "application/xml"
+    },
+    "8c9a1fbbd017c0e51e20f064a1313e90196f59043c277fcf104f79402f491317": {
+      "path": "rhythm-puzzle-v4.json",
+      "sha256": "8c9a1fbbd017c0e51e20f064a1313e90196f59043c277fcf104f79402f491317",
+      "size_bytes": 2984555,
+      "content_type": "application/json"
+    },
+    "6af23dae3055d5cabc033d45ebada1fd2242d92cb869121d690931789d3bc300": {
+      "path": "classical-difficulty-v1.json",
+      "sha256": "6af23dae3055d5cabc033d45ebada1fd2242d92cb869121d690931789d3bc300",
+      "size_bytes": 12307,
+      "content_type": "application/json"
     }
   }
 }

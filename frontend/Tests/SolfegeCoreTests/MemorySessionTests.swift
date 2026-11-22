@@ -25,7 +25,7 @@ final class MemorySessionTests: XCTestCase {
         for level in MemoryDifficulty.allCases {
             for _ in 0..<20 {
                 let set = try bank.makeSet(level:level,using:&rng)
-                XCTAssertEqual(set.map(\.bars),level.barPlan)
+                XCTAssertEqual(set.map(\.bars),[2,2,2,2])
                 XCTAssertEqual(Set(set.map(\.sourceId)).count,4)
                 XCTAssertEqual(Set(set.map(\.fingerprint)).count,4)
                 if level == .beginner {
@@ -36,7 +36,7 @@ final class MemorySessionTests: XCTestCase {
             for score in stride(from:0.0,through:100.0,by:5) { XCTAssertGreaterThan(level.weight(score:score),0) }
         }
         XCTAssertEqual(MemoryDifficulty.beginner.quarterBpm,60)
-        XCTAssertEqual(MemoryDifficulty.intermediate.barPlan,[2,2,4,4])
+        for level in MemoryDifficulty.allCases { XCTAssertEqual(level.barPlan,[2,2,2,2]) }
         XCTAssertEqual(MemoryDifficulty.advanced.quarterBpm,96)
         XCTAssertEqual(MemoryDifficulty.intermediate.tempoLabel(for:TimeSignature(numerator:6,denominator:8)),"♩. = 56")
     }
