@@ -40,7 +40,7 @@ struct MelodyRunView: View {
             .task {
                 game.requireManualStart(); stage?.activity(false)
                 await game.prepareContent(); guard !Task.isCancelled else { return }
-                startDaily()
+                if let stage { game.newStageRound(stage.question) } else { startDaily() }
                 if stage == nil && daily == nil && !TutorialHistory.hasSeen(.memoryRun, scope: tutorialScope) { openTutorial() }
             }
             .onChange(of: game.awaitingStart) { _, ready in

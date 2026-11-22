@@ -115,4 +115,20 @@ import SwiftUI
             }
         }
     }
+    func testHostedSpotlightsHaveReviewableScreenshots() async throws {
+        let pages: [(TutorialKind, Int)] = [(.echoDragon, 1), (.memoryRun, 3), (.rhythmPuzzle, 3), (.exam, 3)]
+        for (kind, page) in pages {
+            let size = CGSize(width: 1133, height: 744)
+            let host = UIHostingController(rootView: TutorialWalkthrough(kind: kind, initialPage: page, done: {}))
+            let window = UIWindow(frame: CGRect(origin: .zero, size: size))
+            window.rootViewController = host; window.makeKeyAndVisible()
+            try await Task.sleep(for: .milliseconds(150))
+            host.view.layoutIfNeeded()
+            let image = UIGraphicsImageRenderer(bounds: host.view.bounds).image { _ in host.view.drawHierarchy(in: host.view.bounds, afterScreenUpdates: true) }
+            let attachment = XCTAttachment(image: image)
+            attachment.name = "tutorial-\(kind.rawValue)-step-\(page)"
+            attachment.lifetime = .keepAlways; add(attachment)
+            window.isHidden = true
+        }
+    }
 }

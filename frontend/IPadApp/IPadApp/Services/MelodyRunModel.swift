@@ -293,6 +293,7 @@ import SwiftUI
             runner?.cancel()
             if stageMode { audio.stopClock(); audio.releaseKeys() } else { audio.stop() }
             round = value; answers = MelodyAnswers(round:value,guideFirst:true); measure = 1; freeRecall = false
+            progress = 0; pulse = 0; remainingSeconds = 0; inputReady = false
             replacementMeasure = nil; message = ""; submissionCount=0; answerRevealed=false
             try audio.prepare()
             page = .playing; paused = false; awaitingStart = manualStartRequired

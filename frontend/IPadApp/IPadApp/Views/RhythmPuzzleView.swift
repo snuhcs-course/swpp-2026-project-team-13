@@ -53,7 +53,8 @@ struct RhythmPuzzleView: View {
         .task {
             game.requireManualStart(); stage?.activity(false)
             await game.prepareContent(); guard !Task.isCancelled else { return }
-            game.sync(); game.makeExport(); startDaily()
+            game.sync(); game.makeExport()
+            if let stage { game.newStageRound(stage.question) } else { startDaily() }
             if stage == nil && daily == nil && !TutorialHistory.hasSeen(.rhythmPuzzle, scope: tutorialScope) { openTutorial() }
         }
         .onChange(of: game.awaitingStart) { _, ready in

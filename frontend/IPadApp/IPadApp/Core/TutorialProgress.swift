@@ -1,4 +1,5 @@
 import Foundation
+import CoreGraphics
 
 enum TutorialKind: String, CaseIterable, Codable {
     case echoDragon, memoryRun, rhythmPuzzle, exam
