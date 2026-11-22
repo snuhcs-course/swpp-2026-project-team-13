@@ -5,13 +5,14 @@ struct RhythmPuzzleView: View {
     @StateObject private var game: RhythmPuzzleModel
     @Environment(\.dismiss) private var dismiss
     @Environment(\.scenePhase) private var phase
-    @AppStorage("rhythm-puzzle-tutorial-v3") private var tutorialSeen = false
+    @Environment(\.tutorialScope) private var tutorialScope
     @State private var showingTutorial = false
     @State private var frames: [Int:CGRect] = [:]
     @State private var dragId: String?
     @State private var dragPoint = CGPoint.zero
     @State private var confirmingExit = false
     @State private var confirmingReveal = false
+    @State private var showingSpecialHint = false
     private let daily: DailyGameContext?
     private let stage: DrillStageContext?
     init(connection: RhythmConnection?, daily: DailyGameContext? = nil, stage: DrillStageContext? = nil, preparedGame: RhythmPuzzleModel? = nil) {
@@ -28,7 +29,7 @@ struct RhythmPuzzleView: View {
                             if let stage { StageChip(stage:stage.stage) }
                             Spacer()
                             if game.page == .setup || (game.page == .playing && game.draft?.finished == false) {
-                                Button { game.pause(); showingTutorial = true } label: { Label("게임 방법",systemImage:"questionmark.circle").frame(minHeight:44) }
+                                TutorialHelpButton(action: openTutorial)
                             }
                             Button(action:back) { Image(systemName:"xmark").frame(width:44,height:44) }.accessibilityLabel("뒤로가기")
                         }
@@ -49,7 +50,26 @@ struct RhythmPuzzleView: View {
         }.tint(SolfegeTheme.violet).preferredColorScheme(.light)
         .environment(\.rhythmEngraving,game.engraving)
         .overlay { if game.contentLoading { ProgressView("문제를 준비하고 있어요").padding(24).background(.regularMaterial,in:RoundedRectangle(cornerRadius:18)) } }
-        .task { await game.prepareContent(); guard !Task.isCancelled else { return }; game.sync(); game.makeExport(); if !tutorialSeen { showingTutorial = true } else { startDaily() } }
+        .task {
+            game.requireManualStart(); stage?.activity(false)
+            await game.prepareContent(); guard !Task.isCancelled else { return }
+            game.sync(); game.makeExport(); startDaily()
+            if stage == nil && daily == nil && !TutorialHistory.hasSeen(.rhythmPuzzle, scope: tutorialScope) { openTutorial() }
+        }
+        .onChange(of: game.awaitingStart) { _, ready in
+            if ready && !TutorialHistory.hasSeen(.rhythmPuzzle, scope: tutorialScope) { openTutorial() }
+        }
+        .onChange(of: game.playing) { _, playing in
+            guard !playing, !game.awaitingStart, !showingTutorial, !confirmingExit, !confirmingReveal,
+                  game.draft?.finished == false, game.draft?.hasListened == true,
+                  let round = game.round,
+                  TutorialHistory.store(scope: tutorialScope)?.hasSeenHint(.rhythmSpecialLengths) != true else { return }
+            let ids = game.draft?.record.visibleChoiceOrder ?? round.choices
+            if ids.contains(where: { id in
+                guard let tile = game.tiles[id] else { return false }
+                return tile.duration != round.pulse || tile.symbols.contains { $0.actual != $0.normal }
+            }) { showingSpecialHint = true }
+        }
         .onChange(of:game.draft?.finished == true) { _, finished in if finished {
             if let daily { do { try game.commitStage(); daily.finished() } catch { game.error=error.localizedDescription } }
             let correct=game.draft?.record.outcome == "correct"
@@ -57,8 +77,18 @@ struct RhythmPuzzleView: View {
         } }
         .onChange(of:game.page) { _, page in if page == .summary && stage == nil { do { try game.commitStage() } catch { game.error=error.localizedDescription } } }
         .onChange(of:stage?.question.id) { _, _ in if let stage { game.newStageRound(stage.question) } }
-        .sheet(isPresented:$showingTutorial,onDismiss:{ startDaily(); game.activate() }) {
-            RhythmTutorialView { tutorialSeen = true; showingTutorial = false }
+        .overlay {
+            if showingTutorial {
+                TutorialWalkthrough(kind: .rhythmPuzzle) {
+                    game.finishTutorial(); showingTutorial = false
+                    if game.page == .setup { startDaily() }
+                }
+            } else if game.tutorialPaused {
+                VStack(spacing: 18) {
+                    Text("준비되면 이어서 해요").font(.title3.bold())
+                    Button("계속하기") { stage?.activity(true); game.continueAfterTutorial() }.buttonStyle(PrimaryButton())
+                }.frame(maxWidth: .infinity, maxHeight: .infinity).background(.regularMaterial)
+            }
         }
         .alert(confirmingExit ? "게임 종료" : confirmingReveal ? "정답을 볼까요?" : "확인이 필요해요",
                isPresented:Binding(get:{confirmingExit || confirmingReveal || game.error != nil},set:{if !$0 { confirmingExit=false; confirmingReveal=false; game.error=nil }})) {
@@ -109,7 +139,7 @@ struct RhythmPuzzleView: View {
             HStack(alignment:.center) {
                 Text("\(round.meter.numerator)/\(round.meter.denominator)").font(.system(size:34,weight:.bold,design:.rounded))
                 Text(round.tempoLabel).font(.subheadline).foregroundStyle(.secondary)
-                Text(game.waitingToPlay ? "잠시 후 재생" : game.playing ? "선율 재생 중" : draft.finished ? "결과 확인" : "리듬을 채우세요")
+                Text(game.awaitingStart ? "시작을 눌러주세요" : game.waitingToPlay ? "잠시 후 재생" : game.playing ? "선율 재생 중" : draft.finished ? "결과 확인" : "리듬을 채우세요")
                     .font(.caption).foregroundStyle(.secondary)
                 Spacer()
                 if game.waitingToPlay { ProgressView().controlSize(.small).accessibilityLabel("1초 후 재생") }
@@ -151,11 +181,22 @@ struct RhythmPuzzleView: View {
                     }
                 }
             }.allowsHitTesting(game.canEdit).opacity(draft.finished ? 0.5 : 1)
+                .popover(isPresented: $showingSpecialHint) {
+                    VStack(alignment: .leading, spacing: 16) {
+                        Text("조각의 길이를 확인해보세요").font(.headline)
+                        Text("색이 있는 조각은 한 박보다 길거나 짧아요.\n남은 반 박은 작은 점선 칸으로 표시돼요.\n셋잇단음표는 한 조각으로 넣을 수 있어요.")
+                            .font(.subheadline).lineSpacing(5)
+                        Button("알겠어요") { showingSpecialHint = false }.buttonStyle(PrimaryButton(compact: true))
+                    }.padding(24).frame(maxWidth: 360).presentationCompactAdaptation(.popover)
+                }
+                .onChange(of: showingSpecialHint) { _, shown in
+                    if !shown { try? TutorialHistory.store(scope: tutorialScope)?.markHintSeen(.rhythmSpecialLengths) }
+                }
             HStack(spacing:14) {
                 Button { game.listen(includeCountIn:false) } label: { RhythmReplayIcon().frame(width:32,height:32) }
-                    .buttonStyle(.bordered).disabled(game.playing || game.waitingToPlay || draft.finished).accessibilityLabel("바로 다시 듣기").help("바로 다시 듣기")
+                    .buttonStyle(.bordered).disabled(game.awaitingStart || game.playing || game.waitingToPlay || draft.finished).accessibilityLabel("바로 다시 듣기").help("바로 다시 듣기")
                 Button { game.listen(includeCountIn:true) } label: { RhythmReplayIcon(withMetronome:true).frame(width:32,height:32) }
-                    .buttonStyle(.bordered).disabled(game.playing || game.waitingToPlay || draft.finished).accessibilityLabel("예비박부터 다시 듣기").help("예비박부터 다시 듣기")
+                    .buttonStyle(.bordered).disabled(game.awaitingStart || game.playing || game.waitingToPlay || draft.finished).accessibilityLabel("예비박부터 다시 듣기").help("예비박부터 다시 듣기")
                 Button { game.undo() } label: { Image(systemName:"arrow.uturn.backward").frame(width:28,height:28) }
                     .buttonStyle(.bordered).disabled(!game.canEdit || draft.undo.isEmpty).accessibilityLabel("되돌리기")
                 Spacer(minLength:24)
@@ -171,7 +212,10 @@ struct RhythmPuzzleView: View {
                     .buttonStyle(.bordered).tint(game.tieMode ? .blue : SolfegeTheme.violet).disabled(!game.canEdit)
                     .accessibilityLabel("타이 연결").help("타이 연결")
                     .accessibilityValue(game.tieMode ? "연결할 두 조각을 선택" : "꺼짐")
-                if draft.finished, let daily { DailyNextButton(nextTitle:daily.nextTitle) { game.close(); daily.next() } }
+                if game.awaitingStart {
+                    Button("시작") { stage?.activity(true); game.startPreparedRound() }.buttonStyle(PrimaryButton()).frame(width: 150)
+                        .accessibilityIdentifier("rhythm-start")
+                } else if draft.finished, let daily { DailyNextButton(nextTitle:daily.nextTitle) { game.close(); daily.next() } }
                 else if draft.finished, let stage {
                     Button(stage.nextTitle,action:stage.next).buttonStyle(PrimaryButton()).frame(width:150).accessibilityIdentifier("drill-stage-next")
                 }
@@ -179,6 +223,9 @@ struct RhythmPuzzleView: View {
                 else { Button("제출") { game.submit() }.buttonStyle(PrimaryButton()).frame(width:150).disabled(!game.canSubmit) }
             }.padding(.top,6)
         }
+    }
+    private func openTutorial() {
+        dragId = nil; stage?.activity(false); game.suspendForTutorial(); showingTutorial = true
     }
     private func drop(_ id: String, at location: CGPoint) {
         guard let round = game.round else { return }

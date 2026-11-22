@@ -14,6 +14,7 @@ struct ContentView: View {
             } else { mainInterface }
         }
         .tint(SolfegeTheme.violet).preferredColorScheme(.light)
+        .environment(\.tutorialScope, model.rhythmConnection?.scope)
         .task { await model.connect() }
         .alert("확인이 필요해요", isPresented: Binding(get: { model.error != nil }, set: { if !$0 { model.error = nil } })) { Button("확인") { model.error = nil } } message: { Text(model.error ?? "") }
         .confirmationDialog("서버 로그아웃을 확인하지 못했어요", isPresented: $model.logoutNeedsConfirmation, titleVisibility: .visible) {

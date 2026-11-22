@@ -6,6 +6,7 @@ import UIKit
 // content width and scaled down uniformly on narrower windows.
 struct QuestionIntroView: View {
     @ObservedObject var model: AppModel
+    @State private var showHelp = false
     private static let designWidth: CGFloat = 1100
     // Card, playback order and start row with their minimum gaps.
     private static let minimumHeight: CGFloat = 676
@@ -24,6 +25,13 @@ struct QuestionIntroView: View {
             }
             // The title sits in the bar's centre; no large-title row above the card.
             .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .topBarTrailing) {
+                    if exam { TutorialHelpButton(label: "시험 모드 안내") { showHelp = true } }
+                }
+            }
+            .toolbar(showHelp ? .hidden : .automatic, for: .navigationBar)
+            .overlay { if showHelp { TutorialWalkthrough(kind: .exam) { showHelp = false } } }
         }
     }
 

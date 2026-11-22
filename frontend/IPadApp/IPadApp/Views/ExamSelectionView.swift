@@ -4,6 +4,7 @@ import SwiftUI
 struct ExamSelectionView: View {
     @ObservedObject var model: AppModel
     @State private var showHelp = false
+    @Environment(\.tutorialScope) private var tutorialScope
     var body: some View {
         GeometryReader { geometry in
             VStack(spacing:0) {
@@ -12,10 +13,8 @@ struct ExamSelectionView: View {
                         HStack(spacing:6) { Image(systemName:"chevron.left"); Text("홈") }
                     }.frame(width:88,alignment:.leading).accessibilityIdentifier("exam-selection-home")
                     Spacer(); Text("Exam").font(.system(size:22,weight:.bold)).foregroundStyle(SolfegeTheme.ink); Spacer()
-                    Button { showHelp = true } label: {
-                        Text("?").font(.system(size:19,weight:.medium)).frame(width:38,height:38)
-                            .overlay(Circle().stroke(SolfegeTheme.keyEdge,lineWidth:1.5))
-                    }.frame(width:88,alignment:.trailing).accessibilityLabel("시험 모드 안내")
+                    TutorialHelpButton(label: "시험 모드 안내") { showHelp = true }
+                        .frame(width:88,alignment:.trailing)
                 }.foregroundStyle(SolfegeTheme.violet).padding(.horizontal,28).frame(height:58)
                 VStack(alignment:.leading,spacing:0) {
                     HStack(spacing:14) {
@@ -47,15 +46,10 @@ struct ExamSelectionView: View {
                 }.padding(.horizontal,40).padding(.top,40).padding(.bottom,42)
             }.background(.white).foregroundStyle(SolfegeTheme.ink)
         }
-        .sheet(isPresented:$showHelp) {
-            VStack(alignment:.leading,spacing:24) {
-                HStack { Text("시험 모드").font(.title2.bold()); Spacer(); Button("닫기") { showHelp = false } }
-                Text("도전·적정·쉬운 문제 중 하나를 선택해 시험을 시작하세요.")
-                Text("음계와 정해진 순서의 음원을 듣고 Apple Pencil로 답안을 작성하세요.")
-                Text("제출하면 AI가 채점하고, 시험 점수와 문제 난이도에 따라 레이팅이 바뀝니다.")
-                Button("확인") { showHelp = false }.buttonStyle(PrimaryButton()).frame(maxWidth:.infinity,alignment:.trailing)
-            }.padding(32).presentationDetents([.medium]).presentationDragIndicator(.visible)
+        .overlay {
+            if showHelp { TutorialWalkthrough(kind: .exam) { showHelp = false } }
         }
+        .task { if !TutorialHistory.hasSeen(.exam, scope: tutorialScope) { showHelp = true } }
         .accessibilityIdentifier("exam-selection")
     }
 }

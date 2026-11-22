@@ -134,7 +134,7 @@ import AVFoundation
             let image = try XCTUnwrap(ImageRenderer(content:content).uiImage)
             let attachment = XCTAttachment(image:image); attachment.name = "memory-connected-\(Int(width))"; attachment.lifetime = .keepAlways; add(attachment)
         }
-        let tutorial = ImageRenderer(content:MemoryTutorialView(done:{}).frame(width:834,height:1000))
+        let tutorial = ImageRenderer(content:TutorialWalkthrough(kind:.memoryRun,done:{}).frame(width:834,height:1000))
         XCTAssertNotNil(tutorial.uiImage)
     }
     func testExpandedPoolContainsOtherKeysClassicalAndIntermediateWithoutAdvancedDictation() {

@@ -7,6 +7,8 @@ struct ExamView: View {
     @ObservedObject var drawing: DrawingController
     @ObservedObject var player: PianoPlayback
     @State private var confirmSubmit = false
+    @State private var showHelp = false
+    @Environment(\.tutorialScope) private var tutorialScope
 
     private var attempt: Attempt? { model.session?.attempt }
     private var practice: Bool { attempt?.studyMode != .exam }
@@ -23,6 +25,21 @@ struct ExamView: View {
             footer.padding(.horizontal, 28).padding(.vertical, 16)
         }
         .background(SolfegeTheme.background)
+        .toolbar {
+            ToolbarItem(placement: .topBarTrailing) {
+                if !practice { TutorialHelpButton(label: "시험 모드 안내") { showHelp = true } }
+            }
+        }
+        .toolbar(showHelp ? .hidden : .automatic, for: .navigationBar)
+        .overlay {
+            if showHelp {
+                TutorialWalkthrough(kind: .exam, runningExam: !practice && attempt?.status == "in_progress") { showHelp = false }
+            }
+        }
+        .task(id: attempt?.id) {
+            // Never interrupt an already running timed exam with an automatic guide.
+            if !practice && attempt?.status == "ready" && !TutorialHistory.hasSeen(.exam, scope: tutorialScope) { showHelp = true }
+        }
     }
 
     // MARK: Header — key/meter/tempo · segment progress · writing timer

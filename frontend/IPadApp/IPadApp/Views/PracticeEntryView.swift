@@ -127,11 +127,7 @@ private struct PracticeNavigationBar: View {
                     HStack(spacing: 6) { Image(systemName: "chevron.left"); Text(backTitle) }.frame(minHeight: 44)
                 }.accessibilityIdentifier("practice-back")
                 Spacer()
-                Button(action: help) {
-                    Text("?").font(.system(size: 19, weight: .medium)).frame(width: 38, height: 38)
-                        .overlay(Circle().stroke(SolfegeTheme.keyEdge.opacity(0.65), lineWidth: 1))
-                        .frame(width: 44, height: 44)
-                }.accessibilityLabel("연습 모드 안내").accessibilityIdentifier("practice-help")
+                TutorialHelpButton(label: "연습 모드 안내", action: help).accessibilityIdentifier("practice-help")
             }.font(.system(size: 16)).foregroundStyle(SolfegeTheme.violet)
         }.padding(.horizontal, 28).frame(height: 72)
     }

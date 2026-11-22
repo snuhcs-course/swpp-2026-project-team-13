@@ -16,7 +16,7 @@ struct MainHomeView: View {
     }
     private let entries = [
         Entry(id: "daily", title: "Daily Training", symbol: "sun.max", detail: "미니게임 2개와 Practice 2문제를 매일 새로 풀어요", action: .daily),
-        Entry(id: "drill", title: "Drill", symbol: "pianokeys", detail: "건반 계단을 한 칸씩 오르며 미니게임을 풀어요", action: .open(.minigames), needsServer: false),
+        Entry(id: "drill", title: "Minigames", symbol: "pianokeys", detail: "건반 계단을 한 칸씩 오르며 미니게임을 풀어요", action: .open(.minigames), needsServer: false),
         Entry(id: "practice", title: "Practice", symbol: "pencil", detail: StudyMode.practice.detail, action: .open(.home)),
         Entry(id: "exam", title: "Exam", symbol: "music.note.list", detail: StudyMode.exam.detail, action: .recommendedExam, accent: true),
     ]

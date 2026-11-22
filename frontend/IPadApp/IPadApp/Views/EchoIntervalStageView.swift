@@ -7,10 +7,11 @@ struct EchoIntervalStageView: View {
     let exit: () -> Void
     @StateObject private var game: EchoIntervalStageModel
     @Environment(\.scenePhase) private var scenePhase
-    @AppStorage("echo-interval-tutorial-v1") private var tutorialSeen = false
+    @Environment(\.tutorialScope) private var tutorialScope
     @State private var help = false
     @State private var visible = false
     @State private var confirmingExit = false
+    @State private var continueAfterHelp = false
     init(stage: DrillStage, model: EchoIntervalStageModel? = nil, mastered: @escaping () -> Void, exit: @escaping () -> Void) {
         self.stage=stage; self.mastered=mastered; self.exit=exit
         _game=StateObject(wrappedValue:model ?? EchoIntervalStageModel(stage:EchoIntervalStage.forStair(stage.number) ?? EchoIntervalStage(1)))
@@ -42,16 +43,16 @@ struct EchoIntervalStageView: View {
         }
         .background(SolfegeTheme.background.ignoresSafeArea()).tint(SolfegeTheme.violet)
         .preferredColorScheme(.light)
-        .task { visible=true; if tutorialSeen { game.resume() } else { help=true } }
+        .task { visible=true; if !TutorialHistory.hasSeen(.echoDragon, scope: tutorialScope) { openTutorial() } }
         .onChange(of:game.phase) { _, phase in if phase == .completed { mastered() } }
         .onChange(of:scenePhase) { _, phase in
             if phase != .active { game.suspend() }
-            else if visible && !help && !confirmingExit { game.resume() }
+            else if visible && !help && !confirmingExit && !continueAfterHelp { game.resume() }
         }
         .onReceive(NotificationCenter.default.publisher(for:AVAudioSession.interruptionNotification).receive(on:RunLoop.main)) { note in
             if let raw=note.userInfo?[AVAudioSessionInterruptionTypeKey] as? UInt,
                AVAudioSession.InterruptionType(rawValue:raw) == .ended {
-                if visible && !help && !confirmingExit { game.resume() }
+                if visible && !help && !confirmingExit && !continueAfterHelp { game.resume() }
             } else { game.suspend() }
         }
         .onReceive(NotificationCenter.default.publisher(for:AVAudioSession.mediaServicesWereResetNotification).receive(on:RunLoop.main)) { _ in game.suspend() }
@@ -67,10 +68,15 @@ struct EchoIntervalStageView: View {
         .alert("소리를 재생하지 못했어요",isPresented:Binding(get:{game.error != nil},set:{if !$0 {game.error=nil}})) {
             Button("다시 시도") { game.error=nil; game.resume() }
         } message: { Text(game.error ?? "") }
-        .sheet(isPresented:$help,onDismiss:{
-            tutorialSeen=true
-            if visible && scenePhase == .active && !confirmingExit { game.resume() }
-        }) { tutorial }
+        .overlay {
+            if help { TutorialWalkthrough(kind: .echoDragon) { game.finishTutorial(); help=false } }
+            else if continueAfterHelp {
+                VStack(spacing: 18) {
+                    Text("준비되면 이어서 해요").font(.title3.bold())
+                    Button("계속하기") { continueAfterHelp=false; game.resume() }.buttonStyle(PrimaryButton())
+                }.frame(maxWidth: .infinity, maxHeight: .infinity).background(.regularMaterial)
+            }
+        }
     }
     private var header: some View {
         ZStack {
@@ -84,8 +90,7 @@ struct EchoIntervalStageView: View {
                 }
                 Spacer()
                 if !game.run.complete && !game.run.failed {
-                    Button { game.suspend(); help=true } label: { Image(systemName:"questionmark.circle").font(.title3).frame(width:44,height:44) }
-                        .accessibilityLabel("게임 방법")
+                    TutorialHelpButton(action: openTutorial)
                 }
                 Button {
                     game.suspend()
@@ -118,13 +123,16 @@ struct EchoIntervalStageView: View {
         HStack(spacing:18) {
             if !game.run.failed && !game.run.complete {
                 Button { game.listen() } label: { Image(systemName:"arrow.counterclockwise").font(.title3).frame(width:48,height:48) }
-                    .disabled(!game.canListen).accessibilityLabel("드래곤 다시 듣기")
+                    .disabled(!game.hasStarted || !game.canListen).accessibilityLabel("드래곤 다시 듣기")
                 Button { game.undo() } label: { Image(systemName:"arrow.uturn.backward").font(.title3).frame(width:48,height:48) }
                     .disabled(!game.canEnter || game.inputs.isEmpty).accessibilityLabel("한 음 취소")
             }
             Spacer()
             if game.run.failed || game.run.complete {
                 Button("완료하기") { game.suspend(); exit() }.buttonStyle(PrimaryButton())
+            } else if !game.hasStarted {
+                Button("시작") { game.start() }.buttonStyle(PrimaryButton())
+                    .accessibilityIdentifier("echo-start")
             } else if game.phase == .happy {
                 Button("다음") { game.next() }.buttonStyle(PrimaryButton()).accessibilityIdentifier("echo-next")
             } else {
@@ -139,23 +147,9 @@ struct EchoIntervalStageView: View {
             }
         }
     }
-    private var tutorial: some View {
-        VStack(spacing:20) {
-            Text("같은 간격으로 답해요").font(.title.bold())
-            Image("echo-dragon-singing").resizable().scaledToFit().frame(height:180)
-            Text("드래곤의 두 음을 듣고, 표시된 첫 음에서 같은 간격으로 연주해요.")
-                .font(.title3.weight(.medium)).multilineTextAlignment(.center)
-            Text("올라가는 소리는 위로, 내려가는 소리는 아래로 답해요.")
-                .foregroundStyle(SolfegeTheme.muted).multilineTextAlignment(.center)
-            HStack(spacing:12) {
-                Image(systemName:"hand.tap"); Text("첫 음부터 두 번 눌러요")
-                Image(systemName:"arrow.right"); Text("제출하고 내 답을 들어요")
-            }.font(.subheadline.weight(.semibold))
-            EchoDragonHearts(remaining:3)
-            Text("10문제 동안 하트 3개를 함께 써요. 세 번 틀리면 다시 도전해요.")
-                .font(.subheadline).foregroundStyle(SolfegeTheme.muted)
-            Button("시작하기") { help=false }.buttonStyle(PrimaryButton())
-        }.padding(32).presentationDetents([.large])
+    private func openTutorial() {
+        continueAfterHelp = game.hasStarted
+        game.suspendForTutorial(); help = true
     }
 }
 
@@ -228,7 +222,7 @@ private struct EchoHeart: Shape {
 
 // Echo-only highlights keep the common piano and both other games unchanged.
 // White overlays occupy the unobscured lower key area, never cover black keys.
-private struct EchoPianoSelection: View {
+struct EchoPianoSelection: View {
     let range: ClosedRange<Int>
     let selected: Set<Int>
     let playing: Int?
