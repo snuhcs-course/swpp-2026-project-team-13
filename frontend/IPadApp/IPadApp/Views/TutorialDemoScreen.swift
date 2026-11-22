@@ -30,11 +30,12 @@ enum TutorialSamples {
     @Published var error: String?
     private let audio = MelodyRunAudio()
     private var task: Task<Void, Never>?
-    func play(events: [MusicEvent], ticks: Int, bpm: Double = 80, countIn: Bool = false) {
+    func play(events: [MusicEvent], ticks: Int, bpm: Double = 80, countIn: Bool = false, meter: TimeSignature = TimeSignature(numerator: 4, denominator: 4)) {
         stop()
-        let offset = countIn ? 1920 : 0
+        let leadIn = TutorialCountIn(meter: meter, enabled: countIn)
+        let offset = leadIn.ticks
         let notes = events.map { MusicEvent(midi: $0.midi, onset: $0.onset+offset, duration: $0.duration) }
-        let clicks = countIn ? (0..<4).map { MusicEvent(midi: $0 == 0 ? 84 : 76, onset: $0*480, duration: 80) } : []
+        let clicks = leadIn.clicks
         do {
             try audio.replay(events: notes, ticks: ticks+offset, bpm: bpm, clicks: clicks)
             playing = true
@@ -72,12 +73,8 @@ struct TutorialDemoScreen: View {
     private var page: Int { session.page }
     var body: some View {
         GeometryReader { geometry in
-            let scale = min(1, geometry.size.width/780, geometry.size.height/700)
-            game.frame(width: 780, height: 700)
-                .scaleEffect(scale, anchor: .topLeading)
-                .frame(width: 780*scale, height: 700*scale, alignment: .topLeading)
-                .position(x: geometry.size.width/2, y: geometry.size.height/2)
-        }.foregroundStyle(SolfegeTheme.ink).background(SolfegeTheme.background)
+            game(width: geometry.size.width, height: geometry.size.height)
+        }.foregroundStyle(SolfegeTheme.ink).background(SolfegeTheme.background.ignoresSafeArea())
             .environment(\.rhythmEngraving, TutorialSamples.engraving)
             .onChange(of: page) { _, _ in pendingReaction = nil; audio.stop(); dragging = nil }
             .onChange(of: audio.playing) { _, playing in
@@ -94,23 +91,24 @@ struct TutorialDemoScreen: View {
                 Button("확인") { audio.error = nil }
             }
     }
-    private var game: some View {
-        VStack(spacing: 8) {
+    private func game(width: CGFloat, height: CGFloat) -> some View {
+        VStack(spacing: 14) {
             header
             DrillSetProgress(results: Array(repeating: nil, count: kind == .echoDragon ? 10 : kind == .memoryRun ? 4 : 5), index: 0)
             if kind == .echoDragon {
                 Image(audio.playing && pendingReaction == nil ? "echo-dragon-singing" : echoPhase == .happy ? "echo-dragon-happy" : echoPhase == .puzzled ? "echo-dragon-puzzled" : "echo-dragon-waiting")
-                    .resizable().scaledToFit().frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .resizable().scaledToFit().frame(maxWidth: .infinity, maxHeight: .infinity).tutorialTarget(.character)
                 HStack { Text(session.message); Spacer(); Text("♥  ♥  ♥").foregroundStyle(SolfegeTheme.danger) }.font(.subheadline).frame(height: 28)
-                keyboard.frame(height: 178)
+                keyboard.frame(height: min(185, max(130, height*0.25)))
             } else if kind == .memoryRun {
                 HStack { Text("4/4").font(.title.bold()); Text("♩ = 80").foregroundStyle(.secondary); Spacer() }
                 memoryNotation.frame(maxHeight: .infinity)
                 Text(session.message).font(.subheadline).frame(height: 22)
-                keyboard.frame(height: 178)
-            } else { rhythm }
+                keyboard.frame(height: min(185, max(130, height*0.25)))
+            } else { rhythm(width: width) }
             actions
-        }.padding(16).frame(maxWidth: .infinity, maxHeight: .infinity)
+        }.padding(.horizontal, kind == .echoDragon ? 28 : 24).padding(.vertical, 20)
+            .frame(maxWidth: kind == .echoDragon ? 1056 : 1100).frame(maxWidth: .infinity, maxHeight: .infinity)
             .coordinateSpace(name: "rhythm-puzzle")
             .onPreferenceChange(TutorialChoiceFrames.self) { choiceFrames = $0 }
             .onPreferenceChange(RhythmBarFrames.self) { barFrames = $0 }
@@ -156,7 +154,7 @@ struct TutorialDemoScreen: View {
                 .tutorialTarget(.notation).allowsHitTesting(page == 4)
         }
     }
-    @ViewBuilder private var rhythm: some View {
+    @ViewBuilder private func rhythm(width: CGFloat) -> some View {
         if let bank = TutorialSamples.rhythm, let round = TutorialSamples.rhythmRound {
             HStack { Text("\(round.meter.numerator)/\(round.meter.denominator)").font(.title.bold()); Text(round.tempoLabel); Spacer() }
             RhythmStaffSystem(round: round, board: session.board, tiles: bank.tileMap,
@@ -167,17 +165,18 @@ struct TutorialDemoScreen: View {
                 .overlay { rhythmTargets(round: round, tiles: bank.tileMap).allowsHitTesting(false) }
                 .padding(.horizontal, 12).background(.white, in: RoundedRectangle(cornerRadius: 16)).tutorialTarget(.notation)
             Text(session.message).font(.subheadline).frame(height: 18)
-            LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 10), count: 4), spacing: 10) {
+            RhythmChoiceFlow {
                 ForEach(RhythmChoiceDisplay.order(round: round, tiles: bank.tileMap, shuffled: round.choices), id: \.self) { id in
-                    if let tile = bank.tileMap[id] { choice(tile, round: round) }
+                    if let tile = bank.tileMap[id] { choice(tile, round: round, width: width) }
                 }
             }.tutorialTarget(.choices)
             Spacer(minLength: 0)
         }
     }
-    private func choice(_ tile: RhythmTile, round: RhythmRound) -> some View {
-        let enabled = page == 3 && ((!session.didTap && tile.id == session.tapTile) || (session.didTap && !session.didDrag && tile.id == session.dragTile))
-        return RhythmTileFace(tile: tile, pulse: round.pulse).frame(height: 98).scaleEffect(0.59).frame(height: 58)
+    private func choice(_ tile: RhythmTile, round: RhythmRound, width: CGFloat) -> some View {
+        let enabled = session.choiceEnabled(tile.id)
+        let unitWidth = 100*min(1.2, (min(1100, width)-76)/CGFloat(100*(round.totalDuration/round.pulse).value+112))
+        return RhythmTileFace(tile: tile, pulse: round.pulse, unitWidth: unitWidth)
             .contentShape(Rectangle())
             .transformAnchorPreference(key: TutorialAnchors.self, value: .bounds) { value, anchor in
                 if tile.id == session.tapTile { value[.rhythmTapTile] = anchor }
@@ -199,7 +198,7 @@ struct TutorialDemoScreen: View {
                 }, cancelled: { dragging = nil }).accessibilityHidden(true)
             }.allowsHitTesting(enabled)
             .accessibilityAddTraits(.isButton).accessibilityLabel("리듬 조각 \(tile.label(pulse: round.pulse))")
-            .accessibilityAction { if enabled && !session.didTap { _ = session.tapChoice(tile.id) } }
+            .accessibilityAction { if enabled { _ = session.tapChoice(tile.id) } }
             .accessibilityAction(named: "강조된 칸으로 옮기기") {
                 if enabled && session.didTap { _ = session.dropTile(tile.id, at: round.pulse) }
             }
@@ -272,12 +271,12 @@ struct TutorialDemoScreen: View {
             session.clearEcho(); pendingReaction = nil; echoPhase = .singing
             audio.play(events: [MusicEvent(midi: 60, onset: 0, duration: 480), MusicEvent(midi: 64, onset: 640, duration: 480)], ticks: 1120)
         } else if kind == .memoryRun, let score = TutorialSamples.memory?.score {
-            audio.play(events: score.events, ticks: score.totalTicks, countIn: countIn)
+            audio.play(events: score.events, ticks: score.totalTicks, countIn: countIn, meter: score.timeSignature)
         } else if let round = TutorialSamples.rhythmRound {
             audio.play(events: round.audio.compactMap { note in
                 guard let onset = note.onset.ticks, let duration = note.duration.ticks else { return nil }
                 return MusicEvent(midi: note.midi, onset: onset, duration: duration)
-            }, ticks: round.totalDuration.ticks ?? 3840, bpm: round.tempoBpm, countIn: countIn)
+            }, ticks: round.totalDuration.ticks ?? 3840, bpm: round.tempoBpm, countIn: countIn, meter: round.meter)
         }
     }
     private func submit() {

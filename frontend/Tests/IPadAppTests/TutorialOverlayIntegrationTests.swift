@@ -105,6 +105,11 @@ import SwiftUI
         let session = MiniTutorialSession(kind: .rhythmPuzzle)
         let round = try XCTUnwrap(TutorialSamples.rhythmRound)
         let tap = try XCTUnwrap(session.tapTile), drag = try XCTUnwrap(session.dragTile)
+        XCTAssertEqual(tap, round.solution.sorted { $0.start < $1.start }[0].tileId)
+        XCTAssertEqual(drag, round.solution.sorted { $0.start < $1.start }[1].tileId)
+        let dragSymbols = try XCTUnwrap(TutorialSamples.rhythm?.tileMap[drag]?.symbols)
+        XCTAssertEqual(dragSymbols.count, 4)
+        XCTAssertTrue(dragSymbols.allSatisfy { $0.type == "16th" })
         session.showPage(3)
         XCTAssertFalse(session.canAdvance)
         XCTAssertFalse(session.dropTile(drag, at: round.pulse))
@@ -116,12 +121,27 @@ import SwiftUI
         XCTAssertTrue(session.dropTile(drag, at: round.pulse))
         XCTAssertTrue(session.canAdvance)
         XCTAssertEqual(session.board.placements.map(\.start), [.zero, round.pulse])
+        XCTAssertNil(session.taskCaption, "Free input does not show a redundant completion sentence")
+        XCTAssertTrue(round.choices.allSatisfy(session.choiceEnabled))
+        for _ in 2..<8 { XCTAssertTrue(session.tapChoice(tap)) }
+        XCTAssertTrue(session.board.complete(round: round, tiles: try XCTUnwrap(TutorialSamples.rhythm?.tileMap)))
+        session.remove(try XCTUnwrap(session.board.placements.last))
+        XCTAssertTrue(session.dropTile(drag, at: round.pulse*7), "Free practice accepts actual drops too")
         session.showPage(4)
         let first = try XCTUnwrap(session.board.placements.first)
         session.move(first, to: round.pulse*2)
         XCTAssertTrue(session.board.placements.contains { $0.start == round.pulse*2 })
         session.remove(try XCTUnwrap(session.board.placements.first))
         XCTAssertEqual(session.board.placements.count, 1)
+    }
+    func testWritingTutorialHasOneSharedIntroductionAndSubmissionCopy() {
+        let practice = TutorialKind.writingSteps(mode: .practice), exam = TutorialKind.writingSteps(mode: .exam)
+        XCTAssertEqual(practice.map(\.title), exam.map(\.title))
+        XCTAssertEqual(practice.map(\.message), exam.map(\.message))
+        XCTAssertEqual(practice.last?.message, "제출 후에는 답안을 수정할 수 없어요.")
+        XCTAssertTrue(practice[1].message.contains("2분"))
+        XCTAssertNotNil(practice[2].footnote)
+        XCTAssertEqual(practice.filter { $0.footnote != nil }.count, 1)
     }
     func testRhythmTieGuideWaitsForTheButtonThenConnectsTheHighlightedNotes() throws {
         let session = MiniTutorialSession(kind: .rhythmPuzzle)
@@ -152,7 +172,7 @@ import SwiftUI
             XCTAssertNil(model.error)
             model.player.restore(PlaybackCursor(index: 1, phase: "gap", remainingWaitMs: 5000))
             model.player.resume()
-            let host = UIHostingController(rootView: ExamView(model: model, drawing: model.drawing, player: model.player))
+            let host = UIHostingController(rootView: TutorialWritingHost(model: model))
             let window = UIWindow(frame: CGRect(x: 0, y: 0, width: 1133, height: 744))
             window.rootViewController = host; window.makeKeyAndVisible()
             try await Task.sleep(for: .milliseconds(150)); host.view.layoutIfNeeded()
@@ -198,6 +218,43 @@ import SwiftUI
 
 // Run this class in both full-content and slim-device test hosts.
 @MainActor final class TutorialOfflineIntegrationTests: XCTestCase {
+    func testPopupDoesNotMoveOrResizeTheFullViewportDemo() async throws {
+        for kind in [TutorialKind.memoryRun, .rhythmPuzzle] {
+            let session = MiniTutorialSession(kind: kind)
+            session.showPage(3)
+            if kind == .rhythmPuzzle {
+                XCTAssertTrue(session.tapChoice(try XCTUnwrap(session.tapTile)))
+                XCTAssertTrue(session.dropTile(try XCTUnwrap(session.dragTile), at: try XCTUnwrap(TutorialSamples.rhythmRound).pulse))
+            }
+            let size = CGSize(width: 1133, height: 744)
+            let before = try await frames(of: TutorialDemoScreen(session: session, close: {}), size: size)
+            let after = try await frames(of: TutorialWalkthrough(session: session, done: {}), size: size)
+            let protected: [TutorialTarget] = kind == .memoryRun ? [.notation, .keyboard] : [.notation, .choices]
+            for key in protected {
+                let a = try XCTUnwrap(before[key]), b = try XCTUnwrap(after[key])
+                XCTAssertEqual(a.minX, b.minX, accuracy: 0.5); XCTAssertEqual(a.minY, b.minY, accuracy: 0.5)
+                XCTAssertEqual(a.width, b.width, accuracy: 0.5); XCTAssertEqual(a.height, b.height, accuracy: 0.5)
+            }
+            let obstacles = try protected.map { try XCTUnwrap(after[$0]) }
+            let popup = TutorialFloatingLayout(viewport: size, avoiding: obstacles, interactive: true).frame
+            for rect in obstacles { XCTAssertFalse(popup.intersects(rect), "The popup must leave the score and input areas exposed") }
+        }
+    }
+    private func frames<V: View>(of view: V, size: CGSize) async throws -> [TutorialTarget: CGRect] {
+        var latest: [TutorialTarget: CGRect] = [:]
+        let content = view.overlayPreferenceValue(TutorialAnchors.self) { anchors in
+            GeometryReader { proxy in
+                Color.clear.preference(key: TutorialResolvedFrames.self, value: anchors.mapValues { proxy[$0] })
+                    .allowsHitTesting(false)
+            }
+        }.onPreferenceChange(TutorialResolvedFrames.self) { latest = $0 }
+        let host = UIHostingController(rootView: content)
+        let window = UIWindow(frame: CGRect(origin: .zero, size: size))
+        window.rootViewController = host; window.makeKeyAndVisible()
+        defer { window.isHidden = true }
+        try await Task.sleep(for: .milliseconds(200)); host.view.layoutIfNeeded()
+        return latest
+    }
     func testExamplesAreSelfContainedAndHaveNoAttemptOrStageJournal() throws {
         let bank = try XCTUnwrap(TutorialSamples.rhythm)
         try bank.validate()
@@ -237,5 +294,24 @@ import SwiftUI
             attachment.lifetime = .keepAlways; add(attachment)
             window.isHidden = true
         }
+    }
+}
+
+private struct TutorialResolvedFrames: PreferenceKey {
+    static var defaultValue: [TutorialTarget: CGRect] = [:]
+    static func reduce(value: inout [TutorialTarget: CGRect], nextValue: () -> [TutorialTarget: CGRect]) {
+        value.merge(nextValue(), uniquingKeysWith: { _, new in new })
+    }
+}
+
+@MainActor private struct TutorialWritingHost: View {
+    @ObservedObject var model: AppModel
+    var body: some View {
+        NavigationStack { ExamView(model: model, drawing: model.drawing, player: model.player) }
+            .environment(\.writingTutorialHosted, true)
+            .writingTutorial(isPresented: model.writingTutorialOpen,
+                             mode: model.session?.attempt.studyMode ?? .exam, rootHost: true) {
+                model.closeWritingTutorial()
+            }
     }
 }

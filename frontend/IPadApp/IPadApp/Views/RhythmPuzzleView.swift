@@ -305,7 +305,7 @@ struct RhythmTileFace: View {
     }
 }
 
-private struct RhythmChoiceFlow: Layout {
+struct RhythmChoiceFlow: Layout {
     private func positions(_ subviews: Subviews,width: CGFloat) -> ([CGPoint],CGFloat) {
         var points: [CGPoint]=[], x: CGFloat=0, y: CGFloat=0, row: CGFloat=0
         for view in subviews {

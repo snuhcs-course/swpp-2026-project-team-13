@@ -15,7 +15,7 @@ struct WritingScreenLayout<Header: View, Warning: View, Tools: View, Sheet: View
             tools.padding(.horizontal, 28).padding(.bottom, 12)
             sheet.padding(.horizontal, 28)
             footer.padding(.horizontal, 28).padding(.vertical, 16)
-        }.background(SolfegeTheme.background)
+        }.background(SolfegeTheme.background.ignoresSafeArea())
     }
 }
 
@@ -174,7 +174,7 @@ struct WritingScreenFooter<Actions: View>: View {
                     Button("답안 제출", action: {}).buttonStyle(PrimaryButton()).tutorialTarget(.submit)
                 }
             }
-        }.background(SolfegeTheme.background)
+        }.background(SolfegeTheme.background.ignoresSafeArea())
             .writingTutorial(isPresented: true, mode: mode, initialPage: initialPage, done: done)
     }
 }

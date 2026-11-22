@@ -21,16 +21,24 @@
 ## Minigame interaction
 
 - The introductory purple label is **Tutorial**; the black title names the game.
-- Instructions occupy their own right rail (top rail in narrow windows), so the
-  score, keyboard and drag destinations never sit underneath the coach card.
+- The normal full-width demo is retained. There is no scaled demo, left column,
+  or reserved instruction rail. Only the floating popup moves between steps.
+  Placement considers all highlighted regions together; when needed, a shallow
+  popup fits above the score instead of covering the score, keyboard or palette.
 - Memory input/editing steps expose both the score and keyboard. Undo and the
   eraser work on real disposable MelodyAnswers and preserve the other measure.
-- Rhythm step 3 requires tapping one highlighted piece, then dragging another to
-  a designated empty slot. Step 5 requires enabling tie mode and connecting the
+- Rhythm step 3 requires tapping the first answer piece, then dragging the actual
+  second answer piece (four sixteenths in this example) to its designated slot.
+  It then unlocks all twelve choices and the full eight-beat board for free input.
+  Next advances to step 4; there is no redundant completion sentence.
+  Step 5 requires enabling tie mode and connecting the
   two highlighted notes. An animated finger shows each gesture; reduce-motion
   users get a static cue. Next stays disabled until completion; Skip stays usable.
 - The visual mask does not intercept minigame gestures. Each lesson explicitly
   enables the relevant controls, including score/keyboard editing together.
+- Tutorial count-in uses MIDI 60 for the original click sample, exactly like the
+  games. The actual meter determines its beat spacing and total duration; accent
+  is applied with velocity rather than transposing the sample to MIDI 84/76.
 
 ## Shared Practice / Exam guide: 시험 모드
 
@@ -41,7 +49,9 @@ a restored running attempt never automatically opens help.
 
 During an actual question the overlay uses the **actual writing screen**, without
 replacing, resizing or reflowing its score or controls. Highlights have a dashed
-border and an eye badge (**위치 안내**); controls are read-only throughout the guide.
+border; controls are read-only throughout the guide. No eye badges, location
+labels or "안내 중에는…" captions are shown. The overlay is hosted above the
+navigation container and covers safe areas without changing the writing layout.
 Playback, its exact audio position and the remaining writing time pause in both
 Practice and Exam. Closing resumes only if playback was running before opening;
 an existing pause is preserved. Foreground restoration cannot bypass this guard.
@@ -53,6 +63,34 @@ engine, drawing controller, API calls or attempt side effects.
 The segment timer is driven by the persisted playback cursor. The server's
 recommended_end_at is advisory, not an enforced submission deadline; no server
 migration or timer endpoint is required for this pause behavior.
+
+Practice and Exam share the same `.exam` completion key. Entering either mode
+first shows the guide once; entering the other does not show it again. Help can
+always reopen it. Keep the existing per-account v2 history when updating copy.
+
+## Approved copy (2026-11-23)
+
+- Echo 4: **같은 음정으로 답해요** / 드래곤과 같은 음정으로 두 번째 음을 눌러요.
+- Echo 5: **드래곤에게 답해볼까요?** / 제출을 눌러서 드래곤의 반응을 확인해보세요.
+- Rhythm 3: **리듬 조각을 넣어보세요**. Show only the purple tap instruction,
+  then the purple drag instruction. Free input says: 리듬 조각을 **터치하거나
+  끌어놓아서** 악보를 채워 보세요.
+- Rhythm 4: **입력된 리듬 조각도 옮길 수 있어요** / 조각을 터치하면 지워져요.
+  드래그해서 다른 칸으로 옮기거나, 악보 밖으로 끌어내 지울 수도 있어요.
+- Rhythm 5: **이어지는 음은 타이로** / 타이를 켜고, 두 조각을 손가락으로 이어줘요.
+- Writing intro: **시험 모드** / 8마디 단선율을 들으면서, 빈 오선 악보를 완성해요.
+- Writing 1: **구간별로 들어요** / 스케일을 들은 뒤, 표시된 마디 구간을 순서대로 들어요.
+- Writing 2: **남은 필기 시간을 확인해요** / 각 구간 사이에는 20초의 필기 시간이
+  주어져요. 시간이 끝나면 다음 구간으로 넘어가요. 마지막 1~8마디 재생 후에는
+  제출 전까지 2분이 주어져요.
+- Writing 3: **쓰고, 고쳐보세요** / 펜과 지우개를 전환하거나, 펜 굵기를 변경할 수 있어요.
+  The only footnote is: 더블 탭으로도 펜/지우개 전환이 가능해요.
+  (Apple Pencil Pro 또는 Apple Pencil 2세대)
+- Writing 4: **들은 선율을 적어요** / Apple Pencil로 빈 오선에 악보를 그려요.
+- Writing 5: **Practice와 Exam의 차이** / Practice 모드에서는 구간을 터치하면 해당
+  구간으로 바로 넘어갈 수 있어요. Exam 모드에서는 구간을 되돌리거나 진행을 일시정지할 수 없어요.
+- Writing 6: **구간 대기를 건너뛰고 싶다면** / 일찍 필기를 마쳤다면, 바로 다음 구간으로 넘어갈 수 있어요.
+- Writing 7 (both modes): **답안을 제출해요** / 제출 후에는 답안을 수정할 수 없어요.
 
 ## Where to edit
 
@@ -81,7 +119,7 @@ No generated mockup PNGs or full problem banks are added to the app bundle.
 ## Validation
 
 - swift test --package-path frontend includes account/game isolation, corrupt
-  completion-file preservation, and viewport/bubble layout tests.
+  completion-file preservation, multi-target popup placement and meter/click tests.
 - TutorialOverlayIntegrationTests checks manual start, preserved Echo reply/hearts,
   Memory replacement/undo/erase, mandatory Rhythm tap/drop/tie completion, and
   live Practice/Exam clock freezing, geometry preservation and exact resume.

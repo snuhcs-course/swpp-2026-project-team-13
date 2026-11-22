@@ -21,18 +21,11 @@ import SwiftUI
         if let round = TutorialSamples.memory { memory = MelodyAnswers(round: round, guideFirst: true) }
     }
     var tapTile: String? {
-        guard let bank = TutorialSamples.rhythm, let round = TutorialSamples.rhythmRound else { return nil }
-        return round.choices.first { id in
-            guard let tile = bank.tileMap[id] else { return false }
-            return tile.duration == round.pulse && tile.symbols.count == 1 && !tile.symbols[0].rest
-        }
+        TutorialSamples.rhythmRound?.solution.sorted { $0.start < $1.start }.first?.tileId
     }
     var dragTile: String? {
-        guard let bank = TutorialSamples.rhythm, let round = TutorialSamples.rhythmRound else { return nil }
-        return round.choices.first { id in
-            guard let tile = bank.tileMap[id] else { return false }
-            return tile.duration == round.pulse && tile.symbols.count == 2 && tile.symbols.allSatisfy { !$0.rest }
-        } ?? tapTile
+        guard let solution = TutorialSamples.rhythmRound?.solution.sorted(by: { $0.start < $1.start }), solution.count > 1 else { return nil }
+        return solution[1].tileId
     }
     var canAdvance: Bool {
         if kind == .rhythmPuzzle && page == 3 { return didTap && didDrag }
@@ -41,7 +34,7 @@ import SwiftUI
     }
     var taskCaption: String? {
         guard kind == .rhythmPuzzle else { return nil }
-        if page == 3 { return !didTap ? "1. 강조된 조각을 터치해보세요." : !didDrag ? "2. 조각을 점선 칸으로 끌어놓아보세요." : "터치와 드래그를 모두 해봤어요." }
+        if page == 3 { return !didTap ? "1. 강조된 조각을 터치해보세요." : !didDrag ? "2. 리듬 조각을 악보 빈칸에 끌어놓아보세요." : nil }
         if page == 5 { return !tieMode ? "1. 타이 버튼을 터치해보세요." : !didConnect ? "2. 강조된 두 조각을 손가락으로 이어보세요." : "두 조각을 타이로 연결했어요." }
         return nil
     }
@@ -51,6 +44,7 @@ import SwiftUI
             if page == 3 { return [.keyboard, .notation] }
             if page == 4 { return [.notation, .keyboard, .undo, .erase] }
         }
+        if kind == .echoDragon && page == 5 { return [.submit, .character] }
         if kind == .rhythmPuzzle {
             if page == 3 { return !didTap ? [.rhythmTapTile, .notation] : !didDrag ? [.rhythmDragTile, .dropSlot, .notation] : [.notation, .choices] }
             if page == 5 { return tieMode ? [.notation, .tieStart, .tieEnd] : [.tie] }
@@ -104,13 +98,23 @@ import SwiftUI
         answer.clear(measure: selectedBar); memory = answer; replaceSelectedBar = false
     }
     func clearEcho() { echoInputs = [] }
+    var rhythmFreeInput: Bool { kind == .rhythmPuzzle && page == 3 && didDrag }
+    func choiceEnabled(_ id: String) -> Bool {
+        page == 3 && (rhythmFreeInput || (!didTap && id == tapTile) || (didTap && !didDrag && id == dragTile))
+    }
     @discardableResult func tapChoice(_ id: String) -> Bool {
+        if rhythmFreeInput, let round = TutorialSamples.rhythmRound, let tiles = TutorialSamples.rhythm?.tileMap {
+            return placeFreely(id, at: board.firstGap(tiles: tiles), round: round, tiles: tiles)
+        }
         guard kind == .rhythmPuzzle, page == 3, !didTap, id == tapTile,
               let round = TutorialSamples.rhythmRound, let bank = TutorialSamples.rhythm else { return false }
         guard board.place(id, at: .zero, round: round, tiles: bank.tileMap) else { return false }
         didTap = true; message = ""; return true
     }
     @discardableResult func dropTile(_ id: String, at time: RhythmTime) -> Bool {
+        if rhythmFreeInput, let round = TutorialSamples.rhythmRound, let tiles = TutorialSamples.rhythm?.tileMap {
+            return placeFreely(id, at: time, round: round, tiles: tiles)
+        }
         guard kind == .rhythmPuzzle, page == 3, didTap, !didDrag, id == dragTile,
               let round = TutorialSamples.rhythmRound, time == round.pulse, let bank = TutorialSamples.rhythm else {
             message = "강조된 조각을 점선 칸에 놓아주세요."; return false
@@ -118,12 +122,18 @@ import SwiftUI
         guard board.place(id, at: time, round: round, tiles: bank.tileMap) else { return false }
         didDrag = true; message = ""; return true
     }
+    private func placeFreely(_ id: String, at time: RhythmTime, round: RhythmRound, tiles: [String: RhythmTile]) -> Bool {
+        if let issue = board.placementIssue(id, at: time, round: round, tiles: tiles) { message = issue; return false }
+        let changed = board.place(id, at: time, round: round, tiles: tiles)
+        if changed { message = "" }
+        return changed
+    }
     func remove(_ piece: RhythmPlacement) {
-        guard kind == .rhythmPuzzle, page == 4, let tiles = TutorialSamples.rhythm?.tileMap else { return }
+        guard kind == .rhythmPuzzle, page == 4 || rhythmFreeInput, let tiles = TutorialSamples.rhythm?.tileMap else { return }
         board.remove(piece, tiles: tiles)
     }
     func move(_ piece: RhythmPlacement, to time: RhythmTime) {
-        guard kind == .rhythmPuzzle, page == 4, let round = TutorialSamples.rhythmRound, let bank = TutorialSamples.rhythm else { return }
+        guard kind == .rhythmPuzzle, page == 4 || rhythmFreeInput, let round = TutorialSamples.rhythmRound, let bank = TutorialSamples.rhythm else { return }
         if !board.move(piece, to: time, round: round, tiles: bank.tileMap) { message = "비어 있는 칸으로 옮겨보세요." }
         else { message = "" }
     }

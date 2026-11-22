@@ -39,23 +39,53 @@ struct TutorialProgressStore {
     }
 }
 
-// Minigame instructions have their own space. Neither the score nor the keys
-// can end up beneath a floating bubble while a learner is trying an action.
-struct MiniTutorialLayout {
-    let game: CGRect
-    let coach: CGRect
-    init(viewport: CGSize, largeText: Bool = false) {
-        let margin: CGFloat = 16, gap: CGFloat = 16
-        if viewport.width >= 900 {
-            let width: CGFloat = largeText ? 360 : 320
-            let height = min(largeText ? 440 : 340, max(0, viewport.height-2*margin))
-            game = CGRect(x: margin, y: margin, width: max(0, viewport.width-width-2*margin-gap), height: max(0, viewport.height-2*margin))
-            coach = CGRect(x: viewport.width-margin-width, y: (viewport.height-height)/2, width: width, height: height)
-        } else {
-            let height = min(largeText ? 270 : 210, max(0, viewport.height*0.36))
-            coach = CGRect(x: margin, y: margin, width: max(0, viewport.width-2*margin), height: height)
-            game = CGRect(x: margin, y: margin+height+gap, width: max(0, viewport.width-2*margin), height: max(0, viewport.height-height-2*margin-gap))
+// Only the floating coach gets a frame. The demo always keeps the full viewport.
+// Try regular cards and shallow banners against *all* active interaction areas.
+struct TutorialFloatingLayout {
+    let frame: CGRect
+    var compact: Bool { frame.width > 450 && frame.height < 230 }
+    init(viewport: CGSize, avoiding obstacles: [CGRect], interactive: Bool, largeText: Bool = false) {
+        let bounds = CGRect(origin: .zero, size: viewport).insetBy(dx: 12, dy: 12)
+        let regular = CGSize(width: min(360, bounds.width), height: min(largeText ? 380 : 260, bounds.height))
+        guard interactive else {
+            frame = CGRect(x: bounds.midX-regular.width/2, y: bounds.midY-regular.height/2, width: regular.width, height: regular.height)
+            return
         }
+        let wide = min(largeText ? 960 : 840, bounds.width)
+        let sizes = [regular, CGSize(width: wide, height: min(largeText ? 200 : 156, bounds.height)),
+                     CGSize(width: wide, height: min(largeText ? 176 : 128, bounds.height)),
+                     CGSize(width: wide, height: min(largeText ? 152 : 112, bounds.height))]
+        let protected = obstacles.filter { !$0.isNull && !$0.isEmpty }.map { $0.insetBy(dx: -8, dy: -8) }
+        var best = CGRect(origin: bounds.origin, size: regular), bestScore = CGFloat.infinity
+        for (rank, size) in sizes.enumerated() {
+            let xs = [bounds.minX, bounds.midX-size.width/2, bounds.maxX-size.width] + protected.flatMap { [$0.minX-size.width, $0.maxX] }
+            let ys = [bounds.minY, bounds.midY-size.height/2, bounds.maxY-size.height] + protected.flatMap { [$0.minY-size.height, $0.maxY] }
+            for x in xs { for y in ys {
+                let rect = CGRect(x: min(max(bounds.minX, x), bounds.maxX-size.width),
+                                  y: min(max(bounds.minY, y), bounds.maxY-size.height), width: size.width, height: size.height)
+                let overlap = protected.reduce(CGFloat.zero) { total, area in
+                    let intersection = rect.intersection(area)
+                    return total + (intersection.isNull ? 0 : intersection.width*intersection.height)
+                }
+                let score = overlap*10000 + CGFloat(rank)*10 + abs(rect.midX-bounds.midX)*0.01 + (rect.minY-bounds.minY)*0.001
+                if score < bestScore { bestScore = score; best = rect }
+            } }
+        }
+        frame = best
+    }
+}
+
+// Use the same untransposed click sample and notated beat length as the games.
+struct TutorialCountIn {
+    let ticks: Int
+    let clicks: [MusicEvent]
+    init(meter: TimeSignature, enabled: Bool) {
+        let count = CountInPlayback(measures: 1, beforeStepOrders: [1], beatsPerMeasure: meter.numerator,
+                                   beatUnit: meter.denominator, accentVelocity: 105, velocity: 75, profileId: "sori-click-v1")
+        ticks = enabled ? count.totalTicks : 0
+        clicks = enabled ? (0..<count.beatsPerMeasure).map {
+            MusicEvent(midi: 60, onset: $0*count.ticksPerBeat, duration: min(40, count.ticksPerBeat))
+        } : []
     }
 }
 

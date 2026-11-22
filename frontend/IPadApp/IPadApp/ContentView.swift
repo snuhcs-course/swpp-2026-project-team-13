@@ -81,6 +81,11 @@ struct ContentView: View {
             .toolbarBackground(SolfegeTheme.background, for: .navigationBar)
             .overlay { if model.screen != .recommendingExam { busyOverlay } }
         }
+        .environment(\.writingTutorialHosted, true)
+        .writingTutorial(isPresented: model.writingTutorialOpen,
+                         mode: model.session?.attempt.studyMode ?? model.selectedMode, rootHost: true) {
+            model.closeWritingTutorial()
+        }
     }
     // A level-test stage keeps the level test's name on the intro and writing screens.
     private var examTitle: String {

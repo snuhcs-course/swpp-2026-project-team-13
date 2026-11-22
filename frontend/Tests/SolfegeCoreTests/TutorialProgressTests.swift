@@ -51,15 +51,35 @@ final class TutorialProgressTests: XCTestCase {
         let bubble = TutorialBubbleLayout(viewport: CGSize(width: 1024, height: 768), target: target, preferredHeight: 300).frame
         XCTAssertFalse(bubble.intersects(target), "The bubble must not cover the highlighted Start button")
     }
-    func testMinigameCoachNeverCoversTheGameScoreOrKeyboardArea() {
+    func testFloatingCoachAvoidsScoreAndKeyboardWithoutAllocatingAGameColumn() {
         for size in [CGSize(width: 1366, height: 1024), CGSize(width: 1133, height: 744), CGSize(width: 1024, height: 768), CGSize(width: 700, height: 744)] {
             for large in [false, true] {
-                let layout = MiniTutorialLayout(viewport: size, largeText: large)
+                let score = CGRect(x: 24, y: size.height*0.36, width: size.width-48, height: 140)
+                let keys = CGRect(x: 24, y: size.height-245, width: size.width-48, height: 180)
+                let layout = TutorialFloatingLayout(viewport: size, avoiding: [score, keys], interactive: true, largeText: large)
                 let bounds = CGRect(origin: .zero, size: size)
-                XCTAssertTrue(bounds.contains(layout.game)); XCTAssertTrue(bounds.contains(layout.coach))
-                XCTAssertFalse(layout.game.intersects(layout.coach))
-                XCTAssertGreaterThan(layout.game.height, 200)
+                XCTAssertTrue(bounds.contains(layout.frame))
+                XCTAssertFalse(layout.frame.intersects(score)); XCTAssertFalse(layout.frame.intersects(keys))
+                XCTAssertGreaterThan(layout.frame.height, 100)
             }
+        }
+    }
+    func testFloatingRhythmCoachLeavesTheBoardAndAllTwelveChoicesAvailable() {
+        let size = CGSize(width: 1133, height: 744)
+        let board = CGRect(x: 40, y: 180, width: 1053, height: 140)
+        let choices = CGRect(x: 40, y: 365, width: 1053, height: 220)
+        let layout = TutorialFloatingLayout(viewport: size, avoiding: [board, choices], interactive: true)
+        XCTAssertFalse(layout.frame.intersects(board)); XCTAssertFalse(layout.frame.intersects(choices))
+    }
+    func testTutorialCountInUsesTheOriginalClickPitchAndActualMeter() {
+        for meter in [TimeSignature(numerator: 4, denominator: 4), .init(numerator: 3, denominator: 4), .init(numerator: 6, denominator: 8)] {
+            let lead = TutorialCountIn(meter: meter, enabled: true)
+            XCTAssertEqual(lead.ticks, meter.ticksPerMeasure)
+            XCTAssertEqual(lead.clicks.count, meter.numerator)
+            XCTAssertTrue(lead.clicks.allSatisfy { $0.midi == 60 && $0.duration == 40 })
+            XCTAssertEqual(lead.clicks.map(\.onset), (0..<meter.numerator).map { $0*1920/meter.denominator })
+            XCTAssertEqual(TutorialCountIn(meter: meter, enabled: false).ticks, 0)
+            XCTAssertTrue(TutorialCountIn(meter: meter, enabled: false).clicks.isEmpty)
         }
     }
     func testTutorialPauseFreezesTheClockAndRepeatedOpenDoesNotAddTime() {
