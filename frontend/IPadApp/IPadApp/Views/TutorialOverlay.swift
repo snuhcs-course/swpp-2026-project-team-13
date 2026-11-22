@@ -130,7 +130,8 @@ struct TutorialWalkthrough: View {
             .overlayPreferenceValue(TutorialAnchors.self) { anchors in
                 GeometryReader { proxy in
                     let visible = CGRect(origin: .zero, size: proxy.size).insetBy(dx: 8, dy: 8)
-                    let hole = step.flatMap { anchors[$0.target] }.map { proxy[$0].insetBy(dx: -7, dy: -7).intersection(visible) }
+                    let candidate = step.flatMap { anchors[$0.target] }.map { proxy[$0].insetBy(dx: -7, dy: -7).intersection(visible) }
+                    let hole = candidate.flatMap { $0.isNull || $0.isEmpty ? nil : $0 }
                     let layout = TutorialBubbleLayout(viewport: proxy.size, target: hole, preferredHeight: typeSize.isAccessibilitySize ? 420 : 300)
                     ZStack(alignment: .topLeading) {
                         SpotlightMask(hole: hole).fill(.black.opacity(0.52), style: FillStyle(eoFill: true))

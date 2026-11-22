@@ -5,6 +5,13 @@ import AVFoundation
 enum TutorialSamples {
     static let rhythm: RhythmCatalog? = try? DemoContent.decode("rhythm-puzzle-v4", forceSmall: true)
     static let engraving: RhythmEngraving? = try? DemoContent.decode("rhythm-engraving-v4", forceSmall: true)
+    static let rhythmRound: RhythmRound? = {
+        guard let bank = rhythm else { return nil }
+        return bank.rounds.first { round in
+            round.meter == TimeSignature(numerator: 4, denominator: 4) &&
+                round.solution.count == 8 && round.solution.allSatisfy { bank.tileMap[$0.tileId]?.duration == round.pulse }
+        } ?? bank.rounds.first
+    }()
     static let memory: MelodyRound? = {
         let pitches = [60, 62, 64, 67, 65, 64, 62, 60]
         let steps = ["C", "D", "E", "G", "F", "E", "D", "C"]
@@ -63,6 +70,7 @@ struct TutorialDemoScreen: View {
     @State private var selectedBar = 1
     @State private var replaceBar = false
     @State private var echoPhase = EchoIntervalPhase.waiting
+    @State private var pendingReaction: EchoIntervalPhase?
     @State private var message = ""
     @State private var blank: UIImage?
     private let range = 60...84
@@ -74,7 +82,7 @@ struct TutorialDemoScreen: View {
                 else {
                     DrillSetProgress(results: Array(repeating: nil, count: kind == .echoDragon ? 10 : kind == .memoryRun ? 4 : 5), index: 0)
                     if kind == .echoDragon {
-                        Image(audio.playing ? "echo-dragon-singing" : echoPhase == .happy ? "echo-dragon-happy" : echoPhase == .puzzled ? "echo-dragon-puzzled" : "echo-dragon-waiting")
+                        Image(audio.playing && pendingReaction == nil ? "echo-dragon-singing" : echoPhase == .happy ? "echo-dragon-happy" : echoPhase == .puzzled ? "echo-dragon-puzzled" : "echo-dragon-waiting")
                             .resizable().scaledToFit().frame(maxWidth: .infinity, maxHeight: .infinity)
                         HStack { Text(message); Spacer(); Text("♥  ♥  ♥").foregroundStyle(SolfegeTheme.danger) }.font(.subheadline).frame(height: 28)
                         keyboard.frame(height: min(180, geometry.size.height*0.26))
@@ -96,12 +104,18 @@ struct TutorialDemoScreen: View {
             blank = ImageRenderer(content: ScoreView(score: sheet).frame(width: 1330, height: 846)).uiImage
         }
         .onChange(of: target) { _, value in
-            audio.stop(); message = ""
+            pendingReaction = nil; audio.stop(); message = ""
             if kind == .echoDragon && value == .firstKey { inputs = [] }
             if kind == .echoDragon && value == .submit { inputs = [65, 69] }
             if kind == .memoryRun && value == .notation { inputs = [60, 62, 64, 67, 65, 64, 62, 60] }
-            if kind == .rhythmPuzzle && (value == .notation || value == .tie), let round = TutorialSamples.rhythm?.rounds.first {
+            if kind == .rhythmPuzzle && (value == .notation || value == .tie), let round = TutorialSamples.rhythmRound {
                 board = RhythmBoard(placements: round.solution, ties: [])
+            }
+        }
+        .onChange(of: audio.playing) { _, playing in
+            if !playing, let reaction = pendingReaction {
+                echoPhase = reaction; pendingReaction = nil
+                message = reaction == .happy ? "같은 간격이에요!" : "간격이 달라요. 다시 눌러보세요."
             }
         }
         .onChange(of: scenePhase) { _, value in if value != .active { audio.stop() } }
@@ -128,8 +142,8 @@ struct TutorialDemoScreen: View {
             .overlay(alignment: .topLeading) {
                 GeometryReader { geometry in
                     if let key = PianoGeometry(range: range).keys.first(where: { $0.midi == 65 }) {
-                        Color.clear.frame(width: key.width*Double(geometry.size.width), height: Double(geometry.size.height))
-                            .tutorialTarget(.firstKey).offset(x: key.x*Double(geometry.size.width))
+                        Color.clear.frame(width: max(0, key.width*Double(geometry.size.width)-6), height: Double(geometry.size.height)*0.35)
+                            .tutorialTarget(.firstKey).offset(x: key.x*Double(geometry.size.width)+3, y: Double(geometry.size.height)*0.65)
                     }
                 }.allowsHitTesting(false)
             }
@@ -148,7 +162,7 @@ struct TutorialDemoScreen: View {
         }
     }
     @ViewBuilder private func rhythmContent(tileHeight: CGFloat) -> some View {
-        if let bank = TutorialSamples.rhythm, let round = bank.rounds.first {
+        if let bank = TutorialSamples.rhythm, let round = TutorialSamples.rhythmRound {
             HStack { Text("\(round.meter.numerator)/\(round.meter.denominator)").font(.title.bold()); Text(round.tempoLabel); Spacer() }
             RhythmStaffSystem(round: round, board: board, tiles: bank.tileMap, editable: true, tieMode: tieMode,
                               tapPiece: tapPiece, tapTie: { boundary in board.ties.removeAll { $0 == boundary } },
@@ -235,12 +249,12 @@ struct TutorialDemoScreen: View {
             .padding(8).background(.white, in: RoundedRectangle(cornerRadius: 10)).tutorialTarget(.timer)
     }
     private func enter(_ midi: Int) {
-        audio.keyDown(midi)
         if kind == .echoDragon {
             if inputs.count == 2 { inputs = [] }
             guard !inputs.isEmpty || midi == 65 else { message = "표시된 첫 음부터 눌러보세요."; return }
-            inputs.append(midi)
+            audio.keyDown(midi); inputs.append(midi)
         } else if kind == .memoryRun {
+            audio.keyDown(midi)
             if replaceBar { inputs = Array(inputs.prefix((selectedBar-1)*4)); replaceBar = false }
             if inputs.count < 8 { inputs.append(midi) }
             selectedBar = min(2, inputs.count/4+1)
@@ -248,11 +262,11 @@ struct TutorialDemoScreen: View {
     }
     private func listen(_ countIn: Bool) {
         if kind == .echoDragon {
-            inputs = []; echoPhase = .singing
+            inputs = []; pendingReaction = nil; echoPhase = .singing
             audio.play(events: [MusicEvent(midi: 60, onset: 0, duration: 480), MusicEvent(midi: 64, onset: 640, duration: 480)], ticks: 1120)
         } else if kind == .memoryRun, let score = TutorialSamples.memory?.score {
             audio.play(events: score.events, ticks: score.totalTicks, countIn: countIn)
-        } else if let round = TutorialSamples.rhythm?.rounds.first {
+        } else if let round = TutorialSamples.rhythmRound {
             audio.play(events: round.audio.compactMap { note in
                 guard let onset = note.onset.ticks, let duration = note.duration.ticks else { return nil }
                 return MusicEvent(midi: note.midi, onset: onset, duration: duration)
@@ -260,7 +274,7 @@ struct TutorialDemoScreen: View {
         }
     }
     private func place(_ id: String) {
-        guard let bank = TutorialSamples.rhythm, let round = bank.rounds.first else { return }
+        guard let bank = TutorialSamples.rhythm, let round = TutorialSamples.rhythmRound else { return }
         if let issue = board.placementIssue(id, round: round, tiles: bank.tileMap) { message = issue }
         else { board.place(id, round: round, tiles: bank.tileMap); message = "" }
     }
@@ -282,8 +296,7 @@ struct TutorialDemoScreen: View {
             guard inputs.count == 2 else { message = "표시된 첫 음부터 두 음을 눌러보세요."; return }
             let correct = inputs[1]-inputs[0] == 4
             audio.play(events: inputs.enumerated().map { MusicEvent(midi: $0.element, onset: $0.offset*640, duration: 480) }, ticks: 1120)
-            echoPhase = correct ? .happy : .puzzled
-            message = correct ? "같은 간격이에요!" : "간격이 달라요. 다시 눌러보세요."
+            echoPhase = .waiting; pendingReaction = correct ? .happy : .puzzled
         } else { message = "실제 게임에서도 같은 방법으로 제출해요." }
     }
 }
