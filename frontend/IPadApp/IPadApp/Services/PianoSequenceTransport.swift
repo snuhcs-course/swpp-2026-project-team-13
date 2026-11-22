@@ -27,13 +27,12 @@ import AVFoundation
                   (e.midi.map { (0...127).contains($0) } ?? true)
               }) else { throw SolfegeError.invalidScore("재생할 음표의 길이와 템포를 확인해 주세요.") }
         sequencer.stop()
-        // MusicTrackClear needs a finite end; the enumeration end-of-track
-        // sentinel is not a valid length for this operation (Core Audio -50).
+        // Remove through the documented iterator flag, including empty tracks.
+        // The third pointer means removeEvent, NOT stop enumeration. Do not
+        // subsequently MusicTrackClear an already-empty track (Core Audio -50).
         let previousRange=AVBeatRange(start:0,length:max(1,previousEnd+1))
         for track in [pianoTrack,clickTrack,sequencer.tempoTrack] {
-            var occupied=false
-            track.enumerateEvents(in:previousRange) { _,_,stop in occupied=true; stop.pointee=true }
-            if occupied { track.clearEvents(in:previousRange) }
+            track.enumerateEvents(in:previousRange) { _,_,removeEvent in removeEvent.pointee=true }
         }
         sequencer.tempoTrack.addEvent(AVExtendedTempoEvent(tempo:bpm),at:0)
         append(piano,to:pianoTrack,velocity:pianoVelocity)
