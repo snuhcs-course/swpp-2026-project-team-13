@@ -200,7 +200,7 @@ struct ExamResultView: View {
                         ProgressView().controlSize(.small).tint(SolfegeTheme.muted)
                             .accessibilityHidden(true)
                     }
-                    Text(grading?.isPending == true ? "채점 중" : "다음 시험 고르기")
+                    Text(grading?.isPending == true ? "채점 중" : model.session?.attempt.levelTestStage != nil ? "레벨 테스트로 돌아가기" : "다음 시험 고르기")
                 }.frame(maxWidth:.infinity)
             }.buttonStyle(ExamResultActionStyle()).disabled(model.busy || !model.canChooseNextExam)
                 .accessibilityHint(grading?.isPending == true ? "채점과 레이팅 반영이 끝나면 새 시험을 고를 수 있어요." : "")

@@ -236,6 +236,7 @@ struct Attempt: Codable, Identifiable, Equatable {
     var featureAnalysisId: UUID? = nil
     var examRatingSnapshot: ExamRatingSnapshot? = nil
     var studyMode: StudyMode { mode.flatMap { StudyMode(rawValue:$0) } ?? (gradingMode == "self" ? .practice : .exam) }
+    var levelTestStage: LevelTestSnapshot? { studyMode == .exam ? examRatingSnapshot?.levelTest : nil }
 }
 struct BBox: Codable, Equatable {
     var x: Double; var y: Double; var width: Double; var height: Double

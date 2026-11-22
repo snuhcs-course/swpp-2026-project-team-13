@@ -32,6 +32,7 @@ struct SessionRecord: Codable, Identifiable {
 struct PendingCreation: Codable {
     var question: Question; var key: UUID
     var mode: StudyMode? = nil
+    var levelTestStage: Int? = nil
     var studyMode: StudyMode { mode ?? .exam }
 }
 

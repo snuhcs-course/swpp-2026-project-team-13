@@ -80,6 +80,11 @@ def apply_rating(attempt, job):
     if (attempt.mode != "exam" or not snap or job.status != "completed" or
             attempt.current_job_id != job.id or job.score is None):
         return None
+    if snap.get("level_test"):
+        # Level test grades are stored for one placement at the end, not rated one by one.
+        from .level_test import record_grade
+        record_grade(attempt, job)
+        return None
     existing = ExamRatingChange.objects.filter(attempt=attempt).first()
     if existing:
         return existing
