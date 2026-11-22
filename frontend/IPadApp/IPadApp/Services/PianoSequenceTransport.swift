@@ -9,6 +9,7 @@ import AVFoundation
     let sequencer: AVAudioSequencer
     let pianoTrack: AVMusicTrack
     private let clickTrack: AVMusicTrack
+    private var previousEnd = 0.0
     init(graph: PianoAudioGraph) {
         let player=AVAudioSequencer(audioEngine:graph.engine)
         sequencer=player
@@ -26,8 +27,14 @@ import AVFoundation
                   (e.midi.map { (0...127).contains($0) } ?? true)
               }) else { throw SolfegeError.invalidScore("재생할 음표의 길이와 템포를 확인해 주세요.") }
         sequencer.stop()
-        let all=AVBeatRange(start:0,length:AVMusicTimeStampEndOfTrack)
-        for track in [pianoTrack,clickTrack,sequencer.tempoTrack] { track.clearEvents(in:all) }
+        // MusicTrackClear needs a finite end; the enumeration end-of-track
+        // sentinel is not a valid length for this operation (Core Audio -50).
+        let previousRange=AVBeatRange(start:0,length:max(1,previousEnd+1))
+        for track in [pianoTrack,clickTrack,sequencer.tempoTrack] {
+            var occupied=false
+            track.enumerateEvents(in:previousRange) { _,_,stop in occupied=true; stop.pointee=true }
+            if occupied { track.clearEvents(in:previousRange) }
+        }
         sequencer.tempoTrack.addEvent(AVExtendedTempoEvent(tempo:bpm),at:0)
         append(piano,to:pianoTrack,velocity:pianoVelocity)
         let first=clicks.filter { $0.midi != nil }.map(\.onset).min()
@@ -36,6 +43,7 @@ import AVFoundation
         }
         let beats=Double(totalTicks)/480
         for track in [pianoTrack,clickTrack] { track.lengthInBeats=beats }
+        previousEnd=beats
         sequencer.rate=1; sequencer.currentPositionInBeats=0
         sequencer.prepareToPlay()
     }
