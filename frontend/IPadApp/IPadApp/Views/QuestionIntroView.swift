@@ -3,18 +3,21 @@ import CoreText
 import UIKit
 
 // S9 Question intro (Practice) and S16 Exam intro. Laid out at the wireframe's 1100pt
-// content width and scaled down uniformly on narrower windows.
+// content width and scaled uniformly to the window: down on narrower ones, and up a little
+// on a 12.9/13-inch iPad so it fills the screen in the same proportion as on an 11-inch one.
 struct QuestionIntroView: View {
     @ObservedObject var model: AppModel
     private static let designWidth: CGFloat = 1100
+    // 1366pt landscape needs about 1.2 to match the 11-inch margins.
+    private static let maximumScale: CGFloat = 1.2
     // Card, playback order and start row with their minimum gaps.
     private static let minimumHeight: CGFloat = 676
 
     var body: some View {
         if let question = model.selectedQuestion {
             GeometryReader { proxy in
-                // Shrink to fit both the window's width and its height; never enlarge.
-                let scale = min(1, (proxy.size.width-48)/Self.designWidth, proxy.size.height/Self.minimumHeight)
+                // Fit both the window's width and its height, enlarging only up to maximumScale.
+                let scale = min(Self.maximumScale, (proxy.size.width-48)/Self.designWidth, proxy.size.height/Self.minimumHeight)
                 let height = proxy.size.height/scale
                 content(question)
                     .frame(width:Self.designWidth, height:height)

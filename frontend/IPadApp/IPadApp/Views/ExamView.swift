@@ -106,6 +106,8 @@ struct ExamView: View {
     }
 
     // MARK: Answer sheet — the whole 8-bar sheet always fits; it never scrolls.
+    // The sheet keeps its aspect ratio, so a 4:3 screen (12.9/13-inch) has height to spare:
+    // centre it instead of leaving one empty band above the footer.
 
     private var answerSheet: some View {
         GeometryReader { proxy in
@@ -122,7 +124,7 @@ struct ExamView: View {
                         .frame(maxWidth: .infinity, maxHeight: .infinity).background(.white, in: RoundedRectangle(cornerRadius: 16))
                 }
             }
-            .frame(width: proxy.size.width, height: proxy.size.height, alignment: .top)
+            .frame(width: proxy.size.width, height: proxy.size.height, alignment: .center)
         }
     }
 
