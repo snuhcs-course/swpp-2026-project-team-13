@@ -14,6 +14,16 @@ import SwiftUI
             XCTAssertEqual(q.practiceLevel.number,entry.level)
             XCTAssertEqual(try XCTUnwrap(q.difficultyScore),entry.score,accuracy:0.000001)
         }
+        // Demo and online lists must preserve the same original/bank distinction.
+        let numbered = try XCTUnwrap(list.results.first { $0.collection == "practice_bank" })
+        let numberedDetail = try await api.question(numbered.id)
+        XCTAssertEqual(numberedDetail.collection,numbered.collection)
+        var byNumber = QuestionFilter(); byNumber.sortOrder = .questionNumber
+        let sorted = byNumber.apply(to:list.results)
+        let firstBank = try XCTUnwrap(sorted.firstIndex { $0.collection == "practice_bank" })
+        XCTAssertGreaterThan(firstBank,0)
+        XCTAssertTrue(sorted[..<firstBank].allSatisfy { $0.collection != "practice_bank" })
+        XCTAssertTrue(sorted[firstBank...].allSatisfy { $0.collection == "practice_bank" })
         let added: [Question] = try Bundled.decode("additional-practice-catalog")
         for item in added {
             let q = try await api.question(item.id); try q.validate()
