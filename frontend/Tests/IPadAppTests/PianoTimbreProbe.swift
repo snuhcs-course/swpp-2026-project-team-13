@@ -13,6 +13,33 @@ final class PianoTimbreProbe: @unchecked Sendable {
     }
     func reset() { lock.lock(); defer { lock.unlock() }; samples.removeAll(keepingCapacity:true) }
     func snapshot() -> [Float] { lock.lock(); defer { lock.unlock() }; return samples }
+    func waitForNote(rate: Double, timeout: TimeInterval = 8) async throws -> [Float]? {
+        let deadline=ProcessInfo.processInfo.systemUptime+timeout
+        while ProcessInfo.processInfo.systemUptime<deadline {
+            if let window=Self.firstNoteWindow(in:snapshot(),rate:rate) { return window }
+            try await Task.sleep(for:.milliseconds(20))
+        }
+        return nil
+    }
+    // Inspect the same early sustain on each play, regardless of render latency.
+    // A piano's late release loses harmonics and must not be mistaken for a sine.
+    // Require silence before onset so a queued buffer from the previous play
+    // cannot supply the evidence for a broken replay.
+    static func firstNoteWindow(in values: [Float], rate: Double) -> [Float]? {
+        guard rate.isFinite, (8000...192000).contains(rate) else { return nil }
+        let quietFrames=Int(rate*0.02), offset=Int(rate*0.04), count=8192
+        var quiet=0
+        for (index,value) in values.enumerated() {
+            if abs(value)<0.0001 { quiet+=1; continue }
+            if quiet>=quietFrames {
+                let start=index+offset
+                guard values.count>=start+count else { return nil }
+                return Array(values[start..<start+count])
+            }
+            quiet=0
+        }
+        return nil
+    }
     static func rms(_ values: [Float]) -> Double {
         sqrt(values.reduce(0) { $0+Double($1)*Double($1) }/Double(max(1,values.count)))
     }

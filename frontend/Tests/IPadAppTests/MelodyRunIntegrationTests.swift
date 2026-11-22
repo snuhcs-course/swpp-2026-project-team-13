@@ -244,11 +244,10 @@ import AVFoundation
         var settings = MelodySettings(); settings.bpm = 180; settings.bars = 2
         let timeline = MelodyTimeline(round:round,settings:settings)
         try audio.start(timeline,round:round,settings:settings)
-        try await Task.sleep(for:.milliseconds(2300))
+        let captured = try await piano.waitForNote(rate:format.sampleRate)
+        let reference = try XCTUnwrap(captured,"No complete piano note arrived after the count-in")
+        let afterCountIn = Array(click.snapshot().suffix(Int(format.sampleRate*0.2)))
         audio.stopClock()
-        let count = Int(format.sampleRate*0.3)
-        let reference = Array(piano.snapshot().suffix(count)), afterCountIn = Array(click.snapshot().suffix(count))
-        XCTAssertEqual(reference.count,count)
         XCTAssertGreaterThan(PianoTimbreProbe.rms(reference),0.0001,"The reference must reach the SF2 piano, not the click instrument")
         XCTAssertLessThan(PianoTimbreProbe.rms(afterCountIn),0.0001,"The count-in sampler must be silent during the melody")
         XCTAssertGreaterThan(PianoTimbreProbe.power(reference,hz:440,rate:format.sampleRate),
@@ -259,11 +258,10 @@ import AVFoundation
             piano.reset()
             if nextQuestion { try audio.start(timeline,round:round,settings:settings) }
             else { try audio.replay(events:[MusicEvent(midi:69,onset:0,duration:1920)],ticks:1920,bpm:120) }
-            try await Task.sleep(for:.milliseconds(nextQuestion ? 2300 : 700))
+            let capturedReplay = try await piano.waitForNote(rate:format.sampleRate)
+            let replayed = try XCTUnwrap(capturedReplay,"No complete piano note arrived on replay/next question")
             audio.stopClock()
             XCTAssertTrue(graph.engine === engine && graph.piano === sampler,"Replays and next questions must retain the prepared sampler graph")
-            let replayed=Array(piano.snapshot().suffix(count))
-            XCTAssertEqual(replayed.count,count)
             XCTAssertGreaterThan(PianoTimbreProbe.rms(replayed),0.0001)
             XCTAssertGreaterThan(PianoTimbreProbe.harmonicFraction(replayed,rate:format.sampleRate),0.005,"Replay/next question must not revert to a sine wave")
         }
@@ -274,6 +272,42 @@ import AVFoundation
         let rich=sine.enumerated().map { index,value in value+Float(0.3*sin(2*Double.pi*880*Double(index)/rate)) }
         XCTAssertLessThan(PianoTimbreProbe.harmonicFraction(sine,rate:rate),0.005)
         XCTAssertGreaterThan(PianoTimbreProbe.harmonicFraction(rich,rate:rate),0.02)
+    }
+    func testTimbreWindowTracksTheOnsetInsteadOfTheDecayingTail() throws {
+        for rate in [44100.0,48000] {
+            let piano=(0..<Int(rate*1.4)).map { index -> Float in
+                let t=Double(index)/rate, phase=2*Double.pi*440*t
+                return Float(exp(-t)*sin(phase)+0.5*exp(-8*t)*sin(2*phase))
+            }
+            // This piano-like signal really does become nearly sinusoidal late
+            // in the note. The previous suffix-after-sleep check rejected it.
+            XCTAssertLessThan(PianoTimbreProbe.harmonicFraction(piano,rate:rate),0.005)
+            var expected: [Float]?
+            for delay in [0.05,0.8,2.0] {
+                let input=Array(repeating:Float.zero,count:Int(rate*delay))+piano
+                let window=try XCTUnwrap(PianoTimbreProbe.firstNoteWindow(in:input,rate:rate))
+                XCTAssertGreaterThan(PianoTimbreProbe.harmonicFraction(window,rate:rate),0.005)
+                if let expected { XCTAssertEqual(window,expected,"Render delay must not change the measured part of a note") }
+                expected=window
+            }
+        }
+    }
+    func testTimbreWindowNeedsAudibleCompleteAudio() {
+        let rate=48000.0
+        let silence=Array(repeating:Float.zero,count:2400)
+        let short=(0..<3000).map { Float(sin(2*Double.pi*440*Double($0)/rate)) }
+        XCTAssertNil(PianoTimbreProbe.firstNoteWindow(in:silence,rate:rate))
+        XCTAssertNil(PianoTimbreProbe.firstNoteWindow(in:silence+short,rate:rate))
+        XCTAssertNil(PianoTimbreProbe.firstNoteWindow(in:silence,rate:0))
+    }
+    func testTimbreWindowRejectsASineReplayAfterAPreviousRichNote() throws {
+        let rate=48000.0
+        let sine=(0..<18000).map { Float(sin(2*Double.pi*440*Double($0)/rate)) }
+        let previous=sine.enumerated().map { index,value in value+Float(0.3*sin(2*Double.pi*880*Double(index)/rate)) }
+        let input=previous+Array(repeating:Float.zero,count:2400)+sine
+        let window=try XCTUnwrap(PianoTimbreProbe.firstNoteWindow(in:input,rate:rate))
+        XCTAssertLessThan(PianoTimbreProbe.harmonicFraction(window,rate:rate),0.005,
+                          "A previous piano buffer must not hide a replay that became a sine wave")
     }
     func testLandscapeKeyboardAndBothClefsRender() async throws {
         let game = makeGame(mode:.memory)
