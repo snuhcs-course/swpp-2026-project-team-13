@@ -48,6 +48,7 @@ struct ContentView: View {
                 case .practiceQuestions: HomeView(model:model)
                 case .recommendingExam: ExamRecommendationView()
                 case .examSelection: ExamSelectionView(model:model)
+                case .levelTest: LevelTestView(model:model)
                 case .question: QuestionIntroView(model: model)
                 case .exam: ExamView(model: model, drawing: model.drawing, player: model.player)
                 case .result: ResultView(model: model)
@@ -63,11 +64,11 @@ struct ContentView: View {
                 ToolbarItem(placement: .principal) {
                     // S9 shows the question's title; S16 never reveals which question was recommended.
                     if model.screen == .question, let question = model.selectedQuestion {
-                        Text(model.selectedMode == .exam ? StudyMode.exam.title : question.title)
+                        Text(model.selectedMode == .exam ? examTitle : question.title)
                             .font(.system(size: 22, weight: .bold)).foregroundStyle(SolfegeTheme.ink).accessibilityAddTraits(.isHeader)
                     } else if model.screen == .exam, let attempt = model.session?.attempt {
                         // S11: only Practice names the question; Exam stays anonymous.
-                        Text(attempt.studyMode == .exam ? StudyMode.exam.title : attempt.question.title)
+                        Text(attempt.studyMode == .exam ? examTitle : attempt.question.title)
                             .font(.system(size: 20, weight: .bold)).foregroundStyle(SolfegeTheme.ink).accessibilityAddTraits(.isHeader)
                     }
                 }
@@ -75,10 +76,14 @@ struct ContentView: View {
             // Both result views own their header. A second navigation bar creates
             // another Home button and leaves an empty toolbar above the content.
             // A selected composer shows the shared question bank, which has its own header too.
-            .toolbar([.main,.home,.practiceLevels,.practiceQuestions,.recommendingExam,.examSelection,.minigames,.result].contains(model.screen) || (model.screen == .classical && model.selectedComposer != nil) ? .hidden : .automatic, for: .navigationBar)
+            .toolbar([.main,.home,.practiceLevels,.practiceQuestions,.recommendingExam,.examSelection,.levelTest,.minigames,.result].contains(model.screen) || (model.screen == .classical && model.selectedComposer != nil) ? .hidden : .automatic, for: .navigationBar)
             .toolbarBackground(SolfegeTheme.background, for: .navigationBar)
             .overlay { if model.screen != .recommendingExam { busyOverlay } }
         }
+    }
+    // A level-test stage keeps the level test's name on the intro and writing screens.
+    private var examTitle: String {
+        model.session?.attempt.levelTestStage != nil && model.session?.attempt.question.id == model.selectedQuestion?.id ? "레벨 테스트" : StudyMode.exam.title
     }
     @ViewBuilder private var backButton: some View {
         if [.question,.exam,.result].contains(model.screen) {

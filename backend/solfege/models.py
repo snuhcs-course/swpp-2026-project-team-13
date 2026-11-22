@@ -64,6 +64,8 @@ class ExamRatingState(models.Model):
     rating = models.FloatField(default=7.0)
     completed = models.PositiveIntegerField(default=0)
     offer = models.JSONField(default=dict)
+    # First-Exam placement progress; see level_test.py. Empty means not started.
+    level_test = models.JSONField(default=dict)
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:

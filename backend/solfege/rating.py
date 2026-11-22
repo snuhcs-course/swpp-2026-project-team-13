@@ -63,6 +63,24 @@ def update(rating, completed, difficulty, grade):
                 completed_before=completed, k=k, model_version=VERSION)
 
 
+def performance(difficulty, grade):
+    """The rating at which this grade on this difficulty is exactly the expected grade.
+
+    Inverts expected_fraction, bounded to one skill unit around the difficulty so a
+    single extreme grade cannot place the learner far from the question they solved.
+    """
+    fraction = min(.99, max(.01, number(grade, "grade", 100) / 100))
+    shift = (math.log(fraction / (1 - fraction)) - math.log(4)) * .5
+    return from_skill(max(0., to_skill(difficulty) + min(1., max(-1., shift))))
+
+
+def placement(results):
+    """First rating from (difficulty, grade) pairs; harder attempts can only help."""
+    if not results:
+        raise ValueError("no_placement_results")
+    return max(performance(difficulty, grade) for difficulty, grade in results)
+
+
 @dataclass(frozen=True)
 class Question:
     id: str

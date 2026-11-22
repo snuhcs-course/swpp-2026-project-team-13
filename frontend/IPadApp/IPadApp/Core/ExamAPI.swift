@@ -19,6 +19,11 @@ import FoundationNetworking
     func question(_ id: UUID) async throws -> Question
     func createAttempt(question: Question, key: UUID) async throws -> Attempt
     func createAttempt(question: Question, mode: StudyMode, key: UUID) async throws -> Attempt
+    func createAttempt(question: Question, mode: StudyMode, key: UUID, levelTestStage: Int?) async throws -> Attempt
+    func levelTest() async throws -> LevelTestState
+    func levelTestNext() async throws -> LevelTestQuestion
+    func finishLevelTest() async throws -> LevelTestState
+    func skipLevelTest() async throws -> LevelTestState
     func attempt(_ id: UUID) async throws -> Attempt
     func start(_ id: UUID) async throws -> Attempt
     func upload(_ id: UUID, png: Data, clientId: UUID, layout: String, key: UUID) async throws -> Answer
@@ -45,6 +50,15 @@ extension ExamAPI {
         guard mode == .exam else { throw SolfegeError.unsupported("이 연결은 Practice를 지원하지 않습니다. 앱과 서버를 업데이트해 주세요.") }
         return try await createAttempt(question:question,key:key)
     }
+    func createAttempt(question: Question, mode: StudyMode, key: UUID, levelTestStage: Int?) async throws -> Attempt {
+        guard levelTestStage == nil else { throw SolfegeError.unsupported("이 연결은 레벨 테스트를 지원하지 않습니다.") }
+        return try await createAttempt(question:question,mode:mode,key:key)
+    }
+    // The demo and older servers have no level test: Exam opens with its regular choices.
+    func levelTest() async throws -> LevelTestState { .notApplicable }
+    func levelTestNext() async throws -> LevelTestQuestion { throw SolfegeError.unsupported("이 연결은 레벨 테스트를 지원하지 않습니다.") }
+    func finishLevelTest() async throws -> LevelTestState { throw SolfegeError.unsupported("이 연결은 레벨 테스트를 지원하지 않습니다.") }
+    func skipLevelTest() async throws -> LevelTestState { throw SolfegeError.unsupported("이 연결은 레벨 테스트를 지원하지 않습니다.") }
     func submitPractice(_ id: UUID, answerId: UUID, key: UUID) async throws -> PracticeAssessment { throw SolfegeError.unsupported("자기채점을 지원하지 않는 연결입니다.") }
     func practiceAssessment(_ id: UUID) async throws -> PracticeAssessment { throw SolfegeError.unsupported("자기채점을 지원하지 않는 연결입니다.") }
     func saveSelfAssessment(_ id: UUID, request: SelfAssessmentWrite, key: UUID) async throws -> PracticeAssessment { throw SolfegeError.unsupported("자기채점을 지원하지 않는 연결입니다.") }
@@ -227,6 +241,14 @@ final class NoRedirectDelegate: NSObject, URLSessionTaskDelegate, @unchecked Sen
     func createAttempt(question: Question, mode: StudyMode, key: UUID) async throws -> Attempt {
         try await json("attempts/", method:"POST", body:JSONSerialization.data(withJSONObject:["question_id":question.id.uuidString.lowercased(),"question_version":question.version,"mode":mode.rawValue]), key:key)
     }
+    func createAttempt(question: Question, mode: StudyMode, key: UUID, levelTestStage: Int?) async throws -> Attempt {
+        guard let stage = levelTestStage else { return try await createAttempt(question:question,mode:mode,key:key) }
+        return try await json("attempts/", method:"POST", body:JSONSerialization.data(withJSONObject:["question_id":question.id.uuidString.lowercased(),"question_version":question.version,"mode":mode.rawValue,"level_test_stage":stage]), key:key)
+    }
+    func levelTest() async throws -> LevelTestState { try await json("exam/level-test/") }
+    func levelTestNext() async throws -> LevelTestQuestion { try await json("exam/level-test/next/", method:"POST") }
+    func finishLevelTest() async throws -> LevelTestState { try await json("exam/level-test/finish/", method:"POST") }
+    func skipLevelTest() async throws -> LevelTestState { try await json("exam/level-test/skip/", method:"POST") }
     func attempt(_ id: UUID) async throws -> Attempt { try await json("attempts/\(id.uuidString.lowercased())/") }
     func start(_ id: UUID) async throws -> Attempt { try await json("attempts/\(id.uuidString.lowercased())/start/", method: "POST") }
     static func multipart(png: Data, clientId: UUID, layout: String, boundary: String) throws -> Data {

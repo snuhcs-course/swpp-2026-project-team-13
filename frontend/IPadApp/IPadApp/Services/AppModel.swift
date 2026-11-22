@@ -2,7 +2,7 @@ import SwiftUI
 import PencilKit
 
 @MainActor final class AppModel: ObservableObject {
-    enum Screen: String { case main, home, practiceLevels, practiceQuestions, recommendingExam, examSelection, question, exam, result, history, settings, minigames, classical, dailyTraining }
+    enum Screen: String { case main, home, practiceLevels, practiceQuestions, recommendingExam, examSelection, levelTest, question, exam, result, history, settings, minigames, classical, dailyTraining }
     @Published var screen: Screen = .main
     @Published var profile: UserProfile?
     @Published var questions: [QuestionSummary] = []
@@ -18,6 +18,10 @@ import PencilKit
     // Held until the attempt exists, so backing out cannot re-roll the question.
     private var recommendedExam: Question?
     @Published var examOffer: ExamOffer?
+    // First-Exam level test; nil until checked for this account.
+    @Published var levelTest: LevelTestState?
+    // Set while a level-test stage's full result (ExamResultView) is open.
+    @Published var levelTestDetail = false
     @Published var classicalQuestions: [QuestionSummary] = []
     @Published var classicalLoaded = false
     @Published var classicalHasNextPage = false
@@ -170,7 +174,7 @@ import PencilKit
         operationGeneration = UUID(); busy = false; pollGeneration = UUID()
         api = nil; store = nil; profile = nil; questions = []; history = []; session = nil; practiceResumeId = nil
         classicalQuestions = []; classicalLoaded = false; classicalPage = 0; classicalHasNextPage = false; selectedComposer = nil; selectedPracticeLevel = nil; recommendedExam = nil
-        examOffer = nil; selectedQuestion = nil; template = nil; submittedImage = nil; mainScore = nil
+        examOffer = nil; levelTest = nil; levelTestDetail = false; selectedQuestion = nil; template = nil; submittedImage = nil; mainScore = nil
         correctScoreImage = nil; correctScoreError = nil; prepared = false; connected = false
         waitingSince = nil; error = nil; screen = .main; daily = DailyTrainingState()
         authenticating = false; logoutNeedsConfirmation = false; logoutFailure = nil; pendingLocalLogout = nil
@@ -487,6 +491,21 @@ import PencilKit
         if let active = history.filter({ $0.blocksNewExam }).last {
             await open(active); return
         }
+        // The first Exam of an account opens with the level test instead of the three choices.
+        if levelTest?.needsLevelTest ?? true {
+            var handled = false
+            await run("레벨 테스트를 확인하는 중이에요") {
+                guard let api = self.api, let store = self.store else { return }
+                let state = try await api.levelTest(); try state.validate()
+                guard self.store === store else { throw CancellationError() }
+                self.levelTest = state
+                guard state.needsLevelTest else { return }
+                handled = true; self.selectedMode = .exam; self.levelTestDetail = false
+                if let unresolved = state.unresolvedAttemptId { try await self.restoreExam(unresolved) }
+                else { self.selectedQuestion = nil; self.screen = .levelTest }
+            }
+            if handled || levelTest == nil { return }
+        }
         if examOffer != nil {
             selectedMode = .exam; selectedQuestion = nil; screen = .examSelection
             if let offer = examOffer { revalidateExamOffer(offer) }
@@ -547,6 +566,78 @@ import PencilKit
             }
         }
     }
+    // MARK: Level test
+
+    /// Starts the next stage: the server fixes the question, then the usual intro screen opens.
+    func startLevelTestStage() async {
+        if pendingCreation { await recoverPending(); return }
+        await run("레벨 테스트 문제를 준비하는 중이에요") {
+            guard let api = self.api, let store = self.store else { return }
+            let next = try await api.levelTestNext(); try next.validate()
+            let question = try await api.question(next.questionId); try question.validate()
+            guard self.store === store else { throw CancellationError() }
+            guard question.version == next.questionVersion else {
+                throw SolfegeError.transport("레벨 테스트 문제가 바뀌었어요. 다시 시작해 주세요.")
+            }
+            self.selectedQuestion = question; self.selectedMode = .exam; self.levelTestDetail = false
+            do {
+                let record = try await self.createSelectedAttempt(levelTestStage:next.stage)
+                self.selectedQuestion = record.attempt.question; self.screen = .question
+            } catch let error as SolfegeError where ["LEVEL_TEST_QUESTION_MISMATCH","LEVEL_TEST_STAGE_UNAVAILABLE"].contains(error.code ?? "") {
+                self.levelTest = try await api.levelTest(); try self.levelTest?.validate()
+                self.screen = .levelTest
+                throw error
+            }
+        }
+    }
+    func finishLevelTest() async {
+        await run("첫 레이팅을 정하는 중이에요") {
+            guard let api = self.api, let store = self.store else { return }
+            let state = try await api.finishLevelTest(); try state.validate()
+            guard self.store === store else { throw CancellationError() }
+            self.examOffer = nil; try store.saveExamOffer(nil)
+            self.levelTest = state; self.levelTestDetail = false; self.screen = .levelTest
+        }
+    }
+    func skipLevelTest() async {
+        var skipped = false
+        await run("레벨 테스트를 건너뛰는 중이에요") {
+            guard let api = self.api, let store = self.store else { return }
+            let state = try await api.skipLevelTest(); try state.validate()
+            guard self.store === store else { throw CancellationError() }
+            self.examOffer = nil; try store.saveExamOffer(nil)
+            self.levelTest = state; skipped = true
+        }
+        if skipped { await startRecommendedExam() }
+    }
+    func refreshLevelTest() async {
+        guard let api, let store else { return }
+        do {
+            let state = try await api.levelTest(); try state.validate()
+            guard self.store === store else { return }
+            levelTest = state
+        } catch { report(error) }
+    }
+    /// Waits for the current stage's AI grade, then reloads the server's level test progress.
+    func pollLevelTest() async {
+        guard screen == .levelTest, session?.attempt.levelTestStage != nil else { return }
+        await poll()
+        guard screen == .levelTest, let record = session, record.attempt.levelTestStage != nil,
+              record.grading?.status == "completed",
+              levelTest?.stages.first(where: { $0.attemptId == record.id })?.grade == nil else { return }
+        await refreshLevelTest()
+    }
+    /// Opens the regular Exam result for the latest stage.
+    func openLevelTestResult() async {
+        guard let id = levelTest?.stages.last?.attemptId else { return }
+        levelTestDetail = true
+        if let record = session, record.id == id, record.grading?.status == "completed" { screen = .result; return }
+        if let record = history.first(where: { $0.id == id }) { await open(record) }
+        else {
+            await run("채점 결과를 불러오는 중이에요") { try await self.restoreExam(id) }
+        }
+        if screen != .result { levelTestDetail = false }
+    }
     private func reconcileExamSelection() async throws {
         // The server has definitively rejected this creation. Another device may
         // have selected or completed the question while our old offer was visible.
@@ -601,15 +692,20 @@ import PencilKit
             try await self.activate(record)
         }
     }
-    private func createSelectedAttempt() async throws -> SessionRecord {
+    private func createSelectedAttempt(levelTestStage: Int? = nil) async throws -> SessionRecord {
         guard let api = self.api, let store = self.store, let selected = self.selectedQuestion else { throw SolfegeError.storage("선택한 문제를 먼저 확인해 주세요.") }
-        var pending = try store.pending() ?? PendingCreation(question: selected, key: UUID(), mode:self.selectedMode)
+        var pending = try store.pending() ?? PendingCreation(question: selected, key: UUID(), mode:self.selectedMode, levelTestStage:levelTestStage)
         guard pending.question.id == selected.id, pending.studyMode == self.selectedMode else {
             throw SolfegeError.storage("이전 문제의 생성 요청을 먼저 복구해 주세요. 연습 기록과 필기는 보관되어 있습니다.")
         }
         try store.savePending(pending)
         let attempt: Attempt
-        do { attempt = try await api.createAttempt(question: pending.question, mode:pending.studyMode, key: pending.key) }
+        do { attempt = try await api.createAttempt(question: pending.question, mode:pending.studyMode, key: pending.key, levelTestStage:pending.levelTestStage) }
+        catch let error as SolfegeError where pending.levelTestStage != nil &&
+                ["QUESTION_VERSION_MISMATCH","LEVEL_TEST_QUESTION_MISMATCH","LEVEL_TEST_STAGE_UNAVAILABLE"].contains(error.code ?? "") {
+            // The server fixes each stage's question; a stale request is dropped and the stage is asked for again.
+            try store.savePending(nil); throw error
+        }
         catch let error as SolfegeError where error.code == "QUESTION_VERSION_MISMATCH" {
             let fresh = try await api.question(pending.question.id); try fresh.validate()
             pending = PendingCreation(question: fresh, key: UUID(), mode:pending.studyMode); try store.savePending(pending)
@@ -651,6 +747,9 @@ import PencilKit
             try self.persist(current); try await self.presentExam(current)
         }
     }
+    private func resultScreen(for record: SessionRecord) -> Screen {
+        record.attempt.levelTestStage != nil && !levelTestDetail ? .levelTest : .result
+    }
     private func activate(_ record: SessionRecord) async throws {
         selectedQuestion = record.attempt.question
         selectedMode = record.attempt.studyMode
@@ -666,7 +765,7 @@ import PencilKit
             else { drawingMissing = true; drawing.load(PKDrawing()) }
             drawing.freeze(isLocked)
             try await prepareAssets()
-        case "submitted": screen = .result; drawing.freeze(true); try await loadResult()
+        case "submitted": screen = resultScreen(for:record); drawing.freeze(true); try await loadResult()
         default: throw SolfegeError.unsupported("지원하지 않는 응시 상태입니다: \(record.attempt.status)")
         }
     }
@@ -736,7 +835,7 @@ import PencilKit
             self.player.invalidateAudio(); self.drawing.freeze(true)
             // Reconcile before any write: a timed-out submit may already have committed.
             record.attempt = try await api.attempt(record.id); try self.persist(record)
-            if record.attempt.status == "submitted" { self.screen = .result; try await self.loadResult(); return }
+            if record.attempt.status == "submitted" { self.screen = self.resultScreen(for:record); try await self.loadResult(); return }
             guard record.attempt.status == "in_progress", !self.drawingMissing, !self.saveFailed else { throw SolfegeError.storage("필기 원본과 응시 상태를 먼저 복구해 주세요.") }
             if !record.frozen {
                 guard let template = self.template else { throw SolfegeError.storage("오선 템플릿이 준비되지 않았습니다.") }
@@ -766,7 +865,7 @@ import PencilKit
                 record.grading = grading
             }
             record.attempt = try await api.attempt(record.id); try self.persist(record)
-            self.screen = .result; self.waitingSince = Date(); try await self.loadResult()
+            self.screen = self.resultScreen(for:record); self.waitingSince = Date(); try await self.loadResult()
         }
         drawing.freeze(isLocked)
     }
@@ -848,11 +947,11 @@ import PencilKit
         return result
     }
     func poll() async {
-        while !Task.isCancelled, foreground, screen == .result, session?.attempt.studyMode == .exam, session?.grading?.isPending == true {
+        while !Task.isCancelled, foreground, screen == .result || screen == .levelTest, session?.attempt.studyMode == .exam, session?.grading?.isPending == true {
             do {
                 let ms = max(500, session?.grading?.pollAfterMs ?? 2000)
                 try await Task.sleep(for: .milliseconds(ms)); try Task.checkCancellation()
-                guard foreground, screen == .result else { return }
+                guard foreground, screen == .result || screen == .levelTest else { return }
                 try await loadResult()
             } catch is CancellationError { return }
             catch { report(error); return }
@@ -956,12 +1055,12 @@ import PencilKit
     func background() { foreground = false; player.invalidateAudio(); if !isLocked { saveDrawing(drawing.canvas.drawing) } }
     func foregroundAgain() async {
         foreground = true; pollGeneration = UUID()
-        guard !busy, let record = session, screen == .exam || screen == .result else { return }
+        guard !busy, let record = session, screen == .exam || screen == .result || (screen == .levelTest && record.grading?.isPending == true) else { return }
         // Explicit user input is still required to resume sound.
         await open(record)
     }
     func navigate(_ target: Screen) {
-        if screen == .result, target != .result { releaseCompletedContent() }
+        if screen == .result, target != .result { releaseCompletedContent(); levelTestDetail = false }
         if target != .exam { player.invalidateAudio() }
         // Leaving for a library or home ends the Daily Training run; its progress stays saved.
         if [.main, .home, .practiceLevels, .practiceQuestions, .classical, .dailyTraining].contains(target) { daily.activeIndex = nil }

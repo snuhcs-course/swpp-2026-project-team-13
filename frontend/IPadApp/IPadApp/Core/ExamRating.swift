@@ -3,6 +3,7 @@ import Foundation
 struct ExamRatingSnapshot: Codable, Equatable {
     var modelVersion: String; var poolVersion: String
     var difficultyVersion: String; var difficultyScore: Double
+    var levelTest: LevelTestSnapshot? = nil
 }
 
 struct ExamRatingState: Codable, Equatable {

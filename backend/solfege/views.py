@@ -134,13 +134,46 @@ def exam_recommendations(request):
     from .exam_rating import offer_for
     return Response(offer_for(request.user))
 
+@api_view(["GET"])
+def level_test_state(request):
+    from .level_test import current
+    return Response(current(request.user))
+
+def _no_body(request):
+    if request.body:
+        raise ContractError("VALIDATION_ERROR", "이 요청은 본문을 보내지 않습니다.")
+
+@api_view(["POST"])
+@parser_classes([JSONParser])
+def level_test_next(request):
+    from .level_test import next_question
+    _no_body(request)
+    return Response(next_question(request.user))
+
+@api_view(["POST"])
+@parser_classes([JSONParser])
+def level_test_finish(request):
+    from .level_test import finish
+    _no_body(request)
+    return Response(finish(request.user))
+
+@api_view(["POST"])
+@parser_classes([JSONParser])
+def level_test_skip(request):
+    from .level_test import skip
+    _no_body(request)
+    return Response(skip(request.user))
+
 @api_view(["POST"])
 @parser_classes([JSONParser])
 def create_attempt(request):
-    fields(request.data, {"question_id", "question_version"}, {"mode"})
+    fields(request.data, {"question_id", "question_version"}, {"mode", "level_test_stage"})
     mode = request.data.get("mode", "exam")
     if not isinstance(mode, str) or mode not in ("practice", "exam"):
         raise ContractError("VALIDATION_ERROR", "mode는 practice 또는 exam이어야 합니다.")
+    level_test_stage = request.data.get("level_test_stage")
+    if level_test_stage is not None and (type(level_test_stage) is not int or not 1 <= level_test_stage <= 3 or mode != "exam"):
+        raise ContractError("VALIDATION_ERROR", "level_test_stage는 Exam의 1–3 단계여야 합니다.")
     question_id = uuid_value(request.data["question_id"], "question_id")
     version_number = request.data["question_version"]
     if type(version_number) is not int or version_number < 1:
@@ -152,7 +185,10 @@ def create_attempt(request):
         version = get_object_or_404(QuestionVersion, question=question, version=version_number)
         snapshot = timed_question(version.metadata)
         rating_snapshot = None
-        if mode == "exam":
+        if mode == "exam" and level_test_stage is not None:
+            from .level_test import reserve
+            rating_snapshot = reserve(request.user, version, snapshot, level_test_stage)
+        elif mode == "exam":
             from .exam_rating import reserve_exam
             rating_snapshot = reserve_exam(request.user, version, snapshot)
         elif snapshot.get("collection") != "classical":
@@ -169,6 +205,9 @@ def create_attempt(request):
                                          grading_mode="self" if mode == "practice" else "automatic",
                                          grading_version="self-measure-v1" if mode == "practice" else "ai-melodic-v3",
                                          exam_rating_snapshot=rating_snapshot)
+        if level_test_stage is not None:
+            from .level_test import record_stage
+            record_stage(attempt)
         return attempt_json(request, attempt), 201, absolute(request, f"/api/v1/attempts/{attempt.id}/")
     return run_idempotent(request, dict(request.data), operation)
 

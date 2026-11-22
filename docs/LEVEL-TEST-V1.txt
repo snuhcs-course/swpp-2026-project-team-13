@@ -1,0 +1,38 @@
+Exam 레벨 테스트 v1
+===================
+
+언제 나오나
+-----------
+- 계정마다 처음 Exam에 들어갈 때 한 번 나온다. 서버 상태(ExamRatingState.level_test)가 기준이라 기기를 바꿔도 같다.
+- 이미 레이팅 시험을 본(또는 예약한) 계정은 not_applicable로 기존 흐름을 그대로 쓴다.
+- 데모와 레벨 테스트를 지원하지 않는 서버는 앱에서 not_applicable로 처리한다.
+
+흐름
+----
+Exam → 레벨 테스트 안내(건너뛰기 가능) → 기존 시험 준비 화면 → 응시 → AI 채점
+→ 80점 이상: 다음 난이도 도전 제안(여기서 마치기 가능) / 80점 미만: 종료 안내
+→ 첫 레이팅 화면(숫자가 빠르게 오르다 천천히 멈춤) → 기존 도전·적정·쉬운 문제 선택
+
+- 1단계 쉬움 → 2단계 중간 → 3단계 고급. 3단계 뒤에는 항상 종료.
+- 건너뛰기는 경고 팝업에서 한 번 더 눌러야 하며, 레이팅 0.0에서 시작한다.
+- 각 단계는 일반 Exam 응시(mode=exam)이고 rating snapshot에 level_test가 고정된다.
+  단계 점수는 Elo로 한 번씩 반영하지 않고, 마칠 때 한 번에 첫 레이팅을 정한다.
+
+문제 선택
+---------
+Exam 풀에서 아직 풀지 않은 문제 중 난이도 기준점과 skill 거리가 가장 가까운 5문제 가운데 하나.
+기준점: 쉬움 9.0, 중간 21.5, 고급 58.5 (커트라인 레벨 2·4·6). 다음 단계 문제는 처음 요청할 때 고정된다.
+
+첫 레이팅
+---------
+단계마다 "이 점수가 기대 점수(80점)가 되는 레이팅"을 구한다(expected_fraction의 역함수).
+문제 난이도에서 ±1 skill 안으로 제한하고, 응시한 단계 중 가장 높은 값을 첫 레이팅으로 쓴다.
+completed는 0으로 두어 이후 시험의 학습률이 높게 유지된다.
+
+API
+---
+GET  /api/v1/exam/level-test/          상태(status, stages, next_stage, can_finish, rating)
+POST /api/v1/exam/level-test/next/     다음 단계 문제(stage, tier, question_id, question_version)
+POST /api/v1/attempts/                 기존 요청 + level_test_stage
+POST /api/v1/exam/level-test/finish/   첫 레이팅 확정
+POST /api/v1/exam/level-test/skip/     건너뛰기(레이팅 0.0)
