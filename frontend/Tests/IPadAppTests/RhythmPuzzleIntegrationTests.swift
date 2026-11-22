@@ -18,11 +18,10 @@ import AVFoundation
         for (index,bpm) in [180.0,96,132].enumerated() {
             probe.reset(); round.tempoBpm=bpm
             try audio.play(round,reference:index==2,includeCountIn:index==0)
-            try await Task.sleep(for:.milliseconds(index==0 ? 2100 : 700))
+            let captured=try await probe.waitForNote(rate:rate)
+            let rendered=try XCTUnwrap(captured,"No complete piano note arrived on listen/replay/answer playback")
             audio.stop()
             XCTAssertTrue(graph.engine === engine && graph.piano === sampler,"Listening must not rebuild the loaded instrument")
-            let rendered=Array(probe.snapshot().suffix(Int(rate*0.25)))
-            XCTAssertEqual(rendered.count,Int(rate*0.25))
             XCTAssertGreaterThan(PianoTimbreProbe.rms(rendered),0.0001)
             XCTAssertGreaterThan(PianoTimbreProbe.harmonicFraction(rendered,rate:rate),0.005,"First play, replay and answer playback must remain a sampled piano")
         }
