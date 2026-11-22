@@ -23,8 +23,13 @@
 - The introductory purple label is **Tutorial**; the black title names the game.
 - The normal full-width demo is retained. There is no scaled demo, left column,
   or reserved instruction rail. Only the floating popup moves between steps.
-  Placement considers all highlighted regions together; when needed, a shallow
-  popup fits above the score instead of covering the score, keyboard or palette.
+  Each stage uses the approved control-relative position. The code never searches
+  for an unrelated empty corner. Page changes replace the whole popup without
+  movement animations or a pressed button trailing behind the panel.
+- Memory notation is top-aligned in its scroll area, like the real question.
+  The input/editing popups occupy the remaining gap between notation and keys.
+- Rhythm actions follow the choices immediately, like the real question. A
+  flexible spacer must not push the controls down to the iPad's bottom edge.
 - Memory input/editing steps expose both the score and keyboard. Undo and the
   eraser work on real disposable MelodyAnswers and preserve the other measure.
 - Rhythm step 3 requires tapping the first answer piece, then dragging the actual
@@ -42,10 +47,12 @@
 
 ## Shared Practice / Exam guide: 시험 모드
 
-The selection, ready and writing screens share one guide, including explicit
-Practice-only pause/replay and self-marking explanations. The first card shows
-**Tutorial / 시험 모드**. Automatic presentation is confined to selection/pre-start;
-a restored running attempt never automatically opens help.
+Only the actual Practice/Exam writing screen opens the shared guide. Practice
+entry, level selection, question bank, Exam recommendations and Ready to listen
+have no help icon or automatic tutorial presentation. The first card shows
+**Tutorial / 시험 모드**. The actual prepared writing screen opens it once per
+account across both modes; a restored running attempt never automatically opens
+help. The writing-screen icon is inset 14pt further from the trailing edge.
 
 During an actual question the overlay uses the **actual writing screen**, without
 replacing, resizing or reflowing its score or controls. Highlights have a dashed
@@ -56,17 +63,45 @@ Playback, its exact audio position and the remaining writing time pause in both
 Practice and Exam. Closing resumes only if playback was running before opening;
 an existing pause is preserved. Foreground restoration cannot bypass this guard.
 
-Before selecting a question, a read-only preview uses the same extracted layout
-components and an existing small-pack blank sheet. It has no AppModel, playback
-engine, drawing controller, API calls or attempt side effects.
+The small-pack read-only preview remains an offline rendering test fixture;
+production navigation never opens it. Help during a real question uses that
+question's actual writing screen.
+
+Next section exists in the same fixed slot from the prepared state onward. It
+is grey/disabled before starting and during audio, enabled during an active
+writing wait, and disabled during help, pauses and the final section. Its
+highlight is never substituted with the progress bar. Start and Submit reserve
+the same 150pt action slot so the adjacent Next button does not shift sideways.
 
 The segment timer is driven by the persisted playback cursor. The server's
 recommended_end_at is advisory, not an enforced submission deadline; no server
 migration or timer endpoint is required for this pause behavior.
 
 Practice and Exam share the same `.exam` completion key. Entering either mode
-first shows the guide once; entering the other does not show it again. Help can
-always reopen it. Keep the existing per-account v2 history when updating copy.
+first reaches the actual writing screen shows the guide once; the other does
+not show it again. Help can reopen it from the writing screen. Keep the existing
+per-account v2 history when updating copy.
+
+## Approved placement
+
+Every intro is centred. Button callouts sit 14pt above their named button;
+screen-edge clamping is the only horizontal adjustment.
+
+| Guide | Steps | Placement |
+|---|---|---|
+| Echo Dragon | 1 / 2 / 5 | Above Start / Replay / Submit; keep the dragon's face visible on Submit |
+| Echo Dragon | 3 / 4 | Above the keyboard, aligned with the first key / keyboard centre |
+| Memory run | 1 / 2 / 5 | Above Start / both Replay controls / Submit |
+| Memory run | 3 / 4 | Same shallow popup in the score-to-keyboard gap |
+| Rhythm puzzle | 1 / 2 / 6 | Above Start / both Replay controls / Submit |
+| Rhythm puzzle | 3, all three actions | Same shallow popup immediately above the staff; staff, palette and drag route exposed |
+| Rhythm puzzle | 4 | Immediately below the staff, trailing side; may cover choices |
+| Rhythm puzzle | 5 | Above Tie before and after enabling it; staff and connection route exposed |
+| Writing | 1 / 5 | Below the section progress bar, centred |
+| Writing | 2 | Below the timer, trailing aligned |
+| Writing | 3 | Below the pen/eraser tools, leading aligned |
+| Writing | 4 | Lower trailing area of the sheet; leave the left staff visible |
+| Writing | 6 / 7 | Above the actual Next control / main Submit action slot |
 
 ## Approved copy (2026-11-23)
 
@@ -103,7 +138,8 @@ always reopen it. Keep the existing per-account v2 history when updating copy.
 - Views/WritingScreenLayout.swift: shared live/preview layout components.
 - Services/AppModel.swift and ScorePlaybackEngine.swift: writing-guide pause,
   exact-position resume and interaction guards.
-- Core/TutorialProgress.swift: completion storage and responsive coach layout.
+- Core/TutorialProgress.swift: account-scoped completion storage and count-in.
+- Core/TutorialPopupLayout.swift: approved per-step anchor rules and bounds.
 - Each minigame model has an explicit preparation/start boundary and tutorial
   suspension guard. Existing model callers keep their previous automatic behavior
   unless they opt into requireManualStart().
@@ -119,7 +155,7 @@ No generated mockup PNGs or full problem banks are added to the app bundle.
 ## Validation
 
 - swift test --package-path frontend includes account/game isolation, corrupt
-  completion-file preservation, multi-target popup placement and meter/click tests.
+  completion-file preservation, control-relative popup placement and meter/click tests.
 - TutorialOverlayIntegrationTests checks manual start, preserved Echo reply/hearts,
   Memory replacement/undo/erase, mandatory Rhythm tap/drop/tie completion, and
   live Practice/Exam clock freezing, geometry preservation and exact resume.

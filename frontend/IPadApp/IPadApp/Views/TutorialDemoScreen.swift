@@ -95,6 +95,7 @@ struct TutorialDemoScreen: View {
         VStack(spacing: 14) {
             header
             DrillSetProgress(results: Array(repeating: nil, count: kind == .echoDragon ? 10 : kind == .memoryRun ? 4 : 5), index: 0)
+                .tutorialTarget(.progress)
             if kind == .echoDragon {
                 Image(audio.playing && pendingReaction == nil ? "echo-dragon-singing" : echoPhase == .happy ? "echo-dragon-happy" : echoPhase == .puzzled ? "echo-dragon-puzzled" : "echo-dragon-waiting")
                     .resizable().scaledToFit().frame(maxWidth: .infinity, maxHeight: .infinity).tutorialTarget(.character)
@@ -102,13 +103,14 @@ struct TutorialDemoScreen: View {
                 keyboard.frame(height: min(185, max(130, height*0.25)))
             } else if kind == .memoryRun {
                 HStack { Text("4/4").font(.title.bold()); Text("♩ = 80").foregroundStyle(.secondary); Spacer() }
-                memoryNotation.frame(maxHeight: .infinity)
+                ScrollView(.vertical, showsIndicators: true) { memoryNotation }
+                    .frame(maxHeight: .infinity)
                 Text(session.message).font(.subheadline).frame(height: 22)
                 keyboard.frame(height: min(185, max(130, height*0.25)))
             } else { rhythm(width: width) }
             actions
         }.padding(.horizontal, kind == .echoDragon ? 28 : 24).padding(.vertical, 20)
-            .frame(maxWidth: kind == .echoDragon ? 1056 : 1100).frame(maxWidth: .infinity, maxHeight: .infinity)
+            .frame(maxWidth: kind == .echoDragon ? 1056 : 1100).frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
             .coordinateSpace(name: "rhythm-puzzle")
             .onPreferenceChange(TutorialChoiceFrames.self) { choiceFrames = $0 }
             .onPreferenceChange(RhythmBarFrames.self) { barFrames = $0 }
@@ -150,7 +152,7 @@ struct TutorialDemoScreen: View {
     @ViewBuilder private var memoryNotation: some View {
         if let round = TutorialSamples.memory, let answers = session.memory {
             MemoryPhraseView(round: round, answers: answers.pitches, selectedBar: session.selectedBar, selectBar: session.selectBar)
-                .padding(12).background(.white, in: RoundedRectangle(cornerRadius: 16))
+                .padding(.horizontal, 12).background(.white, in: RoundedRectangle(cornerRadius: 16))
                 .tutorialTarget(.notation).allowsHitTesting(page == 4)
         }
     }
@@ -170,7 +172,6 @@ struct TutorialDemoScreen: View {
                     if let tile = bank.tileMap[id] { choice(tile, round: round, width: width) }
                 }
             }.tutorialTarget(.choices)
-            Spacer(minLength: 0)
         }
     }
     private func choice(_ tile: RhythmTile, round: RhythmRound, width: CGFloat) -> some View {

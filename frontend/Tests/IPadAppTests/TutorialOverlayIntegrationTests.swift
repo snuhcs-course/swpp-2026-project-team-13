@@ -134,6 +134,38 @@ import SwiftUI
         session.remove(try XCTUnwrap(session.board.placements.first))
         XCTAssertEqual(session.board.placements.count, 1)
     }
+    func testNextControlHasItsActualAnchorBeforeTheFirstListen() async throws {
+        let model = AppModel(demoScope: "tutorial-next-"+UUID().uuidString)
+        model.demo = true; await model.connect()
+        await model.choose(try XCTUnwrap(model.questions.first?.id), mode: .practice)
+        await model.begin()
+        defer { model.player.pause() }
+        let scope = try XCTUnwrap(model.rhythmConnection?.scope)
+        TutorialHistory.finish(.exam, scope: scope)
+        let screen = ExamView(model: model, drawing: model.drawing, player: model.player)
+        XCTAssertEqual(model.session?.attempt.status, "ready")
+        XCTAssertFalse(screen.nextSegmentEnabled)
+        let size = CGSize(width: 1133, height: 744)
+        let ready = try await captureTutorialFrames(of: screen.environment(\.tutorialScope, scope), size: size)
+        let nextBefore = try XCTUnwrap(ready[.next], "Next must exist before starting, even while disabled")
+        XCTAssertTrue(TutorialPopupLayout(kind: .exam, page: 6, viewport: size, anchors: ready).isResolved)
+        model.player.skipWritingWait()
+        XCTAssertEqual(model.session?.attempt.status, "ready")
+        await model.start(); model.player.pause()
+        let started = try await captureTutorialFrames(of: screen.environment(\.tutorialScope, scope), size: size)
+        let nextAfter = try XCTUnwrap(started[.next])
+        XCTAssertEqual(nextBefore.minX, nextAfter.minX, accuracy: 0.5)
+        XCTAssertEqual(nextBefore.width, nextAfter.width, accuracy: 0.5)
+        model.player.restore(PlaybackCursor(index: 1, phase: "segment")); model.player.resume()
+        XCTAssertFalse(screen.nextSegmentEnabled, "Listening is not writing time")
+        model.player.pause()
+        model.player.restore(PlaybackCursor(index: 1, phase: "gap", remainingWaitMs: 20000)); model.player.resume()
+        XCTAssertTrue(screen.nextSegmentEnabled)
+        model.openWritingTutorial()
+        XCTAssertFalse(screen.nextSegmentEnabled)
+        model.closeWritingTutorial(resumePlayback: false)
+        XCTAssertFalse(screen.nextSegmentEnabled)
+    }
     func testWritingTutorialHasOneSharedIntroductionAndSubmissionCopy() {
         let practice = TutorialKind.writingSteps(mode: .practice), exam = TutorialKind.writingSteps(mode: .exam)
         XCTAssertEqual(practice.map(\.title), exam.map(\.title))
@@ -236,33 +268,49 @@ import SwiftUI
                 XCTAssertTrue(session.dropTile(try XCTUnwrap(session.dragTile), at: try XCTUnwrap(TutorialSamples.rhythmRound).pulse))
             }
             let size = CGSize(width: 1133, height: 744)
-            let before = try await frames(of: TutorialDemoScreen(session: session, close: {}), size: size)
-            let after = try await frames(of: TutorialWalkthrough(session: session, done: {}), size: size)
+            let before = try await captureTutorialFrames(of: TutorialDemoScreen(session: session, close: {}), size: size)
+            let after = try await captureTutorialFrames(of: TutorialWalkthrough(session: session, done: {}), size: size)
             let protected: [TutorialTarget] = kind == .memoryRun ? [.notation, .keyboard] : [.notation, .choices]
             for key in protected {
                 let a = try XCTUnwrap(before[key]), b = try XCTUnwrap(after[key])
                 XCTAssertEqual(a.minX, b.minX, accuracy: 0.5); XCTAssertEqual(a.minY, b.minY, accuracy: 0.5)
                 XCTAssertEqual(a.width, b.width, accuracy: 0.5); XCTAssertEqual(a.height, b.height, accuracy: 0.5)
             }
-            let obstacles = try protected.map { try XCTUnwrap(after[$0]) }
-            let popup = TutorialFloatingLayout(viewport: size, avoiding: obstacles, interactive: true).frame
-            for rect in obstacles { XCTAssertFalse(popup.intersects(rect), "The popup must leave the score and input areas exposed") }
+            let popup = TutorialPopupLayout(kind: kind, page: 3, viewport: size, anchors: after).frame
+            for key in protected {
+                let rect = try XCTUnwrap(after[key])
+                XCTAssertFalse(popup.intersects(rect), "\(kind): popup \(popup) covers \(key) \(rect)")
+            }
+            if kind == .memoryRun {
+                let staff = try XCTUnwrap(after[.notation]), progress = try XCTUnwrap(after[.progress])
+                XCTAssertLessThan(staff.minY-progress.maxY, 90, "Memory notation must be at the top of its scroll area")
+                XCTAssertGreaterThanOrEqual(popup.minY, staff.maxY)
+                XCTAssertLessThanOrEqual(popup.maxY, try XCTUnwrap(after[.keyboard]).minY)
+            } else {
+                let choices = try XCTUnwrap(after[.choices]), submit = try XCTUnwrap(after[.submit])
+                XCTAssertGreaterThanOrEqual(submit.minY, choices.maxY)
+                XCTAssertLessThan(submit.minY-choices.maxY, 35, "Rhythm actions belong directly below the choices")
+            }
         }
     }
-    private func frames<V: View>(of view: V, size: CGSize) async throws -> [TutorialTarget: CGRect] {
-        var latest: [TutorialTarget: CGRect] = [:]
-        let content = view.overlayPreferenceValue(TutorialAnchors.self) { anchors in
-            GeometryReader { proxy in
-                Color.clear.preference(key: TutorialResolvedFrames.self, value: anchors.mapValues { proxy[$0] })
-                    .allowsHitTesting(false)
+    func testEveryMinigameStepResolvesItsApprovedPopupAnchor() async throws {
+        for size in [CGSize(width: 1133, height: 744), CGSize(width: 1024, height: 768), CGSize(width: 700, height: 744)] {
+          for kind in [TutorialKind.echoDragon, .memoryRun, .rhythmPuzzle] {
+            for page in 1...kind.steps.count {
+                let session = MiniTutorialSession(kind: kind); session.showPage(page)
+                let anchors = try await captureTutorialFrames(of: TutorialDemoScreen(session: session, close: {}), size: size)
+                let layout = TutorialPopupLayout(kind: kind, page: page, viewport: size, anchors: anchors)
+                XCTAssertTrue(layout.isResolved, "\(kind) step \(page) has no real anchor")
+                XCTAssertTrue(CGRect(origin: .zero, size: size).contains(layout.frame))
+                if page == 1 || page == 2 || page == kind.steps.count {
+                    let target: TutorialTarget = page == 1 ? .start : page == 2 ? .replay : .submit
+                    let control = try XCTUnwrap(anchors[target])
+                    XCTAssertLessThanOrEqual(control.maxY, size.height, "\(kind) step \(page) control is offscreen")
+                    XCTAssertEqual(layout.frame.maxY, control.minY-14, accuracy: 0.5, "\(kind) step \(page)")
+                }
             }
-        }.onPreferenceChange(TutorialResolvedFrames.self) { latest = $0 }
-        let host = UIHostingController(rootView: content)
-        let window = UIWindow(frame: CGRect(origin: .zero, size: size))
-        window.rootViewController = host; window.makeKeyAndVisible()
-        defer { window.isHidden = true }
-        try await Task.sleep(for: .milliseconds(200)); host.view.layoutIfNeeded()
-        return latest
+          }
+        }
     }
     func testExamplesAreSelfContainedAndHaveNoAttemptOrStageJournal() throws {
         let bank = try XCTUnwrap(TutorialSamples.rhythm)
@@ -323,4 +371,20 @@ private struct TutorialResolvedFrames: PreferenceKey {
                 model.closeWritingTutorial()
             }
     }
+}
+
+@MainActor private func captureTutorialFrames<V: View>(of view: V, size: CGSize) async throws -> [TutorialTarget: CGRect] {
+    var latest: [TutorialTarget: CGRect] = [:]
+    let content = view.overlayPreferenceValue(TutorialAnchors.self) { anchors in
+        GeometryReader { proxy in
+            Color.clear.preference(key: TutorialResolvedFrames.self, value: anchors.mapValues { proxy[$0] })
+                .allowsHitTesting(false)
+        }
+    }.onPreferenceChange(TutorialResolvedFrames.self) { latest = $0 }
+    let host = UIHostingController(rootView: content)
+    let window = UIWindow(frame: CGRect(origin: .zero, size: size))
+    window.rootViewController = host; window.makeKeyAndVisible()
+    defer { window.isHidden = true }
+    try await Task.sleep(for: .milliseconds(200)); host.view.layoutIfNeeded()
+    return latest
 }

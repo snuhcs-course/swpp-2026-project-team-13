@@ -30,11 +30,6 @@ struct TutorialHelpButton: View {
         }.buttonStyle(.plain).foregroundStyle(SolfegeTheme.violet).accessibilityLabel(label)
     }
 }
-enum TutorialTarget: Hashable {
-    case start, replay, keyboard, firstKey, notation, choices, tie, submit
-    case progress, timer, tools, next, playPause, undo, erase
-    case rhythmTapTile, rhythmDragTile, dropSlot, tieStart, tieEnd, character
-}
 struct TutorialStep {
     let target: TutorialTarget
     let title: String
@@ -169,7 +164,8 @@ struct TutorialCoachCard: View {
                     navigation
                 }
             }
-        }.padding(compact ? 14 : 20).background(.white, in: RoundedRectangle(cornerRadius: 18))
+        }.padding(.horizontal, compact ? 14 : 20).padding(.vertical, compact ? 8 : 20)
+            .background(.white, in: RoundedRectangle(cornerRadius: 18))
             .shadow(color: .black.opacity(0.14), radius: 14, y: 5).foregroundStyle(SolfegeTheme.ink)
             .accessibilityIdentifier("tutorial-coach")
     }
@@ -193,11 +189,12 @@ struct TutorialCoachCard: View {
         }.frame(maxWidth: .infinity, alignment: .leading)
     }
     private var skipButton: some View {
-        Button("건너뛰기", action: skip).font(.subheadline).frame(minHeight: 32).accessibilityIdentifier("tutorial-skip")
+        Button("건너뛰기", action: skip).buttonStyle(.plain)
+            .font(.subheadline).frame(minHeight: 32).accessibilityIdentifier("tutorial-skip")
     }
     private var navigation: some View {
         HStack(spacing: 12) {
-            Button("이전", action: previous).disabled(page == 0).frame(minWidth: 44, minHeight: 44)
+            Button("이전", action: previous).buttonStyle(.plain).disabled(page == 0).frame(minWidth: 44, minHeight: 44)
             if !compact { Spacer() }
             Button(page == count ? "안내 끝내기" : "다음", action: next)
                 .buttonStyle(PrimaryButton(compact: true)).disabled(!canAdvance).accessibilityIdentifier("tutorial-next")
@@ -233,8 +230,8 @@ struct TutorialCoachCard: View {
                 .overlayPreferenceValue(TutorialAnchors.self) { anchors in
                     GeometryReader { proxy in
                         let holes = tutorialRects(session.highlights, anchors: anchors, proxy: proxy)
-                        let layout = TutorialFloatingLayout(viewport: proxy.size, avoiding: holes,
-                                                            interactive: session.page > 0, largeText: typeSize.isAccessibilitySize)
+                        let layout = TutorialPopupLayout(kind: kind, page: session.page, viewport: proxy.size,
+                                                         anchors: anchors.mapValues { proxy[$0] }, largeText: typeSize.isAccessibilitySize)
                         ZStack(alignment: .topLeading) {
                             SpotlightMask(holes: holes).fill(.black.opacity(0.50), style: FillStyle(eoFill: true)).allowsHitTesting(false)
                             ForEach(holes.indices, id: \.self) { i in
@@ -242,8 +239,15 @@ struct TutorialCoachCard: View {
                                     .frame(width: holes[i].width, height: holes[i].height).position(x: holes[i].midX, y: holes[i].midY).allowsHitTesting(false)
                             }
                             gestureHint(anchors: anchors, proxy: proxy)
-                            coach(compact: layout.compact).frame(width: layout.frame.width, height: layout.frame.height)
-                                .position(x: layout.frame.midX, y: layout.frame.midY)
+                            if layout.isResolved {
+                                coach(compact: layout.compact)
+                                    .frame(width: layout.frame.width, height: layout.frame.height)
+                                    .position(x: layout.frame.midX, y: layout.frame.midY)
+                                    .id(session.page).transition(.identity)
+                                    .transaction { transaction in
+                                        transaction.animation = nil; transaction.disablesAnimations = true
+                                    }
+                            }
                         }
                     }
                 }
@@ -292,12 +296,12 @@ struct TutorialCoachCard: View {
             let step = page > 0 ? steps[page-1] : nil
             let target = step.map { value -> TutorialTarget in
                 if value.target == .submit && anchors[.submit] == nil && anchors[.start] != nil { return .start }
-                if value.target == .next && anchors[.next] == nil { return .progress }
                 return value.target
             }
             let targets = page == 5 && mode == .practice ? [TutorialTarget.progress, .playPause] : target.map { [$0] } ?? []
             let holes = tutorialRects(targets, anchors: anchors, proxy: proxy)
-            let layout = TutorialBubbleLayout(viewport: proxy.size, target: holes.first, preferredHeight: typeSize.isAccessibilitySize ? 440 : 340)
+            let layout = TutorialPopupLayout(kind: .exam, page: page, viewport: proxy.size,
+                                             anchors: anchors.mapValues { proxy[$0] }, largeText: typeSize.isAccessibilitySize)
             ZStack(alignment: .topLeading) {
                 Color.clear.contentShape(Rectangle()).onTapGesture { }
                 SpotlightMask(holes: holes).fill(.black.opacity(0.52), style: FillStyle(eoFill: true)).allowsHitTesting(false)
@@ -306,10 +310,16 @@ struct TutorialCoachCard: View {
                     RoundedRectangle(cornerRadius: 12).stroke(.white, style: StrokeStyle(lineWidth: 2, dash: [6, 4]))
                         .frame(width: hole.width, height: hole.height).position(x: hole.midX, y: hole.midY).allowsHitTesting(false)
                 }
-                TutorialCoachCard(page: page, count: steps.count, title: step?.title ?? "시험 모드",
-                                  message: step?.message ?? TutorialKind.exam.introduction, footnote: step?.footnote,
-                                  previous: { page = max(0, page-1) }, next: { if page == steps.count { finish() } else { page += 1 } }, skip: finish)
-                    .frame(width: layout.frame.width, height: layout.frame.height).position(x: layout.frame.midX, y: layout.frame.midY)
+                if layout.isResolved {
+                    TutorialCoachCard(page: page, count: steps.count, title: step?.title ?? "시험 모드",
+                                      message: step?.message ?? TutorialKind.exam.introduction, footnote: step?.footnote,
+                                      previous: { page = max(0, page-1) }, next: { if page == steps.count { finish() } else { page += 1 } }, skip: finish)
+                        .frame(width: layout.frame.width, height: layout.frame.height).position(x: layout.frame.midX, y: layout.frame.midY)
+                        .id(page).transition(.identity)
+                        .transaction { transaction in
+                            transaction.animation = nil; transaction.disablesAnimations = true
+                        }
+                }
             }
         }.accessibilityAddTraits(.isModal).accessibilityAction(.escape, finish).accessibilityIdentifier("tutorial-overlay-exam")
     }

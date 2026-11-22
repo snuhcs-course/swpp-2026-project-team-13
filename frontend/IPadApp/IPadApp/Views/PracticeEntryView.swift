@@ -3,14 +3,12 @@ import SwiftUI
 // Approved Practice entry and 3 × 3 level grid in the shared Figma file.
 struct PracticeEntryView: View {
     @ObservedObject var model: AppModel
-    @State private var showHelp = false
-    @Environment(\.tutorialScope) private var tutorialScope
     var body: some View {
         GeometryReader { geometry in
             let margin: CGFloat = geometry.size.width >= 700 ? 48 : 24
             let height = max(620, geometry.size.height - 72)
             VStack(spacing: 0) {
-                PracticeNavigationBar(title: "Practice", backTitle: "홈", back: { model.navigate(.main) }, help: { showHelp = true })
+                PracticeNavigationBar(title: "Practice", backTitle: "홈", back: { model.navigate(.main) })
                 ScrollView {
                     VStack(alignment: .leading, spacing: 0) {
                         if let record = model.resumablePractice {
@@ -51,8 +49,6 @@ struct PracticeEntryView: View {
             }.frame(maxWidth: 1180).frame(maxWidth: .infinity).background(.white)
         }
         .foregroundStyle(SolfegeTheme.ink)
-        .fullScreenCover(isPresented: $showHelp) { PracticeTutorialView { showHelp = false } }
-        .task { if !TutorialHistory.hasSeen(.exam, scope: tutorialScope) { showHelp = true } }
         .accessibilityIdentifier("practice-entry")
     }
     private func resume(_ record: SessionRecord) -> some View {
@@ -78,7 +74,6 @@ struct PracticeEntryView: View {
 
 struct PracticeLevelSelectionView: View {
     @ObservedObject var model: AppModel
-    @State private var showHelp = false
     @Environment(\.dynamicTypeSize) private var typeSize
     var body: some View {
         GeometryReader { geometry in
@@ -87,7 +82,7 @@ struct PracticeLevelSelectionView: View {
             let rows = columns == 3 ? 3 : 5
             let cardHeight = typeSize.isAccessibilitySize ? 204 : min(204, max(145, (geometry.size.height - 144 - CGFloat(rows - 1) * 18) / CGFloat(rows)))
             VStack(spacing: 0) {
-                PracticeNavigationBar(title: "난이도 선택", backTitle: "Practice", back: { model.navigate(.home) }, help: { showHelp = true })
+                PracticeNavigationBar(title: "난이도 선택", backTitle: "Practice", back: { model.navigate(.home) })
                 ScrollView {
                     LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 18), count: columns), spacing: 18) {
                         ForEach(PracticeLevel.allCases) { level in
@@ -111,7 +106,6 @@ struct PracticeLevelSelectionView: View {
             }.frame(maxWidth: 1180).frame(maxWidth: .infinity).background(.white)
         }
         .foregroundStyle(SolfegeTheme.ink)
-        .fullScreenCover(isPresented: $showHelp) { PracticeTutorialView { showHelp = false } }
         .accessibilityIdentifier("practice-level-selection")
     }
 }
@@ -120,7 +114,6 @@ private struct PracticeNavigationBar: View {
     let title: String
     let backTitle: String
     let back: () -> Void
-    let help: () -> Void
     var body: some View {
         ZStack {
             Text(title).font(.system(size: 22, weight: .bold)).accessibilityAddTraits(.isHeader)
@@ -129,7 +122,6 @@ private struct PracticeNavigationBar: View {
                     HStack(spacing: 6) { Image(systemName: "chevron.left"); Text(backTitle) }.frame(minHeight: 44)
                 }.accessibilityIdentifier("practice-back")
                 Spacer()
-                TutorialHelpButton(label: "연습 모드 안내", action: help).accessibilityIdentifier("practice-help")
             }.font(.system(size: 16)).foregroundStyle(SolfegeTheme.violet)
         }.padding(.horizontal, 28).frame(height: 72)
     }
@@ -145,12 +137,5 @@ private struct PracticeCardStyle: ButtonStyle {
             .overlay { if !raised { shape.stroke(SolfegeTheme.keyEdge.opacity(0.65), lineWidth: 1) } }
             .shadow(color: raised ? SolfegeTheme.deepViolet : .clear, radius: 0, y: configuration.isPressed ? 1 : 5)
             .offset(y: raised && configuration.isPressed && !reduceMotion ? 4 : 0)
-    }
-}
-
-struct PracticeTutorialView: View {
-    let done: () -> Void
-    var body: some View {
-        WritingTutorialPreview(mode: .practice, done: done)
     }
 }

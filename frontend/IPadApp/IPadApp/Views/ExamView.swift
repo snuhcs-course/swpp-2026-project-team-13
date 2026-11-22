@@ -22,6 +22,7 @@ struct ExamView: View {
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
                     TutorialHelpButton(label: "시험 모드 안내", action: model.openWritingTutorial)
+                        .padding(.trailing, 14)
                         .disabled(!model.prepared || frozen || model.writingTutorialOpen)
                 }
             }
@@ -74,8 +75,9 @@ struct ExamView: View {
         if !model.prepared {
             Button("악보 준비 재시도") { Task { await model.retryPrepare() } }.buttonStyle(SecondaryActionButton())
         } else if attempt?.status == "ready" {
+            nextSegmentButton
             Button { Task { await model.start() } } label: { Label("청음 시작", systemImage: "play.fill") }
-                .buttonStyle(PrimaryButton()).tutorialTarget(.start)
+                .buttonStyle(PrimaryButton()).frame(width: 150).tutorialTarget(.start)
         } else if attempt?.status == "in_progress" {
             if player.cursor.index <= 11 && !frozen {
                 if practice {
@@ -87,17 +89,13 @@ struct ExamView: View {
                         .buttonStyle(SecondaryActionButton()).accessibilityIdentifier("resume-playback")
                 }
             }
-            if (1...10).contains(player.cursor.index), !frozen {
-                Button { player.skipWritingWait() } label: { Label("다음 구간", systemImage: "forward.end.fill") }
-                    .buttonStyle(SecondaryActionButton()).disabled(!player.canSkipWritingWait || model.isLocked || model.busy)
-                    .accessibilityIdentifier("skip-writing-wait").tutorialTarget(.next)
-            }
+            if !frozen { nextSegmentButton }
             if model.isLocked && !frozen {
                 Button("필기 저장 재시도") { model.retryDrawingSave() }.buttonStyle(SecondaryActionButton())
             }
             Button { if frozen { Task { await model.submit() } } else { confirmSubmit = true } } label: {
                 Text(frozen ? "제출 복구" : "답안 제출")
-            }.buttonStyle(PrimaryButton()).disabled(model.drawingMissing).accessibilityIdentifier("submit-answer").tutorialTarget(.submit)
+            }.buttonStyle(PrimaryButton()).frame(width: 150).disabled(model.drawingMissing).accessibilityIdentifier("submit-answer").tutorialTarget(.submit)
                 .popover(isPresented: $confirmSubmit, attachmentAnchor: .rect(.bounds), arrowEdge: .bottom) {
                     AnswerConfirmation(title: "이 답안으로 제출할까요?",
                                        message: practice ? "제출을 시작하면 현재 필기를 고정해 전송합니다.\n통신이 끊겨도 같은 답안으로 복구할 수 있어요." : "제출하면 현재 필기를 고정해 AI 평가로 전송합니다.\n제출 후에는 답안을 수정할 수 없어요.",
@@ -107,6 +105,15 @@ struct ExamView: View {
                     .presentationCompactAdaptation(.popover)
                 }
         }
+    }
+    var nextSegmentEnabled: Bool {
+        attempt?.status == "in_progress" && player.cursor.phase == "gap" && player.canSkipWritingWait &&
+            !frozen && !model.isLocked && !model.busy && !model.writingTutorialOpen
+    }
+    private var nextSegmentButton: some View {
+        Button { player.skipWritingWait() } label: { Label("다음 구간", systemImage: "forward.end.fill") }
+            .buttonStyle(SecondaryActionButton()).frame(width: 150).disabled(!nextSegmentEnabled)
+            .accessibilityIdentifier("skip-writing-wait").tutorialTarget(.next)
     }
 }
 

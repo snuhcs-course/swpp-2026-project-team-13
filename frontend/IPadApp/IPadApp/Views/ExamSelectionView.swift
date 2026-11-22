@@ -3,8 +3,6 @@ import SwiftUI
 // S15 loading remains separate. S15a is the approved horizontal raised-card view.
 struct ExamSelectionView: View {
     @ObservedObject var model: AppModel
-    @State private var showHelp = false
-    @Environment(\.tutorialScope) private var tutorialScope
     var body: some View {
         GeometryReader { geometry in
             VStack(spacing:0) {
@@ -13,8 +11,7 @@ struct ExamSelectionView: View {
                         HStack(spacing:6) { Image(systemName:"chevron.left"); Text("홈") }
                     }.frame(width:88,alignment:.leading).accessibilityIdentifier("exam-selection-home")
                     Spacer(); Text("Exam").font(.system(size:22,weight:.bold)).foregroundStyle(SolfegeTheme.ink); Spacer()
-                    TutorialHelpButton(label: "시험 모드 안내") { showHelp = true }
-                        .frame(width:88,alignment:.trailing)
+                    Color.clear.frame(width:88,height:44).accessibilityHidden(true)
                 }.foregroundStyle(SolfegeTheme.violet).padding(.horizontal,28).frame(height:58)
                 VStack(alignment:.leading,spacing:0) {
                     HStack(spacing:14) {
@@ -46,8 +43,6 @@ struct ExamSelectionView: View {
                 }.padding(.horizontal,40).padding(.top,40).padding(.bottom,42)
             }.background(.white).foregroundStyle(SolfegeTheme.ink)
         }
-        .fullScreenCover(isPresented: $showHelp) { WritingTutorialPreview(mode: .exam) { showHelp = false } }
-        .task { if !TutorialHistory.hasSeen(.exam, scope: tutorialScope) { showHelp = true } }
         .accessibilityIdentifier("exam-selection")
     }
 }

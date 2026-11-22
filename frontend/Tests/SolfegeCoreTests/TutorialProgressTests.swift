@@ -32,44 +32,54 @@ final class TutorialProgressTests: XCTestCase {
         XCTAssertThrowsError(try store.markSeen(.exam))
         XCTAssertEqual(try Data(contentsOf: file), Data("not-json".utf8))
     }
-    func testBubblesStayInsideLandscapeAndSplitWindowBounds() {
+    func testButtonGuidesStayDirectlyAboveTheirButtonsAcrossIPads() {
         for size in [CGSize(width: 1366, height: 1024), CGSize(width: 1133, height: 744), CGSize(width: 1024, height: 600), CGSize(width: 690, height: 744)] {
-            let targets: [CGRect?] = [nil,
-                CGRect(x: 8, y: 8, width: size.width-16, height: 60),
-                CGRect(x: size.width-180, y: size.height-70, width: 160, height: 50),
-                CGRect(x: 24, y: size.height-230, width: size.width-48, height: 180)]
-            for height in [CGFloat(300), CGFloat(420)] {
-                for target in targets {
-                    let frame = TutorialBubbleLayout(viewport: size, target: target, preferredHeight: height).frame
-                    XCTAssertTrue(CGRect(origin: .zero, size: size).contains(frame))
-                    XCTAssertGreaterThan(frame.width, 200)
-                    XCTAssertGreaterThan(frame.height, 150)
-                }
+            let start = CGRect(x: size.width-180, y: size.height-100, width: 150, height: 54)
+            let replay = CGRect(x: 28, y: size.height-100, width: 114, height: 54)
+            for (page, target) in [(1, start), (2, replay)] {
+                let layout = TutorialPopupLayout(kind: .memoryRun, page: page, viewport: size, anchors: [.start: start, .replay: replay])
+                XCTAssertTrue(layout.isResolved)
+                XCTAssertTrue(CGRect(origin: .zero, size: size).contains(layout.frame))
+                XCTAssertEqual(layout.frame.maxY, target.minY-14, accuracy: 0.5)
+                XCTAssertFalse(layout.frame.intersects(target))
             }
         }
-        let target = CGRect(x: 800, y: 680, width: 180, height: 50)
-        let bubble = TutorialBubbleLayout(viewport: CGSize(width: 1024, height: 768), target: target, preferredHeight: 300).frame
-        XCTAssertFalse(bubble.intersects(target), "The bubble must not cover the highlighted Start button")
     }
-    func testFloatingCoachAvoidsScoreAndKeyboardWithoutAllocatingAGameColumn() {
-        for size in [CGSize(width: 1366, height: 1024), CGSize(width: 1133, height: 744), CGSize(width: 1024, height: 768), CGSize(width: 700, height: 744)] {
+    func testMemoryInputAndEditingShareTheGapBetweenScoreAndKeys() {
+        for size in [CGSize(width: 1366, height: 1024), CGSize(width: 1133, height: 744), CGSize(width: 1024, height: 600), CGSize(width: 700, height: 744)] {
+            let score = CGRect(x: 24, y: size.height*0.18, width: size.width-48, height: size.height*0.16)
+            let keys = CGRect(x: 24, y: size.height-245, width: size.width-48, height: 180)
             for large in [false, true] {
-                let score = CGRect(x: 24, y: size.height*0.36, width: size.width-48, height: 140)
-                let keys = CGRect(x: 24, y: size.height-245, width: size.width-48, height: 180)
-                let layout = TutorialFloatingLayout(viewport: size, avoiding: [score, keys], interactive: true, largeText: large)
-                let bounds = CGRect(origin: .zero, size: size)
-                XCTAssertTrue(bounds.contains(layout.frame))
-                XCTAssertFalse(layout.frame.intersects(score)); XCTAssertFalse(layout.frame.intersects(keys))
-                XCTAssertGreaterThan(layout.frame.height, 100)
+                let a = TutorialPopupLayout(kind: .memoryRun, page: 3, viewport: size, anchors: [.notation: score, .keyboard: keys], largeText: large)
+                let b = TutorialPopupLayout(kind: .memoryRun, page: 4, viewport: size, anchors: [.notation: score, .keyboard: keys], largeText: large)
+                XCTAssertEqual(a.frame, b.frame)
+                XCTAssertTrue(CGRect(origin: .zero, size: size).contains(a.frame))
+                XCTAssertGreaterThanOrEqual(a.frame.minY, score.maxY)
+                XCTAssertLessThanOrEqual(a.frame.maxY, keys.minY)
             }
         }
     }
-    func testFloatingRhythmCoachLeavesTheBoardAndAllTwelveChoicesAvailable() {
+    func testRhythmInputIsAboveTheStaffAndTieGuideStaysAtTheTieButton() {
         let size = CGSize(width: 1133, height: 744)
         let board = CGRect(x: 40, y: 180, width: 1053, height: 140)
-        let choices = CGRect(x: 40, y: 365, width: 1053, height: 220)
-        let layout = TutorialFloatingLayout(viewport: size, avoiding: [board, choices], interactive: true)
-        XCTAssertFalse(layout.frame.intersects(board)); XCTAssertFalse(layout.frame.intersects(choices))
+        let choices = CGRect(x: 40, y: 355, width: 1053, height: 208)
+        let tie = CGRect(x: 850, y: 590, width: 54, height: 54)
+        let anchors: [TutorialTarget: CGRect] = [.notation: board, .choices: choices, .tie: tie]
+        let input = TutorialPopupLayout(kind: .rhythmPuzzle, page: 3, viewport: size, anchors: anchors)
+        XCTAssertLessThan(input.frame.maxY, board.minY)
+        XCTAssertFalse(input.frame.intersects(choices))
+        let connection = TutorialPopupLayout(kind: .rhythmPuzzle, page: 5, viewport: size, anchors: anchors)
+        XCTAssertEqual(connection.frame.maxY, tie.minY-14, accuracy: 0.5)
+        XCTAssertGreaterThan(connection.frame.minY, board.maxY)
+    }
+    func testMissingNextButtonIsNeverSubstitutedWithTheProgressBar() {
+        let size = CGSize(width: 1133, height: 744)
+        let progress = CGRect(x: 350, y: 40, width: 500, height: 36)
+        XCTAssertFalse(TutorialPopupLayout(kind: .exam, page: 6, viewport: size, anchors: [.progress: progress]).isResolved)
+        let next = CGRect(x: 730, y: 650, width: 150, height: 54)
+        let layout = TutorialPopupLayout(kind: .exam, page: 6, viewport: size, anchors: [.progress: progress, .next: next])
+        XCTAssertTrue(layout.isResolved)
+        XCTAssertEqual(layout.frame.maxY, next.minY-14, accuracy: 0.5)
     }
     func testTutorialCountInUsesTheOriginalClickPitchAndActualMeter() {
         for meter in [TimeSignature(numerator: 4, denominator: 4), .init(numerator: 3, denominator: 4), .init(numerator: 6, denominator: 8)] {

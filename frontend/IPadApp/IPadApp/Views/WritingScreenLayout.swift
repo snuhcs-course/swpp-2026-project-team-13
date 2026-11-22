@@ -122,8 +122,8 @@ struct WritingScreenFooter<Actions: View>: View {
     }
 }
 
-// Available before selecting/starting a question. This is the same writing
-// layout with an existing bundled blank sheet, and has no executable controls.
+// Offline rendering fixture for the test gallery. Production help is only
+// opened over ExamView; entry, library and ready screens never present this.
 @MainActor struct WritingTutorialPreview: View {
     var mode: StudyMode = .exam
     var initialPage = 0
@@ -170,8 +170,8 @@ struct WritingScreenFooter<Actions: View>: View {
                     if mode == .practice {
                         Button {} label: { Label("일시 정지", systemImage: "pause.fill") }.buttonStyle(SecondaryActionButton()).tutorialTarget(.playPause)
                     }
-                    Button {} label: { Label("다음 구간", systemImage: "forward.end.fill") }.buttonStyle(SecondaryActionButton()).tutorialTarget(.next)
-                    Button("답안 제출", action: {}).buttonStyle(PrimaryButton()).tutorialTarget(.submit)
+                    Button {} label: { Label("다음 구간", systemImage: "forward.end.fill") }.buttonStyle(SecondaryActionButton()).frame(width: 150).tutorialTarget(.next)
+                    Button("답안 제출", action: {}).buttonStyle(PrimaryButton()).frame(width: 150).tutorialTarget(.submit)
                 }
             }
         }.background(SolfegeTheme.background.ignoresSafeArea())
