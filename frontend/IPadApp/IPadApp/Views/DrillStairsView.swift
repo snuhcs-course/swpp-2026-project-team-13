@@ -41,8 +41,14 @@ struct DrillStairsView: View {
                 .fullScreenCover(item:$playing,onDismiss:{ climbed(proxy) }) { stage in game(stage) }
             }
             .overlay(alignment:.top) {
-                LinearGradient(colors:[DrillPalette.background,DrillPalette.background.opacity(0)],startPoint:.top,endPoint:.bottom)
-                    .frame(height:72).allowsHitTesting(false)
+                // The scroll view runs under the status bar, so keys would show behind the clock.
+                // A solid band covers the status bar and the fade starts right below it.
+                VStack(spacing:0) {
+                    DrillPalette.background.frame(height:geometry.safeAreaInsets.top)
+                    LinearGradient(colors:[DrillPalette.background,DrillPalette.background.opacity(0)],startPoint:.top,endPoint:.bottom)
+                        .frame(height:72)
+                }
+                .offset(y:-geometry.safeAreaInsets.top).allowsHitTesting(false).accessibilityHidden(true)
             }
             .overlay(alignment:.bottom) {
                 LinearGradient(colors:[DrillPalette.background.opacity(0),DrillPalette.background],startPoint:.top,endPoint:.bottom)
