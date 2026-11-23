@@ -16,10 +16,6 @@ import Foundation
         if FileManager.default.fileExists(atPath: url.path) { return try ContractJSON.decoder().decode(UserProfile.self, from: Data(contentsOf: url)) }
         return try Bundled.decode("me")
     }
-    func updateGoal(_ goal: String) async throws -> UserProfile {
-        var value = try await profile(); value.learningGoal = goal
-        try ContractJSON.encoder().encode(value).write(to: store.root.appendingPathComponent("profile.json"), options: .atomic); return value
-    }
     // The demo has no accounts, so nothing can be taken.
     func usernameCheck(_ username: String) async throws -> UsernameCheck { UsernameCheck(available: true) }
     private struct EngravingManifest: Decodable { var scores: [String: ImageEntry] }

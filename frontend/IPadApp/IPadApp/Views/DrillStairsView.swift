@@ -25,6 +25,7 @@ struct DrillStairsView: View {
     }
 
     private static let topPadding = 96.0
+    private static let bottomPadding = 56.0
     // Where the current key sits when the stairs open (share of the screen height from the top).
     private static let currentAnchor = 0.62
 
@@ -34,15 +35,23 @@ struct DrillStairsView: View {
                 ScrollView(.vertical,showsIndicators:false) {
                     stairsContent(width:geometry.size.width)
                         .padding(.top,Self.topPadding)
-                        .padding(.bottom,max(DrillStairs.rowStep,geometry.size.height*(1-Self.currentAnchor)))
+                        // Only a small margin under C1: the low keys sit at the bottom edge instead of
+                        // floating at currentAnchor over an empty lower third (most visible on 4:3 iPads).
+                        .padding(.bottom,Self.bottomPadding)
                 }
                 .onAppear { scroll(proxy,animated:false) }
                 .onChange(of:geometry.size) { _, _ in scroll(proxy,animated:false) }
                 .fullScreenCover(item:$playing,onDismiss:{ climbed(proxy) }) { stage in game(stage) }
             }
             .overlay(alignment:.top) {
-                LinearGradient(colors:[DrillPalette.background,DrillPalette.background.opacity(0)],startPoint:.top,endPoint:.bottom)
-                    .frame(height:72).allowsHitTesting(false)
+                // The scroll view runs under the status bar, so keys would show behind the clock.
+                // A solid band covers the status bar and the fade starts right below it.
+                VStack(spacing:0) {
+                    DrillPalette.background.frame(height:geometry.safeAreaInsets.top)
+                    LinearGradient(colors:[DrillPalette.background,DrillPalette.background.opacity(0)],startPoint:.top,endPoint:.bottom)
+                        .frame(height:72)
+                }
+                .offset(y:-geometry.safeAreaInsets.top).allowsHitTesting(false).accessibilityHidden(true)
             }
             .overlay(alignment:.bottom) {
                 LinearGradient(colors:[DrillPalette.background.opacity(0),DrillPalette.background],startPoint:.top,endPoint:.bottom)

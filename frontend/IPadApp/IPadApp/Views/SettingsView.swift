@@ -31,13 +31,6 @@ struct SettingsView: View {
                 }
             } }
             if let user=model.profile {
-                Card { VStack(alignment:.leading,spacing:16) {
-                    HStack(alignment:.firstTextBaseline,spacing:12) {
-                        Text("나의 학습 목표").font(.headline)
-                        Text("이 선택은 앱 기능에 영향을 주지 않아요.").font(.caption).foregroundStyle(.secondary)
-                    }
-                    Picker("학습 목표",selection:Binding(get:{user.learningGoal},set:{ goal in if let goal { Task { await model.updateGoal(goal) } } })) { ForEach(SolfegeTheme.goals,id:\.0) { key,title in Text(title).tag(String?.some(key)) } }
-                } }
                 if !model.demo {
                     Card { VStack(alignment: .leading, spacing: 16) {
                         Label(user.displayName, systemImage: "person.crop.circle").font(.headline)

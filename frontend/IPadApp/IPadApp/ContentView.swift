@@ -9,8 +9,6 @@ struct ContentView: View {
         ZStack {
             if model.needsAuthentication && model.screen != .settings {
                 AuthFlowView(model: model)
-            } else if model.needsGoalSelection {
-                GoalSelectionView(model: model).overlay { busyOverlay }
             } else { mainInterface }
         }
         .tint(SolfegeTheme.violet).preferredColorScheme(.light)

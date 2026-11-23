@@ -48,4 +48,4 @@ def delete_account(user, request_id=None):
 
 def profile_body(user, profile):
     # The caller's own user object: re-reading it could race an account deletion.
-    return {"id": str(profile.id), "username": user.username, "display_name": profile.display_name, "learning_goal": profile.learning_goal}
+    return {"id": str(profile.id), "username": user.username, "display_name": profile.display_name}

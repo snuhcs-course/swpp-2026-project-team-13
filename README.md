@@ -23,7 +23,7 @@ Practice 안의 **클래식 선율 문제**에서 작곡가를 고르고 같은 
 
 ## 먼저 확인할 문서
 
-- 첫 실행 회원가입·학습 목표·로그인: [docs/ONBOARDING.md](docs/ONBOARDING.md)
+- 첫 실행 회원가입·로그인: [docs/ONBOARDING.md](docs/ONBOARDING.md)
 - Windows에서 iPad 앱 설치: [docs/WINDOWS-IPAD.md](docs/WINDOWS-IPAD.md)
 - Windows 서버 실행과 연결: [docs/IPAD-SETUP.md](docs/IPAD-SETUP.md)
 - 친구의 Mac에서 빌드 확인: [docs/MAC-HANDOFF.md](docs/MAC-HANDOFF.md)

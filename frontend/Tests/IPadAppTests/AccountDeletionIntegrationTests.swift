@@ -4,8 +4,8 @@ import PencilKit
 
 @MainActor private final class DeletionFixture {
     let base = "https://delete-\(UUID().uuidString.lowercased()).example/api/v1/"
-    let user = UserProfile(id: UUID(), displayName: "삭제할 학습자", learningGoal: "other")
-    let other = UserProfile(id: UUID(), displayName: "다른 학습자", learningGoal: "other")
+    let user = UserProfile(id: UUID(), displayName: "삭제할 학습자")
+    let other = UserProfile(id: UUID(), displayName: "다른 학습자")
     let http: URLSession
     let defaults = UserDefaults.standard.dictionaryRepresentation()
     // Each deletion takes the next outcome and the last one repeats.
