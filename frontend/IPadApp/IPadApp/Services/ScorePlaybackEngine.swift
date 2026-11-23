@@ -120,7 +120,7 @@ import AudioToolbox
     // A sampler is rebuilt after leaving a problem or an audio interruption. Reusing a
     // stopped I/O graph can leave a running sequencer connected to a silent instrument.
     private func rebuildAudioGraph() throws {
-        sequencer?.stop(); engine.stop(); transport = nil; loadedIndex = nil
+        engine.stop(); transport?.stop(restartEngine:false); transport = nil; loadedIndex = nil
         let audio = AVAudioSession.sharedInstance()
         try audio.setCategory(.playback,mode:.default,options:[])
         try audio.setActive(true)
@@ -158,8 +158,8 @@ import AudioToolbox
         }
         return SegmentAudio(piano:piano,clicks:clicks,ticks:ticks+count.totalTicks)
     }
-    private func sequence(index: Int) throws -> AVAudioSequencer {
-        if loadedIndex == index, let sequencer { return sequencer }
+    private func sequence(index: Int) throws -> PianoSequenceTransport {
+        if loadedIndex == index, let transport { return transport }
         guard let transport, let audio = preparedAudio[index], let plan else { throw SolfegeError.invalidScore("PLAYBACK_PREPARE_FAILED") }
         // Seeking to another section must not detach a MusicSequence from a
         // live render graph. Reuse the same stopped tracks, as in the games.
@@ -168,7 +168,7 @@ import AudioToolbox
                                 pianoVelocity:UInt8(noteVelocity),clickVelocity:UInt8(count?.velocity ?? 70),
                                 accentVelocity:UInt8(count?.accentVelocity ?? 110))
         loadedIndex = index
-        return transport.sequencer
+        return transport
     }
     private func checkpointSegment() {
         guard let anchor = segmentAnchor, cursor.phase == "segment" else { return }
@@ -224,9 +224,7 @@ import AudioToolbox
                     let index = cursor.index
                     if cursor.phase != "gap" {
                         guard let score = (index == 0 ? self.scale : self.main) else { throw SolfegeError.invalidScore("PLAYBACK_PREPARE_FAILED") }
-                        let seq = try sequence(index:index)
-                        seq.stop()
-                        seq.currentPositionInBeats = 0; seq.prepareToPlay()
+                        let audio = try sequence(index:index)
                         let count = countIn(index:index)
                         let bars = index == 0 ? plan.scale.toMeasure-plan.scale.fromMeasure+1 : plan.steps[index-1].toMeasure-plan.steps[index-1].fromMeasure+1
                         let countTicks = count?.totalTicks ?? 0
@@ -234,10 +232,10 @@ import AudioToolbox
                         let countSeconds = Double(countTicks) / 480 * 60 / Double(plan.tempoBpm)
                         // A segment paused part-way continues from where it stopped.
                         let offset = min(seconds, Double(cursor.segmentOffsetMs ?? 0) / 1000)
-                        if offset > 0 { seq.currentPositionInSeconds = offset }
+                        audio.prepareToPlay(beats:0,seconds:offset)
                         let section = index == 0 ? "스케일 제시" : "\(index) / 11 · \(plan.steps[index-1].fromMeasure)–\(plan.steps[index-1].toMeasure)마디"
                         message = offset < countSeconds ? count.map { "예비박 · \($0.beatsPerMeasure)/\($0.beatUnit) · \($0.beatsPerMeasure)박" } ?? section : section
-                        try seq.start()
+                        try audio.start()
                         let began = ProcessInfo.processInfo.systemUptime
                         segmentAnchor = (began, offset)
                         if index == 0 { scaleStartedAt = Date().addingTimeInterval(-offset) }
@@ -247,7 +245,7 @@ import AudioToolbox
                         }
                         let remaining = max(0,seconds-offset-(ProcessInfo.processInfo.systemUptime-began))
                         if remaining > 0 { try await Task.sleep(for:.seconds(remaining)) }
-                        seq.stop(); segmentAnchor = nil; cursor.segmentOffsetMs = nil
+                        audio.stop(); segmentAnchor = nil; cursor.segmentOffsetMs = nil
                         if index == 0 { scaleStartedAt = nil }
                         sampler.sendController(123,withValue:0,onChannel:0)
                         metronome.sendController(123,withValue:0,onChannel:0)
@@ -265,7 +263,7 @@ import AudioToolbox
         }
     }
     private func silence() {
-        sequencer?.stop()
+        transport?.stop()
         for unit in [sampler,metronome] {
             unit.sendController(120,withValue:0,onChannel:0)
             unit.sendController(123,withValue:0,onChannel:0)

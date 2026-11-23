@@ -194,3 +194,11 @@ The shared transport also stops its own engine in deinit, before Swift releases
 its sequence, so a paused screen/model disappearing cannot leave an active
 render callback pointing at a disposed sequence. A real-graph disposal test
 checks this cleanup independently of a caller's explicit shutdown method.
+
+The install runner also exposed the render-notification race during active
+Memory replay/stop. All game, exam and review callers now use the transport's
+output pause fence before stopping MIDI, changing events or seeking. Start
+resumes the same loaded graph; a logical stop restores the warm engine for live
+keys. Full disposal leaves it stopped. Existing piano-harmonic/live-key tests
+remain enabled, and the real-graph test checks the paused seek and warm-stop
+postconditions as well as final disposal.

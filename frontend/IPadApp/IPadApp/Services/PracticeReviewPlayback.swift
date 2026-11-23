@@ -45,12 +45,12 @@ import Combine
                 try prepare(score:score,bpm:bpm,voice:voice)
             }
             try check(request)
-            guard let seq = sequencer, let slice = arrangement?.slice(for:range) else {
+            guard let transport, let slice = arrangement?.slice(for:range) else {
                 throw SolfegeError.invalidScore("재생할 마디를 확인해 주세요.")
             }
             activeSlice = slice
-            seq.currentPositionInBeats = Double(slice.start)/480
-            seq.prepareToPlay(); try seq.start()
+            transport.prepareToPlay(beats:Double(slice.start)/480)
+            try transport.start()
             monitor(request)
         } catch {
             if request == generation { stop() }
@@ -63,14 +63,13 @@ import Combine
         cancelMonitor(); silence()
     }
     func resume() async throws {
-        guard isPaused, let seq = sequencer, activeSlice != nil else { return }
+        guard isPaused, let transport, activeSlice != nil else { return }
         cancelMonitor(); let request = generation
         isPaused = false; isPlaying = true
         await Task.yield()
         do {
             try check(request)
-            if !graph.engine.isRunning { try graph.engine.start() }
-            seq.prepareToPlay(); try seq.start(); monitor(request)
+            transport.prepareToPlay(); try transport.start(); monitor(request)
         } catch {
             if request == generation { stop() }
             throw error
@@ -91,7 +90,7 @@ import Combine
     }
     private func cancelMonitor() { generation = UUID(); runner?.cancel(); runner = nil }
     private func silence() {
-        sequencer?.stop()
+        transport?.stop()
         graph.piano.sendController(120,withValue:0,onChannel:0)
         graph.piano.sendController(123,withValue:0,onChannel:0)
     }
@@ -155,7 +154,6 @@ import Combine
         guard let transport else { throw SolfegeError.invalidScore("재생할 악보를 준비해 주세요.") }
         try transport.configure(piano:music.events,clicks:[],totalTicks:music.ticks,bpm:bpm,pianoVelocity:UInt8(velocity))
         arrangement = music; preparedScore = score; preparedBpm = bpm
-        if !graph.engine.isRunning { try graph.engine.start() }
     }
     func configurationChanged(_ notification: Notification) {
         guard let engine = notification.object as? AVAudioEngine, engine === graph.engine, !engine.isRunning else { return }

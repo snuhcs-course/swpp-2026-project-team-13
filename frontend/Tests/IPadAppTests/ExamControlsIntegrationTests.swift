@@ -15,7 +15,14 @@ import AVFoundation
         var transport: PianoSequenceTransport? = PianoSequenceTransport(graph:graph)
         try transport?.configure(piano:[MusicEvent(midi:60,onset:0,duration:240)],clicks:[],totalTicks:480,
                                  bpm:80,pianoVelocity:76)
-        try graph.engine.start(); try transport?.start()
+        XCTAssertFalse(graph.engine.isRunning,"Track preparation must not race the output render thread")
+        try transport?.start()
+        transport?.stop()
+        XCTAssertTrue(graph.engine.isRunning,"A logical pause must keep the live instrument available")
+        XCTAssertFalse(try XCTUnwrap(transport).sequencer.isPlaying)
+        transport?.prepareToPlay(beats:0.5)
+        XCTAssertFalse(graph.engine.isRunning,"Seeking must happen with the output paused")
+        try transport?.start()
         XCTAssertTrue(graph.engine.isRunning)
         transport = nil
         XCTAssertFalse(graph.engine.isRunning,"An active render callback must not outlive its sequence owner")

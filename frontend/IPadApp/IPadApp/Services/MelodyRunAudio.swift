@@ -86,9 +86,9 @@ import AVFoundation
         livePiano.sendController(120,withValue:0,onChannel:0)
         livePiano.sendController(123,withValue:0,onChannel:0)
     }
-    func stopClock() {
+    func stopClock(restartEngine: Bool = true) {
         // Recall and the next question share the prepared sampler graph.
-        sequencer?.stop()
+        transport?.stop(restartEngine:restartEngine)
         for unit in [graph.piano,graph.click] {
             unit.sendController(120,withValue:0,onChannel:0)
             unit.sendController(123,withValue:0,onChannel:0)
@@ -101,7 +101,7 @@ import AVFoundation
         referenceTrack = nil; transport = nil; transportLeadTicks = 0
     }
     func stop() {
-        stopClock(); releaseKeys(); discardSequence(); ready = false
+        stopClock(restartEngine:false); releaseKeys(); discardSequence(); ready = false
         if let previous = previousBufferDuration, previous > 0 {
             try? AVAudioSession.sharedInstance().setPreferredIOBufferDuration(previous)
         }

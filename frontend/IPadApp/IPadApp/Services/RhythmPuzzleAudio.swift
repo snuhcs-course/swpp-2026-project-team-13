@@ -49,9 +49,9 @@ import AVFoundation
         try transport.start()
     }
     func stop() {
-        sequencer?.stop()
+        transport?.stop()
         for unit in [graph.piano,graph.click] { unit.sendController(120,withValue:0,onChannel:0); unit.sendController(123,withValue:0,onChannel:0) }
     }
-    func invalidate() { stop(); graph.engine.stop(); transport = nil; ready = false }
+    func invalidate() { graph.engine.stop(); stop(); transport = nil; ready = false }
     func shutdown() { invalidate() }
 }
