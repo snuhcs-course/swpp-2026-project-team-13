@@ -1,4 +1,8 @@
-# solfège API 계약 v0.14.0
+# solfège API 계약 v0.15.0
+
+## v0.15.0 학습 목표 제거
+
+학습 목표를 계약에서 뺀다. `UserProfile`에는 더 이상 `learning_goal`이 없고, 로그인·가입·`GET /me/` 응답의 `user`는 `id`, `username`, `display_name`만 갖는다. `POST /auth/signup/`에 `learning_goal`을 보내면 알 수 없는 필드이므로 400 `VALIDATION_ERROR`(fields=[])다. `PATCH /me/`는 없어져 405 `METHOD_NOT_ALLOWED`를 돌려준다. `GET·DELETE /me/`는 그대로다. 서버는 마이그레이션 `0011_remove_learning_goal`로 저장된 값을 지운다. 앱은 가입 직후 목표 선택 화면 없이 바로 메인 홈으로 가며, 설정과 프로필 패널에도 목표가 없다. 앱은 이 필드를 보내는 v0.14.0 이하 서버의 응답도 무시하고 해석한다.
 
 ## v0.14.0 온라인 문제 자료 배포
 
@@ -29,7 +33,7 @@ S14는 정답·제출 악보를 한 화면에 표시한다. 정답 진입 약 0.
 
 회원가입 입력 중 아이디 중복을 미리 알려 주는 `POST /auth/username-check/`를 추가한다. 응답은 안내용이며, 가입의 409 `USERNAME_TAKEN`이 최종 판단이다. 앱은 입력이 멈추면 호출하고, 중복이면 다음 칸을 열지 않고 아이디 칸에 안내한다. 실패·시간 초과·404·429이면 가입을 막지 않으므로, 이 API가 없는 구버전 서버에서도 새 앱의 가입은 동작한다. 다른 경로·권한·오류 코드는 v0.10.0과 같다. 자세한 내용은 [아이디 중복 확인](#아이디-중복-확인-post-apiv1authusername-check)을 따른다.
 
-## v0.10.0 가입 후 학습 목표 선택
+## v0.10.0 가입 후 학습 목표 선택 (v0.15.0에서 제거)
 
 가입과 학습 목표 선택을 분리한다. `POST /auth/signup/`의 `learning_goal`은 선택 항목이 되고, 생략하면 `UserProfile.learning_goal`이 `null`인 계정이 만들어진다. `null`은 "아직 고르지 않음"이며 "기타"(`other`)와 다르다. 새 앱은 가입 요청에 이 필드를 보내지 않고, 목표 선택 화면의 **시작하기**에서 기존 `PATCH /me/`로 저장한다. 앱이 그 전에 꺼지면 다음 로그인·실행의 `null`을 보고 같은 화면을 다시 보여 준다. `PATCH /me/`는 계속 허용 목록의 값만 받으므로 `null`로 되돌릴 수 없다. 관리자가 만든 프로필의 기본값은 그대로 `other`이고, 값을 보내는 구버전 앱의 가입도 그대로 동작한다. 단, 구버전 앱은 `null`을 해석하지 못하므로 목표를 고르기 전의 계정으로 로그인하면 오류가 난다. 다른 경로·권한·오류 코드는 v0.9.0과 같다. 화면 흐름은 [온보딩 안내](../ONBOARDING.md)를 확인한다.
 
@@ -169,8 +173,7 @@ annotations.type에 notation_error(표기 관습 오류), notation_suggestion(�
   "user": {
     "id": "11111111-1111-4111-8111-111111111111",
     "username": "student01",
-    "display_name": "청음 학습자",
-    "learning_goal": "college_entrance"
+    "display_name": "청음 학습자"
   }
 }
 ```
@@ -252,7 +255,7 @@ Authorization: Bearer <access_token>을 보내며 요청 본문은 없습니다.
 
 ### 회원가입 범위와 공통 규칙
 
-사용자가 아이디·표시 이름·학습 목표·비밀번호로 계정을 만들고 바로 로그인 상태가 되는 계약입니다. 현재 범위는 개발자가 운영하는 서버에 소수의 테스트 기기가 접속하는 MVP입니다. 이 범위에서 수용한 위험과 남용 대응 절차는 [AUTH-IMPLEMENTATION.md](AUTH-IMPLEMENTATION.md#운영-전제와-수용한-위험)에, 실제 서비스로 전환하기 전에 다시 정할 항목은 [AUTH-IMPLEMENTATION.md](AUTH-IMPLEMENTATION.md#서비스-전환-전에-다시-볼-항목)에 있습니다.
+사용자가 아이디·표시 이름·비밀번호로 계정을 만들고 바로 로그인 상태가 되는 계약입니다. 현재 범위는 개발자가 운영하는 서버에 소수의 테스트 기기가 접속하는 MVP입니다. 이 범위에서 수용한 위험과 남용 대응 절차는 [AUTH-IMPLEMENTATION.md](AUTH-IMPLEMENTATION.md#운영-전제와-수용한-위험)에, 실제 서비스로 전환하기 전에 다시 정할 항목은 [AUTH-IMPLEMENTATION.md](AUTH-IMPLEMENTATION.md#서비스-전환-전에-다시-볼-항목)에 있습니다.
 
 함께 추가하는 [계정 삭제](#v080-계정-삭제-계약)와 [AI 채점 사용량 상한](#ai-채점-사용량-상한-v080)은 각 절에서 정의합니다. 로그인·회원가입의 IP별 시도 제한은 [통신과 인증](#통신과-인증)의 클라이언트 IP 기준을 따릅니다.
 
@@ -334,7 +337,6 @@ Authorization: Bearer <access_token>을 보내며 요청 본문은 없습니다.
 |---|---|---|---|
 | username | string | 예 | 4~20자. 문자열 전체가 ^[a-z][a-z0-9_]{3,19}$와 일치해야 합니다. 영문 소문자로 시작하고 영문 소문자·숫자·_만 사용합니다. 부분 일치는 허용하지 않으며, 끝의 줄바꿈을 포함해 어떤 추가 문자도 허용하지 않습니다. |
 | display_name | string | 예 | 1~20자(유니코드 코드 포인트 기준). 앞뒤에 공백(Unicode White_Space 속성 문자)을 둘 수 없습니다. 제어 문자(Cc), 줄·문단 구분자(Zl·Zp), 양방향 제어 문자(Unicode Bidi_Control 속성)를 포함할 수 없습니다. 다른 사용자와 중복될 수 있습니다. |
-| learning_goal | string | 아니오 | arts_school_entrance, arts_school_student, college_entrance, teacher_exam, other 중 하나입니다. UserProfile.learning_goal과 같은 목록입니다. 생략하면 목표가 없는 계정(null)을 만듭니다. null을 명시하면 생략이 아니라 invalid 오류입니다. |
 | password | string | 예 | 1~1024자이며 서버의 비밀번호 정책을 통과해야 합니다. |
 
 ```json
@@ -347,7 +349,6 @@ Authorization: Bearer <access_token>을 보내며 요청 본문은 없습니다.
 
 표시 이름의 길이·문자 규칙은 가입 요청에만 적용합니다. 관리자가 만든 기존 계정의 display_name은 최대 80자일 수 있으므로, 앱은 로그인·/me/ 응답의 display_name이 20자 이하라고 가정하지 않습니다. 표시 이름은 가입 후 바꿀 수 없으므로, 실명 등을 잘못 입력했다면 계정을 삭제하고 다시 가입합니다.
 
-learning_goal은 사용자가 직접 고른 값이며, 앱은 가입 직후의 목표 선택 화면에서 기존 PATCH /me/로 저장합니다. 서버가 기본값으로 채우지 않으므로 가입 계정의 other는 사용자가 "기타"를 고른 경우이고, null은 아직 고르지 않은 경우입니다. 로그인·/me/·가입 응답의 learning_goal은 항상 존재하며 이 경우 null입니다.
 
 로그인은 대소문자를 구분하고 입력값을 바꾸지 않습니다. 가입 아이디를 소문자로 제한하고 앱의 아이디 입력란에서 자동 대문자를 끄므로, iPad 키보드의 자동 대문자 때문에 가입한 아이디와 로그인할 때 입력한 아이디가 달라지는 문제를 막습니다. 관리자가 만든 기존 계정은 이 형식 규칙을 따르지 않아도 되며, 로그인 username 규칙(1~150자)은 바꾸지 않습니다.
 
@@ -355,7 +356,7 @@ learning_goal은 사용자가 직접 고른 값이며, 앱은 가입 직후의 �
 
 비밀번호 정책은 현재 서버 설정상 최소 8자, 영문(A-Z, a-z)과 숫자(0-9) 각 1자 이상 포함입니다. 특수문자 등 다른 문자도 함께 쓸 수 있으며, 흔한 비밀번호와 아이디와 비슷한 비밀번호도 허용합니다. 정책은 가입 시에만 적용하며 로그인 검증에는 다시 적용하지 않습니다. 비밀번호 확인 입력은 앱 화면에서만 비교하고 서버로 보내지 않습니다.
 
-성공 시 201과 로그인 성공과 같은 스키마의 객체를 반환합니다. 모든 필드는 필수이며 token_type은 항상 Bearer입니다. user.learning_goal은 요청한 값이며, 생략했다면 null입니다. 기존 201 응답과 같이 생성된 리소스의 절대 URL을 Location 헤더로 반환합니다. 가입으로 만든 프로필은 발급한 토큰으로 조회하는 /api/v1/me/이므로 값은 https://<공개 호스트>/api/v1/me/처럼 [통신과 인증](#통신과-인증)의 공개 origin 규칙을 따릅니다.
+성공 시 201과 로그인 성공과 같은 스키마의 객체를 반환합니다. 모든 필드는 필수이며 token_type은 항상 Bearer입니다. 기존 201 응답과 같이 생성된 리소스의 절대 URL을 Location 헤더로 반환합니다. 가입으로 만든 프로필은 발급한 토큰으로 조회하는 /api/v1/me/이므로 값은 https://<공개 호스트>/api/v1/me/처럼 [통신과 인증](#통신과-인증)의 공개 origin 규칙을 따릅니다.
 
 ```json
 {
@@ -364,8 +365,7 @@ learning_goal은 사용자가 직접 고른 값이며, 앱은 가입 직후의 �
   "user": {
     "id": "11111111-1111-4111-8111-111111111111",
     "username": "student01",
-    "display_name": "청음 연습생",
-    "learning_goal": null
+    "display_name": "청음 연습생"
   }
 }
 ```
@@ -400,18 +400,17 @@ learning_goal은 사용자가 직접 고른 값이며, 앱은 가입 직후의 �
 - 그 외에는 위반한 모든 필드를 한 번에 반환합니다. 필드마다 아래 순서에서 처음 해당하는 code 하나만 사용합니다.
 - password가 아래 1~5를 통과한 경우에만 비밀번호 정책을 검사합니다. 위반한 정책마다 field=password인 FieldError를 하나씩 서버 비밀번호 정책의 순서대로 반환합니다. 따라서 password만 같은 field의 FieldError가 여러 개일 수 있으며, 앱은 이를 가정합니다.
 - 400과 409가 모두 해당하면 400을 반환하며, 중복 확인은 모든 필드가 유효할 때만 수행합니다. 따라서 약한 비밀번호와 이미 사용 중인 아이디를 함께 보내면 먼저 400을 받고, 비밀번호를 고쳐 다시 보내면 409를 받습니다. 의도된 동작입니다.
-- 이 우선순위는 인증 API의 공통 규칙입니다. 로그인(username·password)도 같은 순서를 사용하며, 해당 API의 필드에 없는 규칙(min_length, invalid_format, invalid_choice, 비밀번호 정책)은 적용하지 않습니다. 최대 길이는 각 API의 필드 규칙을 따릅니다.
+- 이 우선순위는 인증 API의 공통 규칙입니다. 로그인(username·password)도 같은 순서를 사용하며, 해당 API의 필드에 없는 규칙(min_length, invalid_format, 비밀번호 정책)은 적용하지 않습니다. 최대 길이는 각 API의 필드 규칙을 따릅니다.
 
 | 순서 | code | 대상 field | 조건 |
 |---:|---|---|---|
-| 1 | required | 전체(가입의 learning_goal 제외) | 누락 |
+| 1 | required | 전체 | 누락 |
 | 2 | invalid | 전체 | 문자열이 아님 |
 | 3 | blank | 전체 | 빈 문자열 |
 | 4 | max_length | username, display_name, password | 최대 길이 초과(username 20, display_name 20, password 1024) |
 | 5 | invalid | username, display_name, password | 짝이 맞지 않는 서로게이트 등 UTF-8로 인코딩할 수 없는 문자열 |
 | 6 | min_length | username | 4자 미만 |
 | 7 | invalid_format | username, display_name | 허용하지 않는 문자 또는 형식 |
-| 8 | invalid_choice | learning_goal | 허용 목록에 없는 값 |
 
 | field | code | 조건 |
 |---|---|---|
@@ -449,7 +448,7 @@ learning_goal은 사용자가 직접 고른 값이며, 앱은 가입 직후의 �
 앱은 201 응답을 로그인 성공과 같이 처리합니다. 토큰을 서버 origin별 Keychain에 저장하고 비밀번호는 저장하지 않으며, 응답의 UserProfile UUID로 로컬 학습 기록을 연결합니다. 가입 시작·취소도 인증 작업 세대를 갱신하며, 이전 세대의 가입 성공은 현재 인증 상태에 반영하지 않습니다.
 
 - 로그인 화면을 표시하거나 서버 origin이 바뀌면 GET /auth/signup-availability/를 조회합니다. signup_enabled=false이면 가입 진입 버튼을 숨기고, 네트워크 오류·5xx로 조회하지 못하면 버튼을 표시합니다.
-- 가입 화면은 아이디, 표시 이름(닉네임), 비밀번호, 비밀번호 확인을 입력받습니다. 학습 목표는 가입 직후 별도 화면에서 기본값 없이 사용자가 고르게 하고, UserProfile.learning_goal이 null인 동안에는 로그인·재실행 때마다 이 화면을 먼저 보여 줍니다.
+- 가입 화면은 아이디, 표시 이름(닉네임), 비밀번호, 비밀번호 확인을 입력받습니다.
 - username 입력란은 자동 대문자와 자동 수정을 끄고, 소문자 형식을 미리 안내합니다.
 - 형식에 맞는 username의 입력이 멈추면 POST /auth/username-check/를 호출합니다. username이 바뀌면 이전 요청을 취소하고 그 응답을 버립니다. 이 호출의 시간 제한은 3초이며 자동 재시도하지 않습니다.
 - available=false이면 다음 칸을 열지 않고 username 칸에 중복을 안내하며, 이미 펼친 칸은 접지 않고 가입 버튼만 막습니다. 네트워크 오류·시간 초과·해석할 수 없는 응답·5xx·404·403·429이면 가입을 막지 않고 다음 칸을 엽니다. 최종 판단은 가입 요청의 응답입니다. 429이면 대기 시간이 지날 때까지 다시 호출하지 않으며, 가입 요청의 대기 시간에는 영향을 주지 않습니다.
@@ -540,10 +539,10 @@ MXL은 정확히 mimetype, META-INF/container.xml, score.xml 세 엔트리를 �
 |---|---|---|---|
 | GET | /auth/signup-availability/ | 200 | 가입 가능 여부 |
 | POST | /auth/username-check/ | 200 | 아이디 사용 가능 여부(v0.11.0) |
-| POST | /auth/signup/ | 201 | 아이디·표시 이름·학습 목표·비밀번호로 가입, 토큰·프로필 반환 |
+| POST | /auth/signup/ | 201 | 아이디·표시 이름·비밀번호로 가입, 토큰·프로필 반환 |
 | POST | /auth/login/ | 200 | 아이디·비밀번호 로그인, 토큰·프로필 반환 |
 | POST | /auth/logout/ | 204 | 현재 토큰 폐기, 본문 없음 |
-| GET / PATCH | /me/ | 200 | 사용자·학습 목표 |
+| GET | /me/ | 200 | 사용자 프로필 |
 | DELETE | /me/ | 204 | 계정·학습 기록 영구 삭제, 본문 없음 |
 | GET | /questions/ | 200 | collection별 문제 페이지 목록 |
 | GET | /questions/recommended/ | 200 | Exam 추천 문제 1개, 형식은 문제 상세와 같음 |

@@ -3,7 +3,7 @@ import XCTest
 
 @MainActor private final class SignupFixture {
     let base = "https://signup-\(UUID().uuidString.lowercased()).example/api/v1/"
-    var user = UserProfile(id: UUID(), displayName: "청음 연습생", learningGoal: "college_entrance")
+    var user = UserProfile(id: UUID(), displayName: "청음 연습생")
     let http: URLSession
     let defaults = UserDefaults.standard.dictionaryRepresentation()
     // nil means success. Each signup takes the next outcome and the last one repeats.
@@ -19,8 +19,6 @@ import XCTest
     var loginCalls = 0
     var availabilityCalls = 0
     var signupBody: [String: String]?
-    var goalPatches: [[String: String]] = []
-    var patchStatus = 200
     var lastAuthorization: String?
     var held: ((AuthenticationAppProtocol) -> Bool)?
 
@@ -57,15 +55,7 @@ import XCTest
                     request.respond(201, data: self.success)
                 }
             } else if path.contains("auth/login") { self.loginCalls += 1; request.respond(401, data: self.failure("INVALID_CREDENTIALS")) }
-            else if path.contains("/me") {
-                if request.request.httpMethod == "PATCH" {
-                    let body = Self.jsonBody(request.request) ?? [:]
-                    self.goalPatches.append(body)
-                    if self.patchStatus != 200 { request.respond(self.patchStatus, data: self.failure("VALIDATION_ERROR")); return }
-                    self.user.learningGoal = body["learning_goal"]
-                }
-                request.respond(200, data: try! ContractJSON.encoder().encode(self.user))
-            }
+            else if path.contains("/me") { request.respond(200, data: try! ContractJSON.encoder().encode(self.user)) }
             else if path.contains("/questions") { request.respond(200, data: try! Bundled.data("questions", ext: "json")) }
             else { request.respond(404, data: self.failure("RESOURCE_NOT_FOUND")) }
         }
@@ -428,39 +418,12 @@ import XCTest
         XCTAssertTrue(model.signupEnabled)
     }
 
-    func testSignupSendsNoGoalAndTheGoalScreenEndsOnceOneIsSaved() async throws {
+    func testSignupSendsNoGoalAndOpensHomeDirectly() async throws {
         let fixture = SignupFixture(); defer { fixture.cleanup() }
-        fixture.user.learningGoal = nil
         let model = fixture.model(); model.openSignup()
         await signup(model)
         XCTAssertEqual(fixture.signupBody, ["username": "student01", "display_name": "청음 연습생", "password": "quiet-lantern-48"])
-        XCTAssertTrue(model.connected); XCTAssertTrue(model.needsGoalSelection); XCTAssertNil(model.error)
-        await model.updateGoal("teacher_exam")
-        XCTAssertEqual(fixture.goalPatches, [["learning_goal": "teacher_exam"]])
-        XCTAssertEqual(model.profile?.learningGoal, "teacher_exam")
-        XCTAssertFalse(model.needsGoalSelection); XCTAssertEqual(model.screen, .main)
-    }
-
-    func testGoalScreenReturnsAfterRelaunchUntilAGoalIsChosen() async throws {
-        let fixture = SignupFixture(); defer { fixture.cleanup() }
-        fixture.user.learningGoal = nil
-        let first = fixture.model(); first.openSignup()
-        await signup(first)
-        let relaunched = fixture.model(); await relaunched.connect()
-        XCTAssertTrue(relaunched.needsGoalSelection)
-        await relaunched.updateGoal("other")
-        let again = fixture.model(); await again.connect()
-        XCTAssertTrue(again.connected); XCTAssertFalse(again.needsGoalSelection)
-    }
-
-    func testFailedGoalSaveStaysOnTheGoalScreenWithAnError() async throws {
-        let fixture = SignupFixture(); defer { fixture.cleanup() }
-        fixture.user.learningGoal = nil
-        let model = fixture.model(); model.openSignup()
-        await signup(model)
-        fixture.patchStatus = 400
-        await model.updateGoal("other")
-        XCTAssertTrue(model.needsGoalSelection); XCTAssertNotNil(model.error); XCTAssertTrue(model.connected)
+        XCTAssertTrue(model.connected); XCTAssertNil(model.error); XCTAssertEqual(model.screen, .main)
     }
 
     func testFirstLaunchOpensSignupAndAUsedAccountOpensLogin() async throws {
@@ -494,7 +457,7 @@ import XCTest
     func testLongAdminDisplayNameIsAccepted() async throws {
         let fixture = SignupFixture(); defer { fixture.cleanup() }
         let name = String(repeating: "가", count: 80)
-        let data = try ContractJSON.encoder().encode(UserProfile(id: fixture.user.id, displayName: name, learningGoal: "other"))
+        let data = try ContractJSON.encoder().encode(UserProfile(id: fixture.user.id, displayName: name))
         XCTAssertEqual(try ContractJSON.decoder().decode(UserProfile.self, from: data).displayName, name)
     }
 }

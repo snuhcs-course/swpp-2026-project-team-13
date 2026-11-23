@@ -26,7 +26,6 @@ from .errors import ContractError
 from .accounts import profile_body
 from .models import LoginThrottle, UserProfile, locked_throttle, throttle_key, usernames_differing_by_case
 from .presentation import absolute
-from .views import GOALS
 
 WINDOW_SECONDS = 300
 DAY_SECONDS = 86400
@@ -35,7 +34,6 @@ BIDI_CONTROLS = frozenset("؜‎‏‪‫‬‭‮⁦⁧⁨⁩")
 SIGNUP_FIELD_RULES = {
     "username": "아이디는 영문 소문자로 시작하고 영문 소문자·숫자·_만 쓰는 4~20자여야 합니다.",
     "display_name": "표시 이름은 앞뒤 공백과 제어 문자 없이 1~20자여야 합니다.",
-    "learning_goal": "학습 목표를 선택해 주세요.",
     "password": "비밀번호는 1~1024자의 문자열이어야 합니다.",
 }
 
@@ -244,16 +242,10 @@ def signup_field_codes(data):
     codes = {
         "username": username_code(data),
         "display_name": text_error(data, "display_name", 20),
-        # Optional: the app asks for the goal after the account exists.
-        "learning_goal": text_error(data, "learning_goal", math.inf) if "learning_goal" in data else None,
         "password": text_error(data, "password", 1024),
     }
     if not codes["display_name"] and not display_name_is_valid(data["display_name"]):
         codes["display_name"] = "invalid_format"
-    # The list has no encoding rule, so an unencodable value is simply not a choice.
-    goal = data.get("learning_goal")
-    if isinstance(goal, str) and goal and goal not in GOALS:
-        codes["learning_goal"] = "invalid_choice"
     return codes
 
 
@@ -364,7 +356,7 @@ class SignupView(APIView):
             except IntegrityError:
                 raise username_taken() from None
             profile = UserProfile.objects.create(
-                user=user, display_name=data["display_name"], learning_goal=data.get("learning_goal"), created_via="signup",
+                user=user, display_name=data["display_name"], created_via="signup",
             )
             token = Token.objects.create(user=user)
             # Failures before the account existed must not lock the new account out.

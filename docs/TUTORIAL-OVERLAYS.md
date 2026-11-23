@@ -30,6 +30,8 @@
   The input/editing popups occupy the remaining gap between notation and keys.
 - Rhythm actions follow the choices immediately, like the real question. A
   flexible spacer must not push the controls down to the iPad's bottom edge.
+  On larger iPads the board, choices and actions are centred as one group,
+  matching the large-screen layout from PR #27 without separating its controls.
 - Memory input/editing steps expose both the score and keyboard. Undo and the
   eraser work on real disposable MelodyAnswers and preserve the other measure.
 - Rhythm step 3 requires tapping the first answer piece, then dragging the actual
@@ -164,3 +166,18 @@ No generated mockup PNGs or full problem banks are added to the app bundle.
   full simulator and slim device-policy test hosts in CI.
 - python scripts/test_content_delivery.py verifies that the slim resource policy
   and sample pack remain intact.
+
+## UAT integration
+
+PR #27's learning-goal removal and large-iPad fixes are included in the integrated
+tutorial branch. Writing-sheet centring lives in the shared WritingSheetFrame,
+so opening help cannot undo the 12.9/13-inch layout fix. The server must apply
+migration 0011 along with this app: goal selection and PATCH /me/ are removed.
+Docker's API entrypoint runs migrations before serving requests.
+
+The Practice replay stress-test crash exposed an unsafe sequencer lifetime:
+AVAudioSequencer was released while AVAudioEngine could still be rendering.
+PracticeReviewPlayback now stops the engine before replacing or releasing the
+sequence, including tempo changes and shutdown, and then restarts the existing
+sampler graph without reloading the instrument bank. The existing rapid-seek,
+tempo-change, pause/resume and instrument-load-count test remains enabled.

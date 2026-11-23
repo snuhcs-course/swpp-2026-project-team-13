@@ -104,7 +104,8 @@ struct WritingSheetFrame<Sheet: View>: View {
     var body: some View {
         GeometryReader { proxy in
             let width = max(0, min(proxy.size.width, proxy.size.height*1330/Double(displayHeight)))
-            sheet(width).frame(width: proxy.size.width, height: proxy.size.height, alignment: .top)
+            // Keep the large-iPad centring in the shared live/tutorial layout.
+            sheet(width).frame(width: proxy.size.width, height: proxy.size.height, alignment: .center)
         }
     }
 }

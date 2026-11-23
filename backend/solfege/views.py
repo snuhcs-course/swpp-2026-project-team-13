@@ -34,7 +34,6 @@ from .self_assessment import normalize_errors
 from .catalogs import shipped_questions, practice_difficulty
 from .recommendation import current_versions, recommended_version
 
-GOALS = {"arts_school_entrance", "arts_school_student", "college_entrance", "teacher_exam", "other"}
 
 def fields(data, required, optional=()):
     if not isinstance(data, dict) or set(data) - set(required) - set(optional) or not set(required) <= set(data):
@@ -59,8 +58,7 @@ def new_job(attempt, answer):
     job.save(update_fields=["coaching", "prompt_text"])
     return job
 
-@api_view(["GET", "PATCH", "DELETE"])
-@parser_classes([JSONParser])
+@api_view(["GET", "DELETE"])
 def me(request):
     if request.method == "DELETE":
         if request.user.is_staff or request.user.is_superuser:
@@ -69,12 +67,6 @@ def me(request):
             raise NotAuthenticated()
         return Response(status=204)
     profile, _ = UserProfile.objects.get_or_create(user=request.user)
-    if request.method == "PATCH":
-        fields(request.data, {"learning_goal"})
-        if not isinstance(request.data["learning_goal"], str) or request.data["learning_goal"] not in GOALS:
-            raise ContractError("VALIDATION_ERROR", "학습 목표를 확인해 주세요.")
-        profile.learning_goal = request.data["learning_goal"]
-        profile.save(update_fields=["learning_goal"])
     return Response(profile_body(request.user, profile))
 
 @api_view(["GET"])

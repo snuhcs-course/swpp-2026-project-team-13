@@ -17,8 +17,8 @@ final class AuthenticationAppProtocol: URLProtocol {
 
 @MainActor private final class AuthenticationFixture {
     let base = "https://login-\(UUID().uuidString.lowercased()).example/api/v1/"
-    let user = UserProfile(id: UUID(), displayName: "첫 학습자", learningGoal: "other")
-    let other = UserProfile(id: UUID(), displayName: "다른 학습자", learningGoal: "other")
+    let user = UserProfile(id: UUID(), displayName: "첫 학습자")
+    let other = UserProfile(id: UUID(), displayName: "다른 학습자")
     let http: URLSession
     let defaults = UserDefaults.standard.dictionaryRepresentation()
     var activeUser: UserProfile

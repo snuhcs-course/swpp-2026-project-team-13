@@ -41,7 +41,7 @@ LOGIN = "/api/v1/auth/login/"
 FAST_HASHERS = ["django.contrib.auth.hashers.MD5PasswordHasher"]
 PASSWORD = "quiet-lantern-48"
 PROXIES = (ipaddress.ip_network("172.30.0.10/32"),)
-VALID = {"username": "student01", "display_name": "청음 연습생", "learning_goal": "college_entrance", "password": PASSWORD}
+VALID = {"username": "student01", "display_name": "청음 연습생", "password": PASSWORD}
 User = get_user_model()
 
 
@@ -105,8 +105,7 @@ class SignupSuccessTests(ErrorAssertions, TestCase):
         profile = UserProfile.objects.get(user=user)
         self.assertEqual(profile.created_via, "signup")
         self.assertEqual(profile.display_name, "청음 연습생")
-        self.assertEqual(profile.learning_goal, "college_entrance")
-        self.assertEqual(response.data["user"], {"id": str(profile.id), "username": "student01", "display_name": "청음 연습생", "learning_goal": "college_entrance"})
+        self.assertEqual(response.data["user"], {"id": str(profile.id), "username": "student01", "display_name": "청음 연습생"})
         self.assertEqual(Token.objects.get(user=user).key, response.data["access_token"])
 
     def test_token_works_at_once_and_login_returns_the_same_token_and_profile(self):
@@ -124,43 +123,18 @@ class SignupSuccessTests(ErrorAssertions, TestCase):
         self.client.credentials(HTTP_AUTHORIZATION="Bearer stale-token")
         self.assertEqual(post_json(self.client, VALID).status_code, 201)
 
-    def test_learning_goal_is_stored_for_every_choice_without_defaulting(self):
-        for index, goal in enumerate(["arts_school_entrance", "arts_school_student", "college_entrance", "teacher_exam", "other"]):
-            response = post_json(self.client, form(username=f"goal{index}xx", learning_goal=goal))
-            self.assertEqual(response.status_code, 201)
-            self.assertEqual(response.data["user"]["learning_goal"], goal)
-            self.assertEqual(UserProfile.objects.get(user__username=f"goal{index}xx").learning_goal, goal)
-
-    def test_signup_without_a_goal_leaves_it_unset_until_patch_chooses_one(self):
-        created = post_json(self.client, without("learning_goal"))
-        self.assertEqual(created.status_code, 201, created.content)
-        self.assertIsNone(created.data["user"]["learning_goal"])
-        profile = UserProfile.objects.get(user__username=VALID["username"])
-        self.assertIsNone(profile.learning_goal)
-        self.client.credentials(HTTP_AUTHORIZATION=f"Bearer {created.data['access_token']}")
-        self.assertIsNone(self.client.get("/api/v1/me/").data["learning_goal"])
-        # A later login must also report it, so the app can ask again.
-        login = post_json(self.client, {"username": VALID["username"], "password": PASSWORD}, path="/api/v1/auth/login/")
-        self.assertIsNone(login.data["user"]["learning_goal"])
-        for rejected in (None, "", "unknown"):
-            with self.subTest(rejected=rejected):
-                self.assertEqual(self.client.patch("/api/v1/me/", {"learning_goal": rejected}, format="json").status_code, 400)
-        self.assertIsNone(UserProfile.objects.get(pk=profile.pk).learning_goal)
-        chosen = self.client.patch("/api/v1/me/", {"learning_goal": "teacher_exam"}, format="json")
-        self.assertEqual(chosen.status_code, 200, chosen.content)
-        self.assertEqual(chosen.data["learning_goal"], "teacher_exam")
-        self.assertEqual(UserProfile.objects.get(pk=profile.pk).learning_goal, "teacher_exam")
-
-    def test_an_explicit_null_goal_is_not_the_same_as_omitting_it(self):
-        response = post_json(self.client, form(learning_goal=None))
+    def test_learning_goal_is_no_longer_a_signup_field(self):
+        # Contract v0.15.0 removed learning goals; an unknown field is rejected like any other.
+        response = post_json(self.client, form(learning_goal="other"))
         self.assertEqual(response.status_code, 400, response.content)
-        self.assertEqual([(item["field"], item["code"]) for item in json.loads(response.content)["error"]["fields"]], [("learning_goal", "invalid")])
+        self.assertEqual(json.loads(response.content)["error"]["code"], "VALIDATION_ERROR")
         self.assertFalse(User.objects.filter(username=VALID["username"]).exists())
 
-    def test_profiles_created_outside_signup_keep_the_other_default(self):
-        user = User.objects.create(username="admin_made")
-        self.client.force_authenticate(user)
-        self.assertEqual(self.client.get("/api/v1/me/").data["learning_goal"], "other")
+    def test_profile_has_no_learning_goal_and_cannot_be_patched(self):
+        created = post_json(self.client, VALID)
+        self.client.credentials(HTTP_AUTHORIZATION=f"Bearer {created.data['access_token']}")
+        self.assertNotIn("learning_goal", self.client.get("/api/v1/me/").data)
+        self.assertEqual(self.client.patch("/api/v1/me/", {"learning_goal": "other"}, format="json").status_code, 405)
 
     def test_values_are_stored_without_normalization(self):
         # Decomposed Hangul must stay decomposed; the server never normalizes.
@@ -237,8 +211,8 @@ class SignupValidationTests(ErrorAssertions, TestCase):
     def test_field_code_matrix(self):
         cases = [
             ("username", None, "required"), ("display_name", None, "required"), ("password", None, "required"),
-            ("username", 1, "invalid"), ("display_name", ["x"], "invalid"), ("learning_goal", 1, "invalid"), ("learning_goal", {}, "invalid"), ("password", False, "invalid"),
-            ("username", "", "blank"), ("display_name", "", "blank"), ("learning_goal", "", "blank"), ("password", "", "blank"),
+            ("username", 1, "invalid"), ("display_name", ["x"], "invalid"), ("password", False, "invalid"),
+            ("username", "", "blank"), ("display_name", "", "blank"), ("password", "", "blank"),
             ("username", "a" * 21, "max_length"), ("display_name", "가" * 21, "max_length"), ("password", "a1-" * 342, "max_length"),
             ("username", "\ud800abc", "invalid"), ("display_name", "\ud800", "invalid"), ("password", "good-\udfffpassword", "invalid"),
             ("username", "abc", "min_length"), ("username", "Ab", "min_length"), ("username", "a", "min_length"),
@@ -248,7 +222,6 @@ class SignupValidationTests(ErrorAssertions, TestCase):
             ("username", "abc\u0000", "invalid_format"),
             ("display_name", " 이름", "invalid_format"), ("display_name", "이름 ", "invalid_format"), ("display_name", "　이름", "invalid_format"), ("display_name", "이름 ", "invalid_format"), ("display_name", " ", "invalid_format"),
             ("display_name", "이\n름", "invalid_format"), ("display_name", "이\u0000름", "invalid_format"), ("display_name", "이\u0085름", "invalid_format"), ("display_name", "이 름", "invalid_format"), ("display_name", "이 름", "invalid_format"),
-            ("learning_goal", "unknown", "invalid_choice"), ("learning_goal", "OTHER", "invalid_choice"), ("learning_goal", "\ud800", "invalid_choice"),
         ]
         for field, value, code in cases:
             with self.subTest(field=field, value=repr(value), code=code):
@@ -287,9 +260,9 @@ class SignupValidationTests(ErrorAssertions, TestCase):
                 self.assertEqual(post_json(self.client, form(username=f"format{index}", display_name=name)).status_code, 201)
 
     def test_every_violated_field_is_returned_in_one_response_with_one_code_each(self):
-        body = {"username": "A", "display_name": " x", "learning_goal": "nope", "password": ""}
+        body = {"username": "A", "display_name": " x", "password": ""}
         self.assertEqual(self.fields_for(body), [
-            ("username", "min_length"), ("display_name", "invalid_format"), ("learning_goal", "invalid_choice"), ("password", "blank"),
+            ("username", "min_length"), ("display_name", "invalid_format"), ("password", "blank"),
         ])
         self.assertEqual(self.fields_for({}), [
             ("username", "required"), ("display_name", "required"), ("password", "required"),

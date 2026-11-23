@@ -224,7 +224,7 @@ class AccountDeletionTests(AccountFlow, TemporaryMedia, TestCase):
 
     @override_settings(PASSWORD_HASHERS=FAST_HASHERS, SIGNUP_ENABLED=True, SIGNUP_MAX_SUCCESSES_PER_IP=20, SIGNUP_MAX_REQUESTS_PER_IP=30)
     def test_username_can_sign_up_again_with_a_new_identity(self):
-        form = {"username": "student01", "display_name": "연습생", "learning_goal": "other", "password": "quiet-lantern-48"}
+        form = {"username": "student01", "display_name": "연습생", "password": "quiet-lantern-48"}
         first = APIClient().post("/api/v1/auth/signup/", form, format="json")
         self.assertEqual(first.status_code, 201, first.data)
         client = APIClient()
@@ -244,7 +244,7 @@ class AccountDeletionTests(AccountFlow, TemporaryMedia, TestCase):
 
     @override_settings(SIGNUP_ENABLED=True, PASSWORD_HASHERS=FAST_HASHERS, SIGNUP_MAX_SUCCESSES_PER_IP=1, SIGNUP_MAX_REQUESTS_PER_IP=30)
     def test_deletion_does_not_give_back_a_signup_success(self):
-        form = {"username": "student01", "display_name": "연습생", "learning_goal": "other", "password": "quiet-lantern-48"}
+        form = {"username": "student01", "display_name": "연습생", "password": "quiet-lantern-48"}
         first = APIClient().post("/api/v1/auth/signup/", form, format="json")
         client = APIClient()
         client.credentials(HTTP_AUTHORIZATION="Bearer " + first.data["access_token"])
@@ -266,7 +266,7 @@ class AccountDeletionTests(AccountFlow, TemporaryMedia, TestCase):
         self.assertEqual(response.data["error"]["code"], "METHOD_NOT_ALLOWED")
         self.assertIn("DELETE", response["Allow"])
         self.assertEqual(client.get(ME).status_code, 200)
-        self.assertEqual(client.patch(ME, {"learning_goal": "other"}, format="json").status_code, 200)
+        self.assertEqual(client.patch(ME, {}, format="json").status_code, 405)
 
     def test_failure_partway_leaves_everything_in_place(self):
         user, client = self.account()
@@ -566,18 +566,6 @@ class DeletionConcurrencyTests(AccountFlow, TemporaryMedia, TransactionTestCase)
             "image": file, "client_answer_id": str(uuid.uuid4()), "answer_format_version": "1",
             "sheet_layout_id": attempt["question"]["sheet_layout"]["id"],
         }, format="multipart", HTTP_IDEMPOTENCY_KEY=str(uuid.uuid4()))
-
-    def test_profile_change_losing_its_row_to_a_deletion_is_401(self):
-        user, client = self.account()
-        client.raise_request_exception = False
-        original = views.fields
-
-        def delete_first(*args, **kwargs):
-            self.assertTrue(delete_account(user))
-            return original(*args, **kwargs)
-
-        with patch("solfege.views.fields", side_effect=delete_first):
-            self.assert_unauthorized(client.patch(ME, {"learning_goal": "other"}, format="json"))
 
     def test_answer_image_losing_its_file_to_a_deletion_is_401(self):
         user, client = self.account()

@@ -35,9 +35,16 @@ struct RhythmPuzzleView: View {
                         }
                         if game.page == .setup { if let stage { stageStart(stage) } else { setup } }
                         else if game.page == .summary { summary }
-                        else if let round = game.round, let draft = game.draft { play(round,draft:draft,compact:geometry.size.width < 950,width:min(1100,geometry.size.width)-76) }
+                        else if let round = game.round, let draft = game.draft {
+                            // The board sits in the middle of the space under the title, so a 4:3
+                            // 12.9/13-inch screen does not leave its lower third empty.
+                            Spacer(minLength:0)
+                            play(round,draft:draft,compact:geometry.size.width < 950,width:min(1100,geometry.size.width)-76)
+                            Spacer(minLength:0)
+                        }
                         if game.storageFailed { Button("기기 저장 재시도") { game.retryStorage() }.buttonStyle(PrimaryButton()) }
                     }.padding(24).frame(maxWidth:1100).frame(maxWidth:.infinity)
+                        .frame(minHeight:geometry.size.height,alignment:.top)
                 }
                 if let id = dragId, let tile = game.tiles[id], let round = game.round {
                     RhythmTileFace(tile:tile,pulse:round.pulse,unitWidth:100*min(1.2,(min(1100,geometry.size.width)-76)/CGFloat(100*(round.totalDuration/round.pulse).value+112))).frame(height:100)

@@ -96,7 +96,6 @@ import PencilKit
     var pendingCreation: Bool { (try? store?.pending()) != nil }
     var pendingPracticeCreation: Bool { (try? store?.pending())?.studyMode == .practice }
     var needsAuthentication: Bool { !demo && !connected }
-    var needsGoalSelection: Bool { connected && profile != nil && profile?.learningGoal == nil }
     // Exam uses a dedicated pool and a three-choice screen instead of a library.
     var libraryScreen: Screen { selectedMode == .practice ? .home : .examSelection }
     // Classical stays Practice-only; legacy exam attempts remain resumable.
@@ -479,9 +478,6 @@ import PencilKit
             self.classicalQuestions=collected
             self.classicalPage=number; self.classicalHasNextPage=false; self.classicalLoaded=true
         }
-    }
-    func updateGoal(_ goal: String) async {
-        await run("목표를 저장하는 중") { guard let api = self.api else { return }; self.profile = try await api.updateGoal(goal) }
     }
     func choose(_ id: UUID, mode: StudyMode = .exam) async {
         await run("문제 안내를 불러오는 중") {

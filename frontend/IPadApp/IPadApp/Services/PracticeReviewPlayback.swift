@@ -80,7 +80,7 @@ import Combine
         cancelMonitor(); silence(); measure = nil
     }
     func shutdown() {
-        stop(); sequencer = nil; graph.engine.stop()
+        stop(); graph.engine.stop(); sequencer = nil
         preparedVoice = nil; instrument = nil; preparedScore = nil; preparedBpm = nil; arrangement = nil; activeSlice = nil
     }
     private func check(_ request: UUID) throws {
@@ -113,7 +113,11 @@ import Combine
         // Tempo and excerpt changes affect MIDI, not the loaded instrument. Keep
         // the sampler/engine alive instead of repeatedly loading the large bank.
         let rebuildInstrument = preparedVoice != voice || instrument == nil || !graph.engine.isRunning
-        silence(); sequencer = nil
+        silence()
+        // Releasing AVAudioSequencer detaches its MusicSequence from the graph.
+        // Stop rendering first, including when only the tempo has changed.
+        // The sampler and loaded bank stay alive and are reused after restart.
+        graph.engine.stop(); sequencer = nil
         preparedScore = nil; preparedBpm = nil
         if rebuildInstrument {
             let audio = AVAudioSession.sharedInstance()

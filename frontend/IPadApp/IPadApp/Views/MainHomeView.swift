@@ -85,11 +85,6 @@ struct MainHomeView: View {
                     }
                 }
             }
-            HStack {
-                Text("학습 목표").foregroundStyle(SolfegeTheme.muted)
-                Spacer()
-                Text(SolfegeTheme.goal(profile.learningGoal)).fontWeight(.bold).foregroundStyle(SolfegeTheme.ink)
-            }.font(.system(size: 14)).padding(.horizontal, 16).padding(.vertical, 12).background(SolfegeTheme.background, in: RoundedRectangle(cornerRadius: 12))
             Button { showingProfile = false; model.navigate(.settings) } label: {
                 Text("프로필과 계정 설정").font(.system(size: 15, weight: .bold)).foregroundStyle(SolfegeTheme.deepViolet)
                     .frame(maxWidth: .infinity).frame(height: 48).background(SolfegeTheme.soft, in: RoundedRectangle(cornerRadius: 12))

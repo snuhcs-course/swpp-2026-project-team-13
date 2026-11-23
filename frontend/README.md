@@ -18,9 +18,9 @@ For Windows installation without a Mac, follow [the Sideloadly guide](../docs/WI
 
 ## Screens and contract behavior
 
-- Onboarding: full-screen signup with fields opening one at a time, a learning goal screen shown while the profile's goal is `null`, and login.
+- Onboarding: full-screen signup with fields opening one at a time, then straight to the main home, and login. There are no learning goals (contract v0.15.0).
 - Daily Training (S24): one set per local day, kept on the device per user — Memory run and Rhythm puzzle in random order, then two unsolved Practice questions from the level practiced last (nearby levels fill a gap). Each item runs on its own screens as a single question; its end screen shows **다음 항목** (or **완료** for the last open item) and nothing advances automatically. There is no combined result: finishing returns to S24, which shows "오늘 완료". Leaving mid-item keeps it unfinished.
-- Practice room: current user, five learning goals, beginner/intermediate/advanced selection cards, all server pages loaded before classification, pending creation recovery, saved unfinished attempt.
+- Practice room: current user, beginner/intermediate/advanced selection cards, all server pages loaded before classification, pending creation recovery, saved unfinished attempt.
 - Question instructions and preparation: use the attempt's immutable snapshot; download and verify template, main/scale MXL, validate the limited profile, prepare every segment and the bundled piano before `start`.
 - Exam: fixed logical 1330×846 PencilKit canvas, black pens, vector eraser, undo/redo, Pencil or finger input, 100/150/200% zoom, continuous monotonic advisory timer (including system sleep). No automatic submission when time reaches zero.
 - Playback: scale, tail, gap, exactly 11 ordered main segments; 480-PPQ MIDI, A4=440 Hz, velocity 80, fixed tempo. Merge ties before clipping; preserve leading/trailing silence. Native AVAudioSequencer and AVAudioUnitSampler schedule notes. Pause, background, interruptions and unplugged headphones stop all notes. User action resumes from the current segment, or restarts the interrupted gap.

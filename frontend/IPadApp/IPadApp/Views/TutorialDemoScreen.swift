@@ -107,8 +107,15 @@ struct TutorialDemoScreen: View {
                     .frame(maxHeight: .infinity)
                 Text(session.message).font(.subheadline).frame(height: 22)
                 keyboard.frame(height: min(185, max(130, height*0.25)))
-            } else { rhythm(width: width) }
-            actions
+            } else {
+                // Match the real puzzle: centre the board and its controls as
+                // one group, with actions still directly below the choices.
+                VStack(spacing: 14) {
+                    rhythm(width: width)
+                    actions
+                }.frame(maxHeight: .infinity, alignment: .center)
+            }
+            if kind != .rhythmPuzzle { actions }
         }.padding(.horizontal, kind == .echoDragon ? 28 : 24).padding(.vertical, 20)
             .frame(maxWidth: kind == .echoDragon ? 1056 : 1100).frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
             .coordinateSpace(name: "rhythm-puzzle")
