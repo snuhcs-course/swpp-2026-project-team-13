@@ -177,7 +177,9 @@ Docker's API entrypoint runs migrations before serving requests.
 
 The Practice replay stress-test crash exposed an unsafe sequencer lifetime:
 AVAudioSequencer was released while AVAudioEngine could still be rendering.
-PracticeReviewPlayback now stops the engine before replacing or releasing the
-sequence, including tempo changes and shutdown, and then restarts the existing
-sampler graph without reloading the instrument bank. The existing rapid-seek,
-tempo-change, pause/resume and instrument-load-count test remains enabled.
+PracticeReviewPlayback now uses the same persistent PianoSequenceTransport as
+the minigames. Tempo/score changes edit stopped tracks without replacing the
+sequence or restarting its loaded piano graph. Full shutdown/instrument changes
+stop the engine before releasing the sequence. The existing rapid-seek,
+tempo-change, pause/resume and instrument-load-count test remains enabled and
+also verifies that every tempo and range reuses the same sequence.

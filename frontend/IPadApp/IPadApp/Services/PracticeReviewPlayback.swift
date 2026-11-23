@@ -1,15 +1,16 @@
 import AVFoundation
 import Combine
 
-// One prepared sequence per score/tempo. Switching ranges only seeks; it never
-// reloads MIDI or replaces a sequencer while the graph is rendering.
+// One sequence for the lifetime of the loaded instrument graph. Tempo/score
+// changes edit stopped tracks through the same transport as the minigames.
 @MainActor final class PracticeReviewPlayback: ObservableObject {
     @Published private(set) var isPlaying = false
     @Published private(set) var isPaused = false
     @Published private(set) var measure: Int?
     @Published private(set) var range: PracticeReviewRange?
     private let graph = PianoAudioGraph()
-    private var sequencer: AVAudioSequencer?
+    private var transport: PianoSequenceTransport?
+    private var sequencer: AVAudioSequencer? { transport?.sequencer }
     private var runner: Task<Void,Never>?
     private var generation = UUID()
     private var preparedVoice: String?
@@ -23,6 +24,7 @@ import Combine
     private var activeSlice: PracticeReviewSequence.Slice?
     private var velocity = 80
     private(set) var instrumentLoadCount = 0
+    private(set) var sequenceCreationCount = 0
 
     var positionSeconds: TimeInterval {
         // Stop is a logical return to zero. The next play seeks once, immediately
@@ -80,7 +82,7 @@ import Combine
         cancelMonitor(); silence(); measure = nil
     }
     func shutdown() {
-        stop(); graph.engine.stop(); sequencer = nil
+        stop(); graph.engine.stop(); transport = nil
         preparedVoice = nil; instrument = nil; preparedScore = nil; preparedBpm = nil; arrangement = nil; activeSlice = nil
     }
     private func check(_ request: UUID) throws {
@@ -112,14 +114,13 @@ import Combine
         let music = try PracticeReviewSequence(score:score,bpm:bpm)
         // Tempo and excerpt changes affect MIDI, not the loaded instrument. Keep
         // the sampler/engine alive instead of repeatedly loading the large bank.
-        let rebuildInstrument = preparedVoice != voice || instrument == nil || !graph.engine.isRunning
+        let rebuildInstrument = preparedVoice != voice || instrument == nil || transport == nil || !graph.engine.isRunning
         silence()
-        // Releasing AVAudioSequencer detaches its MusicSequence from the graph.
-        // Stop rendering first, including when only the tempo has changed.
-        // The sampler and loaded bank stay alive and are reused after restart.
-        graph.engine.stop(); sequencer = nil
         preparedScore = nil; preparedBpm = nil
         if rebuildInstrument {
+            // Disposing a sequence detaches it from the engine. Never race the
+            // render thread; ordinary tempo changes do not dispose it at all.
+            graph.engine.stop(); transport = nil
             let audio = AVAudioSession.sharedInstance()
             try audio.setCategory(.playback,mode:.default,options:[]); try audio.setActive(true)
         }
@@ -148,12 +149,12 @@ import Combine
         if rebuildInstrument {
             try graph.rebuild(bank:instrument.url,program:instrument.program,bankMSB:instrument.msb,bankLSB:instrument.lsb,clickURL:nil,gain:instrument.gain)
             instrumentLoadCount += 1
+            transport = PianoSequenceTransport(graph:graph)
+            sequenceCreationCount += 1
         }
-        let seq = AVAudioSequencer(audioEngine:graph.engine)
-        try seq.load(from:MIDIFile.make(events:music.events,totalTicks:music.ticks,tempo:bpm,velocity:velocity),options:[])
-        for track in seq.tracks { track.destinationAudioUnit = graph.piano }
-        seq.rate = 1
-        sequencer = seq; arrangement = music; preparedScore = score; preparedBpm = bpm
+        guard let transport else { throw SolfegeError.invalidScore("재생할 악보를 준비해 주세요.") }
+        try transport.configure(piano:music.events,clicks:[],totalTicks:music.ticks,bpm:bpm,pianoVelocity:UInt8(velocity))
+        arrangement = music; preparedScore = score; preparedBpm = bpm
         if !graph.engine.isRunning { try graph.engine.start() }
     }
     func configurationChanged(_ notification: Notification) {

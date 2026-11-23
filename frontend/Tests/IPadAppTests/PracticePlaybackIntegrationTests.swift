@@ -15,6 +15,7 @@ import SwiftUI
             print("Review audio: prepare tempo \(bpm)")
             try await player.play(score:music,range:PracticeReviewRange(from:3,through:4),bpm:bpm,voice:"grand-piano")
             XCTAssertEqual(player.instrumentLoadCount,1,"Tempo changes must reuse the loaded sampler")
+            XCTAssertEqual(player.sequenceCreationCount,1,"Tempo changes must not detach and replace a rendering sequence")
             let began = ProcessInfo.processInfo.systemUptime
             try await Task.sleep(for:.milliseconds(350))
             XCTAssertEqual(player.positionSeconds+0.12,ProcessInfo.processInfo.systemUptime-began,accuracy:0.15,"Tempo changes must not accelerate the next playback")
@@ -51,6 +52,7 @@ import SwiftUI
         print("Review audio: change tempo after stop")
         try await player.play(score:music,range:PracticeReviewRange(from:8,through:8),bpm:200,voice:"grand-piano")
         XCTAssertEqual(player.instrumentLoadCount,1,"Stopping and changing tempo must not reload the bank")
+        XCTAssertEqual(player.sequenceCreationCount,1,"Rapid seeks and stop/replay must keep the same sequence")
         let deadline = ProcessInfo.processInfo.systemUptime+3
         while player.isPlaying && ProcessInfo.processInfo.systemUptime < deadline { try await Task.sleep(for:.milliseconds(20)) }
         XCTAssertFalse(player.isPlaying,"Playback must stop at the chosen end, not continue through the prepared sequence")
