@@ -6,6 +6,9 @@ final class PianoAudioGraph {
     private(set) var engine = AVAudioEngine()
     private(set) var piano = AVAudioUnitSampler()
     private(set) var click = AVAudioUnitSampler()
+    // This owner covers sampler-only players too, not just sequenced playback.
+    // Quiesce callbacks before any of the attached node properties are released.
+    deinit { engine.stop() }
 
     func rebuild(bank: URL, program: UInt8, bankMSB: UInt8, bankLSB: UInt8,
                  clickURL: URL?, gain: Float, offlineFormat: AVAudioFormat? = nil) throws {

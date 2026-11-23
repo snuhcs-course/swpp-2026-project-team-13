@@ -17,8 +17,7 @@ import AVFoundation
 
     func prepare() throws {
         if ready {
-            if !graph.engine.isRunning { try graph.engine.start() }
-            stopClock(); releaseKeys(); return
+            stopClock(); releaseKeys(); try startOutput(); return
         }
         stop(); ready = false
         let profile = try ClassicalPiano.load()
@@ -78,6 +77,10 @@ import AVFoundation
         guard ready, graph.engine.isRunning, (0...127).contains(midi) else { return }
         held[midi,default:0] += 1
         livePiano.startNote(UInt8(midi),withVelocity:noteVelocity,onChannel:0)
+    }
+    func startOutput() throws {
+        guard ready, let transport else { throw SolfegeError.invalidScore("피아노를 다시 준비해 주세요.") }
+        try transport.startOutput()
     }
     func noteOff(_ midi: Int) {
         guard let count = held[midi] else { return }

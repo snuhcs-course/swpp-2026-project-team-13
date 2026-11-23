@@ -213,7 +213,6 @@ import AudioToolbox
                 guard generation == playbackGeneration else { throw CancellationError() }
                 if graphNeedsRebuild { try rebuildAudioGraph() }
                 try AVAudioSession.sharedInstance().setActive(true)
-                if !engine.isRunning { try engine.start() }
                 if cursor.index == 0, cursor.phase == "initial" {
                     try await wait(plan.initialDelayMs ?? 0,label:"시작 대기")
                     cursor.phase = "segment"; try onCursor?(cursor)

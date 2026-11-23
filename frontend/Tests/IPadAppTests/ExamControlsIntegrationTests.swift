@@ -18,13 +18,13 @@ import AVFoundation
         XCTAssertFalse(graph.engine.isRunning,"Track preparation must not race the output render thread")
         try transport?.start()
         transport?.stop()
-        XCTAssertTrue(graph.engine.isRunning,"A logical pause must keep the live instrument available")
+        XCTAssertFalse(graph.engine.isRunning,"Stop must quiesce I/O before removing MIDI render callbacks")
         XCTAssertFalse(try XCTUnwrap(transport).sequencer.isPlaying)
         transport?.prepareToPlay(beats:0.5)
-        XCTAssertTrue(graph.engine.isRunning,"Seeking must preserve the running output and its loaded samples")
+        XCTAssertFalse(graph.engine.isRunning,"Seek must occur with the render callback quiescent")
         try transport?.configure(piano:[MusicEvent(midi:69,onset:0,duration:240)],clicks:[],totalTicks:480,
                                  bpm:120,pianoVelocity:76)
-        XCTAssertTrue(graph.engine.isRunning,"Changing notes/tempo must not restart I/O")
+        XCTAssertFalse(graph.engine.isRunning,"Track edits must leave restart to the explicit start call")
         try transport?.start()
         XCTAssertTrue(graph.engine.isRunning)
         transport = nil

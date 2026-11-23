@@ -385,10 +385,11 @@ import SwiftUI
     }
     func keyDown(_ midi: Int) {
         guard page == .playing, !paused, !working else { return }
-        guard audio.isRunning else { pause(); error = "오디오가 중단됐어요. 계속하기로 다시 준비해 주세요."; return }
         // Classify input using the audio clock, even if the UI has not refreshed yet.
         if !freeRecall { updateClock() }
         guard page == .playing, !paused else { return }
+        do { try audio.startOutput() }
+        catch { pause(); self.error=error.localizedDescription; return }
         audio.noteOn(midi)
         guard canEnter else { return }
         let accepted: Bool

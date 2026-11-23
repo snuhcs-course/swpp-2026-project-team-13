@@ -197,8 +197,8 @@ checks this cleanup independently of a caller's explicit shutdown method.
 
 The initial output pause fence and timing-lead fix did not establish reliable
 replay: a subsequent run reloaded Practice's bank five times and captured zero
-frames on Rhythm's answer playback. The transport now stops only MIDI for
-logical playback operations and keeps the loaded output running. Resource
+frames on Rhythm's answer playback. MIDI callback changes now occur with output
+paused; playback and live keys restart output explicitly and propagate errors. Resource
 invalidation is explicit rather than inferred from `engine.isRunning`; output
 start errors propagate to the UI. Full shutdown still stops output before
 sequence disposal. See [Audio lifecycle](AUDIO-LIFECYCLE.md) for the evidence,

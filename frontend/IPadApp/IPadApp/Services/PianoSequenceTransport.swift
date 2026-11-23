@@ -28,10 +28,10 @@ import AVFoundation
                   e.onset>=0 && e.duration>0 && e.onset<=totalTicks && e.duration<=totalTicks-e.onset &&
                   (e.midi.map { (0...127).contains($0) } ?? true)
               }) else { throw SolfegeError.invalidScore("재생할 음표의 길이와 템포를 확인해 주세요.") }
-        // Stop the MIDI timeline, not the output device. Pausing/restarting I/O
-        // for every edit invalidates its render clock and can leave a started
-        // player with no output buffers. The sequence stays attached throughout.
-        sequencer.stop()
+        // MusicPlayer stop can remove its render-notify block. Quiesce I/O
+        // before that mutation, and leave it paused until an explicit start.
+        // Resource validity is independent of this temporary output pause.
+        stop()
         // Remove through the documented iterator flag, including empty tracks.
         // The third pointer means removeEvent, NOT stop enumeration. Do not
         // subsequently MusicTrackClear an already-empty track (Core Audio -50).
@@ -58,18 +58,21 @@ import AVFoundation
         }
     }
     func prepareToPlay(beats: Double? = nil, seconds: Double? = nil) {
-        sequencer.stop()
+        stop()
         if let beats { sequencer.currentPositionInBeats=beats }
         if let seconds { sequencer.currentPositionInSeconds=seconds }
     }
     func start() throws {
-        if !engine.isRunning { try engine.start() }
+        try startOutput()
         sequencer.prepareToPlay()
         try sequencer.start()
     }
-    // A stop must never secretly restart I/O, especially with try? hiding a
-    // start failure. Only start() starts I/O and propagates its error to the UI.
-    func stop() { sequencer.stop() }
+    // Live keys can resume output without restarting the reference timeline.
+    func startOutput() throws {
+        if !engine.isRunning { engine.prepare(); try engine.start() }
+    }
+    // Never restart implicitly or swallow an I/O start error in stop().
+    func stop() { engine.pause(); sequencer.stop() }
     // A view/model can disappear after pause without calling full shutdown.
     // Stop this exact engine before stored properties release MusicSequence;
     // its render callback must never outlive the sequence it references.

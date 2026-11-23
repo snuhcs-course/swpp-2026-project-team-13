@@ -217,6 +217,7 @@ import AVFoundation
             try game.audio.start(timeline,round:round,settings:settings)
             try await Task.sleep(for:.milliseconds(200))
             game.audio.stopClock()
+            try game.audio.startOutput()
             XCTAssertTrue(game.audio.isRunning,"Recall must retain the live piano engine")
             game.audio.noteOn(60); game.audio.noteOff(60)
             for _ in 0..<2 {

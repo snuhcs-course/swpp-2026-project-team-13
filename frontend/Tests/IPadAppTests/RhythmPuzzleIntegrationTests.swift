@@ -252,7 +252,7 @@ import AVFoundation
         game.resume(); XCTAssertEqual(game.page,.playing)
     }
     func testDirectReplayOmitsOnlyTheCountIn() throws {
-        let bank: RhythmCatalog = try Bundled.decode("rhythm-puzzle-v3")
+        let bank: RhythmCatalog = try DemoContent.decode("rhythm-puzzle-v4",forceSmall:true)
         let round = try XCTUnwrap(bank.rounds.first)
         let audio = RhythmPuzzleAudio(); defer { audio.shutdown() }
         try audio.play(round,includeCountIn:false)
