@@ -31,6 +31,7 @@ struct DrillStageContext {
     let exit: () -> Void
     var revealAcknowledged = false
     var acknowledgeReveal: () -> Void = {}
+    var activity: (Bool) -> Void = { _ in }
     var nextTitle: String { index+1==results.count ? "결과 보기" : "다음" }
 }
 

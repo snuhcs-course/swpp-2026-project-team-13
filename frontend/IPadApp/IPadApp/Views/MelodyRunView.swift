@@ -5,7 +5,7 @@ struct MelodyRunView: View {
     @StateObject private var game: MelodyRunModel
     @Environment(\.dismiss) private var dismiss
     @Environment(\.scenePhase) private var scenePhase
-    @AppStorage("memory-run-tutorial-v3") private var tutorialSeen = false
+    @Environment(\.tutorialScope) private var tutorialScope
     @State private var showingTutorial = false
     @State private var choosingDifficulty = false
     @State private var confirmingExit = false
@@ -23,7 +23,7 @@ struct MelodyRunView: View {
                 if let stage { StageChip(stage:stage.stage) }
                 Spacer()
                 if game.page == .setup || game.page == .playing {
-                    Button { game.pause(); showingTutorial = true } label: { Label("게임 방법",systemImage:"questionmark.circle").frame(minHeight:44) }.accessibilityLabel("게임 방법")
+                    TutorialHelpButton(action: openTutorial)
                 }
                 Button(action:back) { Image(systemName:"xmark").frame(width:44,height:44) }.accessibilityLabel("뒤로가기")
             }
@@ -37,8 +37,25 @@ struct MelodyRunView: View {
             .background(SolfegeTheme.background.ignoresSafeArea()).tint(SolfegeTheme.violet).preferredColorScheme(.light)
             .overlay { if game.working && stage == nil { ProgressView("잠시 후 시작해요").padding(24).background(.regularMaterial,in:RoundedRectangle(cornerRadius:18)).allowsHitTesting(false) } }
             .overlay { if game.contentLoading { ProgressView("문제를 준비하고 있어요").padding(24).background(.regularMaterial,in:RoundedRectangle(cornerRadius:18)) } }
-            .task { await game.prepareContent(); guard !Task.isCancelled else { return }; if !tutorialSeen { showingTutorial = true } else { startDaily() } }
-            .sheet(isPresented:$showingTutorial) { MemoryTutorialView { tutorialSeen = true; showingTutorial = false; startDaily() } }
+            .task {
+                game.requireManualStart(); stage?.activity(false)
+                await game.prepareContent(); guard !Task.isCancelled else { return }
+                if let stage { game.newStageRound(stage.question) } else { startDaily() }
+                if stage == nil && daily == nil && !TutorialHistory.hasSeen(.memoryRun, scope: tutorialScope) { openTutorial() }
+            }
+            .onChange(of: game.awaitingStart) { _, ready in
+                if ready && !TutorialHistory.hasSeen(.memoryRun, scope: tutorialScope) { openTutorial() }
+            }
+            .allowsHitTesting(!showingTutorial)
+            .overlay {
+                if showingTutorial {
+                    TutorialWalkthrough(kind: .memoryRun) {
+                        game.finishTutorial(); showingTutorial = false
+                        if game.page == .setup { startDaily() }
+                    }
+                }
+            }
+            .onChange(of: game.paused) { _, paused in stage?.activity(!paused && !game.awaitingStart && !showingTutorial) }
             .onChange(of:stage?.question.id) { _, _ in if let stage { game.newStageRound(stage.question) } }
             .onChange(of:game.page) { _, page in if page == .result {
                 if let daily { do { try game.commitStage(); daily.finished() } catch { game.error=error.localizedDescription } }
@@ -128,7 +145,7 @@ struct MelodyRunView: View {
             VStack(spacing:14) {
                 setProgress
                 playHeader
-                if game.page == .playing && game.phase != .input { ProgressView(value:min(1,max(0,game.progress))).tint(SolfegeTheme.violet) }
+            if game.page == .playing && !game.awaitingStart && game.phase != .input { ProgressView(value:min(1,max(0,game.progress))).tint(SolfegeTheme.violet) }
                 ScrollView(.vertical,showsIndicators:true) { playNotation }.frame(maxHeight:.infinity)
                 playFeedbackRow
                 playKeyboard(height:geometry.size.height)
@@ -143,7 +160,7 @@ struct MelodyRunView: View {
             if let credit=game.classicalCredit { Text(credit).font(.caption).foregroundStyle(.secondary).lineLimit(1) }
             Spacer()
             Text(game.page == .result ? (game.replaying ?? "결과 확인") : game.label).font(.headline).foregroundStyle(SolfegeTheme.violet)
-            if game.page == .playing {
+            if game.page == .playing && !game.awaitingStart {
                 Button { game.paused ? game.resume() : game.pause() } label: { Image(systemName:game.paused ? "play.fill" : "pause.fill").frame(width:44,height:44) }.accessibilityLabel(game.paused ? "계속하기" : "일시 정지")
             }
         }
@@ -207,7 +224,11 @@ struct MelodyRunView: View {
                     .buttonStyle(.bordered).tint(.orange).disabled(!game.canEnter).accessibilityLabel("정답 보고 넘기기")
             }
             Spacer()
-            if game.page == .result {
+            if game.awaitingStart {
+                Button("시작") { stage?.activity(true); game.startPreparedRound() }
+                    .buttonStyle(PrimaryButton(compact: true)).disabled(game.working)
+                    .accessibilityIdentifier("memory-start")
+            } else if game.page == .result {
                 if let daily { DailyNextButton(nextTitle:daily.nextTitle) { game.stop(); daily.next() } }
                 else if let stage { Button(stage.nextTitle) { game.stopReplay(); stage.next() }.buttonStyle(PrimaryButton(compact:true)).accessibilityIdentifier("drill-stage-next") }
                 else { Button(game.isLastRound ? "결과 보기" : "다음") { game.next() }.buttonStyle(PrimaryButton(compact:true)) }
@@ -215,6 +236,9 @@ struct MelodyRunView: View {
                 Button("제출") { if game.settings.mode == .memory { game.submit() } else { game.finish() } }.buttonStyle(PrimaryButton(compact:true)).disabled(!game.canEnter || game.working)
             }
         }
+    }
+    private func openTutorial() {
+        stage?.activity(false); game.suspendForTutorial(); showingTutorial = true
     }
     private var result: some View {
         ScrollView(.vertical,showsIndicators:true) {

@@ -23,9 +23,15 @@ import AudioToolbox
     private var engine: AVAudioEngine { audioGraph.engine }
     private var sampler: AVAudioUnitSampler { audioGraph.piano }
     private var metronome: AVAudioUnitSampler { audioGraph.click }
-    private var sequencer: AVAudioSequencer?
+    private var transport: PianoSequenceTransport?
+    private var sequencer: AVAudioSequencer? { transport?.sequencer }
     private var loadedIndex: Int?
-    private var preparedMIDI: [Int:Data] = [:]
+    private struct SegmentAudio {
+        var piano: [MusicEvent]; var clicks: [MusicEvent]; var ticks: Int
+    }
+    private var preparedAudio: [Int:SegmentAudio] = [:]
+    private(set) var sequenceCreationCount = 0
+    var loadedSegmentIndex: Int? { loadedIndex }
     private var main: MusicScore?
     private var scale: MusicScore?
     private var plan: PlaybackPlan?
@@ -37,6 +43,7 @@ import AudioToolbox
     private var segmentAnchor: (uptime: TimeInterval, offset: TimeInterval)?
     private var graphNeedsRebuild = true
     private var playbackGeneration = UUID()
+    private(set) var tutorialSuspended = false
     private var instrumentURL: URL?
     private var clickURL: URL?
     private var instrumentProgram: UInt8 = 0
@@ -64,7 +71,7 @@ import AudioToolbox
 
     // Practice only: replay one of the 11 segments from its beginning, then continue in order.
     func jump(to index: Int) {
-        guard prepared, (0...11).contains(index) else { return }
+        guard !tutorialSuspended, prepared, (0...11).contains(index) else { return }
         playbackGeneration = UUID(); runner?.cancel(); runner = nil
         waitAnchor = nil; segmentAnchor = nil; silence(); isPlaying = false; scaleStartedAt = nil
         cursor = PlaybackCursor(index: index, phase: "segment")
@@ -105,20 +112,22 @@ import AudioToolbox
         self.main = main; self.scale = scale; self.plan = plan
         scaleKey = scale.keySignature; scaleStartedAt = nil
         scaleDuration = Double(scale.totalTicks)/480*60/Double(plan.tempoBpm)
-        preparedMIDI = [:]
-        for i in 0...11 { preparedMIDI[i] = try midi(index:i) }
+        preparedAudio = [:]
+        for i in 0...11 { preparedAudio[i] = try segmentAudio(index:i) }
         try rebuildAudioGraph()
         prepared = true; message = "스케일·예비박·11개 구간이 준비되었어요"
     }
     // A sampler is rebuilt after leaving a problem or an audio interruption. Reusing a
     // stopped I/O graph can leave a running sequencer connected to a silent instrument.
     private func rebuildAudioGraph() throws {
-        sequencer?.stop(); sequencer = nil; loadedIndex = nil; engine.stop()
+        engine.stop(); transport?.stop(); transport = nil; loadedIndex = nil
         let audio = AVAudioSession.sharedInstance()
         try audio.setCategory(.playback,mode:.default,options:[])
         try audio.setActive(true)
         guard let url = instrumentURL else { throw SolfegeError.invalidScore("SOUND_BANK_UNAVAILABLE") }
         try audioGraph.rebuild(bank:url,program:instrumentProgram,bankMSB:bankMSB,bankLSB:bankLSB,clickURL:clickURL,gain:outputGain)
+        transport = PianoSequenceTransport(graph:audioGraph)
+        sequenceCreationCount += 1
         engine.prepare(); graphNeedsRebuild = false
     }
     func audioConfigurationChanged(_ notification: Notification) {
@@ -135,29 +144,31 @@ import AudioToolbox
         guard let count = plan?.countIn, count.beforeStepOrders.contains(index) else { return nil }
         return count
     }
-    private func midi(index:Int) throws -> Data {
+    private func segmentAudio(index:Int) throws -> SegmentAudio {
         guard let plan, let main, let scale else { throw SolfegeError.invalidScore("PLAYBACK_PREPARE_FAILED") }
         let score = index == 0 ? scale : main
         let from = index == 0 ? 1 : plan.steps[index-1].fromMeasure
         let through = index == 0 ? plan.scale.toMeasure : plan.steps[index-1].toMeasure
         let events = try score.segment(from:from,through:through)
         let ticks = (through-from+1)*score.ticksPerMeasure
-        if let count = countIn(index:index) { return MIDIFile.withCountIn(events:events,totalTicks:ticks,tempo:plan.tempoBpm,countIn:count,velocity:noteVelocity) }
-        return MIDIFile.make(events:events,totalTicks:ticks,tempo:plan.tempoBpm,velocity:noteVelocity)
-    }
-    private func route(_ seq:AVAudioSequencer,index:Int) {
-        for (trackIndex,track) in seq.tracks.enumerated() {
-            track.destinationAudioUnit = trackIndex == 1 && countIn(index:index) != nil ? metronome : sampler
+        guard let count = countIn(index:index) else { return SegmentAudio(piano:events,clicks:[],ticks:ticks) }
+        let piano = events.map { MusicEvent(midi:$0.midi,onset:$0.onset+count.totalTicks,duration:$0.duration) }
+        let clicks = (0..<(count.measures*count.beatsPerMeasure)).map {
+            MusicEvent(midi:60,onset:$0*count.ticksPerBeat,duration:min(40,count.ticksPerBeat))
         }
+        return SegmentAudio(piano:piano,clicks:clicks,ticks:ticks+count.totalTicks)
     }
-    private func sequence(index: Int) throws -> AVAudioSequencer {
-        if loadedIndex == index, let sequencer { return sequencer }
-        sequencer?.stop(); sequencer = nil; loadedIndex = nil
-        guard let data = preparedMIDI[index] else { throw SolfegeError.invalidScore("PLAYBACK_PREPARE_FAILED") }
-        let seq = AVAudioSequencer(audioEngine:engine)
-        try seq.load(from:data,options:[]); route(seq,index:index); seq.rate = 1
-        sequencer = seq; loadedIndex = index
-        return seq
+    private func sequence(index: Int) throws -> PianoSequenceTransport {
+        if loadedIndex == index, let transport { return transport }
+        guard let transport, let audio = preparedAudio[index], let plan else { throw SolfegeError.invalidScore("PLAYBACK_PREPARE_FAILED") }
+        // Seeking to another section must not detach a MusicSequence from a
+        // live render graph. Reuse the same stopped tracks, as in the games.
+        let count = countIn(index:index)
+        try transport.configure(piano:audio.piano,clicks:audio.clicks,totalTicks:audio.ticks,bpm:plan.tempoBpm,
+                                pianoVelocity:UInt8(noteVelocity),clickVelocity:UInt8(count?.velocity ?? 70),
+                                accentVelocity:UInt8(count?.accentVelocity ?? 110))
+        loadedIndex = index
+        return transport
     }
     private func checkpointSegment() {
         guard let anchor = segmentAnchor, cursor.phase == "segment" else { return }
@@ -191,7 +202,7 @@ import AudioToolbox
         waitAnchor = nil; cursor.remainingWaitMs = nil
     }
     func resume() {
-        guard prepared, !isPlaying, cursor.index <= 11 else { return }
+        guard !tutorialSuspended, prepared, !isPlaying, cursor.index <= 11 else { return }
         let generation = UUID(); playbackGeneration = generation
         isPlaying = true
         runner = Task { [weak self] in
@@ -202,7 +213,6 @@ import AudioToolbox
                 guard generation == playbackGeneration else { throw CancellationError() }
                 if graphNeedsRebuild { try rebuildAudioGraph() }
                 try AVAudioSession.sharedInstance().setActive(true)
-                if !engine.isRunning { try engine.start() }
                 if cursor.index == 0, cursor.phase == "initial" {
                     try await wait(plan.initialDelayMs ?? 0,label:"시작 대기")
                     cursor.phase = "segment"; try onCursor?(cursor)
@@ -213,9 +223,7 @@ import AudioToolbox
                     let index = cursor.index
                     if cursor.phase != "gap" {
                         guard let score = (index == 0 ? self.scale : self.main) else { throw SolfegeError.invalidScore("PLAYBACK_PREPARE_FAILED") }
-                        let seq = try sequence(index:index)
-                        seq.stop()
-                        seq.currentPositionInBeats = 0; seq.prepareToPlay()
+                        let audio = try sequence(index:index)
                         let count = countIn(index:index)
                         let bars = index == 0 ? plan.scale.toMeasure-plan.scale.fromMeasure+1 : plan.steps[index-1].toMeasure-plan.steps[index-1].fromMeasure+1
                         let countTicks = count?.totalTicks ?? 0
@@ -223,10 +231,10 @@ import AudioToolbox
                         let countSeconds = Double(countTicks) / 480 * 60 / Double(plan.tempoBpm)
                         // A segment paused part-way continues from where it stopped.
                         let offset = min(seconds, Double(cursor.segmentOffsetMs ?? 0) / 1000)
-                        if offset > 0 { seq.currentPositionInSeconds = offset }
+                        audio.prepareToPlay(beats:0,seconds:offset)
                         let section = index == 0 ? "스케일 제시" : "\(index) / 11 · \(plan.steps[index-1].fromMeasure)–\(plan.steps[index-1].toMeasure)마디"
                         message = offset < countSeconds ? count.map { "예비박 · \($0.beatsPerMeasure)/\($0.beatUnit) · \($0.beatsPerMeasure)박" } ?? section : section
-                        try seq.start()
+                        try audio.start()
                         let began = ProcessInfo.processInfo.systemUptime
                         segmentAnchor = (began, offset)
                         if index == 0 { scaleStartedAt = Date().addingTimeInterval(-offset) }
@@ -236,7 +244,7 @@ import AudioToolbox
                         }
                         let remaining = max(0,seconds-offset-(ProcessInfo.processInfo.systemUptime-began))
                         if remaining > 0 { try await Task.sleep(for:.seconds(remaining)) }
-                        seq.stop(); segmentAnchor = nil; cursor.segmentOffsetMs = nil
+                        audio.stop(); segmentAnchor = nil; cursor.segmentOffsetMs = nil
                         if index == 0 { scaleStartedAt = nil }
                         sampler.sendController(123,withValue:0,onChannel:0)
                         metronome.sendController(123,withValue:0,onChannel:0)
@@ -254,11 +262,21 @@ import AudioToolbox
         }
     }
     private func silence() {
-        sequencer?.stop()
+        transport?.stop()
         for unit in [sampler,metronome] {
             unit.sendController(120,withValue:0,onChannel:0)
             unit.sendController(123,withValue:0,onChannel:0)
         }
+    }
+    func suspendForTutorial() {
+        guard !tutorialSuspended else { return }
+        tutorialSuspended = true
+        pause()
+    }
+    func finishTutorial(resumePlayback: Bool) {
+        guard tutorialSuspended else { return }
+        tutorialSuspended = false
+        if resumePlayback { resume() }
     }
     func pause() {
         let wasPlaying = isPlaying

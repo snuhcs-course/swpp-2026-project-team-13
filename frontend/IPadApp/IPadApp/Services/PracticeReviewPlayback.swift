@@ -1,15 +1,18 @@
 import AVFoundation
 import Combine
 
-// One prepared sequence per score/tempo. Switching ranges only seeks; it never
-// reloads MIDI or replaces a sequencer while the graph is rendering.
+// One sequence for the lifetime of the loaded instrument graph. Tempo/score
+// changes edit stopped tracks through the same transport as the minigames.
 @MainActor final class PracticeReviewPlayback: ObservableObject {
     @Published private(set) var isPlaying = false
     @Published private(set) var isPaused = false
     @Published private(set) var measure: Int?
     @Published private(set) var range: PracticeReviewRange?
-    private let graph = PianoAudioGraph()
-    private var sequencer: AVAudioSequencer?
+    private let graph: PianoAudioGraph
+    private var resourcesInvalidated = true
+    init(graph: PianoAudioGraph = PianoAudioGraph()) { self.graph=graph }
+    private var transport: PianoSequenceTransport?
+    private var sequencer: AVAudioSequencer? { transport?.sequencer }
     private var runner: Task<Void,Never>?
     private var generation = UUID()
     private var preparedVoice: String?
@@ -23,6 +26,7 @@ import Combine
     private var activeSlice: PracticeReviewSequence.Slice?
     private var velocity = 80
     private(set) var instrumentLoadCount = 0
+    private(set) var sequenceCreationCount = 0
 
     var positionSeconds: TimeInterval {
         // Stop is a logical return to zero. The next play seeks once, immediately
@@ -39,16 +43,16 @@ import Combine
         await Task.yield()
         do {
             try check(request)
-            if preparedScore != score || preparedBpm != bpm || preparedVoice != voice || !graph.engine.isRunning {
+            if preparedScore != score || preparedBpm != bpm || preparedVoice != voice || resourcesInvalidated {
                 try prepare(score:score,bpm:bpm,voice:voice)
             }
             try check(request)
-            guard let seq = sequencer, let slice = arrangement?.slice(for:range) else {
+            guard let transport, let slice = arrangement?.slice(for:range) else {
                 throw SolfegeError.invalidScore("재생할 마디를 확인해 주세요.")
             }
             activeSlice = slice
-            seq.currentPositionInBeats = Double(slice.start)/480
-            seq.prepareToPlay(); try seq.start()
+            transport.prepareToPlay(beats:Double(slice.start)/480)
+            try transport.start()
             monitor(request)
         } catch {
             if request == generation { stop() }
@@ -61,14 +65,13 @@ import Combine
         cancelMonitor(); silence()
     }
     func resume() async throws {
-        guard isPaused, let seq = sequencer, activeSlice != nil else { return }
+        guard isPaused, let transport, activeSlice != nil else { return }
         cancelMonitor(); let request = generation
         isPaused = false; isPlaying = true
         await Task.yield()
         do {
             try check(request)
-            if !graph.engine.isRunning { try graph.engine.start() }
-            seq.prepareToPlay(); try seq.start(); monitor(request)
+            transport.prepareToPlay(); try transport.start(); monitor(request)
         } catch {
             if request == generation { stop() }
             throw error
@@ -80,7 +83,8 @@ import Combine
         cancelMonitor(); silence(); measure = nil
     }
     func shutdown() {
-        stop(); sequencer = nil; graph.engine.stop()
+        stop(); graph.engine.stop(); transport = nil
+        resourcesInvalidated = true
         preparedVoice = nil; instrument = nil; preparedScore = nil; preparedBpm = nil; arrangement = nil; activeSlice = nil
     }
     private func check(_ request: UUID) throws {
@@ -89,7 +93,7 @@ import Combine
     }
     private func cancelMonitor() { generation = UUID(); runner?.cancel(); runner = nil }
     private func silence() {
-        sequencer?.stop()
+        transport?.stop()
         graph.piano.sendController(120,withValue:0,onChannel:0)
         graph.piano.sendController(123,withValue:0,onChannel:0)
     }
@@ -112,10 +116,13 @@ import Combine
         let music = try PracticeReviewSequence(score:score,bpm:bpm)
         // Tempo and excerpt changes affect MIDI, not the loaded instrument. Keep
         // the sampler/engine alive instead of repeatedly loading the large bank.
-        let rebuildInstrument = preparedVoice != voice || instrument == nil || !graph.engine.isRunning
-        silence(); sequencer = nil
+        let rebuildInstrument = resourcesInvalidated || preparedVoice != voice || instrument == nil || transport == nil
+        silence()
         preparedScore = nil; preparedBpm = nil
         if rebuildInstrument {
+            // Disposing a sequence detaches it from the engine. Never race the
+            // render thread; ordinary tempo changes do not dispose it at all.
+            graph.engine.stop(); transport = nil
             let audio = AVAudioSession.sharedInstance()
             try audio.setCategory(.playback,mode:.default,options:[]); try audio.setActive(true)
         }
@@ -144,16 +151,18 @@ import Combine
         if rebuildInstrument {
             try graph.rebuild(bank:instrument.url,program:instrument.program,bankMSB:instrument.msb,bankLSB:instrument.lsb,clickURL:nil,gain:instrument.gain)
             instrumentLoadCount += 1
+            transport = PianoSequenceTransport(graph:graph)
+            sequenceCreationCount += 1
+            resourcesInvalidated = false
         }
-        let seq = AVAudioSequencer(audioEngine:graph.engine)
-        try seq.load(from:MIDIFile.make(events:music.events,totalTicks:music.ticks,tempo:bpm,velocity:velocity),options:[])
-        for track in seq.tracks { track.destinationAudioUnit = graph.piano }
-        seq.rate = 1
-        sequencer = seq; arrangement = music; preparedScore = score; preparedBpm = bpm
-        if !graph.engine.isRunning { try graph.engine.start() }
+        guard let transport else { throw SolfegeError.invalidScore("재생할 악보를 준비해 주세요.") }
+        try transport.configure(piano:music.events,clicks:[],totalTicks:music.ticks,bpm:bpm,pianoVelocity:UInt8(velocity))
+        arrangement = music; preparedScore = score; preparedBpm = bpm
     }
     func configurationChanged(_ notification: Notification) {
         guard let engine = notification.object as? AVAudioEngine, engine === graph.engine, !engine.isRunning else { return }
-        shutdown()
+        // A configuration change invalidates preparation. Defer disposal and
+        // rebuilding to the next explicit play, outside notification delivery.
+        stop(); resourcesInvalidated = true
     }
 }

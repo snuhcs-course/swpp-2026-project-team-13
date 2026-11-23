@@ -3,13 +3,12 @@ import SwiftUI
 // Approved Practice entry and 3 × 3 level grid in the shared Figma file.
 struct PracticeEntryView: View {
     @ObservedObject var model: AppModel
-    @State private var showHelp = false
     var body: some View {
         GeometryReader { geometry in
             let margin: CGFloat = geometry.size.width >= 700 ? 48 : 24
             let height = max(620, geometry.size.height - 72)
             VStack(spacing: 0) {
-                PracticeNavigationBar(title: "Practice", backTitle: "홈", back: { model.navigate(.main) }, help: { showHelp = true })
+                PracticeNavigationBar(title: "Practice", backTitle: "홈", back: { model.navigate(.main) })
                 ScrollView {
                     VStack(alignment: .leading, spacing: 0) {
                         if let record = model.resumablePractice {
@@ -50,7 +49,6 @@ struct PracticeEntryView: View {
             }.frame(maxWidth: 1180).frame(maxWidth: .infinity).background(.white)
         }
         .foregroundStyle(SolfegeTheme.ink)
-        .sheet(isPresented: $showHelp) { PracticeTutorialView { showHelp = false } }
         .accessibilityIdentifier("practice-entry")
     }
     private func resume(_ record: SessionRecord) -> some View {
@@ -76,7 +74,6 @@ struct PracticeEntryView: View {
 
 struct PracticeLevelSelectionView: View {
     @ObservedObject var model: AppModel
-    @State private var showHelp = false
     @Environment(\.dynamicTypeSize) private var typeSize
     var body: some View {
         GeometryReader { geometry in
@@ -85,7 +82,7 @@ struct PracticeLevelSelectionView: View {
             let rows = columns == 3 ? 3 : 5
             let cardHeight = typeSize.isAccessibilitySize ? 204 : min(204, max(145, (geometry.size.height - 144 - CGFloat(rows - 1) * 18) / CGFloat(rows)))
             VStack(spacing: 0) {
-                PracticeNavigationBar(title: "난이도 선택", backTitle: "Practice", back: { model.navigate(.home) }, help: { showHelp = true })
+                PracticeNavigationBar(title: "난이도 선택", backTitle: "Practice", back: { model.navigate(.home) })
                 ScrollView {
                     LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 18), count: columns), spacing: 18) {
                         ForEach(PracticeLevel.allCases) { level in
@@ -109,7 +106,6 @@ struct PracticeLevelSelectionView: View {
             }.frame(maxWidth: 1180).frame(maxWidth: .infinity).background(.white)
         }
         .foregroundStyle(SolfegeTheme.ink)
-        .sheet(isPresented: $showHelp) { PracticeTutorialView { showHelp = false } }
         .accessibilityIdentifier("practice-level-selection")
     }
 }
@@ -118,7 +114,6 @@ private struct PracticeNavigationBar: View {
     let title: String
     let backTitle: String
     let back: () -> Void
-    let help: () -> Void
     var body: some View {
         ZStack {
             Text(title).font(.system(size: 22, weight: .bold)).accessibilityAddTraits(.isHeader)
@@ -127,11 +122,6 @@ private struct PracticeNavigationBar: View {
                     HStack(spacing: 6) { Image(systemName: "chevron.left"); Text(backTitle) }.frame(minHeight: 44)
                 }.accessibilityIdentifier("practice-back")
                 Spacer()
-                Button(action: help) {
-                    Text("?").font(.system(size: 19, weight: .medium)).frame(width: 38, height: 38)
-                        .overlay(Circle().stroke(SolfegeTheme.keyEdge.opacity(0.65), lineWidth: 1))
-                        .frame(width: 44, height: 44)
-                }.accessibilityLabel("연습 모드 안내").accessibilityIdentifier("practice-help")
             }.font(.system(size: 16)).foregroundStyle(SolfegeTheme.violet)
         }.padding(.horizontal, 28).frame(height: 72)
     }
@@ -147,21 +137,5 @@ private struct PracticeCardStyle: ButtonStyle {
             .overlay { if !raised { shape.stroke(SolfegeTheme.keyEdge.opacity(0.65), lineWidth: 1) } }
             .shadow(color: raised ? SolfegeTheme.deepViolet : .clear, radius: 0, y: configuration.isPressed ? 1 : 5)
             .offset(y: raised && configuration.isPressed && !reduceMotion ? 4 : 0)
-    }
-}
-
-struct PracticeTutorialView: View {
-    let done: () -> Void
-    var body: some View {
-        VStack(alignment: .leading, spacing: 24) {
-            HStack { Text("연습 모드").font(.title2.bold()); Spacer(); Button("닫기", action: done) }
-            Label("난이도를 고르고 문제를 선택하세요.", systemImage: "square.grid.3x3")
-            Label("선율을 듣고 Apple Pencil로 악보를 적으세요.", systemImage: "pencil.tip")
-            Label("정답과 비교하며 틀린 마디를 직접 표시하세요.", systemImage: "checkmark.square")
-            Text("풀던 문제는 하나만 이어서 할 수 있어요. 새 연습을 시작하면 이전 문제를 대신해요.")
-                .font(.subheadline).foregroundStyle(SolfegeTheme.muted)
-            Button("확인", action: done).buttonStyle(PrimaryButton()).frame(maxWidth: .infinity, alignment: .trailing)
-        }.padding(32).foregroundStyle(SolfegeTheme.ink)
-            .presentationDetents([.medium, .large]).presentationDragIndicator(.visible)
     }
 }

@@ -6,9 +6,10 @@ import AVFoundation
     private var sequencer: AVAudioSequencer? { transport?.sequencer }
     private var ready = false
     private var profile: ClassicalPiano?
+    private var audioLeadTicks = 0
     init(graph: PianoAudioGraph = PianoAudioGraph()) { self.graph=graph }
     private(set) var endTick = 0
-    var tick: Int { Int(((sequencer?.currentPositionInBeats ?? 0)*480).rounded(.down)) }
+    var tick: Int { Int(((sequencer?.currentPositionInBeats ?? 0)*480).rounded(.down))-audioLeadTicks }
     var running: Bool { graph.engine.isRunning }
     func owns(_ notification: Notification) -> Bool { (notification.object as? AVAudioEngine) === graph.engine }
     func prepare() throws {
@@ -16,7 +17,7 @@ import AVFoundation
         try session.setCategory(.playback,mode:.default,options:[]); try session.setActive(true)
         let selected = try profile ?? ClassicalPiano.load()
         profile = selected
-        if !ready || !graph.engine.isRunning {
+        if !ready {
             invalidate()
             guard let click = Bundle.main.url(forResource:"sori-click-v1",withExtension:"wav") else { throw SolfegeError.invalidScore("예비박 음원이 없어요.") }
             try graph.rebuild(bank:selected.url,program:selected.program,bankMSB:selected.bankMsb,bankLSB:selected.bankLsb,clickURL:click,gain:pow(10,selected.gainDb/20))
@@ -38,20 +39,24 @@ import AVFoundation
         guard let total = round.totalDuration.ticks else { throw SolfegeError.invalidScore("리듬 길이를 확인해 주세요.") }
         let countIn = includeCountIn && !reference
         let prefix=countIn ? count.totalTicks : 0
-        let shifted=events.map { MusicEvent(midi:$0.midi,onset:$0.onset+prefix,duration:$0.duration) }
+        // Match Memory's short scheduling lead. A zero-time note can be lost
+        // while hardware resumes after a paused edit, especially without a
+        // count-in. Shift both tracks together; keep the board's clock logical.
+        audioLeadTicks=MelodyTimeline.ticks(milliseconds:MelodyTimeline.audioLeadMilliseconds,bpm:round.tempoBpm)
+        let shifted=events.map { MusicEvent(midi:$0.midi,onset:$0.onset+prefix+audioLeadTicks,duration:$0.duration) }
         let clicks: [MusicEvent] = countIn ? (0..<(count.measures*count.beatsPerMeasure)).map {
-            MusicEvent(midi:60,onset:$0*count.ticksPerBeat,duration:min(40,count.ticksPerBeat))
+            MusicEvent(midi:60,onset:$0*count.ticksPerBeat+audioLeadTicks,duration:min(40,count.ticksPerBeat))
         } : []
         guard let transport else { throw SolfegeError.invalidScore("리듬 재생기를 준비하지 못했어요.") }
         endTick=prefix+total
-        try transport.configure(piano:shifted,clicks:clicks,totalTicks:endTick,bpm:round.tempoBpm,
+        try transport.configure(piano:shifted,clicks:clicks,totalTicks:endTick+audioLeadTicks,bpm:round.tempoBpm,
                                 pianoVelocity:selected.noteVelocity,clickVelocity:UInt8(count.velocity),accentVelocity:UInt8(count.accentVelocity))
         try transport.start()
     }
     func stop() {
-        sequencer?.stop()
+        transport?.stop()
         for unit in [graph.piano,graph.click] { unit.sendController(120,withValue:0,onChannel:0); unit.sendController(123,withValue:0,onChannel:0) }
     }
-    func invalidate() { stop(); graph.engine.stop(); transport = nil; ready = false }
+    func invalidate() { graph.engine.stop(); stop(); transport = nil; ready = false; audioLeadTicks = 0 }
     func shutdown() { invalidate() }
 }

@@ -40,13 +40,18 @@ import SwiftUI
     private var stageCommitted = false
     private var preservedDraft: RhythmDraft?
     private var committedJournal = RhythmJournal()
+    @Published private(set) var awaitingStart = false
+    @Published private(set) var tutorialPaused = false
+    private var manualStartRequired = false
+    private var tutorialSuspended = false
+    func requireManualStart() { manualStartRequired = true }
     var draft: RhythmDraft? { journal.draft }
     var round: RhythmRound? { catalog?.rounds.first { $0.id == draft?.record.roundId } }
     var board: RhythmBoard { draft?.board ?? RhythmBoard() }
-    var canSubmit: Bool { !storageFailed && !playing && !waitingToPlay && draft?.finished == false && draft?.hasListened == true }
+    var canSubmit: Bool { !awaitingStart && !tutorialSuspended && !tutorialPaused && !storageFailed && !playing && !waitingToPlay && draft?.finished == false && draft?.hasListened == true }
     var pending: Int { journal.records.filter { !journal.synced.contains($0.id) }.count }
     var canResume: Bool { draft.map { catalogVersions[$0.record.catalogSha256] != nil } == true && round != nil }
-    var canEdit: Bool { draft?.finished == false && !storageFailed }
+    var canEdit: Bool { !awaitingStart && !tutorialSuspended && !tutorialPaused && draft?.finished == false && !storageFailed }
     var setCount: Int { draft?.setIds.count ?? completedSetCount }
     var hintPositions: [RhythmTime] {
         guard let draft, let round, draft.hintLevel >= 2, draft.record.outcome != "correct",
@@ -194,8 +199,25 @@ import SwiftUI
         let related = Set(catalog?.rounds.filter { $0.rhythmKey == r.rhythmKey }.map(\.id) ?? [])
         record.priorPatternExposures = journal.records.filter { related.contains($0.roundId) }.count
         journal.draft = RhythmDraft(setIds:set,index:index,record:record)
-        tieMode = false; selectedTiePiece = nil; missingPosition = nil; message = ""; page = .playing; activate(); save()
-        listen(reason:"initial")
+        tieMode = false; selectedTiePiece = nil; missingPosition = nil; message = ""; page = .playing
+        awaitingStart = manualStartRequired; tutorialPaused = false
+        if !awaitingStart { activate(); save(); listen(reason:"initial") }
+    }
+    func startPreparedRound() {
+        guard awaitingStart, !tutorialSuspended else { return }
+        awaitingStart = false; manualStartRequired = false
+        journal.draft?.record.startedAt = Date()
+        activate(); save(); listen(reason: "initial")
+    }
+    func suspendForTutorial() {
+        pause(); tutorialSuspended = true
+        tutorialPaused = !awaitingStart && draft?.finished == false
+    }
+    func finishTutorial() { tutorialSuspended = false }
+    func continueAfterTutorial() {
+        guard !tutorialSuspended, tutorialPaused else { return }
+        tutorialPaused = false; activate()
+        if draft?.hasListened == false { listen(reason: "initial") }
     }
     func resume() {
         guard canResume else { return }
@@ -203,7 +225,7 @@ import SwiftUI
         if draft?.hasListened == false { listen(reason:"initial") }
     }
     func activate() {
-        guard page == .playing, draft?.finished == false else { return }
+        guard !awaitingStart, !tutorialSuspended, !tutorialPaused, page == .playing, draft?.finished == false else { return }
         anchorMs = draft?.record.activeMs ?? 0; anchor = MonotonicTime.now
     }
     private func checkpoint() {
@@ -221,7 +243,7 @@ import SwiftUI
         listening = nil; playing = false; audio.stop()
     }
     func listen(reason: String = "replay", includeCountIn: Bool = true) {
-        guard round != nil, !storageFailed, !playing, !waitingToPlay, (draft?.record.listens.count ?? 0) < 200 else { return }
+        guard !awaitingStart, !tutorialSuspended, !tutorialPaused, round != nil, !storageFailed, !playing, !waitingToPlay, (draft?.record.listens.count ?? 0) < 200 else { return }
         if draft?.finished == true && reason != "reference" { return }
         if reason == "reference" || (stageMode && reason == "initial") {
             startListening(reason:reason,includeCountIn:reason != "reference" && includeCountIn); return

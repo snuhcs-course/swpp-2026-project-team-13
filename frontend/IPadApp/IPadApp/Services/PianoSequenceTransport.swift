@@ -6,11 +6,13 @@ import AVFoundation
 // Editing stopped tracks avoids both that lifecycle race and implicit MIDI
 // import destinations. Only full shutdown/recovery releases this object.
 @MainActor final class PianoSequenceTransport {
+    private let engine: AVAudioEngine
     let sequencer: AVAudioSequencer
     let pianoTrack: AVMusicTrack
     private let clickTrack: AVMusicTrack
     private var previousEnd = 0.0
     init(graph: PianoAudioGraph) {
+        engine=graph.engine
         let player=AVAudioSequencer(audioEngine:graph.engine)
         sequencer=player
         pianoTrack=player.createAndAppendTrack()
@@ -26,7 +28,10 @@ import AVFoundation
                   e.onset>=0 && e.duration>0 && e.onset<=totalTicks && e.duration<=totalTicks-e.onset &&
                   (e.midi.map { (0...127).contains($0) } ?? true)
               }) else { throw SolfegeError.invalidScore("재생할 음표의 길이와 템포를 확인해 주세요.") }
-        sequencer.stop()
+        // MusicPlayer stop can remove its render-notify block. Quiesce I/O
+        // before that mutation, and leave it paused until an explicit start.
+        // Resource validity is independent of this temporary output pause.
+        stop()
         // Remove through the documented iterator flag, including empty tracks.
         // The third pointer means removeEvent, NOT stop enumeration. Do not
         // subsequently MusicTrackClear an already-empty track (Core Audio -50).
@@ -44,7 +49,6 @@ import AVFoundation
         for track in [pianoTrack,clickTrack] { track.lengthInBeats=beats }
         previousEnd=beats
         sequencer.rate=1; sequencer.currentPositionInBeats=0
-        sequencer.prepareToPlay()
     }
     private func append(_ events: [MusicEvent], to track: AVMusicTrack, velocity: UInt8) {
         for event in events {
@@ -53,5 +57,24 @@ import AVFoundation
             track.addEvent(note,at:Double(event.onset)/480)
         }
     }
-    func start() throws { try sequencer.start() }
+    func prepareToPlay(beats: Double? = nil, seconds: Double? = nil) {
+        stop()
+        if let beats { sequencer.currentPositionInBeats=beats }
+        if let seconds { sequencer.currentPositionInSeconds=seconds }
+    }
+    func start() throws {
+        try startOutput()
+        sequencer.prepareToPlay()
+        try sequencer.start()
+    }
+    // Live keys can resume output without restarting the reference timeline.
+    func startOutput() throws {
+        if !engine.isRunning { engine.prepare(); try engine.start() }
+    }
+    // Never restart implicitly or swallow an I/O start error in stop().
+    func stop() { engine.pause(); sequencer.stop() }
+    // A view/model can disappear after pause without calling full shutdown.
+    // Stop this exact engine before stored properties release MusicSequence;
+    // its render callback must never outlive the sequence it references.
+    deinit { engine.stop() }
 }

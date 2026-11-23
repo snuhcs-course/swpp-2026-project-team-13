@@ -16,7 +16,9 @@ import AVFoundation
     var isRunning: Bool { graph.engine.isRunning }
 
     func prepare() throws {
-        if ready && graph.engine.isRunning { stopClock(); releaseKeys(); return }
+        if ready {
+            stopClock(); releaseKeys(); try startOutput(); return
+        }
         stop(); ready = false
         let profile = try ClassicalPiano.load()
         let bank = profile.url
@@ -41,7 +43,7 @@ import AVFoundation
 
     func start(_ timeline: MelodyTimeline, round: MelodyRound, settings: MelodySettings) throws {
         stopClock()
-        if !ready || !graph.engine.isRunning { try prepare() }
+        if !ready { try prepare() }
         transportLeadTicks = MelodyTimeline.ticks(milliseconds:MelodyTimeline.audioLeadMilliseconds,bpm:settings.bpm)
         guard let first = timeline.windows.first(where: { $0.phase == .listen }) else {
             throw SolfegeError.invalidScore("게임 오디오 준비 실패")
@@ -76,6 +78,10 @@ import AVFoundation
         held[midi,default:0] += 1
         livePiano.startNote(UInt8(midi),withVelocity:noteVelocity,onChannel:0)
     }
+    func startOutput() throws {
+        guard ready, let transport else { throw SolfegeError.invalidScore("피아노를 다시 준비해 주세요.") }
+        try transport.startOutput()
+    }
     func noteOff(_ midi: Int) {
         guard let count = held[midi] else { return }
         if count > 1 { held[midi] = count-1 }
@@ -88,7 +94,7 @@ import AVFoundation
     }
     func stopClock() {
         // Recall and the next question share the prepared sampler graph.
-        sequencer?.stop()
+        transport?.stop()
         for unit in [graph.piano,graph.click] {
             unit.sendController(120,withValue:0,onChannel:0)
             unit.sendController(123,withValue:0,onChannel:0)
@@ -113,7 +119,7 @@ import AVFoundation
     }
     func replay(events: [MusicEvent], ticks: Int, bpm: Double, clicks: [MusicEvent] = []) throws {
         stopClock(); releaseKeys()
-        if !ready || !graph.engine.isRunning { try prepare() }
+        if !ready { try prepare() }
         transportLeadTicks = MelodyTimeline.ticks(milliseconds:MelodyTimeline.audioLeadMilliseconds,bpm:bpm)
         let shifted = events.map { MusicEvent(midi:$0.midi,onset:$0.onset+transportLeadTicks,duration:$0.duration) }
         guard let transport else { throw SolfegeError.invalidScore("게임 오디오가 준비되지 않았어요.") }

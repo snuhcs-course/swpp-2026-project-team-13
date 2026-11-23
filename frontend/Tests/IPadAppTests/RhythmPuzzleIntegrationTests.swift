@@ -8,11 +8,10 @@ import AVFoundation
         let graph=PianoAudioGraph(), probe=PianoTimbreProbe()
         let audio=RhythmPuzzleAudio(graph:graph)
         try audio.prepare()
-        defer { audio.shutdown() }
         let engine=graph.engine, sampler=graph.piano, rate=sampler.outputFormat(forBus:0).sampleRate
         sampler.installTap(onBus:0,bufferSize:1024,format:nil) { buffer,_ in probe.append(buffer) }
-        defer { sampler.removeTap(onBus:0) }
-        let bank: RhythmCatalog=try Bundled.decode("rhythm-puzzle-v4")
+        defer { audio.shutdown(); sampler.removeTap(onBus:0) }
+        let bank: RhythmCatalog=try DemoContent.decode("rhythm-puzzle-v4",forceSmall:true)
         var round=try XCTUnwrap(bank.rounds.first { $0.meter.numerator==4 && $0.meter.denominator==4 })
         round.audio=[RhythmNote(onset:.zero,duration:round.totalDuration,midi:69)]
         for (index,bpm) in [180.0,96,132].enumerated() {
@@ -21,10 +20,19 @@ import AVFoundation
             try await Task.sleep(for:.milliseconds(index==0 ? 2100 : 700))
             audio.stop()
             XCTAssertTrue(graph.engine === engine && graph.piano === sampler,"Listening must not rebuild the loaded instrument")
-            let rendered=Array(probe.snapshot().suffix(Int(rate*0.25)))
-            XCTAssertEqual(rendered.count,Int(rate*0.25))
-            XCTAssertGreaterThan(PianoTimbreProbe.rms(rendered),0.0001)
-            XCTAssertGreaterThan(PianoTimbreProbe.harmonicFraction(rendered,rate:rate),0.005,"First play, replay and answer playback must remain a sampled piano")
+            let samples=probe.snapshot()
+            let late=Array(samples.suffix(Int(rate*0.25)))
+            // Compare the same early sustain as Memory's piano regression.
+            // A fixed wall-clock tail compares different ages of a decaying
+            // sample, so real piano can fail the sine-wave rejection threshold.
+            let rendered=try XCTUnwrap(PianoTimbreProbe.firstNoteWindow(in:samples,rate:rate),
+                "No complete NEW piano note on playback \(index), tempo \(bpm)")
+            XCTAssertEqual(rendered.count,8192)
+            XCTAssertGreaterThan(PianoTimbreProbe.rms(rendered),0.0001,"Missing piano output on playback \(index), tempo \(bpm)")
+            XCTAssertGreaterThan(PianoTimbreProbe.power(rendered,hz:440,rate:rate),
+                                 4*PianoTimbreProbe.power(rendered,hz:420,rate:rate),"Replay must retain A4 tuning")
+            XCTAssertGreaterThan(PianoTimbreProbe.harmonicFraction(rendered,rate:rate),0.005,
+                "First play, replay and answer playback must remain a sampled piano (playback \(index), tempo \(bpm), late-window harmonics \(PianoTimbreProbe.harmonicFraction(late,rate:rate)))")
         }
     }
     func connection() throws -> RhythmConnection {
@@ -244,7 +252,7 @@ import AVFoundation
         game.resume(); XCTAssertEqual(game.page,.playing)
     }
     func testDirectReplayOmitsOnlyTheCountIn() throws {
-        let bank: RhythmCatalog = try Bundled.decode("rhythm-puzzle-v3")
+        let bank: RhythmCatalog = try DemoContent.decode("rhythm-puzzle-v4",forceSmall:true)
         let round = try XCTUnwrap(bank.rounds.first)
         let audio = RhythmPuzzleAudio(); defer { audio.shutdown() }
         try audio.play(round,includeCountIn:false)

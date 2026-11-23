@@ -58,6 +58,10 @@ import SwiftUI
     @Published private(set) var replacementMeasure: Int?
     @Published private(set) var submissionCount = 0
     @Published private(set) var answerRevealed = false
+    @Published private(set) var awaitingStart = false
+    private var manualStartRequired = false
+    private var tutorialSuspended = false
+    func requireManualStart() { manualStartRequired = true }
     var classicalCredit: String? {
         guard let question, question.collection == "classical" else { return nil }
         let title = question.sourceLabel?.isEmpty == false ? question.sourceLabel! : question.title
@@ -75,7 +79,7 @@ import SwiftUI
     private var freeRecall = false
     private var lastWindow: Int?
     var question: MelodyQuestion? { questions.first { $0.id == selection } }
-    var canEnter: Bool { page == .playing && !paused && !working && !transitionPending && (freeRecall || inputReady) }
+    var canEnter: Bool { page == .playing && !awaitingStart && !tutorialSuspended && !paused && !working && !transitionPending && (freeRecall || inputReady) }
     var allEntered: Bool { answers?.pitches.allSatisfy { $0 != nil } == true }
     var currentCount: Int {
         guard let round, let answers else { return 0 }
@@ -92,6 +96,7 @@ import SwiftUI
         return (1...round.score.measures).filter { answers.complete($0) }.count
     }
     var label: String {
+        if awaitingStart { return "시작을 눌러주세요" }
         if paused { return "잠시 쉬는 중" }
         if inputReady, phase == .beat { return "미리 입력해도 좋아요" }
         switch phase {
@@ -288,13 +293,26 @@ import SwiftUI
             runner?.cancel()
             if stageMode { audio.stopClock(); audio.releaseKeys() } else { audio.stop() }
             round = value; answers = MelodyAnswers(round:value,guideFirst:true); measure = 1; freeRecall = false
+            progress = 0; pulse = 0; remainingSeconds = 0; inputReady = false
             replacementMeasure = nil; message = ""; submissionCount=0; answerRevealed=false
             try audio.prepare()
-            page = .playing; paused = false
-            beginObservation()
-            try beginClock(from:1)
+            page = .playing; paused = false; awaitingStart = manualStartRequired
+            if !awaitingStart { beginObservation(); try beginClock(from:1) }
         } catch { audio.stop(); endObservation(outcome:"technical_error"); page = .setup; self.error = error.localizedDescription }
     }
+    func startPreparedRound() {
+        guard awaitingStart, !tutorialSuspended, !working, !transitionPending, round != nil else { return }
+        do {
+            try audio.prepare()
+            awaitingStart = false; manualStartRequired = false; paused = false
+            beginObservation(); try beginClock(from: 1)
+        } catch { audio.stop(); paused = !awaitingStart; self.error = error.localizedDescription }
+    }
+    func suspendForTutorial() {
+        tutorialSuspended = true
+        if !awaitingStart { pause() }
+    }
+    func finishTutorial() { tutorialSuspended = false }
     private func beginClock(from measure: Int, includeCountIn: Bool = true) throws {
         guard let round else { return }
         let value = MelodyTimeline(round:round,settings:settings,fromMeasure:measure,includeCountIn:includeCountIn)
@@ -367,10 +385,11 @@ import SwiftUI
     }
     func keyDown(_ midi: Int) {
         guard page == .playing, !paused, !working else { return }
-        guard audio.isRunning else { pause(); error = "오디오가 중단됐어요. 계속하기로 다시 준비해 주세요."; return }
         // Classify input using the audio clock, even if the UI has not refreshed yet.
         if !freeRecall { updateClock() }
         guard page == .playing, !paused else { return }
+        do { try audio.startOutput() }
+        catch { pause(); self.error=error.localizedDescription; return }
         audio.noteOn(midi)
         guard canEnter else { return }
         let accepted: Bool
@@ -435,12 +454,12 @@ import SwiftUI
     }
     func pause() {
         if working || transitionPending { transition?.cancel(); transition = nil; transitionPending = false; working = false; page = .setup; audio.stop(); return }
-        guard page == .playing else { stopReplay(); audio.stop(); return }
+        guard page == .playing, !awaitingStart else { stopReplay(); audio.stop(); return }
         runner?.cancel(); runner = nil; paused = true; audio.stop()
         accumulateInputTime(); mutateRecord { $0.interruptions += 1 }
     }
     func resume() {
-        guard paused else { return }
+        guard paused, !tutorialSuspended, !awaitingStart else { return }
         do {
             try audio.prepare(); paused = false
             if !freeRecall { try beginClock(from:settings.mode == .memory ? 1 : measure) }
@@ -450,7 +469,7 @@ import SwiftUI
     func setup() { stop(); page = .setup }
     func stop() {
         transition?.cancel(); transition = nil; transitionPending = false; working = false
-        runner?.cancel(); runner = nil; audio.stop(); replaying = nil
+        runner?.cancel(); runner = nil; audio.stop(); replaying = nil; awaitingStart = false
         endObservation(outcome:"abandoned")
     }
     func listenAgain(includeCountIn: Bool = true) {

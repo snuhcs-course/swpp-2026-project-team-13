@@ -2,10 +2,34 @@ import XCTest
 import PencilKit
 import SwiftUI
 import ImageIO
+import AVFoundation
 @testable import IPadApp
 
 @MainActor final class ExamControlsIntegrationTests: XCTestCase {
     private let demoScope = "exam-test-"+UUID().uuidString
+    func testTransportDisposalStopsTheRenderingGraph() throws {
+        let profile = try ClassicalPiano.load()
+        let graph = PianoAudioGraph()
+        try graph.rebuild(bank:profile.url,program:profile.program,bankMSB:profile.bankMsb,bankLSB:profile.bankLsb,
+                          clickURL:nil,gain:1)
+        var transport: PianoSequenceTransport? = PianoSequenceTransport(graph:graph)
+        try transport?.configure(piano:[MusicEvent(midi:60,onset:0,duration:240)],clicks:[],totalTicks:480,
+                                 bpm:80,pianoVelocity:76)
+        XCTAssertFalse(graph.engine.isRunning,"Track preparation must not race the output render thread")
+        try transport?.start()
+        transport?.stop()
+        XCTAssertFalse(graph.engine.isRunning,"Stop must quiesce I/O before removing MIDI render callbacks")
+        XCTAssertFalse(try XCTUnwrap(transport).sequencer.isPlaying)
+        transport?.prepareToPlay(beats:0.5)
+        XCTAssertFalse(graph.engine.isRunning,"Seek must occur with the render callback quiescent")
+        try transport?.configure(piano:[MusicEvent(midi:69,onset:0,duration:240)],clicks:[],totalTicks:480,
+                                 bpm:120,pianoVelocity:76)
+        XCTAssertFalse(graph.engine.isRunning,"Track edits must leave restart to the explicit start call")
+        try transport?.start()
+        XCTAssertTrue(graph.engine.isRunning)
+        transport = nil
+        XCTAssertFalse(graph.engine.isRunning,"An active render callback must not outlive its sequence owner")
+    }
     func testRapidSkippingDuringAudioAndLeadStartsOnlyTheLastChosenSegment() async throws {
         let api = try DemoExamAPI(outcome:"completed",storageScope:demoScope)
         let list = try await api.questions(page:1)
@@ -69,9 +93,16 @@ import ImageIO
         try await Task.sleep(for:.milliseconds(300))
         player.pause()
         XCTAssertGreaterThan(try XCTUnwrap(player.cursor.segmentOffsetMs),first+150)
+        XCTAssertEqual(player.sequenceCreationCount,1,"Pause/resume must retain the prepared sequence")
         player.jump(to:6)
         XCTAssertEqual(player.cursor.index,6); XCTAssertEqual(player.cursor.phase,"segment")
         XCTAssertNil(player.cursor.segmentOffsetMs); XCTAssertTrue(player.isPlaying)
+        let jumpDeadline = ProcessInfo.processInfo.systemUptime+5
+        while player.loadedSegmentIndex != 6 && ProcessInfo.processInfo.systemUptime < jumpDeadline {
+            try await Task.sleep(for:.milliseconds(20))
+        }
+        XCTAssertEqual(player.loadedSegmentIndex,6,"Wait for the real jump, not just its optimistic UI state")
+        XCTAssertEqual(player.sequenceCreationCount,1,"Changing sections must not replace a rendering sequence")
     }
     func testUndoAndRedoAvailabilityFollowsTheUndoStack() async throws {
         let scene = try XCTUnwrap(UIApplication.shared.connectedScenes.compactMap { $0 as? UIWindowScene }.first)

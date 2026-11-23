@@ -30,6 +30,8 @@ enum EchoIntervalPhase: Equatable {
     @Published private(set) var soundingNote: Int?
     @Published private(set) var startReminder = false
     @Published var error: String?
+    @Published private(set) var hasStarted = false
+    private var tutorialSuspended = false
     private let audio: EchoIntervalPlaying
     private let noteDuration: Duration
     private let gapDuration: Duration
@@ -42,11 +44,12 @@ enum EchoIntervalPhase: Equatable {
         run=EchoIntervalRun(stage:stage); self.audio=audio ?? EchoIntervalPiano()
         self.noteDuration=noteDuration; self.gapDuration=gapDuration
     }
-    var canEnter: Bool { heard && (phase == .waiting || phase == .puzzled) && !run.failed && !run.complete }
-    var canListen: Bool { !phase.busy && !run.failed && !run.complete && !run.solved[run.index] }
+    var canEnter: Bool { !tutorialSuspended && heard && (phase == .waiting || phase == .puzzled) && !run.failed && !run.complete }
+    var canListen: Bool { !tutorialSuspended && !phase.busy && !run.failed && !run.complete && !run.solved[run.index] }
     var canSubmit: Bool { canEnter && inputs.count == 2 }
     func listen() {
-        guard canListen else { return }
+        guard !tutorialSuspended, canListen else { return }
+        hasStarted = true
         inputs=[]; startReminder=false
         play(run.question.call,answer:false)
     }
@@ -117,5 +120,12 @@ enum EchoIntervalPhase: Equatable {
         cancelPlayback(); audio.stop()
         if wasBusy { heard=false; phase = .idle }
     }
-    func resume() { if phase == .idle && error == nil { listen() } }
+    func start() { guard !hasStarted else { return }; listen() }
+    func suspendForTutorial() {
+        let wasAnswer = phase == .answerPlayback
+        suspend(); tutorialSuspended = true
+        if wasAnswer { heard = true; phase = .waiting }
+    }
+    func finishTutorial() { tutorialSuspended = false }
+    func resume() { if hasStarted && !tutorialSuspended && phase == .idle && error == nil { listen() } }
 }

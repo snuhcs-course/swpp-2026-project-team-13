@@ -25,6 +25,7 @@ struct DrillStageSetView: View {
     let exit: () -> Void
     @StateObject private var session: DrillStageSession
     @Environment(\.scenePhase) private var phase
+    @State private var learnerActive = true
     init(stage: DrillStage,set: DrillStageSet,version: String,root: URL,connection: RhythmConnection?,mastered: @escaping () -> Void,exit: @escaping () -> Void) {
         self.stage=stage; self.connection=connection; self.mastered=mastered; self.exit=exit
         _session=StateObject(wrappedValue:DrillStageSession(set:set,version:version,root:root,connection:connection))
@@ -38,13 +39,15 @@ struct DrillStageSetView: View {
         }.onChange(of:session.summary) { _, value in if value && session.attempt.mastered { mastered() } }
             .onAppear { if session.summary && session.attempt.mastered { mastered() } }
             .task(id:session.summary) { if !session.summary { await session.prepare() } }
-            .onChange(of:phase) { _, value in session.active(value == .active) }
+            .onChange(of:phase) { _, value in session.active(value == .active && learnerActive) }
             .onDisappear { session.echoAudio.stop(); session.memoryGame?.stop(); session.rhythmGame?.close() }
     }
     private var context: DrillStageContext {
         DrillStageContext(stage:stage,question:session.round,index:session.attempt.index,results:session.attempt.results,
             report:session.report,next:session.next,exit:exit,revealAcknowledged:session.revealAcknowledged,
-            acknowledgeReveal:{ session.revealAcknowledged=true })
+            acknowledgeReveal:{ session.revealAcknowledged=true }, activity: {
+                learnerActive = $0; session.active($0 && phase == .active)
+            })
     }
     @ViewBuilder private var question: some View {
         switch stage.game {

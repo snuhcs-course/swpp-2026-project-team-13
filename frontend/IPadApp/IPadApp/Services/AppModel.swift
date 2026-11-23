@@ -43,6 +43,9 @@ import PencilKit
     @Published var mainScore: MusicScore?
     @Published var prepared = false
     @Published var foreground = true
+    @Published private(set) var writingTutorialOpen = false
+    private var tutorialAttemptId: UUID?
+    private var tutorialWasPlaying = false
     @Published var connected = false
     @Published var drawingMissing = false
     @Published var page = 1
@@ -168,6 +171,7 @@ import PencilKit
         do { try await operation() } catch { if operationGeneration == generation { report(error) } }
     }
     private func clearUserState() {
+        closeWritingTutorial(resumePlayback: false)
         if !isLocked { saveDrawing(drawing.canvas.drawing) }
         player.stopForPreparation(); drawing.freeze(true)
         operationGeneration = UUID(); busy = false; pollGeneration = UUID()
@@ -799,6 +803,7 @@ import PencilKit
     }
     func retryPrepare() async { await run("악보와 피아노를 준비하는 중") { try await self.prepareAssets() } }
     func start() async {
+        guard !writingTutorialOpen else { return }
         await run("연습을 시작하는 중") {
             guard self.prepared, let api = self.api, let store = self.store, var record = self.session else { return }
             record.attempt = try await api.start(record.id)
@@ -811,6 +816,26 @@ import PencilKit
             self.clock.sync(record.attempt); try self.persist(record)
             self.drawing.freeze(self.isLocked); self.player.resume()
         }
+    }
+    func openWritingTutorial() {
+        guard !writingTutorialOpen, screen == .exam, prepared, let record = session,
+              ["ready", "in_progress"].contains(record.attempt.status), !record.frozen else { return }
+        tutorialAttemptId = record.id
+        tutorialWasPlaying = player.isPlaying
+        player.suspendForTutorial()
+        clock.pause()
+        drawing.freeze(true)
+        writingTutorialOpen = true
+    }
+    func closeWritingTutorial(resumePlayback: Bool = true) {
+        guard writingTutorialOpen else { return }
+        let sameAttempt = tutorialAttemptId == session?.id
+        let resume = resumePlayback && sameAttempt && tutorialWasPlaying && foreground &&
+            screen == .exam && !isLocked && !busy
+        writingTutorialOpen = false; tutorialAttemptId = nil; tutorialWasPlaying = false
+        clock.resume()
+        drawing.freeze(isLocked)
+        player.finishTutorial(resumePlayback: resume)
     }
     func saveDrawing(_ value: PKDrawing) {
         guard !isLocked, var record = session, let store else { return }
@@ -826,6 +851,7 @@ import PencilKit
         do { try store.write(drawing.canvas.drawing.dataRepresentation(), name: "drawing.pkdrawing", id: record.id); record.hasDrawing = !drawing.canvas.drawing.strokes.isEmpty; try persist(record); saveFailed = false; drawing.freeze(isLocked) } catch { report(error) }
     }
     func submit() async {
+        guard !writingTutorialOpen else { return }
         await run("답안을 안전하게 제출하는 중") {
             guard let api = self.api, let store = self.store, var record = self.session else { return }
             self.player.invalidateAudio(); self.drawing.freeze(true)
@@ -1051,11 +1077,13 @@ import PencilKit
     func background() { foreground = false; player.invalidateAudio(); if !isLocked { saveDrawing(drawing.canvas.drawing) } }
     func foregroundAgain() async {
         foreground = true; pollGeneration = UUID()
+        if writingTutorialOpen { return }
         guard !busy, let record = session, screen == .exam || screen == .result || (screen == .levelTest && record.grading?.isPending == true) else { return }
         // Explicit user input is still required to resume sound.
         await open(record)
     }
     func navigate(_ target: Screen) {
+        if target != .exam { closeWritingTutorial(resumePlayback: false) }
         if screen == .result, target != .result { releaseCompletedContent(); levelTestDetail = false }
         if target != .exam { player.invalidateAudio() }
         // Leaving for a library or home ends the Daily Training run; its progress stays saved.

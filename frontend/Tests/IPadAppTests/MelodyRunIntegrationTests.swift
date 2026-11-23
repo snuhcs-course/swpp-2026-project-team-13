@@ -134,7 +134,7 @@ import AVFoundation
             let image = try XCTUnwrap(ImageRenderer(content:content).uiImage)
             let attachment = XCTAttachment(image:image); attachment.name = "memory-connected-\(Int(width))"; attachment.lifetime = .keepAlways; add(attachment)
         }
-        let tutorial = ImageRenderer(content:MemoryTutorialView(done:{}).frame(width:834,height:1000))
+        let tutorial = ImageRenderer(content:TutorialWalkthrough(kind:.memoryRun,done:{}).frame(width:834,height:1000))
         XCTAssertNotNil(tutorial.uiImage)
     }
     func testExpandedPoolContainsOtherKeysClassicalAndIntermediateWithoutAdvancedDictation() {
@@ -217,6 +217,7 @@ import AVFoundation
             try game.audio.start(timeline,round:round,settings:settings)
             try await Task.sleep(for:.milliseconds(200))
             game.audio.stopClock()
+            try game.audio.startOutput()
             XCTAssertTrue(game.audio.isRunning,"Recall must retain the live piano engine")
             game.audio.noteOn(60); game.audio.noteOff(60)
             for _ in 0..<2 {
@@ -232,11 +233,10 @@ import AVFoundation
         let graph = PianoAudioGraph(), piano = PianoTimbreProbe(), click = PianoTimbreProbe()
         let audio = MelodyRunAudio(graph:graph)
         try audio.prepare()
-        defer { audio.stop() }
         let format = graph.piano.outputFormat(forBus:0)
         graph.piano.installTap(onBus:0,bufferSize:1024,format:nil) { buffer,_ in piano.append(buffer) }
         graph.click.installTap(onBus:0,bufferSize:1024,format:nil) { buffer,_ in click.append(buffer) }
-        defer { graph.piano.removeTap(onBus:0); graph.click.removeTap(onBus:0) }
+        defer { audio.stop(); graph.piano.removeTap(onBus:0); graph.click.removeTap(onBus:0) }
         let score = MusicScore(tempo:180,measures:2,events:[
             MusicEvent(midi:69,onset:0,duration:1920),MusicEvent(midi:69,onset:1920,duration:1920)
         ],symbols:[])

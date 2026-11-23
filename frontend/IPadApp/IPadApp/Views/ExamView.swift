@@ -1,183 +1,119 @@
 import SwiftUI
 
-// S11 Writing and S12 Confirm submit, for both Practice and Exam.
-// Practice adds play/pause and tap-to-replay on the segment bar; Exam only moves forward.
+// Live Practice/Exam and its read-only contextual guide share one layout.
 struct ExamView: View {
     @ObservedObject var model: AppModel
     @ObservedObject var drawing: DrawingController
     @ObservedObject var player: PianoPlayback
     @State private var confirmSubmit = false
-
+    @Environment(\.tutorialScope) private var tutorialScope
     private var attempt: Attempt? { model.session?.attempt }
     private var practice: Bool { attempt?.studyMode != .exam }
     private var frozen: Bool { model.session?.frozen == true }
-
     var body: some View {
-        VStack(spacing: 0) {
-            header.padding(.horizontal, 28).padding(.top, 6).padding(.bottom, 12)
+        WritingScreenLayout {
+            header
+        } warning: {
             if model.drawingMissing {
-                Label("이 기기에 편집 가능한 필기 원본이 없어요. 연습 기록에서 기존 이미지를 확인하거나 새 응시를 시작해 주세요.", systemImage: "exclamationmark.triangle").font(.subheadline).padding(.horizontal, 28).padding(.bottom, 8).foregroundStyle(.orange)
+                Label("이 기기에 편집 가능한 필기 원본이 없어요. 연습 기록에서 기존 이미지를 확인하거나 새 응시를 시작해 주세요.", systemImage: "exclamationmark.triangle")
+                    .font(.subheadline).padding(.horizontal, 28).padding(.bottom, 8).foregroundStyle(.orange)
             }
-            drawingTools.padding(.horizontal, 28).padding(.bottom, 12).disabled(model.isLocked)
-            answerSheet.padding(.horizontal, 28)
-            footer.padding(.horizontal, 28).padding(.vertical, 16)
-        }
-        .background(SolfegeTheme.background)
+        } tools: { drawingTools } sheet: { answerSheet } footer: { footer }
+            .toolbar {
+                ToolbarItem(placement: .topBarTrailing) {
+                    TutorialHelpButton(label: "시험 모드 안내", action: model.openWritingTutorial)
+                        .padding(.trailing, 14)
+                        .disabled(!model.prepared || frozen || model.writingTutorialOpen)
+                }
+            }
+            .writingTutorial(isPresented: model.writingTutorialOpen, mode: practice ? .practice : .exam) {
+                model.closeWritingTutorial()
+            }
+            .task(id: "\(attempt?.id.uuidString ?? "")-\(model.prepared)") {
+                if model.prepared && attempt?.status == "ready" && !TutorialHistory.hasSeen(.exam, scope: tutorialScope) {
+                    model.openWritingTutorial()
+                }
+            }
+            .onDisappear { model.closeWritingTutorial(resumePlayback: false) }
     }
-
-    // MARK: Header — key/meter/tempo · segment progress · writing timer
-
     private var header: some View {
-        HStack(spacing: 20) {
-            questionMeta.fixedSize().frame(maxWidth: .infinity, alignment: .leading)
-            SegmentProgressBar(cursor: player.cursor, onSelect: canJump ? { player.jump(to: $0) } : nil)
-                .frame(minWidth: 360, idealWidth: 560, maxWidth: 560).layoutPriority(1)
-            WritingTimer(cursor: player.cursor, plan: attempt?.playbackPlan, isPlaying:player.isPlaying)
-                .fixedSize().frame(maxWidth: .infinity, alignment: .trailing)
-        }
-    }
-
-    private var canJump: Bool {
-        practice && model.prepared && attempt?.status == "in_progress" && !frozen && !model.isLocked && !model.busy
-    }
-
-    private var questionMeta: some View {
-        HStack(spacing: 6) {
+        WritingScreenHeader {
             if let q = attempt?.question, let plan = attempt?.playbackPlan {
-                metaChip(q.keySignature.label)
-                metaChip("\(q.timeSignature.numerator)/\(q.timeSignature.denominator)박자")
-                    .accessibilityLabel("\(q.timeSignature.numerator)분의 \(q.timeSignature.denominator)박자")
-                metaChip(plan.tempo?.label ?? "♩ = \(Int(plan.tempoBpm.rounded()))")
+                WritingQuestionMeta(key: q.keySignature, meter: q.timeSignature,
+                                    tempo: plan.tempo?.label ?? "♩ = \(Int(plan.tempoBpm.rounded()))")
             }
+        } progress: {
+            SegmentProgressBar(cursor: player.cursor, onSelect: canJump ? { player.jump(to: $0) } : nil).tutorialTarget(.progress)
+        } clock: {
+            WritingTimer(cursor: player.cursor, plan: attempt?.playbackPlan, isPlaying: player.isPlaying).tutorialTarget(.timer)
         }
-        .accessibilityElement(children: .combine).accessibilityIdentifier("question-meta")
     }
-
-    private func metaChip(_ text: String) -> some View {
-        Text(text).font(.system(size: 15, weight: .bold)).foregroundStyle(SolfegeTheme.ink)
-            .padding(.horizontal, 11).padding(.vertical, 4)
-            .background(SolfegeTheme.soft, in: Capsule())
+    private var canJump: Bool {
+        practice && model.prepared && attempt?.status == "in_progress" && !frozen && !model.isLocked && !model.busy && !model.writingTutorialOpen
     }
-
-    // MARK: Drawing tools — pen, eraser, three pen widths, undo/redo
-
-    private struct PenWidth { let width: CGFloat; let label: String; let dot: CGFloat }
-    private static let penWidths = [PenWidth(width: 1.5, label: "가는 펜", dot: 4), PenWidth(width: 2, label: "보통 펜", dot: 8), PenWidth(width: 4.5, label: "굵은 펜", dot: 16)]
-
     private var drawingTools: some View {
-        HStack(spacing: 4) {
-            tool("펜", icon: "pencil.tip", selected: !drawing.erasing) { drawing.erasing = false }
-            tool("지우개", icon: "eraser", selected: drawing.erasing) { drawing.erasing = true }
-            toolDivider
-            ForEach(Self.penWidths, id: \.width) { option in
-                let selected = drawing.penWidth == option.width
-                Button { drawing.penWidth = option.width; drawing.erasing = false } label: {
-                    Circle().fill(selected ? SolfegeTheme.deepViolet : SolfegeTheme.ink).frame(width: option.dot, height: option.dot)
-                        .frame(width: 38, height: 38)
-                        .background(selected ? SolfegeTheme.soft : .clear, in: RoundedRectangle(cornerRadius: 10))
-                        .overlay(RoundedRectangle(cornerRadius: 10).stroke(selected ? SolfegeTheme.violet : .clear, lineWidth: 2))
-                        .contentShape(Rectangle())
-                }
-                .buttonStyle(.plain)
-                .accessibilityLabel(option.label).accessibilityAddTraits(selected ? .isSelected : [])
-                .accessibilityIdentifier("pen-width-\(option.width)")
-            }
-            toolDivider
-            Button { drawing.undo() } label: { Image(systemName: "arrow.uturn.backward").frame(width: 36, height: 36) }
-                .disabled(!drawing.canUndo).accessibilityLabel("실행 취소")
-            Button { drawing.redo() } label: { Image(systemName: "arrow.uturn.forward").frame(width: 36, height: 36) }
-                .disabled(!drawing.canRedo).accessibilityLabel("다시 실행")
-            Spacer(minLength: 0)
-        }
-        .font(.subheadline).foregroundStyle(SolfegeTheme.ink)
+        WritingToolsRow(erasing: drawing.erasing, penWidth: drawing.penWidth, canUndo: drawing.canUndo, canRedo: drawing.canRedo,
+                        pen: { drawing.erasing = false }, erase: { drawing.erasing = true },
+                        chooseWidth: { drawing.penWidth = $0; drawing.erasing = false }, undo: drawing.undo, redo: drawing.redo)
+            .disabled(model.isLocked).tutorialTarget(.tools)
     }
-
-    private var toolDivider: some View {
-        Rectangle().fill(SolfegeTheme.keyEdge).frame(width: 1, height: 22).padding(.horizontal, 6)
-    }
-
-    private func tool(_ title: String, icon: String, selected: Bool, action: @escaping () -> Void) -> some View {
-        Button(action: action) {
-            Label(title, systemImage: icon).font(.system(size: 14, weight: selected ? .bold : .regular))
-                .padding(.horizontal, 14).padding(.vertical, 9)
-                .background(selected ? SolfegeTheme.soft : .clear, in: RoundedRectangle(cornerRadius: 10))
-        }
-        .buttonStyle(.plain).foregroundStyle(selected ? SolfegeTheme.deepViolet : SolfegeTheme.softInk)
-    }
-
-    // MARK: Answer sheet — the whole 8-bar sheet always fits; it never scrolls.
-    // The sheet keeps its aspect ratio, so a 4:3 screen (12.9/13-inch) has height to spare:
-    // centre it instead of leaving one empty band above the footer.
-
     private var answerSheet: some View {
-        GeometryReader { proxy in
-            let height = Double(attempt?.question.sheetLayout.displayHeight ?? 846)
-            let width = max(0, min(proxy.size.width, proxy.size.height * 1330 / height))
-            Group {
-                if let template = model.template {
-                    AnswerCanvas(template: template, drawing: drawing, layout: attempt?.question.sheetLayout)
-                        .frame(width: width)
-                        .overlay(RoundedRectangle(cornerRadius: 16).stroke(Color.black.opacity(0.06)))
-                        .shadow(color: .black.opacity(0.04), radius: 12, y: 4)
-                } else {
-                    ContentUnavailableView("악보를 준비해 주세요", systemImage: "music.note", description: Text("오선·악보의 해시와 피아노 리소스를 확인해야 시작할 수 있어요."))
-                        .frame(maxWidth: .infinity, maxHeight: .infinity).background(.white, in: RoundedRectangle(cornerRadius: 16))
-                }
+        WritingSheetFrame(displayHeight: attempt?.question.sheetLayout.displayHeight ?? 846) { width in
+            if let template = model.template {
+                AnswerCanvas(template: template, drawing: drawing, layout: attempt?.question.sheetLayout)
+                    .frame(width: width)
+                    .overlay(RoundedRectangle(cornerRadius: 16).stroke(Color.black.opacity(0.06)))
+                    .shadow(color: .black.opacity(0.04), radius: 12, y: 4).tutorialTarget(.notation)
+            } else {
+                ContentUnavailableView("악보를 준비해 주세요", systemImage: "music.note", description: Text("오선·악보의 해시와 피아노 리소스를 확인해야 시작할 수 있어요."))
+                    .frame(maxWidth: .infinity, maxHeight: .infinity).background(.white, in: RoundedRectangle(cornerRadius: 16))
             }
-            .frame(width: proxy.size.width, height: proxy.size.height, alignment: .center)
         }
     }
-
-    // MARK: Footer — save status · (play/pause) · next segment · submit
-
-    private var footer: some View {
-        HStack(spacing: 8) {
-            Label(frozen ? "현재 답안 고정 · 제출 복구 가능" : "이 iPad에 필기 자동 저장", systemImage: frozen ? "lock" : "checkmark.icloud")
-                .font(.caption).foregroundStyle(.secondary)
-            Spacer(minLength: 16)
-            actions
-        }
-    }
-
+    private var footer: some View { WritingScreenFooter(frozen: frozen) { actions } }
     @ViewBuilder private var actions: some View {
-        if !model.prepared { Button("악보 준비 재시도") { Task { await model.retryPrepare() } }.buttonStyle(SecondaryActionButton()) }
-        else if attempt?.status == "ready" {
-            Button { Task { await model.start() } } label: { Label("청음 시작", systemImage: "play.fill") }.buttonStyle(PrimaryButton())
+        if !model.prepared {
+            Button("악보 준비 재시도") { Task { await model.retryPrepare() } }.buttonStyle(SecondaryActionButton())
+        } else if attempt?.status == "ready" {
+            nextSegmentButton
+            Button { Task { await model.start() } } label: { Label("청음 시작", systemImage: "play.fill") }
+                .buttonStyle(PrimaryButton()).frame(width: 150).tutorialTarget(.start)
         } else if attempt?.status == "in_progress" {
             if player.cursor.index <= 11 && !frozen {
                 if practice {
                     Button { player.isPlaying ? player.pause() : player.resume() } label: {
                         Label(player.isPlaying ? "일시 정지" : "재생", systemImage: player.isPlaying ? "pause.fill" : "play.fill")
-                    }.buttonStyle(SecondaryActionButton()).accessibilityIdentifier("play-pause")
-                } else if !player.isPlaying {
-                    // Exam has no pause control. Sound stopped by leaving the app still needs
-                    // an explicit tap to come back, so offer only that.
+                    }.buttonStyle(SecondaryActionButton()).accessibilityIdentifier("play-pause").tutorialTarget(.playPause)
+                } else if !player.isPlaying && !model.writingTutorialOpen {
                     Button { player.resume() } label: { Label("이어서 재생", systemImage: "play.fill") }
                         .buttonStyle(SecondaryActionButton()).accessibilityIdentifier("resume-playback")
                 }
             }
-            if (1...10).contains(player.cursor.index), !frozen {
-                Button { player.skipWritingWait() } label: { Label("다음 구간", systemImage: "forward.end.fill") }
-                    .buttonStyle(SecondaryActionButton()).disabled(!player.canSkipWritingWait || model.isLocked || model.busy)
-                    .accessibilityIdentifier("skip-writing-wait")
+            if !frozen { nextSegmentButton }
+            if model.isLocked && !frozen {
+                Button("필기 저장 재시도") { model.retryDrawingSave() }.buttonStyle(SecondaryActionButton())
             }
-            if model.isLocked && !frozen { Button("필기 저장 재시도") { model.retryDrawingSave() }.buttonStyle(SecondaryActionButton()) }
             Button { if frozen { Task { await model.submit() } } else { confirmSubmit = true } } label: {
                 Text(frozen ? "제출 복구" : "답안 제출")
-            }
-            .buttonStyle(PrimaryButton()).disabled(model.drawingMissing).accessibilityIdentifier("submit-answer")
-            // A popover keeps the sheet visible (no dimming) and points at the button it belongs to.
-            .popover(isPresented: $confirmSubmit, attachmentAnchor: .rect(.bounds), arrowEdge: .bottom) {
-                AnswerConfirmation(title:"이 답안으로 제출할까요?",
-                    message:practice ? "제출을 시작하면 현재 필기를 고정해 전송합니다.\n통신이 끊겨도 같은 답안으로 복구할 수 있어요."
-                                     : "제출하면 현재 필기를 고정해 AI 평가로 전송합니다.\n제출 후에는 답안을 수정할 수 없어요.",
-                    confirmTitle:"답안 제출",cancelTitle:"계속 작성하기",confirmIdentifier:"confirm-submit") {
-                    confirmSubmit = false
-                    Task { await model.submit() }
-                } cancel: { confirmSubmit = false }
-                .presentationCompactAdaptation(.popover)
-            }
+            }.buttonStyle(PrimaryButton()).frame(width: 150).disabled(model.drawingMissing).accessibilityIdentifier("submit-answer").tutorialTarget(.submit)
+                .popover(isPresented: $confirmSubmit, attachmentAnchor: .rect(.bounds), arrowEdge: .bottom) {
+                    AnswerConfirmation(title: "이 답안으로 제출할까요?",
+                                       message: practice ? "제출을 시작하면 현재 필기를 고정해 전송합니다.\n통신이 끊겨도 같은 답안으로 복구할 수 있어요." : "제출하면 현재 필기를 고정해 AI 평가로 전송합니다.\n제출 후에는 답안을 수정할 수 없어요.",
+                                       confirmTitle: "답안 제출", cancelTitle: "계속 작성하기", confirmIdentifier: "confirm-submit") {
+                        confirmSubmit = false; Task { await model.submit() }
+                    } cancel: { confirmSubmit = false }
+                    .presentationCompactAdaptation(.popover)
+                }
         }
+    }
+    var nextSegmentEnabled: Bool {
+        attempt?.status == "in_progress" && player.cursor.phase == "gap" && player.canSkipWritingWait &&
+            !frozen && !model.isLocked && !model.busy && !model.writingTutorialOpen
+    }
+    private var nextSegmentButton: some View {
+        Button { player.skipWritingWait() } label: { Label("다음 구간", systemImage: "forward.end.fill") }
+            .buttonStyle(SecondaryActionButton()).frame(width: 150).disabled(!nextSegmentEnabled)
+            .accessibilityIdentifier("skip-writing-wait").tutorialTarget(.next)
     }
 }
 

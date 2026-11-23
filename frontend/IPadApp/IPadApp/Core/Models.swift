@@ -323,8 +323,14 @@ enum MonotonicTime {
 struct AdvisoryClock {
     var secondsAtSync: TimeInterval = 0
     var uptimeAtSync: TimeInterval = 0
+    private var pausedAt: TimeInterval?
+    init() {}
     mutating func sync(_ attempt: Attempt, uptime: TimeInterval = MonotonicTime.now) {
-        secondsAtSync = max(0, attempt.recommendedEndAt?.timeIntervalSince(attempt.serverTime) ?? 0); uptimeAtSync = uptime
+        secondsAtSync = max(0, attempt.recommendedEndAt?.timeIntervalSince(attempt.serverTime) ?? 0); uptimeAtSync = uptime; pausedAt = nil
     }
-    func remaining(uptime: TimeInterval = MonotonicTime.now) -> Int { max(0, Int(ceil(secondsAtSync - max(0, uptime - uptimeAtSync)))) }
+    mutating func pause(uptime: TimeInterval = MonotonicTime.now) { if pausedAt == nil { pausedAt = uptime } }
+    mutating func resume(uptime: TimeInterval = MonotonicTime.now) {
+        if let pausedAt { uptimeAtSync += max(0, uptime-pausedAt); self.pausedAt = nil }
+    }
+    func remaining(uptime: TimeInterval = MonotonicTime.now) -> Int { max(0, Int(ceil(secondsAtSync - max(0, (pausedAt ?? uptime) - uptimeAtSync)))) }
 }

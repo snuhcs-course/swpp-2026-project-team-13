@@ -12,6 +12,7 @@ struct ContentView: View {
             } else { mainInterface }
         }
         .tint(SolfegeTheme.violet).preferredColorScheme(.light)
+        .environment(\.tutorialScope, model.rhythmConnection?.scope)
         .task { await model.connect() }
         .alert("확인이 필요해요", isPresented: Binding(get: { model.error != nil }, set: { if !$0 { model.error = nil } })) { Button("확인") { model.error = nil } } message: { Text(model.error ?? "") }
         .confirmationDialog("서버 로그아웃을 확인하지 못했어요", isPresented: $model.logoutNeedsConfirmation, titleVisibility: .visible) {
@@ -78,6 +79,11 @@ struct ContentView: View {
             .toolbarBackground(SolfegeTheme.background, for: .navigationBar)
             .overlay { if model.screen != .recommendingExam { busyOverlay } }
         }
+        .environment(\.writingTutorialHosted, true)
+        .writingTutorial(isPresented: model.writingTutorialOpen,
+                         mode: model.session?.attempt.studyMode ?? model.selectedMode, rootHost: true) {
+            model.closeWritingTutorial()
+        }
     }
     // A level-test stage keeps the level test's name on the intro and writing screens.
     private var examTitle: String {
@@ -99,5 +105,6 @@ struct ContentView: View {
     }
     private func back(_ title: String, to screen: AppModel.Screen) -> some View {
         Button { model.navigate(screen) } label: { HStack(spacing: 4) { Image(systemName:"chevron.left"); Text(title) } }
+            .disabled(model.writingTutorialOpen)
     }
 }

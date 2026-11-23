@@ -95,11 +95,6 @@ struct HomeView: View {
                     HStack(spacing: 6) { Image(systemName: "chevron.left"); Text(classical ? "작곡가 선택" : "난이도 선택") }.frame(minHeight: 44)
                 }.accessibilityIdentifier("practice-bank-back")
                 Spacer()
-                Button { } label: {
-                    Text("?").font(.system(size: 19, weight: .medium)).frame(width: 38, height: 38)
-                        .overlay(Circle().stroke(SolfegeTheme.keyEdge.opacity(0.65), lineWidth: 1))
-                        .frame(width: 44, height: 44)
-                }.accessibilityLabel("튜토리얼 준비 중").accessibilityIdentifier("practice-bank-help")
             }.font(.system(size: 16)).foregroundStyle(SolfegeTheme.violet)
         }.padding(.horizontal, 28).frame(height: 72)
     }
