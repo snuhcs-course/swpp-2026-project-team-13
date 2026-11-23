@@ -202,3 +202,6 @@ resumes the same loaded graph; a logical stop restores the warm engine for live
 keys. Full disposal leaves it stopped. Existing piano-harmonic/live-key tests
 remain enabled, and the real-graph test checks the paused seek and warm-stop
 postconditions as well as final disposal.
+MIDI preroll is performed only after the output engine resumes. Preparing it
+against the paused output clock can miss the first note on replay; the existing
+Memory/Rhythm pitch and harmonic checks verify this order using real samples.

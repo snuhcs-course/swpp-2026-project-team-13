@@ -48,7 +48,6 @@ import AVFoundation
         for track in [pianoTrack,clickTrack] { track.lengthInBeats=beats }
         previousEnd=beats
         sequencer.rate=1; sequencer.currentPositionInBeats=0
-        sequencer.prepareToPlay()
     }
     private func append(_ events: [MusicEvent], to track: AVMusicTrack, velocity: UInt8) {
         for event in events {
@@ -61,10 +60,12 @@ import AVFoundation
         engine.pause(); sequencer.stop()
         if let beats { sequencer.currentPositionInBeats=beats }
         if let seconds { sequencer.currentPositionInSeconds=seconds }
-        sequencer.prepareToPlay()
     }
     func start() throws {
         if !engine.isRunning { try engine.start() }
+        // Preroll against the resumed output clock, not its paused timestamp.
+        // Otherwise a replay can consume its first note before I/O resumes.
+        sequencer.prepareToPlay()
         try sequencer.start()
     }
     func stop(restartEngine: Bool = true) {
