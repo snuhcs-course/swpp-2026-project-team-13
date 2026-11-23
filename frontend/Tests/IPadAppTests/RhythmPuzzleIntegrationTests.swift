@@ -23,8 +23,8 @@ import AVFoundation
             XCTAssertTrue(graph.engine === engine && graph.piano === sampler,"Listening must not rebuild the loaded instrument")
             let rendered=Array(probe.snapshot().suffix(Int(rate*0.25)))
             XCTAssertEqual(rendered.count,Int(rate*0.25))
-            XCTAssertGreaterThan(PianoTimbreProbe.rms(rendered),0.0001)
-            XCTAssertGreaterThan(PianoTimbreProbe.harmonicFraction(rendered,rate:rate),0.005,"First play, replay and answer playback must remain a sampled piano")
+            XCTAssertGreaterThan(PianoTimbreProbe.rms(rendered),0.0001,"Missing piano output on playback \(index), tempo \(bpm)")
+            XCTAssertGreaterThan(PianoTimbreProbe.harmonicFraction(rendered,rate:rate),0.005,"First play, replay and answer playback must remain a sampled piano (playback \(index), tempo \(bpm))")
         }
     }
     func connection() throws -> RhythmConnection {

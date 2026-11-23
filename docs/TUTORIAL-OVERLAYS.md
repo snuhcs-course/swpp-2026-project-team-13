@@ -205,3 +205,7 @@ postconditions as well as final disposal.
 MIDI preroll is performed only after the output engine resumes. Preparing it
 against the paused output clock can miss the first note on replay; the existing
 Memory/Rhythm pitch and harmonic checks verify this order using real samples.
+Rhythm playback also shares Memory's 150 ms silent scheduling lead, including
+replays without a count-in and revealed answers. Piano and metronome move
+together; reported ticks/end ticks retain the original musical timeline. This
+keeps a note at the start of the score clear of the output-resume boundary.
