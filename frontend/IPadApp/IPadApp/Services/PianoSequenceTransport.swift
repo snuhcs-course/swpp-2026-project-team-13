@@ -6,11 +6,13 @@ import AVFoundation
 // Editing stopped tracks avoids both that lifecycle race and implicit MIDI
 // import destinations. Only full shutdown/recovery releases this object.
 @MainActor final class PianoSequenceTransport {
+    private let engine: AVAudioEngine
     let sequencer: AVAudioSequencer
     let pianoTrack: AVMusicTrack
     private let clickTrack: AVMusicTrack
     private var previousEnd = 0.0
     init(graph: PianoAudioGraph) {
+        engine=graph.engine
         let player=AVAudioSequencer(audioEngine:graph.engine)
         sequencer=player
         pianoTrack=player.createAndAppendTrack()
@@ -54,4 +56,8 @@ import AVFoundation
         }
     }
     func start() throws { try sequencer.start() }
+    // A view/model can disappear after pause without calling full shutdown.
+    // Stop this exact engine before stored properties release MusicSequence;
+    // its render callback must never outlive the sequence it references.
+    deinit { engine.stop() }
 }

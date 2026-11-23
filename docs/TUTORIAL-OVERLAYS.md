@@ -183,3 +183,14 @@ sequence or restarting its loaded piano graph. Full shutdown/instrument changes
 stop the engine before releasing the sequence. The existing rapid-seek,
 tempo-change, pause/resume and instrument-load-count test remains enabled and
 also verifies that every tempo and range reuses the same sequence.
+
+The same lifetime issue also surfaced in the live exam pause/resume/jump test.
+PianoPlayback now caches each section's notes and count-in separately and
+reconfigures the same transport's stopped tracks. It keeps the original click
+pitch, velocities, count-in offset and saved playback position. Graph recovery
+stops the engine before disposal. The live jump regression waits until the
+requested section is actually loaded and checks that the sequence was reused.
+The shared transport also stops its own engine in deinit, before Swift releases
+its sequence, so a paused screen/model disappearing cannot leave an active
+render callback pointing at a disposed sequence. A real-graph disposal test
+checks this cleanup independently of a caller's explicit shutdown method.
