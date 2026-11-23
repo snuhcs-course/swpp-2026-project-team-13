@@ -28,9 +28,10 @@ import AVFoundation
                   e.onset>=0 && e.duration>0 && e.onset<=totalTicks && e.duration<=totalTicks-e.onset &&
                   (e.midi.map { (0...127).contains($0) } ?? true)
               }) else { throw SolfegeError.invalidScore("재생할 음표의 길이와 템포를 확인해 주세요.") }
-        // Core Audio's render notification can still run after the MIDI player
-        // reports stopped. Fence stop/edit/seek with the output graph paused.
-        engine.pause(); sequencer.stop()
+        // Stop the MIDI timeline, not the output device. Pausing/restarting I/O
+        // for every edit invalidates its render clock and can leave a started
+        // player with no output buffers. The sequence stays attached throughout.
+        sequencer.stop()
         // Remove through the documented iterator flag, including empty tracks.
         // The third pointer means removeEvent, NOT stop enumeration. Do not
         // subsequently MusicTrackClear an already-empty track (Core Audio -50).
@@ -57,24 +58,18 @@ import AVFoundation
         }
     }
     func prepareToPlay(beats: Double? = nil, seconds: Double? = nil) {
-        engine.pause(); sequencer.stop()
+        sequencer.stop()
         if let beats { sequencer.currentPositionInBeats=beats }
         if let seconds { sequencer.currentPositionInSeconds=seconds }
     }
     func start() throws {
         if !engine.isRunning { try engine.start() }
-        // Preroll against the resumed output clock, not its paused timestamp.
-        // Otherwise a replay can consume its first note before I/O resumes.
         sequencer.prepareToPlay()
         try sequencer.start()
     }
-    func stop(restartEngine: Bool = true) {
-        let wasRunning=engine.isRunning
-        engine.pause(); sequencer.stop()
-        // Recall/live keys need the same loaded sampler immediately. Pausing
-        // preserves its samples; a full stop/rebuild is reserved for recovery.
-        if restartEngine && wasRunning { try? engine.start() }
-    }
+    // A stop must never secretly restart I/O, especially with try? hiding a
+    // start failure. Only start() starts I/O and propagates its error to the UI.
+    func stop() { sequencer.stop() }
     // A view/model can disappear after pause without calling full shutdown.
     // Stop this exact engine before stored properties release MusicSequence;
     // its render callback must never outlive the sequence it references.

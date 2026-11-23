@@ -8,11 +8,10 @@ import AVFoundation
         let graph=PianoAudioGraph(), probe=PianoTimbreProbe()
         let audio=RhythmPuzzleAudio(graph:graph)
         try audio.prepare()
-        defer { audio.shutdown() }
         let engine=graph.engine, sampler=graph.piano, rate=sampler.outputFormat(forBus:0).sampleRate
         sampler.installTap(onBus:0,bufferSize:1024,format:nil) { buffer,_ in probe.append(buffer) }
-        defer { sampler.removeTap(onBus:0) }
-        let bank: RhythmCatalog=try Bundled.decode("rhythm-puzzle-v4")
+        defer { audio.shutdown(); sampler.removeTap(onBus:0) }
+        let bank: RhythmCatalog=try DemoContent.decode("rhythm-puzzle-v4",forceSmall:true)
         var round=try XCTUnwrap(bank.rounds.first { $0.meter.numerator==4 && $0.meter.denominator==4 })
         round.audio=[RhythmNote(onset:.zero,duration:round.totalDuration,midi:69)]
         for (index,bpm) in [180.0,96,132].enumerated() {

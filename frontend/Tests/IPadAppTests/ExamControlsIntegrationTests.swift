@@ -21,7 +21,10 @@ import AVFoundation
         XCTAssertTrue(graph.engine.isRunning,"A logical pause must keep the live instrument available")
         XCTAssertFalse(try XCTUnwrap(transport).sequencer.isPlaying)
         transport?.prepareToPlay(beats:0.5)
-        XCTAssertFalse(graph.engine.isRunning,"Seeking must happen with the output paused")
+        XCTAssertTrue(graph.engine.isRunning,"Seeking must preserve the running output and its loaded samples")
+        try transport?.configure(piano:[MusicEvent(midi:69,onset:0,duration:240)],clicks:[],totalTicks:480,
+                                 bpm:120,pianoVelocity:76)
+        XCTAssertTrue(graph.engine.isRunning,"Changing notes/tempo must not restart I/O")
         try transport?.start()
         XCTAssertTrue(graph.engine.isRunning)
         transport = nil

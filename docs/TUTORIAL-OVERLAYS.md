@@ -195,17 +195,11 @@ its sequence, so a paused screen/model disappearing cannot leave an active
 render callback pointing at a disposed sequence. A real-graph disposal test
 checks this cleanup independently of a caller's explicit shutdown method.
 
-The install runner also exposed the render-notification race during active
-Memory replay/stop. All game, exam and review callers now use the transport's
-output pause fence before stopping MIDI, changing events or seeking. Start
-resumes the same loaded graph; a logical stop restores the warm engine for live
-keys. Full disposal leaves it stopped. Existing piano-harmonic/live-key tests
-remain enabled, and the real-graph test checks the paused seek and warm-stop
-postconditions as well as final disposal.
-MIDI preroll is performed only after the output engine resumes. Preparing it
-against the paused output clock can miss the first note on replay; the existing
-Memory/Rhythm pitch and harmonic checks verify this order using real samples.
-Rhythm playback also shares Memory's 150 ms silent scheduling lead, including
-replays without a count-in and revealed answers. Piano and metronome move
-together; reported ticks/end ticks retain the original musical timeline. This
-keeps a note at the start of the score clear of the output-resume boundary.
+The initial output pause fence and timing-lead fix did not establish reliable
+replay: a subsequent run reloaded Practice's bank five times and captured zero
+frames on Rhythm's answer playback. The transport now stops only MIDI for
+logical playback operations and keeps the loaded output running. Resource
+invalidation is explicit rather than inferred from `engine.isRunning`; output
+start errors propagate to the UI. Full shutdown still stops output before
+sequence disposal. See [Audio lifecycle](AUDIO-LIFECYCLE.md) for the evidence,
+ownership rules and focused five-repeat verification before release CI.

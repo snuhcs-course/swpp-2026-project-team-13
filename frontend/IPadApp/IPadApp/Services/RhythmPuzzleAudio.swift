@@ -17,7 +17,7 @@ import AVFoundation
         try session.setCategory(.playback,mode:.default,options:[]); try session.setActive(true)
         let selected = try profile ?? ClassicalPiano.load()
         profile = selected
-        if !ready || !graph.engine.isRunning {
+        if !ready {
             invalidate()
             guard let click = Bundle.main.url(forResource:"sori-click-v1",withExtension:"wav") else { throw SolfegeError.invalidScore("예비박 음원이 없어요.") }
             try graph.rebuild(bank:selected.url,program:selected.program,bankMSB:selected.bankMsb,bankLSB:selected.bankLsb,clickURL:click,gain:pow(10,selected.gainDb/20))

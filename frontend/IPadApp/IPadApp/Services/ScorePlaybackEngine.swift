@@ -120,7 +120,7 @@ import AudioToolbox
     // A sampler is rebuilt after leaving a problem or an audio interruption. Reusing a
     // stopped I/O graph can leave a running sequencer connected to a silent instrument.
     private func rebuildAudioGraph() throws {
-        engine.stop(); transport?.stop(restartEngine:false); transport = nil; loadedIndex = nil
+        engine.stop(); transport?.stop(); transport = nil; loadedIndex = nil
         let audio = AVAudioSession.sharedInstance()
         try audio.setCategory(.playback,mode:.default,options:[])
         try audio.setActive(true)

@@ -232,11 +232,10 @@ import AVFoundation
         let graph = PianoAudioGraph(), piano = PianoTimbreProbe(), click = PianoTimbreProbe()
         let audio = MelodyRunAudio(graph:graph)
         try audio.prepare()
-        defer { audio.stop() }
         let format = graph.piano.outputFormat(forBus:0)
         graph.piano.installTap(onBus:0,bufferSize:1024,format:nil) { buffer,_ in piano.append(buffer) }
         graph.click.installTap(onBus:0,bufferSize:1024,format:nil) { buffer,_ in click.append(buffer) }
-        defer { graph.piano.removeTap(onBus:0); graph.click.removeTap(onBus:0) }
+        defer { audio.stop(); graph.piano.removeTap(onBus:0); graph.click.removeTap(onBus:0) }
         let score = MusicScore(tempo:180,measures:2,events:[
             MusicEvent(midi:69,onset:0,duration:1920),MusicEvent(midi:69,onset:1920,duration:1920)
         ],symbols:[])
