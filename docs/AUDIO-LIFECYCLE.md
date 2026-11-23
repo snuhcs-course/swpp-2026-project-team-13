@@ -67,6 +67,16 @@ these lifecycle tests. After the focused run passes, run the normal release CI.
 
 Verification is pending until the workflow results are recorded in the PR.
 
+The first focused run (`45112094493`) passed 32/35 executions. All lifecycle,
+bank-retention, native-output and recovery checks passed. The three failures were
+the same Rhythm harmonic assertion (including 0.00394 against 0.005), with no
+missing buffers or silent-output assertions. Rhythm used a late fixed-time tail,
+unlike Memory's existing `firstNoteWindow`, which explicitly excludes decayed
+tails. Its regression now compares the same 8192-frame early sustain after a
+fresh onset. RMS/harmonic thresholds and capture duration are unchanged; an A4
+pitch check is added. A missing fresh note still fails. The app code is unchanged
+for this measurement correction.
+
 ## API contracts
 
 - [AVAudioSequencer.stop](https://developer.apple.com/documentation/avfaudio/avaudiosequencer/stop%28%29): stopping MIDI preserves its position and does not stop the associated engine.

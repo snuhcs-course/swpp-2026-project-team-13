@@ -20,10 +20,19 @@ import AVFoundation
             try await Task.sleep(for:.milliseconds(index==0 ? 2100 : 700))
             audio.stop()
             XCTAssertTrue(graph.engine === engine && graph.piano === sampler,"Listening must not rebuild the loaded instrument")
-            let rendered=Array(probe.snapshot().suffix(Int(rate*0.25)))
-            XCTAssertEqual(rendered.count,Int(rate*0.25))
+            let samples=probe.snapshot()
+            let late=Array(samples.suffix(Int(rate*0.25)))
+            // Compare the same early sustain as Memory's piano regression.
+            // A fixed wall-clock tail compares different ages of a decaying
+            // sample, so real piano can fail the sine-wave rejection threshold.
+            let rendered=try XCTUnwrap(PianoTimbreProbe.firstNoteWindow(in:samples,rate:rate),
+                "No complete NEW piano note on playback \(index), tempo \(bpm)")
+            XCTAssertEqual(rendered.count,8192)
             XCTAssertGreaterThan(PianoTimbreProbe.rms(rendered),0.0001,"Missing piano output on playback \(index), tempo \(bpm)")
-            XCTAssertGreaterThan(PianoTimbreProbe.harmonicFraction(rendered,rate:rate),0.005,"First play, replay and answer playback must remain a sampled piano (playback \(index), tempo \(bpm))")
+            XCTAssertGreaterThan(PianoTimbreProbe.power(rendered,hz:440,rate:rate),
+                                 4*PianoTimbreProbe.power(rendered,hz:420,rate:rate),"Replay must retain A4 tuning")
+            XCTAssertGreaterThan(PianoTimbreProbe.harmonicFraction(rendered,rate:rate),0.005,
+                "First play, replay and answer playback must remain a sampled piano (playback \(index), tempo \(bpm), late-window harmonics \(PianoTimbreProbe.harmonicFraction(late,rate:rate)))")
         }
     }
     func connection() throws -> RhythmConnection {
